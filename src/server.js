@@ -1,7 +1,12 @@
 'use strict';
 
 const http = require('node:http');
+const { randomUUID } = require('node:crypto');
 const { Server } = require('socket.io');
+const {
+  REGISTER_EVENT,
+  REGISTER_RESPONSE_EVENT
+} = require('./model/register');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -15,6 +20,51 @@ function resolvePort(value = process.env.PORT) {
 
 function createServer(options = {}) {
   const port = resolvePort(options.port);
+  const registeredPlayers = new Map();
+
+  function toNonEmptyString(value) {
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    return value.trim();
+  }
+
+  function buildRegisterResponse(payload) {
+    const playerName = toNonEmptyString(payload?.playerName);
+    const email = toNonEmptyString(payload?.email);
+    const password = toNonEmptyString(payload?.password);
+
+    if (!playerName || !email || !password) {
+      return {
+        success: false,
+        message: 'playerName, email, and password are required'
+      };
+    }
+
+    const normalizedPlayerName = playerName.toLowerCase();
+    if (registeredPlayers.has(normalizedPlayerName)) {
+      return {
+        success: false,
+        message: 'playerName already exists'
+      };
+    }
+
+    const playerId = randomUUID();
+    registeredPlayers.set(normalizedPlayerName, {
+      playerId,
+      playerName,
+      email,
+      socketId: null
+    });
+
+    return {
+      success: true,
+      message: 'Registration successful',
+      playerId
+    };
+  }
+
   const server = http.createServer((req, res) => {
     if (req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -44,6 +94,20 @@ function createServer(options = {}) {
         id: socket.id,
         payload
       });
+    });
+
+    socket.on(REGISTER_EVENT, (payload) => {
+      const response = buildRegisterResponse(payload);
+
+      if (response.success) {
+        const normalizedPlayerName = payload.playerName.trim().toLowerCase();
+        const existingPlayer = registeredPlayers.get(normalizedPlayerName);
+        if (existingPlayer) {
+          existingPlayer.socketId = socket.id;
+        }
+      }
+
+      socket.emit(REGISTER_RESPONSE_EVENT, response);
     });
   });
 
