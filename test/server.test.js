@@ -17,6 +17,10 @@ const {
   CHARACTER_LIST_REQUEST_EVENT,
   CHARACTER_LIST_RESPONSE_EVENT
 } = require('../src/model/character-list');
+const {
+  CHARACTER_ADD_REQUEST_EVENT,
+  CHARACTER_ADD_RESPONSE_EVENT
+} = require('../src/model/character-add');
 
 test('resolvePort returns default port when not set', () => {
   assert.equal(resolvePort(undefined), 3000);
@@ -324,6 +328,79 @@ test('character list rejects playerName that is not registered', async () => {
   assert.equal(listResponse.message, 'Player is not registered');
   assert.equal(listResponse.playerName, 'UnknownPilot');
   assert.deepEqual(listResponse.characters, []);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character add adds character and is returned by character list', async () => {
+  const { server, io } = createServer({ port: '3010' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const registerResponsePromise = waitForEvent(client, REGISTER_RESPONSE_EVENT);
+  client.emit(REGISTER_EVENT, {
+    playerName: 'BuilderPilot',
+    email: 'builder@example.com',
+    password: 'builder-pass'
+  });
+  const registerResponse = await registerResponsePromise;
+  assert.equal(registerResponse.success, true);
+
+  const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'builderpilot',
+    characterName: 'RangerOne'
+  });
+
+  const addResponse = await addResponsePromise;
+  assert.equal(addResponse.success, true);
+  assert.equal(addResponse.message, 'Character added successfully');
+  assert.equal(addResponse.playerName, 'BuilderPilot');
+  assert.equal(addResponse.characterName, 'RangerOne');
+  assert.equal(typeof addResponse.characterId, 'string');
+  assert.ok(addResponse.characterId.length > 0);
+
+  const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
+  client.emit(CHARACTER_LIST_REQUEST_EVENT, {
+    playerName: 'BuilderPilot'
+  });
+
+  const listResponse = await listResponsePromise;
+  assert.equal(listResponse.success, true);
+  assert.equal(listResponse.playerName, 'BuilderPilot');
+  assert.equal(listResponse.characters.length, 1);
+  assert.equal(listResponse.characters[0].characterName, 'RangerOne');
+  assert.equal(listResponse.characters[0].id, addResponse.characterId);
+  assert.equal(typeof listResponse.characters[0].createdAt, 'string');
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character add rejects request for unregistered player', async () => {
+  const { server, io } = createServer({ port: '3011' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'MissingPilot',
+    characterName: 'GhostUnit'
+  });
+
+  const addResponse = await addResponsePromise;
+  assert.equal(addResponse.success, false);
+  assert.equal(addResponse.message, 'Player is not registered');
+  assert.equal(addResponse.playerName, 'MissingPilot');
+  assert.equal(addResponse.characterName, undefined);
+  assert.equal(addResponse.characterId, undefined);
 
   await closeClient(client);
   io.close();

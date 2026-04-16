@@ -16,6 +16,10 @@ const {
   CHARACTER_LIST_REQUEST_EVENT,
   CHARACTER_LIST_RESPONSE_EVENT
 } = require('./model/character-list');
+const {
+  CHARACTER_ADD_REQUEST_EVENT,
+  CHARACTER_ADD_RESPONSE_EVENT
+} = require('./model/character-add');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -149,6 +153,49 @@ function createServer(options = {}) {
     };
   }
 
+  function buildCharacterAddResponse(payload) {
+    const playerName = toNonEmptyString(payload?.playerName);
+    const characterName = toNonEmptyString(payload?.characterName);
+
+    if (!playerName || !characterName) {
+      return {
+        success: false,
+        message: 'playerName and characterName are required',
+        playerName
+      };
+    }
+
+    const normalizedPlayerName = playerName.toLowerCase();
+    const player = registeredPlayers.get(normalizedPlayerName);
+
+    if (!player) {
+      return {
+        success: false,
+        message: 'Player is not registered',
+        playerName
+      };
+    }
+
+    const characters = charactersByPlayer.get(normalizedPlayerName) || [];
+    const characterId = randomUUID();
+    const character = {
+      id: characterId,
+      characterName,
+      createdAt: new Date().toISOString()
+    };
+
+    characters.push(character);
+    charactersByPlayer.set(normalizedPlayerName, characters);
+
+    return {
+      success: true,
+      message: 'Character added successfully',
+      playerName: player.playerName,
+      characterName: character.characterName,
+      characterId: character.id
+    };
+  }
+
   const server = http.createServer((req, res) => {
     if (req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -211,6 +258,11 @@ function createServer(options = {}) {
     socket.on(CHARACTER_LIST_REQUEST_EVENT, (payload) => {
       const response = buildCharacterListResponse(payload);
       socket.emit(CHARACTER_LIST_RESPONSE_EVENT, response);
+    });
+
+    socket.on(CHARACTER_ADD_REQUEST_EVENT, (payload) => {
+      const response = buildCharacterAddResponse(payload);
+      socket.emit(CHARACTER_ADD_RESPONSE_EVENT, response);
     });
   });
 
