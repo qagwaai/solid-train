@@ -58,8 +58,20 @@ function startServer(options = {}) {
   });
 
   const shutdown = () => {
+    const fallbackTimer = setTimeout(() => {
+      process.stderr.write('Graceful shutdown timed out; forcing exit.\n');
+      process.exit(1);
+    }, 5000);
+    fallbackTimer.unref();
+
     io.close(() => {
-      server.close(() => {
+      server.close((error) => {
+        clearTimeout(fallbackTimer);
+        if (error) {
+          process.stderr.write(`Shutdown error: ${error.message}\n`);
+          process.exit(1);
+          return;
+        }
         process.exit(0);
       });
     });
