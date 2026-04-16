@@ -8,6 +8,15 @@ const {
   REGISTER_EVENT,
   REGISTER_RESPONSE_EVENT
 } = require('../src/model/register');
+const {
+  LOGIN_EVENT,
+  LOGIN_RESPONSE_EVENT,
+  LOGIN_FAILURE_REASONS
+} = require('../src/model/login');
+const {
+  CHARACTER_LIST_REQUEST_EVENT,
+  CHARACTER_LIST_RESPONSE_EVENT
+} = require('../src/model/character-list');
 
 test('resolvePort returns default port when not set', () => {
   assert.equal(resolvePort(undefined), 3000);
@@ -143,6 +152,178 @@ test('register rejects payload missing required fields', async () => {
   assert.equal(response.success, false);
   assert.equal(response.message, 'playerName, email, and password are required');
   assert.equal(response.playerId, undefined);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('login returns success for registered player with matching password', async () => {
+  const { server, io } = createServer({ port: '3004' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const registerResponsePromise = waitForEvent(client, REGISTER_RESPONSE_EVENT);
+  client.emit(REGISTER_EVENT, {
+    playerName: 'OrbitFox',
+    email: 'orbit@example.com',
+    password: 'safe-pass'
+  });
+  const registerResponse = await registerResponsePromise;
+  assert.equal(registerResponse.success, true);
+
+  const loginResponsePromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
+  client.emit(LOGIN_EVENT, {
+    playerName: 'orbitfox',
+    password: 'safe-pass'
+  });
+
+  const loginResponse = await loginResponsePromise;
+  assert.equal(loginResponse.success, true);
+  assert.equal(loginResponse.message, 'Login successful');
+  assert.equal(typeof loginResponse.playerId, 'string');
+  assert.ok(loginResponse.playerId.length > 0);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('login rejects playerName that is not registered', async () => {
+  const { server, io } = createServer({ port: '3005' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponsePromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
+  client.emit(LOGIN_EVENT, {
+    playerName: 'NoSuchPilot',
+    password: 'whatever'
+  });
+
+  const loginResponse = await loginResponsePromise;
+  assert.equal(loginResponse.success, false);
+  assert.equal(loginResponse.message, 'Player is not registered');
+  assert.equal(
+    loginResponse.reason,
+    LOGIN_FAILURE_REASONS.PLAYER_NOT_REGISTERED
+  );
+  assert.equal(loginResponse.playerId, undefined);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('login rejects password mismatch for registered player', async () => {
+  const { server, io } = createServer({ port: '3006' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const registerResponsePromise = waitForEvent(client, REGISTER_RESPONSE_EVENT);
+  client.emit(REGISTER_EVENT, {
+    playerName: 'NovaWing',
+    email: 'nova@example.com',
+    password: 'correct-password'
+  });
+  const registerResponse = await registerResponsePromise;
+  assert.equal(registerResponse.success, true);
+
+  const loginResponsePromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
+  client.emit(LOGIN_EVENT, {
+    playerName: 'novawing',
+    password: 'wrong-password'
+  });
+
+  const loginResponse = await loginResponsePromise;
+  assert.equal(loginResponse.success, false);
+  assert.equal(loginResponse.message, 'Password does not match');
+  assert.equal(loginResponse.reason, LOGIN_FAILURE_REASONS.PASSWORD_MISMATCH);
+  assert.equal(loginResponse.playerId, undefined);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('login rejects payload missing required fields with UNKNOWN reason', async () => {
+  const { server, io } = createServer({ port: '3007' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponsePromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
+  client.emit(LOGIN_EVENT, {
+    playerName: '   ',
+    password: ''
+  });
+
+  const loginResponse = await loginResponsePromise;
+  assert.equal(loginResponse.success, false);
+  assert.equal(loginResponse.message, 'playerName and password are required');
+  assert.equal(loginResponse.reason, LOGIN_FAILURE_REASONS.UNKNOWN);
+  assert.equal(loginResponse.playerId, undefined);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character list returns per-player list for registered player', async () => {
+  const { server, io } = createServer({ port: '3008' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const registerResponsePromise = waitForEvent(client, REGISTER_RESPONSE_EVENT);
+  client.emit(REGISTER_EVENT, {
+    playerName: 'CharacterPilot',
+    email: 'pilot@example.com',
+    password: 'pilot-pass'
+  });
+  const registerResponse = await registerResponsePromise;
+  assert.equal(registerResponse.success, true);
+
+  const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
+  client.emit(CHARACTER_LIST_REQUEST_EVENT, {
+    playerName: 'characterpilot'
+  });
+
+  const listResponse = await listResponsePromise;
+  assert.equal(listResponse.success, true);
+  assert.equal(listResponse.message, 'Character list retrieved successfully');
+  assert.equal(listResponse.playerName, 'CharacterPilot');
+  assert.deepEqual(listResponse.characters, []);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character list rejects playerName that is not registered', async () => {
+  const { server, io } = createServer({ port: '3009' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
+  client.emit(CHARACTER_LIST_REQUEST_EVENT, {
+    playerName: 'UnknownPilot'
+  });
+
+  const listResponse = await listResponsePromise;
+  assert.equal(listResponse.success, false);
+  assert.equal(listResponse.message, 'Player is not registered');
+  assert.equal(listResponse.playerName, 'UnknownPilot');
+  assert.deepEqual(listResponse.characters, []);
 
   await closeClient(client);
   io.close();

@@ -7,6 +7,15 @@ const {
   REGISTER_EVENT,
   REGISTER_RESPONSE_EVENT
 } = require('./model/register');
+const {
+  LOGIN_EVENT,
+  LOGIN_RESPONSE_EVENT,
+  LOGIN_FAILURE_REASONS
+} = require('./model/login');
+const {
+  CHARACTER_LIST_REQUEST_EVENT,
+  CHARACTER_LIST_RESPONSE_EVENT
+} = require('./model/character-list');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -21,6 +30,7 @@ function resolvePort(value = process.env.PORT) {
 function createServer(options = {}) {
   const port = resolvePort(options.port);
   const registeredPlayers = new Map();
+  const charactersByPlayer = new Map();
 
   function toNonEmptyString(value) {
     if (typeof value !== 'string') {
@@ -55,13 +65,87 @@ function createServer(options = {}) {
       playerId,
       playerName,
       email,
+      password,
       socketId: null
     });
+    charactersByPlayer.set(normalizedPlayerName, []);
 
     return {
       success: true,
       message: 'Registration successful',
       playerId
+    };
+  }
+
+  function buildLoginResponse(payload) {
+    const playerName = toNonEmptyString(payload?.playerName);
+    const password = toNonEmptyString(payload?.password);
+
+    if (!playerName || !password) {
+      return {
+        success: false,
+        message: 'playerName and password are required',
+        reason: LOGIN_FAILURE_REASONS.UNKNOWN
+      };
+    }
+
+    const normalizedPlayerName = playerName.toLowerCase();
+    const player = registeredPlayers.get(normalizedPlayerName);
+
+    if (!player) {
+      return {
+        success: false,
+        message: 'Player is not registered',
+        reason: LOGIN_FAILURE_REASONS.PLAYER_NOT_REGISTERED
+      };
+    }
+
+    if (player.password !== password) {
+      return {
+        success: false,
+        message: 'Password does not match',
+        reason: LOGIN_FAILURE_REASONS.PASSWORD_MISMATCH
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Login successful',
+      playerId: player.playerId
+    };
+  }
+
+  function buildCharacterListResponse(payload) {
+    const playerName = toNonEmptyString(payload?.playerName);
+
+    if (!playerName) {
+      return {
+        success: false,
+        message: 'playerName is required',
+        playerName: '',
+        characters: []
+      };
+    }
+
+    const normalizedPlayerName = playerName.toLowerCase();
+    const player = registeredPlayers.get(normalizedPlayerName);
+
+    if (!player) {
+      return {
+        success: false,
+        message: 'Player is not registered',
+        playerName,
+        characters: []
+      };
+    }
+
+    const characters = charactersByPlayer.get(normalizedPlayerName) || [];
+
+    return {
+      success: true,
+      message: 'Character list retrieved successfully',
+      playerName: player.playerName,
+      characters: characters.map((character) => ({ ...character }))
     };
   }
 
@@ -86,7 +170,7 @@ function createServer(options = {}) {
   io.on('connection', (socket) => {
     socket.emit('welcome', {
       id: socket.id,
-      message: 'Connected to Socket.IO server'
+      message: 'Connected to Stellar Socket.IO server'
     });
 
     socket.on('message', (payload) => {
@@ -108,6 +192,25 @@ function createServer(options = {}) {
       }
 
       socket.emit(REGISTER_RESPONSE_EVENT, response);
+    });
+
+    socket.on(LOGIN_EVENT, (payload) => {
+      const response = buildLoginResponse(payload);
+
+      if (response.success) {
+        const normalizedPlayerName = payload.playerName.trim().toLowerCase();
+        const existingPlayer = registeredPlayers.get(normalizedPlayerName);
+        if (existingPlayer) {
+          existingPlayer.socketId = socket.id;
+        }
+      }
+
+      socket.emit(LOGIN_RESPONSE_EVENT, response);
+    });
+
+    socket.on(CHARACTER_LIST_REQUEST_EVENT, (payload) => {
+      const response = buildCharacterListResponse(payload);
+      socket.emit(CHARACTER_LIST_RESPONSE_EVENT, response);
     });
   });
 
