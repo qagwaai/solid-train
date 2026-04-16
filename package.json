@@ -1,0 +1,29 @@
+{
+  "name": "solid-train",
+  "version": "1.0.0",
+  "description": "Simple Socket.IO server with Node.js best practices",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "node --test",
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qagwaai/solid-train.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/qagwaai/solid-train/issues"
+  },
+  "homepage": "https://github.com/qagwaai/solid-train#readme",
+  "dependencies": {
+    "socket.io": "^4.8.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
