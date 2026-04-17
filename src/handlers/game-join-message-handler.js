@@ -1,27 +1,28 @@
 'use strict';
 
 const {
-  CHARACTER_ADD_RESPONSE_EVENT
-} = require('../model/character-add');
+  GAME_JOIN_RESPONSE_EVENT
+} = require('../model/game-join');
 const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
 } = require('../model/session');
 
-class CharacterAddMessageHandler {
+class GameJoinMessageHandler {
   constructor(context) {
     this.context = context;
   }
 
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
-    const characterName = this.context.toNonEmptyString(payload?.characterName);
+    const characterId = this.context.toNonEmptyString(payload?.characterId);
 
-    if (!playerName || !characterName) {
+    if (!playerName || !characterId) {
       return {
         success: false,
-        message: 'playerName and characterName are required',
-        playerName
+        message: 'playerName and characterId are required',
+        playerName,
+        characterId
       };
     }
 
@@ -32,32 +33,35 @@ class CharacterAddMessageHandler {
       return {
         success: false,
         message: 'Player is not registered',
-        playerName
+        playerName,
+        characterId
       };
     }
 
     const characters = this.context.getCharacters(normalizedPlayerName);
-    const characterId = this.context.createId();
-    const character = {
-      id: characterId,
-      characterName,
-      createdAt: this.context.getCurrentTimestamp()
-    };
+    const character = characters.find((candidate) => candidate.id === characterId);
 
-    characters.push(character);
-    this.context.setCharacters(normalizedPlayerName, characters);
+    if (!character) {
+      return {
+        success: false,
+        message: 'Character is not in player list',
+        playerName: player.playerName,
+        characterId
+      };
+    }
+
+    this.context.joinCharacterToGame(player.playerName, character);
 
     return {
       success: true,
-      message: 'Character added successfully',
+      message: 'Character joined game successfully',
       playerName: player.playerName,
-      characterName: character.characterName,
-      characterId: character.id
+      characterId
     };
   }
 
   handle(socket, payload) {
-    this.context.logHandlerMessage('character-add-request', payload);
+    this.context.logHandlerMessage('game-join', payload);
 
     if (!this.context.hasValidSession(payload)) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -69,11 +73,11 @@ class CharacterAddMessageHandler {
     this.context.touchJoinedCharacters(payload);
 
     const response = this.buildResponse(payload);
-    socket.emit(CHARACTER_ADD_RESPONSE_EVENT, response);
+    socket.emit(GAME_JOIN_RESPONSE_EVENT, response);
     return response;
   }
 }
 
 module.exports = {
-  CharacterAddMessageHandler
+  GameJoinMessageHandler
 };

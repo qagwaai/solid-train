@@ -64,13 +64,27 @@ class CharacterEditMessageHandler {
   }
 
   handle(socket, payload) {
+    this.context.logHandlerMessage('character-edit', payload);
+
     if (!this.context.hasValidSession(payload)) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
     }
 
+    this.context.detachIdleGameCharacters();
+    this.context.touchJoinedCharacters(payload);
+
     const response = this.buildResponse(payload);
+
+    if (response.success) {
+      this.context.renameJoinedCharacter(
+        payload?.playerName,
+        payload?.characterId,
+        response.characterName
+      );
+    }
+
     socket.emit(CHARACTER_EDIT_RESPONSE_EVENT, response);
     return response;
   }

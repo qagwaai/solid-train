@@ -7,12 +7,18 @@ including required fields, response payloads, and edge-case behavior.
 
 - All message payload string fields are trimmed.
 - Player lookup is case-insensitive by `playerName`.
-- Character operations (`list`, `add`, `delete`, `edit`) require a valid session.
+- Character operations (`list`, `add`, `delete`, `edit`, `game-join`) require
+  a valid session.
 - Invalid or missing session for character operations emits:
   - event: `invalid-session`
   - payload: `{ "message": "Invalid session" }`
 - Validation failures return response events with `success: false` and a message,
   except invalid session which uses `invalid-session` event.
+- Server tracks a game membership model for joined characters with:
+  - `joinedAt`
+  - `lastMessageReceivedAt`
+- For valid character-operation messages, the server refreshes
+  `lastMessageReceivedAt` for matching joined character entries.
 
 ## Event: `register`
 
@@ -140,7 +146,10 @@ including required fields, response payloads, and edge-case behavior.
     {
       "id": "<character id>",
       "characterName": "<name>",
-      "createdAt": "<iso timestamp>"
+      "createdAt": "<iso timestamp>",
+      "inGame": true,
+      "gameJoinedAt": "<iso timestamp>",
+      "gameLastMessageReceivedAt": "<iso timestamp>"
     }
   ]
 }
@@ -353,6 +362,74 @@ including required fields, response payloads, and edge-case behavior.
 - Edit mutates only the target player's character list entry.
 - If character is missing, list is unchanged.
 
+## Event: `game-join`
+
+- Request event: `game-join`
+- Response event: `game-join-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `characterId` (required)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Character joined game successfully",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>"
+}
+```
+
+### Failure Responses
+
+- Missing required fields:
+
+```json
+{
+  "success": false,
+  "message": "playerName and characterId are required",
+  "playerName": "<trimmed playerName or empty>",
+  "characterId": "<trimmed characterId or empty>"
+}
+```
+
+- Player not registered:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<trimmed playerName>",
+  "characterId": "<provided characterId>"
+}
+```
+
+- Character not found in player list:
+
+```json
+{
+  "success": false,
+  "message": "Character is not in player list",
+  "playerName": "<canonical player name>",
+  "characterId": "<provided characterId>"
+}
+```
+
+### Edge Cases
+
+- Invalid session emits `invalid-session`.
+- On success, the character is marked in the player list as in-game and receives
+  `gameJoinedAt` and `gameLastMessageReceivedAt` timestamps.
+- If character is already joined, join time is preserved and heartbeat is
+  refreshed.
+- Server supports idle cleanup by detaching joined characters whose
+  `lastMessageReceivedAt` is older than 30 minutes.
+
 ## Notes For Client Implementers
 
 - Treat `invalid-session` as a top-level auth/session failure signal for all
@@ -360,3 +437,4 @@ including required fields, response payloads, and edge-case behavior.
 - Use the response `playerName` value as the canonical casing from server state
   when present.
 - For login failures, branch on `reason` in addition to `message`.
+- Treat `gameJoinedAt`/`gameLastMessageReceivedAt` as server-managed fields.

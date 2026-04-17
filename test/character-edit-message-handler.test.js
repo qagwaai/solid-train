@@ -96,3 +96,31 @@ test('CharacterEditMessageHandler rejects invalid sessions before state changes'
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
   assert.equal(context.getCharacters('sessionpilot')[0].characterName, 'OriginalName');
 });
+
+test('CharacterEditMessageHandler updates joined game participant name', () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'EditPilot',
+    sessionKey: 'session-1',
+    characters: [{ id: 'character-1', characterName: 'OldName' }]
+  });
+
+  const joinedCharacter = context.getCharacters('editpilot')[0];
+  context.joinCharacterToGame('EditPilot', joinedCharacter);
+
+  const handler = new CharacterEditMessageHandler(context);
+  const socket = createMockSocket();
+  const response = handler.handle(socket, {
+    playerName: 'EditPilot',
+    sessionKey: 'session-1',
+    characterId: 'character-1',
+    characterName: 'RenamedInGame'
+  });
+
+  assert.equal(response.success, true);
+  const participant = context.game.getParticipant({
+    normalizedPlayerName: 'editpilot',
+    characterId: 'character-1'
+  });
+  assert.equal(participant.characterName, 'RenamedInGame');
+});

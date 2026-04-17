@@ -22,6 +22,9 @@ const {
   CHARACTER_EDIT_REQUEST_EVENT
 } = require('./model/character-edit');
 const {
+  GAME_JOIN_REQUEST_EVENT
+} = require('./model/game-join');
+const {
   MessageHandlerContext
 } = require('./handlers/message-handler-context');
 const {
@@ -42,6 +45,9 @@ const {
 const {
   CharacterEditMessageHandler
 } = require('./handlers/character-edit-message-handler');
+const {
+  GameJoinMessageHandler
+} = require('./handlers/game-join-message-handler');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -74,6 +80,9 @@ function createServer(options = {}) {
     messageHandlerContext
   );
   const characterEditMessageHandler = new CharacterEditMessageHandler(
+    messageHandlerContext
+  );
+  const gameJoinMessageHandler = new GameJoinMessageHandler(
     messageHandlerContext
   );
 
@@ -130,6 +139,10 @@ function createServer(options = {}) {
 
     socket.on(CHARACTER_EDIT_REQUEST_EVENT, (payload) => {
       characterEditMessageHandler.handle(socket, payload);
+    });
+
+    socket.on(GAME_JOIN_REQUEST_EVENT, (payload) => {
+      gameJoinMessageHandler.handle(socket, payload);
     });
   });
 

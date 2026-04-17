@@ -30,6 +30,10 @@ const {
   CHARACTER_EDIT_RESPONSE_EVENT
 } = require('../src/model/character-edit');
 const {
+  GAME_JOIN_REQUEST_EVENT,
+  GAME_JOIN_RESPONSE_EVENT
+} = require('../src/model/game-join');
+const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
 } = require('../src/model/session');
@@ -736,6 +740,132 @@ test('character edit emits invalid session for wrong session key', async () => {
     sessionKey: 'wrong-session-key',
     characterId: 'any-id',
     characterName: 'NewName'
+  });
+
+  const invalidSession = await invalidSessionPromise;
+  assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('game join marks a character as joined in the player character list', async () => {
+  const { server, io } = createServer({ port: '3020' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'JoinPilot',
+    'join@example.com',
+    'join-pass'
+  );
+
+  const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'JoinPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'RangerOne'
+  });
+  const addResponse = await addResponsePromise;
+  assert.equal(addResponse.success, true);
+
+  const gameJoinResponsePromise = waitForEvent(client, GAME_JOIN_RESPONSE_EVENT);
+  client.emit(GAME_JOIN_REQUEST_EVENT, {
+    playerName: 'joinpilot',
+    sessionKey: loginResponse.sessionKey,
+    characterId: addResponse.characterId
+  });
+  const gameJoinResponse = await gameJoinResponsePromise;
+  assert.equal(gameJoinResponse.success, true);
+  assert.equal(gameJoinResponse.message, 'Character joined game successfully');
+  assert.equal(gameJoinResponse.playerName, 'JoinPilot');
+  assert.equal(gameJoinResponse.characterId, addResponse.characterId);
+
+  const firstListPromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
+  client.emit(CHARACTER_LIST_REQUEST_EVENT, {
+    playerName: 'JoinPilot',
+    sessionKey: loginResponse.sessionKey
+  });
+  const firstList = await firstListPromise;
+  assert.equal(firstList.success, true);
+  assert.equal(firstList.characters.length, 1);
+  assert.equal(firstList.characters[0].inGame, true);
+  assert.equal(typeof firstList.characters[0].gameJoinedAt, 'string');
+  assert.equal(typeof firstList.characters[0].gameLastMessageReceivedAt, 'string');
+
+  const secondListPromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
+  client.emit(CHARACTER_LIST_REQUEST_EVENT, {
+    playerName: 'JoinPilot',
+    sessionKey: loginResponse.sessionKey
+  });
+  const secondList = await secondListPromise;
+  assert.equal(secondList.success, true);
+  assert.equal(secondList.characters.length, 1);
+  assert.ok(
+    Date.parse(secondList.characters[0].gameLastMessageReceivedAt) >=
+      Date.parse(firstList.characters[0].gameLastMessageReceivedAt)
+  );
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('game join handles character missing from player list', async () => {
+  const { server, io } = createServer({ port: '3021' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'EdgeJoinPilot',
+    'edge-join@example.com',
+    'edge-join-pass'
+  );
+
+  const gameJoinResponsePromise = waitForEvent(client, GAME_JOIN_RESPONSE_EVENT);
+  client.emit(GAME_JOIN_REQUEST_EVENT, {
+    playerName: 'EdgeJoinPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterId: 'missing-character-id'
+  });
+
+  const gameJoinResponse = await gameJoinResponsePromise;
+  assert.equal(gameJoinResponse.success, false);
+  assert.equal(gameJoinResponse.message, 'Character is not in player list');
+  assert.equal(gameJoinResponse.playerName, 'EdgeJoinPilot');
+  assert.equal(gameJoinResponse.characterId, 'missing-character-id');
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('game join emits invalid session for wrong session key', async () => {
+  const { server, io } = createServer({ port: '3022' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  await registerAndLogin(
+    client,
+    'SessionJoinPilot',
+    'session-join@example.com',
+    'session-join-pass'
+  );
+
+  const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
+  client.emit(GAME_JOIN_REQUEST_EVENT, {
+    playerName: 'SessionJoinPilot',
+    sessionKey: 'wrong-session-key',
+    characterId: 'any-id'
   });
 
   const invalidSession = await invalidSessionPromise;

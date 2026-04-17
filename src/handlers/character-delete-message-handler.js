@@ -62,13 +62,23 @@ class CharacterDeleteMessageHandler {
   }
 
   handle(socket, payload) {
+    this.context.logHandlerMessage('character-delete-request', payload);
+
     if (!this.context.hasValidSession(payload)) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
     }
 
+    this.context.detachIdleGameCharacters();
+    this.context.touchJoinedCharacters(payload);
+
     const response = this.buildResponse(payload);
+
+    if (response.success) {
+      this.context.detachCharacterFromGame(payload?.playerName, payload?.characterId);
+    }
+
     socket.emit(CHARACTER_DELETE_RESPONSE_EVENT, response);
     return response;
   }

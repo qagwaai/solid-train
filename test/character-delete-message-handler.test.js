@@ -67,3 +67,30 @@ test('CharacterDeleteMessageHandler preserves state when character is missing', 
     { id: 'character-1', characterName: 'ExistingCharacter' }
   ]);
 });
+
+test('CharacterDeleteMessageHandler detaches deleted character from game', () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'DeletePilot',
+    sessionKey: 'session-1',
+    characters: [{ id: 'character-1', characterName: 'TempCharacter' }]
+  });
+
+  const joinedCharacter = context.getCharacters('deletepilot')[0];
+  context.joinCharacterToGame('DeletePilot', joinedCharacter);
+
+  const handler = new CharacterDeleteMessageHandler(context);
+  const socket = createMockSocket();
+  const response = handler.handle(socket, {
+    playerName: 'DeletePilot',
+    sessionKey: 'session-1',
+    characterId: 'character-1'
+  });
+
+  assert.equal(response.success, true);
+  const participant = context.game.getParticipant({
+    normalizedPlayerName: 'deletepilot',
+    characterId: 'character-1'
+  });
+  assert.equal(participant, null);
+});

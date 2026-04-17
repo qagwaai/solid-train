@@ -48,11 +48,16 @@ class CharacterListMessageHandler {
   }
 
   handle(socket, payload) {
+    this.context.logHandlerMessage('character-list-request', payload);
+
     if (!this.context.hasValidSession(payload)) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
     }
+
+    this.context.detachIdleGameCharacters();
+    this.context.touchJoinedCharacters(payload);
 
     const response = this.buildResponse(payload);
     socket.emit(CHARACTER_LIST_RESPONSE_EVENT, response);

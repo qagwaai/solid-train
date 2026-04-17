@@ -46,6 +46,8 @@ class RegisterMessageHandler {
   }
 
   handle(socket, payload) {
+    this.context.logHandlerMessage('register', payload);
+
     const response = this.buildResponse(payload);
 
     if (response.success) {
