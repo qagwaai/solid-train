@@ -41,7 +41,15 @@ class CharacterAddMessageHandler {
     const character = {
       id: characterId,
       characterName,
-      createdAt: this.context.getCurrentTimestamp()
+      createdAt: this.context.getCurrentTimestamp(),
+      drones: [
+        {
+          id: `${characterId}-drone-1`,
+          name: `${characterName} Drone 1`,
+          status: 'active',
+          model: 'starter-mk1'
+        }
+      ]
     };
 
     characters.push(character);

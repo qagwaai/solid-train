@@ -30,6 +30,10 @@ const {
   CHARACTER_EDIT_RESPONSE_EVENT
 } = require('../src/model/character-edit');
 const {
+  DRONE_LIST_REQUEST_EVENT,
+  DRONE_LIST_RESPONSE_EVENT
+} = require('../src/model/drone-list');
+const {
   GAME_JOIN_REQUEST_EVENT,
   GAME_JOIN_RESPONSE_EVENT
 } = require('../src/model/game-join');
@@ -452,6 +456,117 @@ test('character add adds character and is returned by character list', async () 
   assert.equal(listResponse.characters[0].characterName, 'RangerOne');
   assert.equal(listResponse.characters[0].id, addResponse.characterId);
   assert.equal(typeof listResponse.characters[0].createdAt, 'string');
+  assert.equal(Array.isArray(listResponse.characters[0].drones), true);
+  assert.equal(listResponse.characters[0].drones.length >= 1, true);
+  assert.equal(typeof listResponse.characters[0].drones[0].id, 'string');
+  assert.equal(typeof listResponse.characters[0].drones[0].name, 'string');
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('drone list returns drones for a character', async () => {
+  const { server, io } = createServer({ port: '3023' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'DronePilot',
+    'drone@example.com',
+    'drone-pass'
+  );
+
+  const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'DronePilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'RangerOne'
+  });
+  const addResponse = await addResponsePromise;
+  assert.equal(addResponse.success, true);
+
+  const droneListResponsePromise = waitForEvent(client, DRONE_LIST_RESPONSE_EVENT);
+  client.emit(DRONE_LIST_REQUEST_EVENT, {
+    playerName: 'dronepilot',
+    characterId: addResponse.characterId,
+    sessionKey: loginResponse.sessionKey
+  });
+  const droneListResponse = await droneListResponsePromise;
+
+  assert.equal(droneListResponse.success, true);
+  assert.equal(droneListResponse.message, 'Drone list retrieved successfully');
+  assert.equal(droneListResponse.playerName, 'DronePilot');
+  assert.equal(droneListResponse.characterId, addResponse.characterId);
+  assert.equal(Array.isArray(droneListResponse.drones), true);
+  assert.equal(droneListResponse.drones.length >= 1, true);
+  assert.equal(typeof droneListResponse.drones[0].id, 'string');
+  assert.equal(typeof droneListResponse.drones[0].name, 'string');
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('drone list handles character missing from player list', async () => {
+  const { server, io } = createServer({ port: '3024' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'EdgeDronePilot',
+    'edge-drone@example.com',
+    'edge-drone-pass'
+  );
+
+  const droneListResponsePromise = waitForEvent(client, DRONE_LIST_RESPONSE_EVENT);
+  client.emit(DRONE_LIST_REQUEST_EVENT, {
+    playerName: 'EdgeDronePilot',
+    characterId: 'missing-character-id',
+    sessionKey: loginResponse.sessionKey
+  });
+  const droneListResponse = await droneListResponsePromise;
+
+  assert.equal(droneListResponse.success, false);
+  assert.equal(droneListResponse.message, 'Character is not in player list');
+  assert.equal(droneListResponse.playerName, 'EdgeDronePilot');
+  assert.equal(droneListResponse.characterId, 'missing-character-id');
+  assert.deepEqual(droneListResponse.drones, []);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('drone list emits invalid session for wrong session key', async () => {
+  const { server, io } = createServer({ port: '3025' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  await registerAndLogin(
+    client,
+    'SessionDronePilot',
+    'session-drone@example.com',
+    'session-drone-pass'
+  );
+
+  const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
+  client.emit(DRONE_LIST_REQUEST_EVENT, {
+    playerName: 'SessionDronePilot',
+    characterId: 'any-id',
+    sessionKey: 'wrong-session-key'
+  });
+  const invalidSession = await invalidSessionPromise;
+
+  assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
 
   await closeClient(client);
   io.close();

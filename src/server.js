@@ -22,6 +22,9 @@ const {
   CHARACTER_EDIT_REQUEST_EVENT
 } = require('./model/character-edit');
 const {
+  DRONE_LIST_REQUEST_EVENT
+} = require('./model/drone-list');
+const {
   GAME_JOIN_REQUEST_EVENT
 } = require('./model/game-join');
 const {
@@ -45,6 +48,9 @@ const {
 const {
   CharacterEditMessageHandler
 } = require('./handlers/character-edit-message-handler');
+const {
+  DroneListMessageHandler
+} = require('./handlers/drone-list-message-handler');
 const {
   GameJoinMessageHandler
 } = require('./handlers/game-join-message-handler');
@@ -80,6 +86,9 @@ function createServer(options = {}) {
     messageHandlerContext
   );
   const characterEditMessageHandler = new CharacterEditMessageHandler(
+    messageHandlerContext
+  );
+  const droneListMessageHandler = new DroneListMessageHandler(
     messageHandlerContext
   );
   const gameJoinMessageHandler = new GameJoinMessageHandler(
@@ -139,6 +148,10 @@ function createServer(options = {}) {
 
     socket.on(CHARACTER_EDIT_REQUEST_EVENT, (payload) => {
       characterEditMessageHandler.handle(socket, payload);
+    });
+
+    socket.on(DRONE_LIST_REQUEST_EVENT, (payload) => {
+      droneListMessageHandler.handle(socket, payload);
     });
 
     socket.on(GAME_JOIN_REQUEST_EVENT, (payload) => {

@@ -45,7 +45,15 @@ test('CharacterAddMessageHandler adds a character and emits response', () => {
     {
       id: 'player-1',
       characterName: 'RangerOne',
-      createdAt: '2026-04-17T00:00:00.000Z'
+      createdAt: '2026-04-17T00:00:00.000Z',
+      drones: [
+        {
+          id: 'player-1-drone-1',
+          name: 'RangerOne Drone 1',
+          status: 'active',
+          model: 'starter-mk1'
+        }
+      ]
     }
   ]);
 });

@@ -7,7 +7,8 @@ including required fields, response payloads, and edge-case behavior.
 
 - All message payload string fields are trimmed.
 - Player lookup is case-insensitive by `playerName`.
-- Character operations (`list`, `add`, `delete`, `edit`, `game-join`) require
+- Character operations (`list`, `add`, `delete`, `edit`, `drone-list-request`,
+  `game-join`) require
   a valid session.
 - Invalid or missing session for character operations emits:
   - event: `invalid-session`
@@ -147,6 +148,14 @@ including required fields, response payloads, and edge-case behavior.
       "id": "<character id>",
       "characterName": "<name>",
       "createdAt": "<iso timestamp>",
+      "drones": [
+        {
+          "id": "<drone id>",
+          "name": "<drone name>",
+          "status": "active",
+          "model": "starter-mk1"
+        }
+      ],
       "inGame": true,
       "gameJoinedAt": "<iso timestamp>",
       "gameLastMessageReceivedAt": "<iso timestamp>"
@@ -234,6 +243,82 @@ including required fields, response payloads, and edge-case behavior.
 
 - Invalid session emits `invalid-session`.
 - Added character stores `id`, `characterName`, and `createdAt`.
+- New characters are initialized with at least one starter drone in `drones`.
+
+## Event: `drone-list-request`
+
+- Request event: `drone-list-request`
+- Response event: `drone-list-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `characterId` (required)
+- `sessionKey` (required and must match the player)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Drone list retrieved successfully",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>",
+  "drones": [
+    {
+      "id": "<drone id>",
+      "name": "<drone name>",
+      "status": "<optional status>",
+      "model": "<optional model>"
+    }
+  ]
+}
+```
+
+### Failure Responses
+
+- Missing required fields:
+
+```json
+{
+  "success": false,
+  "message": "playerName and characterId are required",
+  "playerName": "<trimmed playerName or empty>",
+  "characterId": "<trimmed characterId or empty>",
+  "drones": []
+}
+```
+
+- Player not registered:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<trimmed playerName>",
+  "characterId": "<provided characterId>",
+  "drones": []
+}
+```
+
+- Character not found in player list:
+
+```json
+{
+  "success": false,
+  "message": "Character is not in player list",
+  "playerName": "<canonical player name>",
+  "characterId": "<provided characterId>",
+  "drones": []
+}
+```
+
+### Edge Cases
+
+- Invalid session emits `invalid-session`.
+- Drones are scoped per character.
+- Returned `drones` list is a defensive copy of server state.
 
 ## Event: `character-delete-request`
 
