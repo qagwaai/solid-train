@@ -4,30 +4,44 @@ const http = require('node:http');
 const { randomUUID } = require('node:crypto');
 const { Server } = require('socket.io');
 const {
-  REGISTER_EVENT,
-  REGISTER_RESPONSE_EVENT
+  REGISTER_EVENT
 } = require('./model/register');
 const {
-  LOGIN_EVENT,
-  LOGIN_RESPONSE_EVENT,
-  LOGIN_FAILURE_REASONS
+  LOGIN_EVENT
 } = require('./model/login');
 const {
-  CHARACTER_LIST_REQUEST_EVENT,
-  CHARACTER_LIST_RESPONSE_EVENT
+  CHARACTER_LIST_REQUEST_EVENT
 } = require('./model/character-list');
 const {
-  CHARACTER_ADD_REQUEST_EVENT,
-  CHARACTER_ADD_RESPONSE_EVENT
+  CHARACTER_ADD_REQUEST_EVENT
 } = require('./model/character-add');
 const {
-  CHARACTER_DELETE_REQUEST_EVENT,
-  CHARACTER_DELETE_RESPONSE_EVENT
+  CHARACTER_DELETE_REQUEST_EVENT
 } = require('./model/character-delete');
 const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('./model/session');
+  CHARACTER_EDIT_REQUEST_EVENT
+} = require('./model/character-edit');
+const {
+  MessageHandlerContext
+} = require('./handlers/message-handler-context');
+const {
+  RegisterMessageHandler
+} = require('./handlers/register-message-handler');
+const {
+  LoginMessageHandler
+} = require('./handlers/login-message-handler');
+const {
+  CharacterListMessageHandler
+} = require('./handlers/character-list-message-handler');
+const {
+  CharacterAddMessageHandler
+} = require('./handlers/character-add-message-handler');
+const {
+  CharacterDeleteMessageHandler
+} = require('./handlers/character-delete-message-handler');
+const {
+  CharacterEditMessageHandler
+} = require('./handlers/character-edit-message-handler');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -43,237 +57,25 @@ function createServer(options = {}) {
   const port = resolvePort(options.port);
   const registeredPlayers = new Map();
   const charactersByPlayer = new Map();
-
-  function toNonEmptyString(value) {
-    if (typeof value !== 'string') {
-      return '';
-    }
-
-    return value.trim();
-  }
-
-  function buildRegisterResponse(payload) {
-    const playerName = toNonEmptyString(payload?.playerName);
-    const email = toNonEmptyString(payload?.email);
-    const password = toNonEmptyString(payload?.password);
-
-    if (!playerName || !email || !password) {
-      return {
-        success: false,
-        message: 'playerName, email, and password are required'
-      };
-    }
-
-    const normalizedPlayerName = playerName.toLowerCase();
-    if (registeredPlayers.has(normalizedPlayerName)) {
-      return {
-        success: false,
-        message: 'playerName already exists'
-      };
-    }
-
-    const playerId = randomUUID();
-    registeredPlayers.set(normalizedPlayerName, {
-      playerId,
-      playerName,
-      email,
-      password,
-      sessionKey: null,
-      socketId: null
-    });
-    charactersByPlayer.set(normalizedPlayerName, []);
-
-    return {
-      success: true,
-      message: 'Registration successful',
-      playerId
-    };
-  }
-
-  function buildLoginResponse(payload) {
-    const playerName = toNonEmptyString(payload?.playerName);
-    const password = toNonEmptyString(payload?.password);
-
-    if (!playerName || !password) {
-      return {
-        success: false,
-        message: 'playerName and password are required',
-        reason: LOGIN_FAILURE_REASONS.UNKNOWN
-      };
-    }
-
-    const normalizedPlayerName = playerName.toLowerCase();
-    const player = registeredPlayers.get(normalizedPlayerName);
-
-    if (!player) {
-      return {
-        success: false,
-        message: 'Player is not registered',
-        reason: LOGIN_FAILURE_REASONS.PLAYER_NOT_REGISTERED
-      };
-    }
-
-    if (player.password !== password) {
-      return {
-        success: false,
-        message: 'Password does not match',
-        reason: LOGIN_FAILURE_REASONS.PASSWORD_MISMATCH
-      };
-    }
-
-    const sessionKey = randomUUID();
-    player.sessionKey = sessionKey;
-
-    return {
-      success: true,
-      message: 'Login successful',
-      playerId: player.playerId,
-      sessionKey
-    };
-  }
-
-  function hasValidSession(payload) {
-    const playerName = toNonEmptyString(payload?.playerName);
-    const sessionKey = toNonEmptyString(payload?.sessionKey);
-
-    if (!playerName || !sessionKey) {
-      return false;
-    }
-
-    const normalizedPlayerName = playerName.toLowerCase();
-    const player = registeredPlayers.get(normalizedPlayerName);
-
-    if (!player || !player.sessionKey) {
-      return false;
-    }
-
-    return player.sessionKey === sessionKey;
-  }
-
-  function buildCharacterListResponse(payload) {
-    const playerName = toNonEmptyString(payload?.playerName);
-
-    if (!playerName) {
-      return {
-        success: false,
-        message: 'playerName is required',
-        playerName: '',
-        characters: []
-      };
-    }
-
-    const normalizedPlayerName = playerName.toLowerCase();
-    const player = registeredPlayers.get(normalizedPlayerName);
-
-    if (!player) {
-      return {
-        success: false,
-        message: 'Player is not registered',
-        playerName,
-        characters: []
-      };
-    }
-
-    const characters = charactersByPlayer.get(normalizedPlayerName) || [];
-
-    return {
-      success: true,
-      message: 'Character list retrieved successfully',
-      playerName: player.playerName,
-      characters: characters.map((character) => ({ ...character }))
-    };
-  }
-
-  function buildCharacterAddResponse(payload) {
-    const playerName = toNonEmptyString(payload?.playerName);
-    const characterName = toNonEmptyString(payload?.characterName);
-
-    if (!playerName || !characterName) {
-      return {
-        success: false,
-        message: 'playerName and characterName are required',
-        playerName
-      };
-    }
-
-    const normalizedPlayerName = playerName.toLowerCase();
-    const player = registeredPlayers.get(normalizedPlayerName);
-
-    if (!player) {
-      return {
-        success: false,
-        message: 'Player is not registered',
-        playerName
-      };
-    }
-
-    const characters = charactersByPlayer.get(normalizedPlayerName) || [];
-    const characterId = randomUUID();
-    const character = {
-      id: characterId,
-      characterName,
-      createdAt: new Date().toISOString()
-    };
-
-    characters.push(character);
-    charactersByPlayer.set(normalizedPlayerName, characters);
-
-    return {
-      success: true,
-      message: 'Character added successfully',
-      playerName: player.playerName,
-      characterName: character.characterName,
-      characterId: character.id
-    };
-  }
-
-  function buildCharacterDeleteResponse(payload) {
-    const playerName = toNonEmptyString(payload?.playerName);
-    const characterId = toNonEmptyString(payload?.characterId);
-
-    if (!playerName || !characterId) {
-      return {
-        success: false,
-        message: 'playerName and characterId are required',
-        playerName
-      };
-    }
-
-    const normalizedPlayerName = playerName.toLowerCase();
-    const player = registeredPlayers.get(normalizedPlayerName);
-
-    if (!player) {
-      return {
-        success: false,
-        message: 'Player is not registered',
-        playerName
-      };
-    }
-
-    const characters = charactersByPlayer.get(normalizedPlayerName) || [];
-    const characterIndex = characters.findIndex(
-      (character) => character.id === characterId
-    );
-
-    if (characterIndex === -1) {
-      return {
-        success: false,
-        message: 'Character is not in player list',
-        playerName: player.playerName,
-        characterId
-      };
-    }
-
-    characters.splice(characterIndex, 1);
-    charactersByPlayer.set(normalizedPlayerName, characters);
-
-    return {
-      success: true,
-      message: 'Character deleted successfully',
-      playerName: player.playerName,
-      characterId
-    };
-  }
+  const messageHandlerContext = new MessageHandlerContext({
+    registeredPlayers,
+    charactersByPlayer,
+    createId: randomUUID
+  });
+  const registerMessageHandler = new RegisterMessageHandler(messageHandlerContext);
+  const loginMessageHandler = new LoginMessageHandler(messageHandlerContext);
+  const characterListMessageHandler = new CharacterListMessageHandler(
+    messageHandlerContext
+  );
+  const characterAddMessageHandler = new CharacterAddMessageHandler(
+    messageHandlerContext
+  );
+  const characterDeleteMessageHandler = new CharacterDeleteMessageHandler(
+    messageHandlerContext
+  );
+  const characterEditMessageHandler = new CharacterEditMessageHandler(
+    messageHandlerContext
+  );
 
   const server = http.createServer((req, res) => {
     if (req.url === '/health') {
@@ -307,61 +109,27 @@ function createServer(options = {}) {
     });
 
     socket.on(REGISTER_EVENT, (payload) => {
-      const response = buildRegisterResponse(payload);
-
-      if (response.success) {
-        const normalizedPlayerName = payload.playerName.trim().toLowerCase();
-        const existingPlayer = registeredPlayers.get(normalizedPlayerName);
-        if (existingPlayer) {
-          existingPlayer.socketId = socket.id;
-        }
-      }
-
-      socket.emit(REGISTER_RESPONSE_EVENT, response);
+      registerMessageHandler.handle(socket, payload);
     });
 
     socket.on(LOGIN_EVENT, (payload) => {
-      const response = buildLoginResponse(payload);
-
-      if (response.success) {
-        const normalizedPlayerName = payload.playerName.trim().toLowerCase();
-        const existingPlayer = registeredPlayers.get(normalizedPlayerName);
-        if (existingPlayer) {
-          existingPlayer.socketId = socket.id;
-        }
-      }
-
-      socket.emit(LOGIN_RESPONSE_EVENT, response);
+      loginMessageHandler.handle(socket, payload);
     });
 
     socket.on(CHARACTER_LIST_REQUEST_EVENT, (payload) => {
-      if (!hasValidSession(payload)) {
-        socket.emit(INVALID_SESSION_EVENT, { message: INVALID_SESSION_MESSAGE });
-        return;
-      }
-
-      const response = buildCharacterListResponse(payload);
-      socket.emit(CHARACTER_LIST_RESPONSE_EVENT, response);
+      characterListMessageHandler.handle(socket, payload);
     });
 
     socket.on(CHARACTER_ADD_REQUEST_EVENT, (payload) => {
-      if (!hasValidSession(payload)) {
-        socket.emit(INVALID_SESSION_EVENT, { message: INVALID_SESSION_MESSAGE });
-        return;
-      }
-
-      const response = buildCharacterAddResponse(payload);
-      socket.emit(CHARACTER_ADD_RESPONSE_EVENT, response);
+      characterAddMessageHandler.handle(socket, payload);
     });
 
     socket.on(CHARACTER_DELETE_REQUEST_EVENT, (payload) => {
-      if (!hasValidSession(payload)) {
-        socket.emit(INVALID_SESSION_EVENT, { message: INVALID_SESSION_MESSAGE });
-        return;
-      }
+      characterDeleteMessageHandler.handle(socket, payload);
+    });
 
-      const response = buildCharacterDeleteResponse(payload);
-      socket.emit(CHARACTER_DELETE_RESPONSE_EVENT, response);
+    socket.on(CHARACTER_EDIT_REQUEST_EVENT, (payload) => {
+      characterEditMessageHandler.handle(socket, payload);
     });
   });
 

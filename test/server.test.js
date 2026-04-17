@@ -26,6 +26,10 @@ const {
   CHARACTER_DELETE_RESPONSE_EVENT
 } = require('../src/model/character-delete');
 const {
+  CHARACTER_EDIT_REQUEST_EVENT,
+  CHARACTER_EDIT_RESPONSE_EVENT
+} = require('../src/model/character-edit');
+const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
 } = require('../src/model/session');
@@ -609,6 +613,129 @@ test('character list emits invalid session event when session key does not match
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'SessionMismatchPilot',
     sessionKey: 'wrong-session-key'
+  });
+
+  const invalidSession = await invalidSessionPromise;
+  assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character edit updates character name in player list', async () => {
+  const { server, io } = createServer({ port: '3017' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'EditPilot',
+    'edit@example.com',
+    'edit-pass'
+  );
+
+  const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'EditPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'OldName'
+  });
+  const addResponse = await addResponsePromise;
+  assert.equal(addResponse.success, true);
+
+  const editResponsePromise = waitForEvent(client, CHARACTER_EDIT_RESPONSE_EVENT);
+  client.emit(CHARACTER_EDIT_REQUEST_EVENT, {
+    playerName: 'editpilot',
+    sessionKey: loginResponse.sessionKey,
+    characterId: addResponse.characterId,
+    characterName: 'NewName'
+  });
+
+  const editResponse = await editResponsePromise;
+  assert.equal(editResponse.success, true);
+  assert.equal(editResponse.message, 'Character edited successfully');
+  assert.equal(editResponse.playerName, 'EditPilot');
+  assert.equal(editResponse.characterId, addResponse.characterId);
+  assert.equal(editResponse.characterName, 'NewName');
+
+  const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
+  client.emit(CHARACTER_LIST_REQUEST_EVENT, {
+    playerName: 'EditPilot',
+    sessionKey: loginResponse.sessionKey
+  });
+
+  const listResponse = await listResponsePromise;
+  assert.equal(listResponse.success, true);
+  assert.equal(listResponse.characters.length, 1);
+  assert.equal(listResponse.characters[0].id, addResponse.characterId);
+  assert.equal(listResponse.characters[0].characterName, 'NewName');
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character edit handles character not found for player', async () => {
+  const { server, io } = createServer({ port: '3018' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'EdgeEditPilot',
+    'edge-edit@example.com',
+    'edge-edit-pass'
+  );
+
+  const editResponsePromise = waitForEvent(client, CHARACTER_EDIT_RESPONSE_EVENT);
+  client.emit(CHARACTER_EDIT_REQUEST_EVENT, {
+    playerName: 'EdgeEditPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterId: 'missing-character-id',
+    characterName: 'GhostName'
+  });
+
+  const editResponse = await editResponsePromise;
+  assert.equal(editResponse.success, false);
+  assert.equal(editResponse.message, 'Character is not in player list');
+  assert.equal(editResponse.playerName, 'EdgeEditPilot');
+  assert.equal(editResponse.characterId, 'missing-character-id');
+
+  const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
+  client.emit(CHARACTER_LIST_REQUEST_EVENT, {
+    playerName: 'EdgeEditPilot',
+    sessionKey: loginResponse.sessionKey
+  });
+
+  const listResponse = await listResponsePromise;
+  assert.equal(listResponse.success, true);
+  assert.equal(listResponse.characters.length, 0);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character edit emits invalid session for wrong session key', async () => {
+  const { server, io } = createServer({ port: '3019' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  await registerAndLogin(client, 'SessionEditPilot', 'session-edit@example.com', 'session-edit-pass');
+
+  const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
+  client.emit(CHARACTER_EDIT_REQUEST_EVENT, {
+    playerName: 'SessionEditPilot',
+    sessionKey: 'wrong-session-key',
+    characterId: 'any-id',
+    characterName: 'NewName'
   });
 
   const invalidSession = await invalidSessionPromise;
