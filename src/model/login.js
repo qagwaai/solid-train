@@ -25,6 +25,7 @@ const LOGIN_FAILURE_REASONS = {
  * @property {string} message
  * @property {LoginFailureReason} [reason]
  * @property {string} [playerId]
+ * @property {string} [sessionKey]
  */
 
 module.exports = {

@@ -21,6 +21,14 @@ const {
   CHARACTER_ADD_REQUEST_EVENT,
   CHARACTER_ADD_RESPONSE_EVENT
 } = require('../src/model/character-add');
+const {
+  CHARACTER_DELETE_REQUEST_EVENT,
+  CHARACTER_DELETE_RESPONSE_EVENT
+} = require('../src/model/character-delete');
+const {
+  INVALID_SESSION_EVENT,
+  INVALID_SESSION_MESSAGE
+} = require('../src/model/session');
 
 test('resolvePort returns default port when not set', () => {
   assert.equal(resolvePort(undefined), 3000);
@@ -73,6 +81,29 @@ async function closeClient(socket) {
     socket.once('disconnect', resolve);
     socket.disconnect();
   });
+}
+
+async function registerAndLogin(client, playerName, email, password) {
+  const registerResponsePromise = waitForEvent(client, REGISTER_RESPONSE_EVENT);
+  client.emit(REGISTER_EVENT, {
+    playerName,
+    email,
+    password
+  });
+  const registerResponse = await registerResponsePromise;
+  assert.equal(registerResponse.success, true);
+
+  const loginResponsePromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
+  client.emit(LOGIN_EVENT, {
+    playerName,
+    password
+  });
+  const loginResponse = await loginResponsePromise;
+  assert.equal(loginResponse.success, true);
+  assert.equal(typeof loginResponse.sessionKey, 'string');
+  assert.ok(loginResponse.sessionKey.length > 0);
+
+  return loginResponse;
 }
 
 test('register returns success and playerId for a unique playerName', async () => {
@@ -189,6 +220,46 @@ test('login returns success for registered player with matching password', async
   assert.equal(loginResponse.message, 'Login successful');
   assert.equal(typeof loginResponse.playerId, 'string');
   assert.ok(loginResponse.playerId.length > 0);
+  assert.equal(typeof loginResponse.sessionKey, 'string');
+  assert.ok(loginResponse.sessionKey.length > 0);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('login generates a new session key on each successful login', async () => {
+  const { server, io } = createServer({ port: '3015' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const registerResponsePromise = waitForEvent(client, REGISTER_RESPONSE_EVENT);
+  client.emit(REGISTER_EVENT, {
+    playerName: 'SessionPilot',
+    email: 'session@example.com',
+    password: 'session-pass'
+  });
+  const registerResponse = await registerResponsePromise;
+  assert.equal(registerResponse.success, true);
+
+  const firstLoginPromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
+  client.emit(LOGIN_EVENT, {
+    playerName: 'SessionPilot',
+    password: 'session-pass'
+  });
+  const firstLogin = await firstLoginPromise;
+  assert.equal(firstLogin.success, true);
+
+  const secondLoginPromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
+  client.emit(LOGIN_EVENT, {
+    playerName: 'SessionPilot',
+    password: 'session-pass'
+  });
+  const secondLogin = await secondLoginPromise;
+  assert.equal(secondLogin.success, true);
+  assert.notEqual(firstLogin.sessionKey, secondLogin.sessionKey);
 
   await closeClient(client);
   io.close();
@@ -286,18 +357,17 @@ test('character list returns per-player list for registered player', async () =>
   const client = connectClient(port);
   await waitForEvent(client, 'connect');
 
-  const registerResponsePromise = waitForEvent(client, REGISTER_RESPONSE_EVENT);
-  client.emit(REGISTER_EVENT, {
-    playerName: 'CharacterPilot',
-    email: 'pilot@example.com',
-    password: 'pilot-pass'
-  });
-  const registerResponse = await registerResponsePromise;
-  assert.equal(registerResponse.success, true);
+  const loginResponse = await registerAndLogin(
+    client,
+    'CharacterPilot',
+    'pilot@example.com',
+    'pilot-pass'
+  );
 
   const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
-    playerName: 'characterpilot'
+    playerName: 'characterpilot',
+    sessionKey: loginResponse.sessionKey
   });
 
   const listResponse = await listResponsePromise;
@@ -318,16 +388,14 @@ test('character list rejects playerName that is not registered', async () => {
   const client = connectClient(port);
   await waitForEvent(client, 'connect');
 
-  const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
+  const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
-    playerName: 'UnknownPilot'
+    playerName: 'UnknownPilot',
+    sessionKey: 'invalid-session-key'
   });
 
-  const listResponse = await listResponsePromise;
-  assert.equal(listResponse.success, false);
-  assert.equal(listResponse.message, 'Player is not registered');
-  assert.equal(listResponse.playerName, 'UnknownPilot');
-  assert.deepEqual(listResponse.characters, []);
+  const invalidSession = await invalidSessionPromise;
+  assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
 
   await closeClient(client);
   io.close();
@@ -341,18 +409,17 @@ test('character add adds character and is returned by character list', async () 
   const client = connectClient(port);
   await waitForEvent(client, 'connect');
 
-  const registerResponsePromise = waitForEvent(client, REGISTER_RESPONSE_EVENT);
-  client.emit(REGISTER_EVENT, {
-    playerName: 'BuilderPilot',
-    email: 'builder@example.com',
-    password: 'builder-pass'
-  });
-  const registerResponse = await registerResponsePromise;
-  assert.equal(registerResponse.success, true);
+  const loginResponse = await registerAndLogin(
+    client,
+    'BuilderPilot',
+    'builder@example.com',
+    'builder-pass'
+  );
 
   const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'builderpilot',
+    sessionKey: loginResponse.sessionKey,
     characterName: 'RangerOne'
   });
 
@@ -366,7 +433,8 @@ test('character add adds character and is returned by character list', async () 
 
   const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
-    playerName: 'BuilderPilot'
+    playerName: 'BuilderPilot',
+    sessionKey: loginResponse.sessionKey
   });
 
   const listResponse = await listResponsePromise;
@@ -389,18 +457,162 @@ test('character add rejects request for unregistered player', async () => {
   const client = connectClient(port);
   await waitForEvent(client, 'connect');
 
-  const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'MissingPilot',
+    sessionKey: 'invalid-session-key',
     characterName: 'GhostUnit'
   });
 
+  const invalidSession = await invalidSessionPromise;
+  assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character delete removes character from player list', async () => {
+  const { server, io } = createServer({ port: '3012' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'DeletePilot',
+    'delete@example.com',
+    'delete-pass'
+  );
+
+  const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'DeletePilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'TempCharacter'
+  });
   const addResponse = await addResponsePromise;
-  assert.equal(addResponse.success, false);
-  assert.equal(addResponse.message, 'Player is not registered');
-  assert.equal(addResponse.playerName, 'MissingPilot');
-  assert.equal(addResponse.characterName, undefined);
-  assert.equal(addResponse.characterId, undefined);
+  assert.equal(addResponse.success, true);
+
+  const deleteResponsePromise = waitForEvent(
+    client,
+    CHARACTER_DELETE_RESPONSE_EVENT
+  );
+  client.emit(CHARACTER_DELETE_REQUEST_EVENT, {
+    playerName: 'deletepilot',
+    sessionKey: loginResponse.sessionKey,
+    characterId: addResponse.characterId
+  });
+
+  const deleteResponse = await deleteResponsePromise;
+  assert.equal(deleteResponse.success, true);
+  assert.equal(deleteResponse.message, 'Character deleted successfully');
+  assert.equal(deleteResponse.playerName, 'DeletePilot');
+  assert.equal(deleteResponse.characterId, addResponse.characterId);
+
+  const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
+  client.emit(CHARACTER_LIST_REQUEST_EVENT, {
+    playerName: 'DeletePilot',
+    sessionKey: loginResponse.sessionKey
+  });
+
+  const listResponse = await listResponsePromise;
+  assert.equal(listResponse.success, true);
+  assert.equal(listResponse.characters.length, 0);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character delete handles character not found for player', async () => {
+  const { server, io } = createServer({ port: '3013' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'EdgePilot',
+    'edge@example.com',
+    'edge-pass'
+  );
+
+  const deleteResponsePromise = waitForEvent(
+    client,
+    CHARACTER_DELETE_RESPONSE_EVENT
+  );
+  client.emit(CHARACTER_DELETE_REQUEST_EVENT, {
+    playerName: 'EdgePilot',
+    sessionKey: loginResponse.sessionKey,
+    characterId: 'missing-character-id'
+  });
+
+  const deleteResponse = await deleteResponsePromise;
+  assert.equal(deleteResponse.success, false);
+  assert.equal(deleteResponse.message, 'Character is not in player list');
+  assert.equal(deleteResponse.playerName, 'EdgePilot');
+  assert.equal(deleteResponse.characterId, 'missing-character-id');
+
+  const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
+  client.emit(CHARACTER_LIST_REQUEST_EVENT, {
+    playerName: 'EdgePilot',
+    sessionKey: loginResponse.sessionKey
+  });
+
+  const listResponse = await listResponsePromise;
+  assert.equal(listResponse.success, true);
+  assert.equal(listResponse.characters.length, 0);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character delete rejects request for unregistered player', async () => {
+  const { server, io } = createServer({ port: '3014' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const invalidSessionPromise = waitForEvent(
+    client,
+    INVALID_SESSION_EVENT
+  );
+  client.emit(CHARACTER_DELETE_REQUEST_EVENT, {
+    playerName: 'UnknownDeletePilot',
+    sessionKey: 'invalid-session-key',
+    characterId: 'any-id'
+  });
+
+  const invalidSession = await invalidSessionPromise;
+  assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('character list emits invalid session event when session key does not match', async () => {
+  const { server, io } = createServer({ port: '3016' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  await registerAndLogin(client, 'SessionMismatchPilot', 'mismatch@example.com', 'mismatch-pass');
+
+  const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
+  client.emit(CHARACTER_LIST_REQUEST_EVENT, {
+    playerName: 'SessionMismatchPilot',
+    sessionKey: 'wrong-session-key'
+  });
+
+  const invalidSession = await invalidSessionPromise;
+  assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
 
   await closeClient(client);
   io.close();

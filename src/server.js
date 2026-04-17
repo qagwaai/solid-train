@@ -20,6 +20,14 @@ const {
   CHARACTER_ADD_REQUEST_EVENT,
   CHARACTER_ADD_RESPONSE_EVENT
 } = require('./model/character-add');
+const {
+  CHARACTER_DELETE_REQUEST_EVENT,
+  CHARACTER_DELETE_RESPONSE_EVENT
+} = require('./model/character-delete');
+const {
+  INVALID_SESSION_EVENT,
+  INVALID_SESSION_MESSAGE
+} = require('./model/session');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -70,6 +78,7 @@ function createServer(options = {}) {
       playerName,
       email,
       password,
+      sessionKey: null,
       socketId: null
     });
     charactersByPlayer.set(normalizedPlayerName, []);
@@ -112,11 +121,33 @@ function createServer(options = {}) {
       };
     }
 
+    const sessionKey = randomUUID();
+    player.sessionKey = sessionKey;
+
     return {
       success: true,
       message: 'Login successful',
-      playerId: player.playerId
+      playerId: player.playerId,
+      sessionKey
     };
+  }
+
+  function hasValidSession(payload) {
+    const playerName = toNonEmptyString(payload?.playerName);
+    const sessionKey = toNonEmptyString(payload?.sessionKey);
+
+    if (!playerName || !sessionKey) {
+      return false;
+    }
+
+    const normalizedPlayerName = playerName.toLowerCase();
+    const player = registeredPlayers.get(normalizedPlayerName);
+
+    if (!player || !player.sessionKey) {
+      return false;
+    }
+
+    return player.sessionKey === sessionKey;
   }
 
   function buildCharacterListResponse(payload) {
@@ -196,6 +227,54 @@ function createServer(options = {}) {
     };
   }
 
+  function buildCharacterDeleteResponse(payload) {
+    const playerName = toNonEmptyString(payload?.playerName);
+    const characterId = toNonEmptyString(payload?.characterId);
+
+    if (!playerName || !characterId) {
+      return {
+        success: false,
+        message: 'playerName and characterId are required',
+        playerName
+      };
+    }
+
+    const normalizedPlayerName = playerName.toLowerCase();
+    const player = registeredPlayers.get(normalizedPlayerName);
+
+    if (!player) {
+      return {
+        success: false,
+        message: 'Player is not registered',
+        playerName
+      };
+    }
+
+    const characters = charactersByPlayer.get(normalizedPlayerName) || [];
+    const characterIndex = characters.findIndex(
+      (character) => character.id === characterId
+    );
+
+    if (characterIndex === -1) {
+      return {
+        success: false,
+        message: 'Character is not in player list',
+        playerName: player.playerName,
+        characterId
+      };
+    }
+
+    characters.splice(characterIndex, 1);
+    charactersByPlayer.set(normalizedPlayerName, characters);
+
+    return {
+      success: true,
+      message: 'Character deleted successfully',
+      playerName: player.playerName,
+      characterId
+    };
+  }
+
   const server = http.createServer((req, res) => {
     if (req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -204,7 +283,7 @@ function createServer(options = {}) {
     }
 
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Socket.IO server is running.');
+    res.end('Stellar Socket.IO server is running.');
   });
 
   const io = new Server(server, {
@@ -256,13 +335,33 @@ function createServer(options = {}) {
     });
 
     socket.on(CHARACTER_LIST_REQUEST_EVENT, (payload) => {
+      if (!hasValidSession(payload)) {
+        socket.emit(INVALID_SESSION_EVENT, { message: INVALID_SESSION_MESSAGE });
+        return;
+      }
+
       const response = buildCharacterListResponse(payload);
       socket.emit(CHARACTER_LIST_RESPONSE_EVENT, response);
     });
 
     socket.on(CHARACTER_ADD_REQUEST_EVENT, (payload) => {
+      if (!hasValidSession(payload)) {
+        socket.emit(INVALID_SESSION_EVENT, { message: INVALID_SESSION_MESSAGE });
+        return;
+      }
+
       const response = buildCharacterAddResponse(payload);
       socket.emit(CHARACTER_ADD_RESPONSE_EVENT, response);
+    });
+
+    socket.on(CHARACTER_DELETE_REQUEST_EVENT, (payload) => {
+      if (!hasValidSession(payload)) {
+        socket.emit(INVALID_SESSION_EVENT, { message: INVALID_SESSION_MESSAGE });
+        return;
+      }
+
+      const response = buildCharacterDeleteResponse(payload);
+      socket.emit(CHARACTER_DELETE_RESPONSE_EVENT, response);
     });
   });
 
@@ -273,7 +372,7 @@ function startServer(options = {}) {
   const { port, server, io } = createServer(options);
 
   server.listen(port, () => {
-    process.stdout.write(`Socket.IO server listening on port ${port}\n`);
+    process.stdout.write(`Stellar Socket.IO server listening on port ${port}\n`);
   });
 
   const shutdown = () => {

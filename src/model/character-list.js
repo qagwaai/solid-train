@@ -6,6 +6,7 @@ const CHARACTER_LIST_RESPONSE_EVENT = 'character-list-response';
 /**
  * @typedef {Object} CharacterListRequest
  * @property {string} playerName
+ * @property {string} sessionKey
  */
 
 /**

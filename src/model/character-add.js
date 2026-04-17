@@ -6,6 +6,7 @@ const CHARACTER_ADD_RESPONSE_EVENT = 'character-add-response';
 /**
  * @typedef {Object} CharacterAddRequest
  * @property {string} playerName
+ * @property {string} sessionKey
  * @property {string} characterName
  */
 
