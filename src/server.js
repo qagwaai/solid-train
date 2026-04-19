@@ -1,8 +1,12 @@
 'use strict';
 
+require('dotenv').config();
+
 const http = require('node:http');
 const { randomUUID } = require('node:crypto');
 const { Server } = require('socket.io');
+const { MongoConnection } = require('./db/connection');
+const { DatabaseService } = require('./db/service');
 const {
   REGISTER_EVENT
 } = require('./model/register');
@@ -72,6 +76,7 @@ function createServer(options = {}) {
   const messageHandlerContext = new MessageHandlerContext({
     registeredPlayers,
     charactersByPlayer,
+    databaseService: options.databaseService || null,
     createId: randomUUID
   });
   const registerMessageHandler = new RegisterMessageHandler(messageHandlerContext);
@@ -127,59 +132,105 @@ function createServer(options = {}) {
     });
 
     socket.on(REGISTER_EVENT, (payload) => {
-      registerMessageHandler.handle(socket, payload);
+      registerMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Register handler error: ${error.message}\n`);
+      });
     });
 
     socket.on(LOGIN_EVENT, (payload) => {
-      loginMessageHandler.handle(socket, payload);
+      loginMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Login handler error: ${error.message}\n`);
+      });
     });
 
     socket.on(CHARACTER_LIST_REQUEST_EVENT, (payload) => {
-      characterListMessageHandler.handle(socket, payload);
+      characterListMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Character list handler error: ${error.message}\n`);
+      });
     });
 
     socket.on(CHARACTER_ADD_REQUEST_EVENT, (payload) => {
-      characterAddMessageHandler.handle(socket, payload);
+      characterAddMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Character add handler error: ${error.message}\n`);
+      });
     });
 
     socket.on(CHARACTER_DELETE_REQUEST_EVENT, (payload) => {
-      characterDeleteMessageHandler.handle(socket, payload);
+      characterDeleteMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Character delete handler error: ${error.message}\n`);
+      });
     });
 
     socket.on(CHARACTER_EDIT_REQUEST_EVENT, (payload) => {
-      characterEditMessageHandler.handle(socket, payload);
+      characterEditMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Character edit handler error: ${error.message}\n`);
+      });
     });
 
     socket.on(DRONE_LIST_REQUEST_EVENT, (payload) => {
-      droneListMessageHandler.handle(socket, payload);
+      droneListMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Drone list handler error: ${error.message}\n`);
+      });
     });
 
     socket.on(GAME_JOIN_REQUEST_EVENT, (payload) => {
-      gameJoinMessageHandler.handle(socket, payload);
+      gameJoinMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Game join handler error: ${error.message}\n`);
+      });
     });
   });
 
   return { port, server, io };
 }
 
-function startServer(options = {}) {
-  const { port, server, io } = createServer(options);
+async function startServer(options = {}) {
+  const mongoConnection = new MongoConnection({
+    mongoUri: process.env.MONGODB_URI
+  });
+  let databaseService = null;
+
+  // Connect to MongoDB if URI is configured; otherwise run in-memory.
+  if (process.env.MONGODB_URI) {
+    try {
+      await mongoConnection.connect();
+      databaseService = new DatabaseService();
+      process.stdout.write('[server] MongoDB connection established\n');
+    } catch (error) {
+      process.stderr.write(
+        `[server] Failed to connect to MongoDB, using in-memory storage: ${error.message}\n`
+      );
+    }
+  } else {
+    process.stdout.write('[server] MONGODB_URI not configured; running with in-memory storage\n');
+  }
+
+  const { port, server, io } = createServer({
+    ...options,
+    databaseService
+  });
 
   server.listen(port, () => {
     process.stdout.write(`Stellar Socket.IO server listening on port ${port}\n`);
   });
 
-  const shutdown = () => {
+  const shutdown = async () => {
     const fallbackTimer = setTimeout(() => {
       process.stderr.write('Graceful shutdown timed out; forcing exit.\n');
       process.exit(1);
     }, 5000);
     fallbackTimer.unref();
 
-    io.close(() => {
-      server.close((error) => {
+    io.close(async () => {
+      server.close(async (error) => {
         clearTimeout(fallbackTimer);
-        if (error) {
+        try {
+          if (mongoConnection.getConnectionStatus()) {
+            await mongoConnection.disconnect();
+          }
+        } catch (dbError) {
+          process.stderr.write(`[server] Error disconnecting from MongoDB: ${dbError.message}\n`);
+        }
+        if (error && error.message !== 'Server is not running.') {
           process.stderr.write(`Shutdown error: ${error.message}\n`);
           process.exit(1);
           return;
@@ -192,11 +243,14 @@ function startServer(options = {}) {
   process.once('SIGINT', shutdown);
   process.once('SIGTERM', shutdown);
 
-  return { port, server, io, shutdown };
+  return { port, server, io, shutdown, mongoConnection, databaseService };
 }
 
 if (require.main === module) {
-  startServer();
+  startServer().catch((error) => {
+    process.stderr.write(`[server] Startup failed: ${error.message}\n`);
+    process.exit(1);
+  });
 }
 
 module.exports = {

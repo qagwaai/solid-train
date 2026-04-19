@@ -6,6 +6,7 @@ class MessageHandlerContext {
   constructor(options = {}) {
     this.registeredPlayers = options.registeredPlayers || new Map();
     this.charactersByPlayer = options.charactersByPlayer || new Map();
+    this.databaseService = options.databaseService || null;
     this.game = options.game || new GameState();
     this.log = options.log || ((line) => process.stdout.write(`${line}\n`));
     this.createId = options.createId || (() => {
@@ -200,6 +201,147 @@ class MessageHandlerContext {
     }
 
     return detached;
+  }
+
+  /**
+   * Async database methods - use MongoDB if available, fall back to in-memory
+   */
+
+  async getPlayerAsync(playerName) {
+    if (this.databaseService) {
+      try {
+        return await this.databaseService.getPlayerByName(playerName);
+      } catch (error) {
+        this.log(`[context] Error fetching player from DB: ${error.message}`);
+        return null;
+      }
+    }
+    return this.getPlayer(playerName);
+  }
+
+  async getCharactersAsync(playerName) {
+    if (this.databaseService) {
+      try {
+        return await this.databaseService.getCharacters(playerName);
+      } catch (error) {
+        this.log(`[context] Error fetching characters from DB: ${error.message}`);
+        return [];
+      }
+    }
+    const normalizedPlayerName = this.normalizePlayerName(playerName);
+    return this.getCharacters(normalizedPlayerName);
+  }
+
+  async registerPlayerAsync(playerData) {
+    if (this.databaseService) {
+      try {
+        const result = await this.databaseService.registerPlayer(playerData);
+        // Also cache in memory for session tracking
+        const normalizedPlayerName = playerData.playerName.toLowerCase();
+        this.registeredPlayers.set(normalizedPlayerName, {
+          ...playerData,
+          sessionKey: null,
+          socketId: null
+        });
+        this.charactersByPlayer.set(normalizedPlayerName, []);
+        return result;
+      } catch (error) {
+        this.log(`[context] Error registering player in DB: ${error.message}`);
+        throw error;
+      }
+    }
+    // Fallback: in-memory registration
+    const normalizedPlayerName = playerData.playerName.toLowerCase();
+    this.registeredPlayers.set(normalizedPlayerName, {
+      ...playerData,
+      sessionKey: null,
+      socketId: null
+    });
+    this.charactersByPlayer.set(normalizedPlayerName, []);
+    return playerData;
+  }
+
+  async updatePlayerAsync(playerName, updates) {
+    if (this.databaseService) {
+      try {
+        await this.databaseService.updatePlayer(playerName, updates);
+      } catch (error) {
+        this.log(`[context] Error updating player in DB: ${error.message}`);
+        throw error;
+      }
+    }
+    // Also update in-memory for session tracking
+    const player = this.getPlayer(playerName);
+    if (player) {
+      Object.assign(player, updates);
+    }
+  }
+
+  async addCharacterAsync(playerName, characterData) {
+    if (this.databaseService) {
+      try {
+        await this.databaseService.addCharacter(playerName, characterData);
+      } catch (error) {
+        this.log(`[context] Error adding character in DB: ${error.message}`);
+        throw error;
+      }
+    }
+    // Also update in-memory
+    const normalizedPlayerName = this.normalizePlayerName(playerName);
+    const characters = this.getCharacters(normalizedPlayerName);
+    characters.push(characterData);
+    this.setCharacters(normalizedPlayerName, characters);
+  }
+
+  async deleteCharacterAsync(playerName, characterId) {
+    if (this.databaseService) {
+      try {
+        await this.databaseService.deleteCharacter(playerName, characterId);
+      } catch (error) {
+        this.log(`[context] Error deleting character in DB: ${error.message}`);
+        throw error;
+      }
+    }
+    // Also update in-memory
+    const normalizedPlayerName = this.normalizePlayerName(playerName);
+    const characters = this.getCharacters(normalizedPlayerName);
+    const filtered = characters.filter((c) => c.id !== characterId);
+    this.setCharacters(normalizedPlayerName, filtered);
+  }
+
+  async updateCharacterAsync(playerName, characterId, updates) {
+    if (this.databaseService) {
+      try {
+        await this.databaseService.updateCharacter(playerName, characterId, updates);
+      } catch (error) {
+        this.log(`[context] Error updating character in DB: ${error.message}`);
+        throw error;
+      }
+    }
+    // Also update in-memory
+    const character = this.findCharacter(playerName, characterId);
+    if (character) {
+      Object.assign(character, updates);
+    }
+  }
+
+  async addDroneAsync(playerName, characterId, droneData) {
+    if (this.databaseService) {
+      try {
+        await this.databaseService.addDrone(playerName, characterId, droneData);
+      } catch (error) {
+        this.log(`[context] Error adding drone in DB: ${error.message}`);
+        throw error;
+      }
+    }
+    // Also update in-memory
+    const character = this.findCharacter(playerName, characterId);
+    if (character) {
+      if (!character.drones) {
+        character.drones = [];
+      }
+      character.drones.push(droneData);
+    }
   }
 }
 

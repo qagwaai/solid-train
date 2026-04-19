@@ -47,7 +47,7 @@ class CharacterListMessageHandler {
     };
   }
 
-  handle(socket, payload) {
+  async handle(socket, payload) {
     this.context.logHandlerMessage('character-list-request', payload);
 
     if (!this.context.hasValidSession(payload)) {

@@ -64,7 +64,7 @@ class DroneListMessageHandler {
     };
   }
 
-  handle(socket, payload) {
+  async handle(socket, payload) {
     this.context.logHandlerMessage('drone-list-request', payload);
 
     if (!this.context.hasValidSession(payload)) {

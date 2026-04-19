@@ -19,41 +19,57 @@ class RegisterMessageHandler {
       };
     }
 
-    const normalizedPlayerName = playerName.toLowerCase();
-    if (this.context.registeredPlayers.has(normalizedPlayerName)) {
-      return {
-        success: false,
-        message: 'playerName already exists'
-      };
-    }
-
-    const playerId = this.context.createId();
-    this.context.registeredPlayers.set(normalizedPlayerName, {
-      playerId,
-      playerName,
-      email,
-      password,
-      sessionKey: null,
-      socketId: null
-    });
-    this.context.setCharacters(normalizedPlayerName, []);
-
     return {
       success: true,
-      message: 'Registration successful',
-      playerId
+      message: 'Registration successful'
     };
   }
 
-  handle(socket, payload) {
+  async handle(socket, payload) {
     this.context.logHandlerMessage('register', payload);
 
     const response = this.buildResponse(payload);
 
     if (response.success) {
-      const player = this.context.getPlayer(payload?.playerName);
-      if (player) {
-        player.socketId = socket.id;
+      const playerName = this.context.toNonEmptyString(payload?.playerName);
+      const email = this.context.toNonEmptyString(payload?.email);
+      const password = this.context.toNonEmptyString(payload?.password);
+
+      const playerData = {
+        playerId: this.context.createId(),
+        playerName,
+        email,
+        password
+      };
+
+      try {
+        const existingPlayer = await this.context.getPlayerAsync(playerName);
+        if (existingPlayer) {
+          response.success = false;
+          response.message = 'playerName already exists';
+          socket.emit(REGISTER_RESPONSE_EVENT, response);
+          return response;
+        }
+
+        await this.context.registerPlayerAsync(playerData);
+        response.playerId = playerData.playerId;
+
+        const player = this.context.getPlayer(payload?.playerName);
+        if (player) {
+          await this.context.updatePlayerAsync(player.playerName, {
+            socketId: socket.id
+          });
+        }
+      } catch (error) {
+        if (error?.message === 'Player already exists') {
+          response.success = false;
+          response.message = 'playerName already exists';
+        } else {
+          this.context.log(`[register-handler] Failed to register player: ${error.message}`);
+          response.success = false;
+          response.message = 'Registration failed: database error';
+        }
+        delete response.playerId;
       }
     }
 

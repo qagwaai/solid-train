@@ -51,7 +51,7 @@ class LoginMessageHandler {
     };
   }
 
-  handle(socket, payload) {
+  async handle(socket, payload) {
     this.context.logHandlerMessage('login', payload);
 
     const response = this.buildResponse(payload);
@@ -59,7 +59,20 @@ class LoginMessageHandler {
     if (response.success) {
       const player = this.context.getPlayer(payload?.playerName);
       if (player) {
-        player.socketId = socket.id;
+        try {
+          player.socketId = socket.id;
+          await this.context.updatePlayerAsync(payload?.playerName, {
+            sessionKey: response.sessionKey,
+            socketId: socket.id
+          });
+        } catch (error) {
+          this.context.log(`[login-handler] Failed to update player session: ${error.message}`);
+          response.success = false;
+          response.message = 'Login failed: database error';
+          response.reason = LOGIN_FAILURE_REASONS.UNKNOWN;
+          delete response.playerId;
+          delete response.sessionKey;
+        }
       }
     }
 

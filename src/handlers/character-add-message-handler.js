@@ -25,7 +25,6 @@ class CharacterAddMessageHandler {
       };
     }
 
-    const normalizedPlayerName = playerName.toLowerCase();
     const player = this.context.getPlayer(playerName);
 
     if (!player) {
@@ -36,35 +35,18 @@ class CharacterAddMessageHandler {
       };
     }
 
-    const characters = this.context.getCharacters(normalizedPlayerName);
     const characterId = this.context.createId();
-    const character = {
-      id: characterId,
-      characterName,
-      createdAt: this.context.getCurrentTimestamp(),
-      drones: [
-        {
-          id: `${characterId}-drone-1`,
-          name: `${characterName} Drone 1`,
-          status: 'active',
-          model: 'starter-mk1'
-        }
-      ]
-    };
-
-    characters.push(character);
-    this.context.setCharacters(normalizedPlayerName, characters);
 
     return {
       success: true,
       message: 'Character added successfully',
       playerName: player.playerName,
-      characterName: character.characterName,
-      characterId: character.id
+      characterName,
+      characterId
     };
   }
 
-  handle(socket, payload) {
+  async handle(socket, payload) {
     this.context.logHandlerMessage('character-add-request', payload);
 
     if (!this.context.hasValidSession(payload)) {
@@ -77,6 +59,32 @@ class CharacterAddMessageHandler {
     this.context.touchJoinedCharacters(payload);
 
     const response = this.buildResponse(payload);
+
+    if (response.success) {
+      try {
+        const createdAt = this.context.getCurrentTimestamp();
+        const characterData = {
+          id: response.characterId,
+          characterName: response.characterName,
+          createdAt,
+          drones: [
+            {
+              id: `${response.characterId}-drone-1`,
+              droneName: `${response.characterName} Drone 1`,
+              createdAt
+            }
+          ]
+        };
+        await this.context.addCharacterAsync(payload?.playerName, characterData);
+      } catch (error) {
+        this.context.log(`[character-add-handler] Failed to add character: ${error.message}`);
+        response.success = false;
+        response.message = 'Failed to add character: database error';
+        delete response.characterId;
+        delete response.characterName;
+      }
+    }
+
     socket.emit(CHARACTER_ADD_RESPONSE_EVENT, response);
     return response;
   }

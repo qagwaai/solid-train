@@ -18,7 +18,7 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-test('GameJoinMessageHandler joins character to game and updates character state', () => {
+test('GameJoinMessageHandler joins character to game and updates character state', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'JoinPilot',
@@ -28,7 +28,7 @@ test('GameJoinMessageHandler joins character to game and updates character state
   const handler = new GameJoinMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'joinpilot',
     sessionKey: 'session-1',
     characterId: 'character-1'
@@ -48,7 +48,7 @@ test('GameJoinMessageHandler joins character to game and updates character state
   assert.equal(character.gameLastMessageReceivedAt, '2026-04-17T00:00:00.000Z');
 });
 
-test('GameJoinMessageHandler handles character missing from player list', () => {
+test('GameJoinMessageHandler handles character missing from player list', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'EdgePilot',
@@ -58,7 +58,7 @@ test('GameJoinMessageHandler handles character missing from player list', () => 
   const handler = new GameJoinMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'EdgePilot',
     sessionKey: 'session-1',
     characterId: 'missing-character-id'
@@ -74,7 +74,7 @@ test('GameJoinMessageHandler handles character missing from player list', () => 
   assert.equal(context.getCharacters('edgepilot')[0].inGame, undefined);
 });
 
-test('GameJoinMessageHandler emits invalid session when session is not valid', () => {
+test('GameJoinMessageHandler emits invalid session when session is not valid', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'SessionPilot',
@@ -84,7 +84,7 @@ test('GameJoinMessageHandler emits invalid session when session is not valid', (
   const handler = new GameJoinMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'SessionPilot',
     sessionKey: 'wrong-session',
     characterId: 'character-1'

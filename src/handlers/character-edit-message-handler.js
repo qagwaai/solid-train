@@ -27,7 +27,6 @@ class CharacterEditMessageHandler {
       };
     }
 
-    const normalizedPlayerName = playerName.toLowerCase();
     const player = this.context.getPlayer(playerName);
 
     if (!player) {
@@ -39,8 +38,7 @@ class CharacterEditMessageHandler {
       };
     }
 
-    const characters = this.context.getCharacters(normalizedPlayerName);
-    const character = characters.find((candidate) => candidate.id === characterId);
+    const character = this.context.findCharacter(playerName, characterId);
 
     if (!character) {
       return {
@@ -51,19 +49,16 @@ class CharacterEditMessageHandler {
       };
     }
 
-    character.characterName = characterName;
-    this.context.setCharacters(normalizedPlayerName, characters);
-
     return {
       success: true,
       message: 'Character edited successfully',
       playerName: player.playerName,
       characterId,
-      characterName: character.characterName
+      characterName
     };
   }
 
-  handle(socket, payload) {
+  async handle(socket, payload) {
     this.context.logHandlerMessage('character-edit', payload);
 
     if (!this.context.hasValidSession(payload)) {
@@ -78,11 +73,22 @@ class CharacterEditMessageHandler {
     const response = this.buildResponse(payload);
 
     if (response.success) {
-      this.context.renameJoinedCharacter(
-        payload?.playerName,
-        payload?.characterId,
-        response.characterName
-      );
+      try {
+        await this.context.updateCharacterAsync(
+          payload?.playerName,
+          payload?.characterId,
+          { characterName: payload?.characterName }
+        );
+        this.context.renameJoinedCharacter(
+          payload?.playerName,
+          payload?.characterId,
+          payload?.characterName
+        );
+      } catch (error) {
+        this.context.log(`[character-edit-handler] Failed to edit character: ${error.message}`);
+        response.success = false;
+        response.message = 'Failed to edit character: database error';
+      }
     }
 
     socket.emit(CHARACTER_EDIT_RESPONSE_EVENT, response);

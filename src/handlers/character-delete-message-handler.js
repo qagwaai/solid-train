@@ -25,7 +25,6 @@ class CharacterDeleteMessageHandler {
       };
     }
 
-    const normalizedPlayerName = playerName.toLowerCase();
     const player = this.context.getPlayer(playerName);
 
     if (!player) {
@@ -36,12 +35,9 @@ class CharacterDeleteMessageHandler {
       };
     }
 
-    const characters = this.context.getCharacters(normalizedPlayerName);
-    const characterIndex = characters.findIndex(
-      (character) => character.id === characterId
-    );
+    const character = this.context.findCharacter(playerName, characterId);
 
-    if (characterIndex === -1) {
+    if (!character) {
       return {
         success: false,
         message: 'Character is not in player list',
@@ -49,9 +45,6 @@ class CharacterDeleteMessageHandler {
         characterId
       };
     }
-
-    characters.splice(characterIndex, 1);
-    this.context.setCharacters(normalizedPlayerName, characters);
 
     return {
       success: true,
@@ -61,7 +54,7 @@ class CharacterDeleteMessageHandler {
     };
   }
 
-  handle(socket, payload) {
+  async handle(socket, payload) {
     this.context.logHandlerMessage('character-delete-request', payload);
 
     if (!this.context.hasValidSession(payload)) {
@@ -76,7 +69,14 @@ class CharacterDeleteMessageHandler {
     const response = this.buildResponse(payload);
 
     if (response.success) {
-      this.context.detachCharacterFromGame(payload?.playerName, payload?.characterId);
+      try {
+        await this.context.deleteCharacterAsync(payload?.playerName, payload?.characterId);
+        this.context.detachCharacterFromGame(payload?.playerName, payload?.characterId);
+      } catch (error) {
+        this.context.log(`[character-delete-handler] Failed to delete character: ${error.message}`);
+        response.success = false;
+        response.message = 'Failed to delete character: database error';
+      }
     }
 
     socket.emit(CHARACTER_DELETE_RESPONSE_EVENT, response);

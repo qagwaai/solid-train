@@ -18,7 +18,7 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-test('CharacterAddMessageHandler adds a character and emits response', () => {
+test('CharacterAddMessageHandler adds a character and emits response', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'BuilderPilot',
@@ -27,7 +27,7 @@ test('CharacterAddMessageHandler adds a character and emits response', () => {
   const handler = new CharacterAddMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'builderpilot',
     sessionKey: 'session-1',
     characterName: 'RangerOne'
@@ -49,16 +49,15 @@ test('CharacterAddMessageHandler adds a character and emits response', () => {
       drones: [
         {
           id: 'player-1-drone-1',
-          name: 'RangerOne Drone 1',
-          status: 'active',
-          model: 'starter-mk1'
+          droneName: 'RangerOne Drone 1',
+          createdAt: '2026-04-17T00:00:00.000Z'
         }
       ]
     }
   ]);
 });
 
-test('CharacterAddMessageHandler rejects invalid sessions before mutating state', () => {
+test('CharacterAddMessageHandler rejects invalid sessions before mutating state', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'BuilderPilot',
@@ -67,7 +66,7 @@ test('CharacterAddMessageHandler rejects invalid sessions before mutating state'
   const handler = new CharacterAddMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'BuilderPilot',
     sessionKey: 'wrong-session',
     characterName: 'GhostUnit'

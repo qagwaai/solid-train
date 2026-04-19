@@ -18,7 +18,7 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-test('DroneListMessageHandler returns drones for a player character', () => {
+test('DroneListMessageHandler returns drones for a player character', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'DronePilot',
@@ -41,7 +41,7 @@ test('DroneListMessageHandler returns drones for a player character', () => {
   const handler = new DroneListMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'dronepilot',
     characterId: 'character-1',
     sessionKey: 'session-1'
@@ -62,7 +62,7 @@ test('DroneListMessageHandler returns drones for a player character', () => {
   assert.equal(socket.events[0].eventName, DRONE_LIST_RESPONSE_EVENT);
 });
 
-test('DroneListMessageHandler handles missing character in player list', () => {
+test('DroneListMessageHandler handles missing character in player list', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'EdgePilot',
@@ -72,7 +72,7 @@ test('DroneListMessageHandler handles missing character in player list', () => {
   const handler = new DroneListMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'EdgePilot',
     characterId: 'missing-character-id',
     sessionKey: 'session-1'
@@ -88,7 +88,7 @@ test('DroneListMessageHandler handles missing character in player list', () => {
   assert.equal(socket.events[0].eventName, DRONE_LIST_RESPONSE_EVENT);
 });
 
-test('DroneListMessageHandler emits invalid session when session is not valid', () => {
+test('DroneListMessageHandler emits invalid session when session is not valid', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'SessionPilot',
@@ -98,7 +98,7 @@ test('DroneListMessageHandler emits invalid session when session is not valid', 
   const handler = new DroneListMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'SessionPilot',
     characterId: 'character-1',
     sessionKey: 'wrong-session'

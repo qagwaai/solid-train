@@ -459,7 +459,7 @@ test('character add adds character and is returned by character list', async () 
   assert.equal(Array.isArray(listResponse.characters[0].drones), true);
   assert.equal(listResponse.characters[0].drones.length >= 1, true);
   assert.equal(typeof listResponse.characters[0].drones[0].id, 'string');
-  assert.equal(typeof listResponse.characters[0].drones[0].name, 'string');
+  assert.equal(typeof listResponse.characters[0].drones[0].droneName, 'string');
 
   await closeClient(client);
   io.close();
@@ -504,7 +504,7 @@ test('drone list returns drones for a character', async () => {
   assert.equal(Array.isArray(droneListResponse.drones), true);
   assert.equal(droneListResponse.drones.length >= 1, true);
   assert.equal(typeof droneListResponse.drones[0].id, 'string');
-  assert.equal(typeof droneListResponse.drones[0].name, 'string');
+  assert.equal(typeof droneListResponse.drones[0].droneName, 'string');
 
   await closeClient(client);
   io.close();

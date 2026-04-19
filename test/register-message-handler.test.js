@@ -14,12 +14,12 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-test('RegisterMessageHandler registers a unique player and emits response', () => {
+test('RegisterMessageHandler registers a unique player and emits response', async () => {
   const context = createTestContext();
   const handler = new RegisterMessageHandler(context);
   const socket = createMockSocket('socket-register');
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'CaptainPixel',
     email: 'captain@example.com',
     password: 'super-secret'
@@ -43,13 +43,13 @@ test('RegisterMessageHandler registers a unique player and emits response', () =
   assert.deepEqual(context.getCharacters('captainpixel'), []);
 });
 
-test('RegisterMessageHandler rejects duplicate player names', () => {
+test('RegisterMessageHandler rejects duplicate player names', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'CaptainPixel' });
   const handler = new RegisterMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: ' captainpixel ',
     email: 'other@example.com',
     password: 'another-secret'

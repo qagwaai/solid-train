@@ -21,13 +21,13 @@ const {
   MessageHandlerContext
 } = require('../src/handlers/message-handler-context');
 
-test('CharacterListMessageHandler emits invalid session when session is missing', () => {
+test('CharacterListMessageHandler emits invalid session when session is missing', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'CharacterPilot' });
   const handler = new CharacterListMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'CharacterPilot',
     sessionKey: 'wrong-session'
   });
@@ -41,7 +41,7 @@ test('CharacterListMessageHandler emits invalid session when session is missing'
   ]);
 });
 
-test('CharacterListMessageHandler returns a defensive copy of characters', () => {
+test('CharacterListMessageHandler returns a defensive copy of characters', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'CharacterPilot',
@@ -51,7 +51,7 @@ test('CharacterListMessageHandler returns a defensive copy of characters', () =>
   const handler = new CharacterListMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'characterpilot',
     sessionKey: 'session-1'
   });
@@ -70,7 +70,7 @@ test('CharacterListMessageHandler returns a defensive copy of characters', () =>
   assert.equal(socket.events[0].eventName, CHARACTER_LIST_RESPONSE_EVENT);
 });
 
-test('CharacterListMessageHandler updates last message timestamp for joined character', () => {
+test('CharacterListMessageHandler updates last message timestamp for joined character', async () => {
   const timestamps = [
     '2026-04-17T00:00:00.000Z',
     '2026-04-17T00:10:00.000Z',
@@ -91,7 +91,7 @@ test('CharacterListMessageHandler updates last message timestamp for joined char
 
   const handler = new CharacterListMessageHandler(context);
   const socket = createMockSocket();
-  handler.handle(socket, {
+  await handler.handle(socket, {
     playerName: 'ActivityPilot',
     sessionKey: 'session-1'
   });

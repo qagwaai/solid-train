@@ -14,7 +14,7 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-test('CharacterDeleteMessageHandler removes an existing character', () => {
+test('CharacterDeleteMessageHandler removes an existing character', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'DeletePilot',
@@ -24,7 +24,7 @@ test('CharacterDeleteMessageHandler removes an existing character', () => {
   const handler = new CharacterDeleteMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'deletepilot',
     sessionKey: 'session-1',
     characterId: 'character-1'
@@ -40,7 +40,7 @@ test('CharacterDeleteMessageHandler removes an existing character', () => {
   assert.deepEqual(context.getCharacters('deletepilot'), []);
 });
 
-test('CharacterDeleteMessageHandler preserves state when character is missing', () => {
+test('CharacterDeleteMessageHandler preserves state when character is missing', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'EdgePilot',
@@ -50,7 +50,7 @@ test('CharacterDeleteMessageHandler preserves state when character is missing', 
   const handler = new CharacterDeleteMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'EdgePilot',
     sessionKey: 'session-1',
     characterId: 'missing-character-id'
@@ -68,7 +68,7 @@ test('CharacterDeleteMessageHandler preserves state when character is missing', 
   ]);
 });
 
-test('CharacterDeleteMessageHandler detaches deleted character from game', () => {
+test('CharacterDeleteMessageHandler detaches deleted character from game', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'DeletePilot',
@@ -81,7 +81,7 @@ test('CharacterDeleteMessageHandler detaches deleted character from game', () =>
 
   const handler = new CharacterDeleteMessageHandler(context);
   const socket = createMockSocket();
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'DeletePilot',
     sessionKey: 'session-1',
     characterId: 'character-1'

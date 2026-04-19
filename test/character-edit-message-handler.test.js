@@ -18,7 +18,7 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-test('CharacterEditMessageHandler modifies an existing character', () => {
+test('CharacterEditMessageHandler modifies an existing character', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'EditPilot',
@@ -28,7 +28,7 @@ test('CharacterEditMessageHandler modifies an existing character', () => {
   const handler = new CharacterEditMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'editpilot',
     sessionKey: 'session-1',
     characterId: 'character-1',
@@ -46,7 +46,7 @@ test('CharacterEditMessageHandler modifies an existing character', () => {
   assert.equal(context.getCharacters('editpilot')[0].characterName, 'NewName');
 });
 
-test('CharacterEditMessageHandler handles missing character in player list', () => {
+test('CharacterEditMessageHandler handles missing character in player list', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'EdgePilot',
@@ -56,7 +56,7 @@ test('CharacterEditMessageHandler handles missing character in player list', () 
   const handler = new CharacterEditMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'EdgePilot',
     sessionKey: 'session-1',
     characterId: 'missing-character-id',
@@ -75,7 +75,7 @@ test('CharacterEditMessageHandler handles missing character in player list', () 
   ]);
 });
 
-test('CharacterEditMessageHandler rejects invalid sessions before state changes', () => {
+test('CharacterEditMessageHandler rejects invalid sessions before state changes', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'SessionPilot',
@@ -85,7 +85,7 @@ test('CharacterEditMessageHandler rejects invalid sessions before state changes'
   const handler = new CharacterEditMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'SessionPilot',
     sessionKey: 'wrong-session',
     characterId: 'character-1',
@@ -97,7 +97,7 @@ test('CharacterEditMessageHandler rejects invalid sessions before state changes'
   assert.equal(context.getCharacters('sessionpilot')[0].characterName, 'OriginalName');
 });
 
-test('CharacterEditMessageHandler updates joined game participant name', () => {
+test('CharacterEditMessageHandler updates joined game participant name', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'EditPilot',
@@ -110,7 +110,7 @@ test('CharacterEditMessageHandler updates joined game participant name', () => {
 
   const handler = new CharacterEditMessageHandler(context);
   const socket = createMockSocket();
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'EditPilot',
     sessionKey: 'session-1',
     characterId: 'character-1',

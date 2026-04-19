@@ -26,7 +26,6 @@ class GameJoinMessageHandler {
       };
     }
 
-    const normalizedPlayerName = playerName.toLowerCase();
     const player = this.context.getPlayer(playerName);
 
     if (!player) {
@@ -38,8 +37,7 @@ class GameJoinMessageHandler {
       };
     }
 
-    const characters = this.context.getCharacters(normalizedPlayerName);
-    const character = characters.find((candidate) => candidate.id === characterId);
+    const character = this.context.findCharacter(playerName, characterId);
 
     if (!character) {
       return {
@@ -50,8 +48,6 @@ class GameJoinMessageHandler {
       };
     }
 
-    this.context.joinCharacterToGame(player.playerName, character);
-
     return {
       success: true,
       message: 'Character joined game successfully',
@@ -60,7 +56,7 @@ class GameJoinMessageHandler {
     };
   }
 
-  handle(socket, payload) {
+  async handle(socket, payload) {
     this.context.logHandlerMessage('game-join', payload);
 
     if (!this.context.hasValidSession(payload)) {
@@ -73,6 +69,14 @@ class GameJoinMessageHandler {
     this.context.touchJoinedCharacters(payload);
 
     const response = this.buildResponse(payload);
+    
+    if (response.success) {
+      const character = this.context.findCharacter(payload?.playerName, payload?.characterId);
+      if (character) {
+        this.context.joinCharacterToGame(payload?.playerName, character);
+      }
+    }
+    
     socket.emit(GAME_JOIN_RESPONSE_EVENT, response);
     return response;
   }

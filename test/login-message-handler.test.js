@@ -15,7 +15,7 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-test('LoginMessageHandler authenticates and rotates session key', () => {
+test('LoginMessageHandler authenticates and rotates session key', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerId: 'player-1',
@@ -25,7 +25,7 @@ test('LoginMessageHandler authenticates and rotates session key', () => {
   const handler = new LoginMessageHandler(context);
   const socket = createMockSocket('socket-login');
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'orbitfox',
     password: 'safe-pass'
   });
@@ -41,7 +41,7 @@ test('LoginMessageHandler authenticates and rotates session key', () => {
   assert.equal(context.getPlayer('OrbitFox').socketId, 'socket-login');
 });
 
-test('LoginMessageHandler rejects password mismatches', () => {
+test('LoginMessageHandler rejects password mismatches', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'NovaWing',
@@ -50,7 +50,7 @@ test('LoginMessageHandler rejects password mismatches', () => {
   const handler = new LoginMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = handler.handle(socket, {
+  const response = await handler.handle(socket, {
     playerName: 'novawing',
     password: 'wrong-password'
   });
