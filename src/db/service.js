@@ -130,8 +130,8 @@ class DatabaseService {
   async getCharacters(playerName) {
     try {
       const playerNameNormalized = playerName.toLowerCase();
-      const player = await Player.findOne({ playerNameNormalized }, { characters: 1 });
-      return player ? player.characters : [];
+      const player = await Player.findOne({ playerNameNormalized }, { characters: 1 }).lean();
+      return player && Array.isArray(player.characters) ? player.characters : [];
     } catch (error) {
       this.log(`[db-service] Error fetching characters: ${error.message}`);
       throw error;

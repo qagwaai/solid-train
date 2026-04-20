@@ -44,12 +44,81 @@ class MessageHandlerContext {
     return this.registeredPlayers.get(normalizedPlayerName) || null;
   }
 
+  cachePlayer(playerData) {
+    if (!playerData || !playerData.playerName) {
+      return null;
+    }
+
+    const normalizedPlayerName = this.normalizePlayerName(playerData.playerName);
+    if (!normalizedPlayerName) {
+      return null;
+    }
+
+    const existing = this.registeredPlayers.get(normalizedPlayerName) || {};
+    const merged = {
+      ...existing,
+      ...playerData,
+      sessionKey: playerData.sessionKey ?? existing.sessionKey ?? null,
+      socketId: playerData.socketId ?? existing.socketId ?? null
+    };
+
+    this.registeredPlayers.set(normalizedPlayerName, merged);
+    return merged;
+  }
+
   getCharacters(normalizedPlayerName) {
     return this.charactersByPlayer.get(normalizedPlayerName) || [];
   }
 
   setCharacters(normalizedPlayerName, characters) {
     this.charactersByPlayer.set(normalizedPlayerName, characters);
+  }
+
+  toPlainObject(value) {
+    if (value && typeof value.toObject === 'function') {
+      return value.toObject();
+    }
+
+    return value;
+  }
+
+  normalizeDrone(drone) {
+    const source = this.toPlainObject(drone) || {};
+    const droneName = this.toNonEmptyString(source.droneName) || this.toNonEmptyString(source.name);
+
+    return {
+      ...source,
+      droneName: droneName || source.droneName || source.name || ''
+    };
+  }
+
+  normalizeCharacter(character) {
+    const source = this.toPlainObject(character) || {};
+    const characterName =
+      this.toNonEmptyString(source.characterName) || this.toNonEmptyString(source.name);
+    const drones = Array.isArray(source.drones)
+      ? source.drones.map((drone) => this.normalizeDrone(drone))
+      : [];
+
+    return {
+      ...source,
+      characterName: characterName || source.characterName || source.name || '',
+      drones
+    };
+  }
+
+  cacheCharacters(playerName, characters) {
+    const normalizedPlayerName = this.normalizePlayerName(playerName);
+    if (!normalizedPlayerName) {
+      return [];
+    }
+
+    const clonedCharacters = Array.isArray(characters)
+      ? characters.map((character) => this.normalizeCharacter(character))
+      : [];
+
+    this.setCharacters(normalizedPlayerName, clonedCharacters);
+    return clonedCharacters;
   }
 
   hasValidSession(payload) {
@@ -210,7 +279,11 @@ class MessageHandlerContext {
   async getPlayerAsync(playerName) {
     if (this.databaseService) {
       try {
-        return await this.databaseService.getPlayerByName(playerName);
+        const player = await this.databaseService.getPlayerByName(playerName);
+        if (player) {
+          this.cachePlayer(player);
+        }
+        return player;
       } catch (error) {
         this.log(`[context] Error fetching player from DB: ${error.message}`);
         return null;
@@ -222,7 +295,8 @@ class MessageHandlerContext {
   async getCharactersAsync(playerName) {
     if (this.databaseService) {
       try {
-        return await this.databaseService.getCharacters(playerName);
+        const characters = await this.databaseService.getCharacters(playerName);
+        return this.cacheCharacters(playerName, characters);
       } catch (error) {
         this.log(`[context] Error fetching characters from DB: ${error.message}`);
         return [];

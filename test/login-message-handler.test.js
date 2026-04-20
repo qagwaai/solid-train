@@ -62,3 +62,122 @@ test('LoginMessageHandler rejects password mismatches', async () => {
   });
   assert.equal(socket.events[0].eventName, LOGIN_RESPONSE_EVENT);
 });
+
+test('LoginMessageHandler hydrates player from database when memory is empty', async () => {
+  const context = createTestContext();
+  context.databaseService = {
+    async getPlayerByName(playerName) {
+      if (playerName.toLowerCase() !== 'orbitfox') {
+        return null;
+      }
+
+      return {
+        playerId: 'player-db-1',
+        playerName: 'OrbitFox',
+        email: 'orbitfox@example.com',
+        password: 'safe-pass',
+        sessionKey: null,
+        socketId: null
+      };
+    },
+    async updatePlayer() {
+      return null;
+    },
+    async getCharacters(playerName) {
+      if (playerName.toLowerCase() !== 'orbitfox') {
+        return [];
+      }
+
+      return [
+        {
+          id: 'char-1',
+          characterName: 'RangerOne',
+          createdAt: '2026-04-20T00:00:00.000Z',
+          drones: []
+        }
+      ];
+    }
+  };
+
+  const handler = new LoginMessageHandler(context);
+  const socket = createMockSocket('socket-db-login');
+
+  const response = await handler.handle(socket, {
+    playerName: 'orbitfox',
+    password: 'safe-pass'
+  });
+
+  assert.deepEqual(response, {
+    success: true,
+    message: 'Login successful',
+    playerId: 'player-db-1',
+    sessionKey: 'player-1'
+  });
+  assert.equal(socket.events[0].eventName, LOGIN_RESPONSE_EVENT);
+  assert.equal(context.getPlayer('OrbitFox').socketId, 'socket-db-login');
+  assert.equal(context.getPlayer('OrbitFox').sessionKey, 'player-1');
+  assert.deepEqual(context.getCharacters('orbitfox'), [
+    {
+      id: 'char-1',
+      characterName: 'RangerOne',
+      createdAt: '2026-04-20T00:00:00.000Z',
+      drones: []
+    }
+  ]);
+});
+
+test('LoginMessageHandler normalizes legacy character name fields from database', async () => {
+  const context = createTestContext();
+  context.databaseService = {
+    async getPlayerByName() {
+      return {
+        playerId: 'player-db-legacy-1',
+        playerName: 'LegacyPilot',
+        email: 'legacy@example.com',
+        password: 'safe-pass',
+        sessionKey: null,
+        socketId: null
+      };
+    },
+    async updatePlayer() {
+      return null;
+    },
+    async getCharacters() {
+      return [
+        {
+          id: 'legacy-char-1',
+          name: 'Legacy Ranger',
+          createdAt: '2026-04-20T00:00:00.000Z',
+          drones: [{ id: 'd-1', name: 'Legacy Drone', createdAt: '2026-04-20T00:00:00.000Z' }]
+        }
+      ];
+    }
+  };
+
+  const handler = new LoginMessageHandler(context);
+  const socket = createMockSocket('socket-legacy-login');
+
+  const response = await handler.handle(socket, {
+    playerName: 'LegacyPilot',
+    password: 'safe-pass'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(socket.events[0].eventName, LOGIN_RESPONSE_EVENT);
+  assert.deepEqual(context.getCharacters('legacypilot'), [
+    {
+      id: 'legacy-char-1',
+      name: 'Legacy Ranger',
+      characterName: 'Legacy Ranger',
+      createdAt: '2026-04-20T00:00:00.000Z',
+      drones: [
+        {
+          id: 'd-1',
+          name: 'Legacy Drone',
+          droneName: 'Legacy Drone',
+          createdAt: '2026-04-20T00:00:00.000Z'
+        }
+      ]
+    }
+  ]);
+});
