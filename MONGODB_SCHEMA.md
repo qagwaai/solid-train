@@ -20,6 +20,7 @@ This is an aggregate-style model where all player-owned game state is stored in 
 erDiagram
   PLAYER ||--o{ CHARACTER : embeds
   CHARACTER ||--o{ DRONE : embeds
+  DRONE ||--o| DRONE_KINEMATICS : embeds
 
   PLAYER {
     ObjectId _id
@@ -44,6 +45,13 @@ erDiagram
     string id
     string droneName
     string createdAt
+    object kinematics
+  }
+
+  DRONE_KINEMATICS {
+    object position
+    object velocity
+    object reference
   }
 ```
 
@@ -114,10 +122,30 @@ Embedded under Player.characters[].drones.
 - id: String (required)
 - droneName: String (required)
 - createdAt: String (required)
+- kinematics: DroneKinematics | null (optional)
+  - Contains position, velocity, and spatial reference information
+  - Default: null
+
+### DroneKinematics Subdocument Fields
+
+- position: Triple (required)
+  - x: Number - X coordinate
+  - y: Number - Y coordinate
+  - z: Number - Z coordinate
+- velocity: Triple (required)
+  - x: Number - X velocity component
+  - y: Number - Y velocity component
+  - z: Number - Z velocity component
+- reference: SpatialReference (required)
+  - solarSystemId: String - Reference solar system identifier
+  - referenceKind: String - 'barycentric' or 'body-centered'
+  - referenceBodyId: String | null - Optional reference body identifier
+  - epochMs: Number - Epoch timestamp in milliseconds
 
 Notes:
 - _id is disabled for Drone subdocuments (_id: false).
 - Drone identifiers use the id field, not MongoDB ObjectId.
+- Kinematics data is optional and can be null when not applicable.
 
 ## Relationship Semantics
 
@@ -176,7 +204,25 @@ This runs on save operations and keeps modification timestamps current.
         {
           "id": "character-cf86b7-drone-1",
           "droneName": "RangerOne Drone 1",
-          "createdAt": "2026-04-19T12:00:00.000Z"
+          "createdAt": "2026-04-19T12:00:00.000Z",
+          "kinematics": {
+            "position": {
+              "x": 100.5,
+              "y": 200.3,
+              "z": 50.1
+            },
+            "velocity": {
+              "x": 0.5,
+              "y": -0.2,
+              "z": 0.1
+            },
+            "reference": {
+              "solarSystemId": "system-sol",
+              "referenceKind": "barycentric",
+              "referenceBodyId": null,
+              "epochMs": 1713607200000
+            }
+          }
         }
       ]
     }
@@ -210,7 +256,25 @@ This runs on save operations and keeps modification timestamps current.
 {
   "id": "character-cf86b7-drone-1",
   "droneName": "RangerOne Drone 1",
-  "createdAt": "2026-04-19T12:00:00.000Z"
+  "createdAt": "2026-04-19T12:00:00.000Z",
+  "kinematics": {
+    "position": {
+      "x": 100.5,
+      "y": 200.3,
+      "z": 50.1
+    },
+    "velocity": {
+      "x": 0.5,
+      "y": -0.2,
+      "z": 0.1
+    },
+    "reference": {
+      "solarSystemId": "system-sol",
+      "referenceKind": "barycentric",
+      "referenceBodyId": null,
+      "epochMs": 1713607200000
+    }
+  }
 }
 ```
 
