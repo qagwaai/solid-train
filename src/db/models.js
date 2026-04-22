@@ -84,6 +84,41 @@ const droneSchema = new mongoose.Schema({
 }, { _id: false });
 
 /**
+ * Mission progress schema for a character mission entry
+ */
+const missionSchema = new mongoose.Schema({
+  missionId: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    required: true
+  },
+  startedAt: {
+    type: String
+  },
+  inProgressAt: {
+    type: String
+  },
+  failedAt: {
+    type: String
+  },
+  completedAt: {
+    type: String
+  },
+  updatedAt: {
+    type: String
+  },
+  failureReason: {
+    type: String
+  },
+  statusDetail: {
+    type: String
+  }
+}, { _id: false });
+
+/**
  * Character schema - embedded within Player
  */
 const characterSchema = new mongoose.Schema({
@@ -99,7 +134,8 @@ const characterSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  drones: [droneSchema]
+  drones: [droneSchema],
+  missions: [missionSchema]
 }, { _id: false });
 
 /**
@@ -167,5 +203,6 @@ module.exports = {
   Player,
   playerSchema,
   characterSchema,
-  droneSchema
+  droneSchema,
+  missionSchema
 };

@@ -121,7 +121,8 @@ test('LoginMessageHandler hydrates player from database when memory is empty', a
       id: 'char-1',
       characterName: 'RangerOne',
       createdAt: '2026-04-20T00:00:00.000Z',
-      drones: []
+      drones: [],
+      missions: []
     }
   ]);
 });
@@ -177,7 +178,8 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
           droneName: 'Legacy Drone',
           createdAt: '2026-04-20T00:00:00.000Z'
         }
-      ]
+      ],
+      missions: []
     }
   ]);
 });

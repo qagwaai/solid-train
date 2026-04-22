@@ -29,6 +29,17 @@ The server listens on port `3000` by default. Set `PORT` to override.
 
 - `welcome` (server -> client): sent on connection
 - `message` (client -> server): broadcasts to all clients as `message`
+- `register` / `register-response`
+- `login` / `login-response`
+- `character-list-request` / `character-list-response`
+- `character-add-request` / `character-add-response`
+- `character-delete-request` / `character-delete-response`
+- `character-edit` / `character-edit-response`
+- `drone-list-request` / `drone-list-response`
+- `game-join` / `game-join-response`
+- `add-mission-request` / `add-mission-response`
+- `list-missions-request` / `list-missions-response`
+- `invalid-session` (server -> client): emitted when session validation fails
 
 ## Test
 

@@ -8,7 +8,7 @@ including required fields, response payloads, and edge-case behavior.
 - All message payload string fields are trimmed.
 - Player lookup is case-insensitive by `playerName`.
 - Character operations (`list`, `add`, `delete`, `edit`, `drone-list-request`,
-  `game-join`) require
+  `game-join`, `add-mission-request`, `list-missions-request`) require
   a valid session.
 - Invalid or missing session for character operations emits:
   - event: `invalid-session`
@@ -244,6 +244,163 @@ including required fields, response payloads, and edge-case behavior.
 - Invalid session emits `invalid-session`.
 - Added character stores `id`, `characterName`, and `createdAt`.
 - New characters are initialized with at least one starter drone in `drones`.
+- New characters are initialized with mission progress containing
+  `The First Target` in status `available`.
+
+## Event: `add-mission-request`
+
+- Request event: `add-mission-request`
+- Response event: `add-mission-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `characterId` (required)
+- `missionId` (required)
+- `sessionKey` (required and must match the player)
+- `status` (optional, defaults to `available`)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Mission recorded successfully",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>",
+  "mission": {
+    "missionId": "<mission id>",
+    "status": "<mission status>",
+    "updatedAt": "<iso timestamp>",
+    "startedAt": "<optional when status is started>",
+    "inProgressAt": "<optional when status is in-progress>",
+    "failedAt": "<optional when status is failed>",
+    "completedAt": "<optional when status is completed>"
+  }
+}
+```
+
+### Failure Responses
+
+- Missing required fields:
+
+```json
+{
+  "success": false,
+  "message": "playerName, characterId, and missionId are required",
+  "playerName": "<trimmed playerName or empty>",
+  "characterId": "<trimmed characterId or empty>"
+}
+```
+
+- Player not registered:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<trimmed playerName>",
+  "characterId": "<provided characterId>"
+}
+```
+
+- Character not found in player list:
+
+```json
+{
+  "success": false,
+  "message": "Character is not in player list",
+  "playerName": "<canonical player name>",
+  "characterId": "<provided characterId>"
+}
+```
+
+### Edge Cases
+
+- Invalid session emits `invalid-session`.
+- Mission progress is scoped to a character.
+- Re-adding the same `missionId` updates the existing mission progress.
+- Canonical status values include:
+  `available`, `started`, `in-progress`, `failed`, `completed`, `locked`,
+  `abandoned`, `paused`, `turned-in`.
+- Custom statuses are allowed for server-side extensions.
+
+## Event: `list-missions-request`
+
+- Request event: `list-missions-request`
+- Response event: `list-missions-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `characterId` (required)
+- `sessionKey` (required and must match the player)
+- `statuses` (optional list of statuses to filter)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Mission list retrieved successfully",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>",
+  "missions": [
+    {
+      "missionId": "<mission id>",
+      "status": "<mission status>",
+      "updatedAt": "<iso timestamp>"
+    }
+  ]
+}
+```
+
+### Failure Responses
+
+- Missing required fields:
+
+```json
+{
+  "success": false,
+  "message": "playerName and characterId are required",
+  "playerName": "<trimmed playerName or empty>",
+  "characterId": "<trimmed characterId or empty>",
+  "missions": []
+}
+```
+
+- Player not registered:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<trimmed playerName>",
+  "characterId": "<provided characterId>",
+  "missions": []
+}
+```
+
+- Character not found in player list:
+
+```json
+{
+  "success": false,
+  "message": "Character is not in player list",
+  "playerName": "<canonical player name>",
+  "characterId": "<provided characterId>",
+  "missions": []
+}
+```
+
+### Edge Cases
+
+- Invalid session emits `invalid-session`.
+- Mission list is scoped to the requested character.
+- `statuses` filter is optional and supports custom statuses.
+- Returned `missions` list is a defensive copy of server state.
 
 ## Event: `drone-list-request`
 

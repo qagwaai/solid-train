@@ -11,6 +11,7 @@ The data model is document-oriented with a single root collection:
 - Embedded subdocuments:
   - Character (embedded in Player.characters)
   - Drone (embedded in Character.drones)
+  - MissionProgress (embedded in Character.missions)
 
 This is an aggregate-style model where all player-owned game state is stored in one Player document.
 
@@ -20,6 +21,7 @@ This is an aggregate-style model where all player-owned game state is stored in 
 erDiagram
   PLAYER ||--o{ CHARACTER : embeds
   CHARACTER ||--o{ DRONE : embeds
+  CHARACTER ||--o{ MISSION_PROGRESS : embeds
   DRONE ||--o| DRONE_KINEMATICS : embeds
 
   PLAYER {
@@ -39,6 +41,18 @@ erDiagram
     string id
     string characterName
     string createdAt
+  }
+
+  MISSION_PROGRESS {
+    string missionId
+    string status
+    string startedAt
+    string inProgressAt
+    string failedAt
+    string completedAt
+    string updatedAt
+    string failureReason
+    string statusDetail
   }
 
   DRONE {
@@ -108,10 +122,34 @@ Embedded under Player.characters.
 - characterName: String (required)
 - createdAt: String (required)
 - drones: Drone[]
+- missions: MissionProgress[]
 
 Notes:
 - _id is disabled for Character subdocuments (_id: false).
 - Character identifiers use the id field, not MongoDB ObjectId.
+
+## MissionProgress Subdocument Schema
+
+Embedded under Player.characters[].missions.
+
+### Fields
+
+- missionId: String (required)
+- status: String (required)
+- startedAt: String (optional)
+- inProgressAt: String (optional)
+- failedAt: String (optional)
+- completedAt: String (optional)
+- updatedAt: String (optional)
+- failureReason: String (optional)
+- statusDetail: String (optional)
+
+Notes:
+- _id is disabled for MissionProgress subdocuments (_id: false).
+- Canonical statuses include:
+  `available`, `started`, `in-progress`, `failed`, `completed`, `locked`,
+  `abandoned`, `paused`, `turned-in`.
+- Custom status values are allowed for server-side mission extensions.
 
 ## Drone Subdocument Schema
 
@@ -151,6 +189,7 @@ Notes:
 
 - One Player to many Characters: 1:N (embedded)
 - One Character to many Drones: 1:N (embedded)
+- One Character to many MissionProgress entries: 1:N (embedded)
 
 All relationships are ownership relationships contained in a single Player document.
 
@@ -163,6 +202,7 @@ The service layer in src/db/service.js uses playerNameNormalized as the primary 
 - Update player session/socket
 - Add, edit, delete characters
 - Add and fetch drones
+- Add and list character mission progress
 
 Because Character and Drone are embedded, operations commonly update a single Player document.
 
@@ -224,6 +264,20 @@ This runs on save operations and keeps modification timestamps current.
             }
           }
         }
+      ],
+      "missions": [
+        {
+          "missionId": "The First Target",
+          "status": "available",
+          "updatedAt": "2026-04-19T12:00:00.000Z"
+        },
+        {
+          "missionId": "Moon Relay",
+          "status": "in-progress",
+          "startedAt": "2026-04-19T12:05:00.000Z",
+          "inProgressAt": "2026-04-19T12:07:00.000Z",
+          "updatedAt": "2026-04-19T12:07:00.000Z"
+        }
       ]
     }
   ],
@@ -245,6 +299,13 @@ This runs on save operations and keeps modification timestamps current.
       "id": "character-cf86b7-drone-1",
       "droneName": "RangerOne Drone 1",
       "createdAt": "2026-04-19T12:00:00.000Z"
+    }
+  ],
+  "missions": [
+    {
+      "missionId": "The First Target",
+      "status": "available",
+      "updatedAt": "2026-04-19T12:00:00.000Z"
     }
   ]
 }

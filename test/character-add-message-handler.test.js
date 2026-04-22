@@ -52,6 +52,13 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
           droneName: 'RangerOne Drone 1',
           createdAt: '2026-04-17T00:00:00.000Z'
         }
+      ],
+      missions: [
+        {
+          missionId: 'The First Target',
+          status: 'available',
+          updatedAt: '2026-04-17T00:00:00.000Z'
+        }
       ]
     }
   ]);

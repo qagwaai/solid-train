@@ -100,8 +100,8 @@ class DatabaseService {
 
   /**
    * Add a character to a player
-   * @param {string} playerName
-   * @param {Object} characterData - { id, characterName, createdAt, drones }
+    * @param {string} playerName
+    * @param {Object} characterData - { id, characterName, createdAt, drones, missions }
    * @returns {Promise<Object|null>}
    */
   async addCharacter(playerName, characterData) {
@@ -223,6 +223,80 @@ class DatabaseService {
       return player.toObject();
     } catch (error) {
       this.log(`[db-service] Error adding drone: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Add or update a mission for a character
+   * @param {string} playerName
+   * @param {string} characterId
+   * @param {Object} missionData - { missionId, status, updatedAt, ... }
+   * @returns {Promise<Object|null>}
+   */
+  async addOrUpdateMission(playerName, characterId, missionData) {
+    try {
+      const playerNameNormalized = playerName.toLowerCase();
+      const player = await Player.findOne({ playerNameNormalized });
+
+      if (!player) {
+        return null;
+      }
+
+      const character = player.characters.find((c) => c.id === characterId);
+      if (!character) {
+        return null;
+      }
+
+      if (!Array.isArray(character.missions)) {
+        character.missions = [];
+      }
+
+      const missionIndex = character.missions.findIndex(
+        (mission) => mission.missionId === missionData.missionId
+      );
+
+      if (missionIndex >= 0) {
+        // Update existing mission using array index to ensure Mongoose tracks the change
+        character.missions[missionIndex] = missionData;
+        player.markModified(`characters.${player.characters.indexOf(character)}.missions`);
+      } else {
+        // Add new mission
+        character.missions.push(missionData);
+      }
+
+      player.updatedAt = new Date();
+      await player.save();
+      return player.toObject();
+    } catch (error) {
+      this.log(`[db-service] Error adding/updating mission: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all missions for a character
+   * @param {string} playerName
+   * @param {string} characterId
+   * @returns {Promise<Array>}
+   */
+  async getMissions(playerName, characterId) {
+    try {
+      const playerNameNormalized = playerName.toLowerCase();
+      const player = await Player.findOne({ playerNameNormalized });
+
+      if (!player) {
+        return [];
+      }
+
+      const character = player.characters.find((c) => c.id === characterId);
+      if (!character || !Array.isArray(character.missions)) {
+        return [];
+      }
+
+      return character.missions;
+    } catch (error) {
+      this.log(`[db-service] Error fetching missions: ${error.message}`);
       throw error;
     }
   }

@@ -38,6 +38,14 @@ const {
   GAME_JOIN_RESPONSE_EVENT
 } = require('../src/model/game-join');
 const {
+  MISSION_ADD_REQUEST_EVENT,
+  MISSION_ADD_RESPONSE_EVENT
+} = require('../src/model/mission-add');
+const {
+  MISSION_LIST_REQUEST_EVENT,
+  MISSION_LIST_RESPONSE_EVENT
+} = require('../src/model/mission-list');
+const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
 } = require('../src/model/session');
@@ -505,6 +513,105 @@ test('drone list returns drones for a character', async () => {
   assert.equal(droneListResponse.drones.length >= 1, true);
   assert.equal(typeof droneListResponse.drones[0].id, 'string');
   assert.equal(typeof droneListResponse.drones[0].droneName, 'string');
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('mission add stores mission progress and mission list returns it', async () => {
+  const { server, io } = createServer({ port: '3026' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'MissionSocketPilot',
+    'mission-socket@example.com',
+    'mission-pass'
+  );
+
+  const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'MissionSocketPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'RangerOne'
+  });
+  const addCharacter = await addCharacterPromise;
+  assert.equal(addCharacter.success, true);
+
+  const addMissionPromise = waitForEvent(client, MISSION_ADD_RESPONSE_EVENT);
+  client.emit(MISSION_ADD_REQUEST_EVENT, {
+    playerName: 'MissionSocketPilot',
+    characterId: addCharacter.characterId,
+    missionId: 'The First Target',
+    status: 'started',
+    sessionKey: loginResponse.sessionKey
+  });
+  const addMission = await addMissionPromise;
+
+  assert.equal(addMission.success, true);
+  assert.equal(addMission.message, 'Mission recorded successfully');
+  assert.equal(addMission.playerName, 'MissionSocketPilot');
+  assert.equal(addMission.characterId, addCharacter.characterId);
+  assert.equal(addMission.mission.missionId, 'The First Target');
+  assert.equal(addMission.mission.status, 'started');
+
+  const listMissionsPromise = waitForEvent(client, MISSION_LIST_RESPONSE_EVENT);
+  client.emit(MISSION_LIST_REQUEST_EVENT, {
+    playerName: 'MissionSocketPilot',
+    characterId: addCharacter.characterId,
+    statuses: ['started'],
+    sessionKey: loginResponse.sessionKey
+  });
+  const listMissions = await listMissionsPromise;
+
+  assert.equal(listMissions.success, true);
+  assert.equal(listMissions.message, 'Mission list retrieved successfully');
+  assert.equal(listMissions.playerName, 'MissionSocketPilot');
+  assert.equal(listMissions.characterId, addCharacter.characterId);
+  assert.equal(listMissions.missions.length, 1);
+  assert.equal(listMissions.missions[0].missionId, 'The First Target');
+  assert.equal(listMissions.missions[0].status, 'started');
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('mission list emits invalid session for wrong session key', async () => {
+  const { server, io } = createServer({ port: '3027' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'MissionSessionPilot',
+    'mission-session@example.com',
+    'mission-session-pass'
+  );
+
+  const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'MissionSessionPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'RangerOne'
+  });
+  const addCharacter = await addCharacterPromise;
+  assert.equal(addCharacter.success, true);
+
+  const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
+  client.emit(MISSION_LIST_REQUEST_EVENT, {
+    playerName: 'MissionSessionPilot',
+    characterId: addCharacter.characterId,
+    sessionKey: 'wrong-session-key'
+  });
+  const invalidSession = await invalidSessionPromise;
+  assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
 
   await closeClient(client);
   io.close();

@@ -7,6 +7,10 @@ const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
 } = require('../model/session');
+const {
+  DEFAULT_MISSION_STATUS,
+  DEFAULT_STARTER_MISSION_ID
+} = require('../model/mission');
 
 class CharacterAddMessageHandler {
   constructor(context) {
@@ -72,6 +76,13 @@ class CharacterAddMessageHandler {
               id: `${response.characterId}-drone-1`,
               droneName: `${response.characterName} Drone 1`,
               createdAt
+            }
+          ],
+          missions: [
+            {
+              missionId: DEFAULT_STARTER_MISSION_ID,
+              status: DEFAULT_MISSION_STATUS,
+              updatedAt: createdAt
             }
           ]
         };

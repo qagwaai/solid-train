@@ -32,6 +32,12 @@ const {
   GAME_JOIN_REQUEST_EVENT
 } = require('./model/game-join');
 const {
+  MISSION_ADD_REQUEST_EVENT
+} = require('./model/mission-add');
+const {
+  MISSION_LIST_REQUEST_EVENT
+} = require('./model/mission-list');
+const {
   MessageHandlerContext
 } = require('./handlers/message-handler-context');
 const {
@@ -58,6 +64,12 @@ const {
 const {
   GameJoinMessageHandler
 } = require('./handlers/game-join-message-handler');
+const {
+  MissionAddMessageHandler
+} = require('./handlers/mission-add-message-handler');
+const {
+  MissionListMessageHandler
+} = require('./handlers/mission-list-message-handler');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -97,6 +109,12 @@ function createServer(options = {}) {
     messageHandlerContext
   );
   const gameJoinMessageHandler = new GameJoinMessageHandler(
+    messageHandlerContext
+  );
+  const missionAddMessageHandler = new MissionAddMessageHandler(
+    messageHandlerContext
+  );
+  const missionListMessageHandler = new MissionListMessageHandler(
     messageHandlerContext
   );
 
@@ -176,6 +194,18 @@ function createServer(options = {}) {
     socket.on(GAME_JOIN_REQUEST_EVENT, (payload) => {
       gameJoinMessageHandler.handle(socket, payload).catch((error) => {
         process.stderr.write(`[socket] Game join handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(MISSION_ADD_REQUEST_EVENT, (payload) => {
+      missionAddMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Mission add handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(MISSION_LIST_REQUEST_EVENT, (payload) => {
+      missionListMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Mission list handler error: ${error.message}\n`);
       });
     });
   });

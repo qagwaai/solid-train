@@ -99,11 +99,25 @@ class MessageHandlerContext {
     const drones = Array.isArray(source.drones)
       ? source.drones.map((drone) => this.normalizeDrone(drone))
       : [];
+    const missions = Array.isArray(source.missions)
+      ? source.missions.map((mission) => this.normalizeMission(mission))
+      : [];
 
     return {
       ...source,
       characterName: characterName || source.characterName || source.name || '',
-      drones
+      drones,
+      missions
+    };
+  }
+
+  normalizeMission(mission) {
+    const source = this.toPlainObject(mission) || {};
+
+    return {
+      ...source,
+      missionId: this.toNonEmptyString(source.missionId),
+      status: this.toNonEmptyString(source.status)
     };
   }
 
@@ -416,6 +430,64 @@ class MessageHandlerContext {
       }
       character.drones.push(droneData);
     }
+  }
+
+  async addOrUpdateMissionAsync(playerName, characterId, missionData) {
+    if (this.databaseService) {
+      try {
+        await this.databaseService.addOrUpdateMission(playerName, characterId, missionData);
+      } catch (error) {
+        this.log(`[context] Error adding/updating mission in DB: ${error.message}`);
+        throw error;
+      }
+    }
+
+    const character = this.findCharacter(playerName, characterId);
+    if (!character) {
+      return;
+    }
+
+    if (!Array.isArray(character.missions)) {
+      character.missions = [];
+    }
+
+    const missionIndex = character.missions.findIndex(
+      (mission) => mission.missionId === missionData.missionId
+    );
+    if (missionIndex >= 0) {
+      // Update existing mission by index
+      character.missions[missionIndex] = missionData;
+    } else {
+      // Add new mission
+      character.missions.push(missionData);
+    }
+  }
+
+  async getMissionsAsync(playerName, characterId) {
+    if (this.databaseService) {
+      try {
+        const missions = await this.databaseService.getMissions(playerName, characterId);
+        const character = this.findCharacter(playerName, characterId);
+        const normalizedMissions = Array.isArray(missions)
+          ? missions.map((mission) => this.normalizeMission(mission))
+          : [];
+
+        if (character) {
+          character.missions = normalizedMissions;
+        }
+
+        return normalizedMissions;
+      } catch (error) {
+        this.log(`[context] Error fetching missions from DB: ${error.message}`);
+      }
+    }
+
+    const character = this.findCharacter(playerName, characterId);
+    if (!character || !Array.isArray(character.missions)) {
+      return [];
+    }
+
+    return character.missions.map((mission) => this.normalizeMission(mission));
   }
 }
 
