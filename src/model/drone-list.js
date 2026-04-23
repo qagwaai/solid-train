@@ -18,6 +18,19 @@ const DRONE_LIST_RESPONSE_EVENT = 'drone-list-response';
  */
 
 /**
+ * @typedef {'km'} DistanceUnit
+ */
+
+/**
+ * @typedef {'km/s'} VelocityUnit
+ */
+
+/**
+ * @typedef {Object} CelestialBodyLocation
+ * @property {Triple} positionKm
+ */
+
+/**
  * @typedef {'barycentric'|'body-centered'} SpatialReferenceKind
  */
 
@@ -26,6 +39,8 @@ const DRONE_LIST_RESPONSE_EVENT = 'drone-list-response';
  * @property {string} solarSystemId
  * @property {SpatialReferenceKind} referenceKind
  * @property {string} [referenceBodyId]
+ * @property {DistanceUnit} [distanceUnit]
+ * @property {VelocityUnit} [velocityUnit]
  * @property {number} epochMs
  */
 
@@ -42,6 +57,7 @@ const DRONE_LIST_RESPONSE_EVENT = 'drone-list-response';
  * @property {string} name
  * @property {string} [status]
  * @property {string} [model]
+ * @property {CelestialBodyLocation} [location]
  * @property {DroneKinematics} [kinematics]
  */
 

@@ -29,11 +29,17 @@ const {
   DRONE_LIST_REQUEST_EVENT
 } = require('./model/drone-list');
 const {
+  DRONE_UPSERT_REQUEST_EVENT
+} = require('./model/drone-upsert');
+const {
   GAME_JOIN_REQUEST_EVENT
 } = require('./model/game-join');
 const {
-  MISSION_ADD_REQUEST_EVENT
-} = require('./model/mission-add');
+  MISSION_UPSERT_REQUEST_EVENT
+} = require('./model/mission-upsert');
+const {
+  CELESTIAL_BODY_UPSERT_REQUEST_EVENT
+} = require('./model/celestial-body-upsert');
 const {
   MISSION_LIST_REQUEST_EVENT
 } = require('./model/mission-list');
@@ -62,11 +68,17 @@ const {
   DroneListMessageHandler
 } = require('./handlers/drone-list-message-handler');
 const {
+  DroneUpsertMessageHandler
+} = require('./handlers/drone-upsert-message-handler');
+const {
   GameJoinMessageHandler
 } = require('./handlers/game-join-message-handler');
 const {
-  MissionAddMessageHandler
-} = require('./handlers/mission-add-message-handler');
+  MissionUpsertMessageHandler
+} = require('./handlers/mission-upsert-message-handler');
+const {
+  CelestialBodyUpsertMessageHandler
+} = require('./handlers/celestial-body-upsert-message-handler');
 const {
   MissionListMessageHandler
 } = require('./handlers/mission-list-message-handler');
@@ -85,9 +97,11 @@ function createServer(options = {}) {
   const port = resolvePort(options.port);
   const registeredPlayers = new Map();
   const charactersByPlayer = new Map();
+  const celestialBodiesById = new Map();
   const messageHandlerContext = new MessageHandlerContext({
     registeredPlayers,
     charactersByPlayer,
+    celestialBodiesById,
     databaseService: options.databaseService || null,
     createId: randomUUID
   });
@@ -108,10 +122,16 @@ function createServer(options = {}) {
   const droneListMessageHandler = new DroneListMessageHandler(
     messageHandlerContext
   );
+  const droneUpsertMessageHandler = new DroneUpsertMessageHandler(
+    messageHandlerContext
+  );
   const gameJoinMessageHandler = new GameJoinMessageHandler(
     messageHandlerContext
   );
-  const missionAddMessageHandler = new MissionAddMessageHandler(
+  const missionUpsertMessageHandler = new MissionUpsertMessageHandler(
+    messageHandlerContext
+  );
+  const celestialBodyUpsertMessageHandler = new CelestialBodyUpsertMessageHandler(
     messageHandlerContext
   );
   const missionListMessageHandler = new MissionListMessageHandler(
@@ -191,15 +211,27 @@ function createServer(options = {}) {
       });
     });
 
+    socket.on(DRONE_UPSERT_REQUEST_EVENT, (payload) => {
+      droneUpsertMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Drone upsert handler error: ${error.message}\n`);
+      });
+    });
+
     socket.on(GAME_JOIN_REQUEST_EVENT, (payload) => {
       gameJoinMessageHandler.handle(socket, payload).catch((error) => {
         process.stderr.write(`[socket] Game join handler error: ${error.message}\n`);
       });
     });
 
-    socket.on(MISSION_ADD_REQUEST_EVENT, (payload) => {
-      missionAddMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Mission add handler error: ${error.message}\n`);
+    socket.on(MISSION_UPSERT_REQUEST_EVENT, (payload) => {
+      missionUpsertMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Mission upsert handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(CELESTIAL_BODY_UPSERT_REQUEST_EVENT, (payload) => {
+      celestialBodyUpsertMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Celestial body upsert handler error: ${error.message}\n`);
       });
     });
 

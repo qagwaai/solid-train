@@ -3,11 +3,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  MissionAddMessageHandler
-} = require('../src/handlers/mission-add-message-handler');
+  MissionUpsertMessageHandler
+} = require('../src/handlers/mission-upsert-message-handler');
 const {
-  MISSION_ADD_RESPONSE_EVENT
-} = require('../src/model/mission-add');
+  MISSION_UPSERT_RESPONSE_EVENT
+} = require('../src/model/mission-upsert');
 const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
@@ -18,7 +18,7 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-test('MissionAddMessageHandler adds mission progress to a character', async () => {
+test('MissionUpsertMessageHandler adds mission progress to a character', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MissionPilot',
@@ -32,7 +32,7 @@ test('MissionAddMessageHandler adds mission progress to a character', async () =
     ]
   });
 
-  const handler = new MissionAddMessageHandler(context);
+  const handler = new MissionUpsertMessageHandler(context);
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
@@ -55,10 +55,10 @@ test('MissionAddMessageHandler adds mission progress to a character', async () =
   const mission = context.getCharacters('missionpilot')[0].missions[0];
   assert.equal(mission.missionId, 'The First Target');
   assert.equal(mission.status, 'started');
-  assert.equal(socket.events[0].eventName, MISSION_ADD_RESPONSE_EVENT);
+  assert.equal(socket.events[0].eventName, MISSION_UPSERT_RESPONSE_EVENT);
 });
 
-test('MissionAddMessageHandler emits invalid session before mutation', async () => {
+test('MissionUpsertMessageHandler emits invalid session before mutation', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MissionPilot',
@@ -66,13 +66,14 @@ test('MissionAddMessageHandler emits invalid session before mutation', async () 
     characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
   });
 
-  const handler = new MissionAddMessageHandler(context);
+  const handler = new MissionUpsertMessageHandler(context);
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'The First Target',
+    status: 'started',
     sessionKey: 'wrong-session'
   });
 

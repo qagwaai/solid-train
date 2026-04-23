@@ -1,6 +1,6 @@
 'use strict';
 
-const { Player } = require('./models');
+const { CelestialBody, Player } = require('./models');
 
 /**
  * Database service layer - provides a clean interface for CRUD operations
@@ -325,12 +325,36 @@ class DatabaseService {
   }
 
   /**
+   * Add or update a celestial body in the cb collection using id as the upsert key
+   * @param {Object} celestialBodyData
+   * @returns {Promise<Object>}
+   */
+  async addOrUpdateCelestialBody(celestialBodyData) {
+    try {
+      const celestialBody = await CelestialBody.findOneAndUpdate(
+        { id: celestialBodyData.id },
+        celestialBodyData,
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true
+        }
+      );
+      return celestialBody ? celestialBody.toObject() : null;
+    } catch (error) {
+      this.log(`[db-service] Error adding/updating celestial body: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Delete all players (useful for testing)
    * @returns {Promise<void>}
    */
   async clearAllPlayers() {
     try {
       await Player.deleteMany({});
+      await CelestialBody.deleteMany({});
       this.log('[db-service] All players cleared');
     } catch (error) {
       this.log(`[db-service] Error clearing players: ${error.message}`);

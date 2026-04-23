@@ -37,8 +37,28 @@ const spatialReferenceSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  distanceUnit: {
+    type: String,
+    enum: ['km'],
+    default: 'km'
+  },
+  velocityUnit: {
+    type: String,
+    enum: ['km/s'],
+    default: 'km/s'
+  },
   epochMs: {
     type: Number,
+    required: true
+  }
+}, { _id: false });
+
+/**
+ * Drone location schema for barycentric body-relative position
+ */
+const droneLocationSchema = new mongoose.Schema({
+  positionKm: {
+    type: tripleSchema,
     required: true
   }
 }, { _id: false });
@@ -76,6 +96,10 @@ const droneSchema = new mongoose.Schema({
   createdAt: {
     type: String,
     required: true
+  },
+  location: {
+    type: droneLocationSchema,
+    default: null
   },
   kinematics: {
     type: droneKinematicsSchema,
@@ -117,6 +141,111 @@ const missionSchema = new mongoose.Schema({
     type: String
   }
 }, { _id: false });
+
+/**
+ * Celestial body location schema
+ */
+const celestialBodyLocationSchema = new mongoose.Schema({
+  positionKm: {
+    type: tripleSchema,
+    required: true
+  }
+}, { _id: false });
+
+/**
+ * Celestial body kinematics schema
+ */
+const celestialBodyKinematicsSchema = new mongoose.Schema({
+  velocityKmPerSec: {
+    type: tripleSchema,
+    required: true
+  },
+  angularVelocityRadPerSec: {
+    type: tripleSchema,
+    required: true
+  },
+  estimatedMassKg: {
+    type: Number,
+    required: true
+  },
+  estimatedDiameterM: {
+    type: Number,
+    required: true
+  }
+}, { _id: false });
+
+/**
+ * Celestial body material profile schema
+ */
+const asteroidMaterialProfileSchema = new mongoose.Schema({
+  rarity: {
+    type: String,
+    enum: ['Common', 'Uncommon', 'Rare', 'Exotic'],
+    required: true
+  },
+  material: {
+    type: String,
+    required: true
+  },
+  textureColor: {
+    type: String,
+    required: true
+  }
+}, { _id: false });
+
+/**
+ * Celestial body schema - root document in the cb collection
+ */
+const celestialBodySchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  catalogId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  solarSystemId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  sourceScanId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  createdByCharacterId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  createdAt: {
+    type: String,
+    required: true
+  },
+  updatedAt: {
+    type: String,
+    required: true
+  },
+  location: {
+    type: celestialBodyLocationSchema,
+    required: true
+  },
+  kinematics: {
+    type: celestialBodyKinematicsSchema,
+    required: true
+  },
+  composition: {
+    type: asteroidMaterialProfileSchema,
+    required: true
+  }
+}, {
+  collection: 'cb'
+});
 
 /**
  * Character schema - embedded within Player
@@ -198,8 +327,14 @@ playerSchema.pre('save', function (next) {
  * Player model
  */
 const Player = mongoose.model('Player', playerSchema);
+const CelestialBody = mongoose.model('CelestialBody', celestialBodySchema);
 
 module.exports = {
+  CelestialBody,
+  celestialBodySchema,
+  asteroidMaterialProfileSchema,
+  celestialBodyKinematicsSchema,
+  celestialBodyLocationSchema,
   Player,
   playerSchema,
   characterSchema,

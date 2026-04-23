@@ -6,6 +6,7 @@ class MessageHandlerContext {
   constructor(options = {}) {
     this.registeredPlayers = options.registeredPlayers || new Map();
     this.charactersByPlayer = options.charactersByPlayer || new Map();
+    this.celestialBodiesById = options.celestialBodiesById || new Map();
     this.databaseService = options.databaseService || null;
     this.game = options.game || new GameState();
     this.log = options.log || ((line) => process.stdout.write(`${line}\n`));
@@ -119,6 +120,49 @@ class MessageHandlerContext {
       missionId: this.toNonEmptyString(source.missionId),
       status: this.toNonEmptyString(source.status)
     };
+  }
+
+  normalizeCelestialBody(celestialBody) {
+    const source = this.toPlainObject(celestialBody) || {};
+
+    return {
+      ...source,
+      id: this.toNonEmptyString(source.id),
+      catalogId: this.toNonEmptyString(source.catalogId),
+      solarSystemId: this.toNonEmptyString(source.solarSystemId),
+      sourceScanId: this.toNonEmptyString(source.sourceScanId),
+      createdByCharacterId: this.toNonEmptyString(source.createdByCharacterId),
+      createdAt: this.toNonEmptyString(source.createdAt),
+      updatedAt: this.toNonEmptyString(source.updatedAt),
+      location: source.location ? {
+        positionKm: source.location.positionKm ? { ...source.location.positionKm } : null
+      } : null,
+      kinematics: source.kinematics ? {
+        velocityKmPerSec: source.kinematics.velocityKmPerSec
+          ? { ...source.kinematics.velocityKmPerSec }
+          : null,
+        angularVelocityRadPerSec: source.kinematics.angularVelocityRadPerSec
+          ? { ...source.kinematics.angularVelocityRadPerSec }
+          : null,
+        estimatedMassKg: source.kinematics.estimatedMassKg,
+        estimatedDiameterM: source.kinematics.estimatedDiameterM
+      } : null,
+      composition: source.composition ? {
+        rarity: this.toNonEmptyString(source.composition.rarity),
+        material: this.toNonEmptyString(source.composition.material),
+        textureColor: this.toNonEmptyString(source.composition.textureColor)
+      } : null
+    };
+  }
+
+  getCelestialBody(celestialBodyId) {
+    const normalizedCelestialBodyId = this.toNonEmptyString(celestialBodyId);
+
+    if (!normalizedCelestialBodyId) {
+      return null;
+    }
+
+    return this.celestialBodiesById.get(normalizedCelestialBodyId) || null;
   }
 
   cacheCharacters(playerName, characters) {
@@ -488,6 +532,22 @@ class MessageHandlerContext {
     }
 
     return character.missions.map((mission) => this.normalizeMission(mission));
+  }
+
+  async addOrUpdateCelestialBodyAsync(celestialBody) {
+    const normalizedCelestialBody = this.normalizeCelestialBody(celestialBody);
+
+    if (this.databaseService) {
+      try {
+        await this.databaseService.addOrUpdateCelestialBody(normalizedCelestialBody);
+      } catch (error) {
+        this.log(`[context] Error adding/updating celestial body in DB: ${error.message}`);
+        throw error;
+      }
+    }
+
+    this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
+    return normalizedCelestialBody;
   }
 }
 

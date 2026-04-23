@@ -4,7 +4,7 @@ This document describes the active MongoDB schema used by the Node.js server thr
 
 ## Overview
 
-The data model is document-oriented with a single root collection:
+The data model is document-oriented with two active collections:
 
 - Collection: players
 - Root model: Player
@@ -12,8 +12,10 @@ The data model is document-oriented with a single root collection:
   - Character (embedded in Player.characters)
   - Drone (embedded in Character.drones)
   - MissionProgress (embedded in Character.missions)
+- Collection: cb
+- Root model: CelestialBody
 
-This is an aggregate-style model where all player-owned game state is stored in one Player document.
+Player-owned game state remains embedded in a Player document, while scanned celestial bodies are stored independently in `cb`.
 
 ## Entity Relationship Diagram
 
@@ -22,6 +24,7 @@ erDiagram
   PLAYER ||--o{ CHARACTER : embeds
   CHARACTER ||--o{ DRONE : embeds
   CHARACTER ||--o{ MISSION_PROGRESS : embeds
+  CHARACTER ||--o{ CELESTIAL_BODY : creates
   DRONE ||--o| DRONE_KINEMATICS : embeds
 
   PLAYER {
@@ -66,6 +69,20 @@ erDiagram
     object position
     object velocity
     object reference
+  }
+
+  CELESTIAL_BODY {
+    ObjectId _id
+    string id
+    string catalogId
+    string solarSystemId
+    string sourceScanId
+    string createdByCharacterId
+    string createdAt
+    string updatedAt
+    object location
+    object kinematics
+    object composition
   }
 ```
 
@@ -160,9 +177,19 @@ Embedded under Player.characters[].drones.
 - id: String (required)
 - droneName: String (required)
 - createdAt: String (required)
+- location: DroneLocation | null (optional)
+  - Contains barycentric/body-relative position in km
+  - Default: null
 - kinematics: DroneKinematics | null (optional)
   - Contains position, velocity, and spatial reference information
   - Default: null
+
+### DroneLocation Subdocument Fields
+
+- positionKm: Triple (required)
+  - x: Number - X coordinate in km
+  - y: Number - Y coordinate in km
+  - z: Number - Z coordinate in km
 
 ### DroneKinematics Subdocument Fields
 
@@ -178,6 +205,8 @@ Embedded under Player.characters[].drones.
   - solarSystemId: String - Reference solar system identifier
   - referenceKind: String - 'barycentric' or 'body-centered'
   - referenceBodyId: String | null - Optional reference body identifier
+  - distanceUnit: String - 'km'
+  - velocityUnit: String - 'km/s'
   - epochMs: Number - Epoch timestamp in milliseconds
 
 Notes:
@@ -185,13 +214,61 @@ Notes:
 - Drone identifiers use the id field, not MongoDB ObjectId.
 - Kinematics data is optional and can be null when not applicable.
 
+## CelestialBody Root Schema
+
+Defined in src/db/models.js and stored in the `cb` collection.
+
+### Fields
+
+- _id: ObjectId
+  - MongoDB-generated primary key.
+- id: String
+  - Required.
+  - Unique index.
+  - Application-level celestial body identifier and upsert key.
+- catalogId: String
+  - Required.
+  - Indexed.
+- solarSystemId: String
+  - Required.
+  - Indexed.
+  - Currently forced to `sol` by the socket handler.
+- sourceScanId: String
+  - Required.
+  - Indexed.
+- createdByCharacterId: String
+  - Required.
+  - Indexed.
+  - References the character id that discovered or created the body.
+- createdAt: String
+  - Required.
+  - Preserved from the request payload.
+- updatedAt: String
+  - Required.
+  - Preserved from the request payload.
+- location: CelestialBodyLocation
+  - Required.
+  - `positionKm` uses the shared Triple schema.
+- kinematics: CelestialBodyKinematics
+  - Required.
+  - Contains velocity vector, angular velocity vector, estimated mass, and estimated diameter.
+- composition: AsteroidMaterialProfile
+  - Required.
+  - Contains `rarity`, `material`, and `textureColor`.
+
+### Indexes and Constraints
+
+- Unique index on id.
+- Non-unique indexes on catalogId, solarSystemId, sourceScanId, and createdByCharacterId.
+
 ## Relationship Semantics
 
 - One Player to many Characters: 1:N (embedded)
 - One Character to many Drones: 1:N (embedded)
 - One Character to many MissionProgress entries: 1:N (embedded)
+- One Character to many CelestialBody documents: 1:N (referenced by createdByCharacterId)
 
-All relationships are ownership relationships contained in a single Player document.
+Player, Character, Drone, and MissionProgress remain ownership relationships contained in a single Player document. CelestialBody is a separate root document referenced by character id.
 
 ## Access Patterns
 
@@ -203,8 +280,9 @@ The service layer in src/db/service.js uses playerNameNormalized as the primary 
 - Add, edit, delete characters
 - Add and fetch drones
 - Add and list character mission progress
+- Upsert celestial bodies by id in the `cb` collection
 
-Because Character and Drone are embedded, operations commonly update a single Player document.
+Because Character and Drone are embedded, those operations commonly update a single Player document. Celestial body upserts target the separate `cb` collection.
 
 ## Lifecycle Behavior
 
@@ -220,6 +298,7 @@ This runs on save operations and keeps modification timestamps current.
 - Simpler joins: no cross-collection joins for character/drone data.
 - Document growth: large character/drone lists increase Player document size.
 - Consistency: player-owned game state updates are naturally scoped to one document.
+- Celestial body isolation: scanned-body records avoid inflating Player documents and can be filtered by `solarSystemId` or `createdByCharacterId`.
 
 ## Example Documents
 

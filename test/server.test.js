@@ -34,6 +34,10 @@ const {
   DRONE_LIST_RESPONSE_EVENT
 } = require('../src/model/drone-list');
 const {
+  DRONE_UPSERT_REQUEST_EVENT,
+  DRONE_UPSERT_RESPONSE_EVENT
+} = require('../src/model/drone-upsert');
+const {
   GAME_JOIN_REQUEST_EVENT,
   GAME_JOIN_RESPONSE_EVENT
 } = require('../src/model/game-join');
@@ -41,6 +45,10 @@ const {
   MISSION_ADD_REQUEST_EVENT,
   MISSION_ADD_RESPONSE_EVENT
 } = require('../src/model/mission-add');
+const {
+  CELESTIAL_BODY_UPSERT_REQUEST_EVENT,
+  CELESTIAL_BODY_UPSERT_RESPONSE_EVENT
+} = require('../src/model/celestial-body-upsert');
 const {
   MISSION_LIST_REQUEST_EVENT,
   MISSION_LIST_RESPONSE_EVENT
@@ -124,6 +132,33 @@ async function registerAndLogin(client, playerName, email, password) {
   assert.ok(loginResponse.sessionKey.length > 0);
 
   return loginResponse;
+}
+
+function createCelestialBody(overrides = {}) {
+  return {
+    id: 'cb-1',
+    catalogId: 'CAT-001',
+    solarSystemId: 'andromeda',
+    sourceScanId: 'scan-1',
+    createdByCharacterId: 'character-1',
+    createdAt: '2026-04-17T00:00:00.000Z',
+    updatedAt: '2026-04-17T01:00:00.000Z',
+    location: {
+      positionKm: { x: 100, y: 200, z: 300 }
+    },
+    kinematics: {
+      velocityKmPerSec: { x: 1, y: 2, z: 3 },
+      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 },
+      estimatedMassKg: 42000000000,
+      estimatedDiameterM: 320
+    },
+    composition: {
+      rarity: 'Rare',
+      material: 'Nickel-Iron',
+      textureColor: '#8df7b2'
+    },
+    ...overrides
+  };
 }
 
 test('register returns success and playerId for a unique playerName', async () => {
@@ -513,6 +548,151 @@ test('drone list returns drones for a character', async () => {
   assert.equal(droneListResponse.drones.length >= 1, true);
   assert.equal(typeof droneListResponse.drones[0].id, 'string');
   assert.equal(typeof droneListResponse.drones[0].droneName, 'string');
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('drone upsert updates drone location and kinematics', async () => {
+  const { server, io } = createServer({ port: '3040' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'DroneUpsertPilot',
+    'drone-upsert@example.com',
+    'drone-upsert-pass'
+  );
+
+  const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'DroneUpsertPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'RangerOne'
+  });
+  const addResponse = await addResponsePromise;
+  assert.equal(addResponse.success, true);
+
+  const listResponsePromise = waitForEvent(client, DRONE_LIST_RESPONSE_EVENT);
+  client.emit(DRONE_LIST_REQUEST_EVENT, {
+    playerName: 'DroneUpsertPilot',
+    characterId: addResponse.characterId,
+    sessionKey: loginResponse.sessionKey
+  });
+  const listResponse = await listResponsePromise;
+  assert.equal(listResponse.success, true);
+  assert.equal(listResponse.drones.length >= 1, true);
+
+  const upsertResponsePromise = waitForEvent(client, DRONE_UPSERT_RESPONSE_EVENT);
+  client.emit(DRONE_UPSERT_REQUEST_EVENT, {
+    playerName: 'DroneUpsertPilot',
+    characterId: addResponse.characterId,
+    sessionKey: loginResponse.sessionKey,
+    drone: {
+      id: listResponse.drones[0].id,
+      location: {
+        positionKm: { x: 100.5, y: 200.3, z: 50.1 }
+      },
+      kinematics: {
+        position: { x: 100.5, y: 200.3, z: 50.1 },
+        velocity: { x: 0.5, y: -0.2, z: 0.1 },
+        reference: {
+          solarSystemId: 'system-sol',
+          referenceKind: 'barycentric',
+          referenceBodyId: null,
+          epochMs: 1713607200000
+        }
+      }
+    }
+  });
+
+  const upsertResponse = await upsertResponsePromise;
+  assert.equal(upsertResponse.success, true);
+  assert.equal(upsertResponse.message, 'Drone updated successfully');
+  assert.equal(upsertResponse.playerName, 'DroneUpsertPilot');
+  assert.equal(upsertResponse.characterId, addResponse.characterId);
+  assert.equal(upsertResponse.drone.id, listResponse.drones[0].id);
+  assert.deepEqual(upsertResponse.drone.location, {
+    positionKm: { x: 100.5, y: 200.3, z: 50.1 }
+  });
+
+  const droneListAfterUpsertPromise = waitForEvent(client, DRONE_LIST_RESPONSE_EVENT);
+  client.emit(DRONE_LIST_REQUEST_EVENT, {
+    playerName: 'DroneUpsertPilot',
+    characterId: addResponse.characterId,
+    sessionKey: loginResponse.sessionKey
+  });
+  const droneListAfterUpsert = await droneListAfterUpsertPromise;
+
+  assert.equal(droneListAfterUpsert.success, true);
+  assert.deepEqual(droneListAfterUpsert.drones[0].location, {
+    positionKm: { x: 100.5, y: 200.3, z: 50.1 }
+  });
+  assert.deepEqual(droneListAfterUpsert.drones[0].kinematics.reference, {
+    solarSystemId: 'system-sol',
+    referenceKind: 'barycentric',
+    referenceBodyId: null,
+    distanceUnit: 'km',
+    velocityUnit: 'km/s',
+    epochMs: 1713607200000
+  });
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('drone upsert emits invalid session for wrong session key', async () => {
+  const { server, io } = createServer({ port: '3041' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'DroneUpsertSessionPilot',
+    'drone-upsert-session@example.com',
+    'drone-upsert-session-pass'
+  );
+
+  const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'DroneUpsertSessionPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'RangerOne'
+  });
+  const addResponse = await addResponsePromise;
+  assert.equal(addResponse.success, true);
+
+  const listResponsePromise = waitForEvent(client, DRONE_LIST_RESPONSE_EVENT);
+  client.emit(DRONE_LIST_REQUEST_EVENT, {
+    playerName: 'DroneUpsertSessionPilot',
+    characterId: addResponse.characterId,
+    sessionKey: loginResponse.sessionKey
+  });
+  const listResponse = await listResponsePromise;
+  assert.equal(listResponse.success, true);
+
+  const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
+  client.emit(DRONE_UPSERT_REQUEST_EVENT, {
+    playerName: 'DroneUpsertSessionPilot',
+    characterId: addResponse.characterId,
+    sessionKey: 'wrong-session-key',
+    drone: {
+      id: listResponse.drones[0].id,
+      location: {
+        positionKm: { x: 10, y: 20, z: 30 }
+      }
+    }
+  });
+  const invalidSession = await invalidSessionPromise;
+
+  assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
 
   await closeClient(client);
   io.close();
@@ -1088,6 +1268,101 @@ test('game join emits invalid session for wrong session key', async () => {
     playerName: 'SessionJoinPilot',
     sessionKey: 'wrong-session-key',
     characterId: 'any-id'
+  });
+
+  const invalidSession = await invalidSessionPromise;
+  assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('celestial body upsert stores a scanned celestial body and returns the wrapped response', async () => {
+  const { server, io } = createServer({ port: '3023' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'ScannerPilot',
+    'scanner@example.com',
+    'scanner-pass'
+  );
+
+  const characterAddPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'ScannerPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'ProbeOne'
+  });
+  const characterAddResponse = await characterAddPromise;
+  assert.equal(characterAddResponse.success, true);
+
+  const celestialBodyUpsertPromise = waitForEvent(
+    client,
+    CELESTIAL_BODY_UPSERT_RESPONSE_EVENT
+  );
+  client.emit(CELESTIAL_BODY_UPSERT_REQUEST_EVENT, {
+    playerName: 'ScannerPilot',
+    sessionKey: loginResponse.sessionKey,
+    celestialBody: createCelestialBody({
+      createdByCharacterId: characterAddResponse.characterId,
+      solarSystemId: 'not-sol'
+    })
+  });
+
+  const celestialBodyResponse = await celestialBodyUpsertPromise;
+  assert.equal(celestialBodyResponse.success, true);
+  assert.equal(celestialBodyResponse.message, 'Celestial body recorded successfully');
+  assert.equal(celestialBodyResponse.playerName, 'ScannerPilot');
+  assert.equal(celestialBodyResponse.celestialBody.id, 'cb-1');
+  assert.equal(celestialBodyResponse.celestialBody.solarSystemId, 'sol');
+  assert.equal(
+    celestialBodyResponse.celestialBody.createdByCharacterId,
+    characterAddResponse.characterId
+  );
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('celestial body upsert emits invalid session for wrong session key', async () => {
+  const { server, io } = createServer({ port: '3024' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'ScannerSessionPilot',
+    'scanner-session@example.com',
+    'scanner-session-pass'
+  );
+
+  const characterAddPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'ScannerSessionPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'ProbeTwo'
+  });
+  const characterAddResponse = await characterAddPromise;
+  assert.equal(characterAddResponse.success, true);
+
+  const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
+  client.emit(CELESTIAL_BODY_UPSERT_REQUEST_EVENT, {
+    playerName: 'ScannerSessionPilot',
+    sessionKey: 'wrong-session-key',
+    celestialBody: createCelestialBody({
+      id: 'cb-2',
+      catalogId: 'CAT-002',
+      sourceScanId: 'scan-2',
+      createdByCharacterId: characterAddResponse.characterId
+    })
   });
 
   const invalidSession = await invalidSessionPromise;

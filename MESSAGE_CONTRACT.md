@@ -205,6 +205,105 @@ including required fields, response payloads, and edge-case behavior.
 - `sessionKey` (required and must match the player)
 - `characterName` (required)
 
+## Event: `celestial-body-upsert-request`
+
+- Request event: `celestial-body-upsert-request`
+- Response event: `celestial-body-upsert-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `celestialBody` (required object)
+  - `id` (required, stable unique identifier; used as upsert key)
+  - `catalogId` (required)
+  - `solarSystemId` (accepted but currently forced to `sol` by the server)
+  - `sourceScanId` (required)
+  - `createdByCharacterId` (required and must match a character belonging to the player)
+  - `createdAt` (required ISO timestamp)
+  - `updatedAt` (required ISO timestamp)
+  - `location.positionKm.x|y|z` (required numbers)
+  - `kinematics.velocityKmPerSec.x|y|z` (required numbers)
+  - `kinematics.angularVelocityRadPerSec.x|y|z` (required numbers)
+  - `kinematics.estimatedMassKg` (required number)
+  - `kinematics.estimatedDiameterM` (required number)
+  - `composition.rarity` (required; one of `Common`, `Uncommon`, `Rare`, `Exotic`)
+  - `composition.material` (required string)
+  - `composition.textureColor` (required string)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Celestial body recorded successfully",
+  "playerName": "<canonical player name>",
+  "celestialBody": {
+    "id": "<celestial body id>",
+    "catalogId": "<catalog id>",
+    "solarSystemId": "sol",
+    "sourceScanId": "<scan id>",
+    "createdByCharacterId": "<character id>",
+    "createdAt": "<iso timestamp>",
+    "updatedAt": "<iso timestamp>",
+    "location": {
+      "positionKm": { "x": 1, "y": 2, "z": 3 }
+    },
+    "kinematics": {
+      "velocityKmPerSec": { "x": 1, "y": 2, "z": 3 },
+      "angularVelocityRadPerSec": { "x": 0.1, "y": 0.2, "z": 0.3 },
+      "estimatedMassKg": 42000000000,
+      "estimatedDiameterM": 320
+    },
+    "composition": {
+      "rarity": "Rare",
+      "material": "Nickel-Iron",
+      "textureColor": "#8df7b2"
+    }
+  }
+}
+```
+
+### Failure and Edge Behavior
+
+- Invalid session emits `invalid-session` instead of `celestial-body-upsert-response`.
+- Missing required payload data returns:
+
+```json
+{
+  "success": false,
+  "message": "playerName and a complete celestialBody payload are required",
+  "playerName": "<provided playerName or empty string>"
+}
+```
+
+- If the player is not registered:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<provided playerName>"
+}
+```
+
+- If `createdByCharacterId` does not belong to the player:
+
+```json
+{
+  "success": false,
+  "message": "Character is not in player list",
+  "playerName": "<canonical player name>"
+}
+```
+
+### Edge Cases
+
+- Upsert identity is based on `celestialBody.id`.
+- Incoming `createdAt` and `updatedAt` are preserved as provided.
+- Celestial bodies are not stored under player documents; they are persisted in the separate Mongo collection `cb`.
+
 ### Success Response
 
 ```json
@@ -259,7 +358,7 @@ including required fields, response payloads, and edge-case behavior.
 - `characterId` (required)
 - `missionId` (required)
 - `sessionKey` (required and must match the player)
-- `status` (optional, defaults to `available`)
+- `status` (required, must be a non-empty string)
 
 ### Success Response
 
@@ -288,7 +387,7 @@ including required fields, response payloads, and edge-case behavior.
 ```json
 {
   "success": false,
-  "message": "playerName, characterId, and missionId are required",
+  "message": "playerName, characterId, missionId, and status are required",
   "playerName": "<trimmed playerName or empty>",
   "characterId": "<trimmed characterId or empty>"
 }
@@ -427,7 +526,22 @@ including required fields, response payloads, and edge-case behavior.
       "id": "<drone id>",
       "name": "<drone name>",
       "status": "<optional status>",
-      "model": "<optional model>"
+      "model": "<optional model>",
+      "location": {
+        "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
+      },
+      "kinematics": {
+        "position": { "x": 100.5, "y": 200.3, "z": 50.1 },
+        "velocity": { "x": 0.5, "y": -0.2, "z": 0.1 },
+        "reference": {
+          "solarSystemId": "system-sol",
+          "referenceKind": "barycentric",
+          "referenceBodyId": null,
+          "distanceUnit": "km",
+          "velocityUnit": "km/s",
+          "epochMs": 1713607200000
+        }
+      }
     }
   ]
 }
@@ -476,6 +590,131 @@ including required fields, response payloads, and edge-case behavior.
 - Invalid session emits `invalid-session`.
 - Drones are scoped per character.
 - Returned `drones` list is a defensive copy of server state.
+
+## Event: `drone-upsert-request`
+
+- Request event: `drone-upsert-request`
+- Response event: `drone-upsert-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `characterId` (required)
+- `sessionKey` (required and must match the player)
+- `drone` (required object)
+  - `id` (required; must exist in the character's drone list)
+  - `location.positionKm.x|y|z` (optional; required if `kinematics` omitted)
+  - `kinematics.position.x|y|z` (optional; required if `location` omitted)
+  - `kinematics.velocity.x|y|z` (optional; required if `location` omitted)
+  - `kinematics.reference.solarSystemId` (required with `kinematics`)
+  - `kinematics.reference.referenceKind` (required with `kinematics`; `barycentric` or `body-centered`)
+  - `kinematics.reference.referenceBodyId` (optional with `kinematics`)
+  - `kinematics.reference.epochMs` (required number with `kinematics`)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Drone updated successfully",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>",
+  "drone": {
+    "id": "<drone id>",
+    "droneName": "<drone name>",
+    "location": {
+      "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
+    },
+    "kinematics": {
+      "position": { "x": 100.5, "y": 200.3, "z": 50.1 },
+      "velocity": { "x": 0.5, "y": -0.2, "z": 0.1 },
+      "reference": {
+        "solarSystemId": "system-sol",
+        "referenceKind": "barycentric",
+        "referenceBodyId": null,
+        "distanceUnit": "km",
+        "velocityUnit": "km/s",
+        "epochMs": 1713607200000
+      }
+    }
+  }
+}
+```
+
+### Failure Responses
+
+- Missing required fields:
+
+```json
+{
+  "success": false,
+  "message": "playerName, characterId, and drone.id are required",
+  "playerName": "<trimmed playerName or empty>",
+  "characterId": "<trimmed characterId or empty>"
+}
+```
+
+- Missing update payload:
+
+```json
+{
+  "success": false,
+  "message": "drone.location and/or drone.kinematics is required",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>"
+}
+```
+
+- Invalid update payload:
+
+```json
+{
+  "success": false,
+  "message": "drone location/kinematics payload is invalid",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>"
+}
+```
+
+- Player not registered:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<trimmed playerName>",
+  "characterId": "<provided characterId>"
+}
+```
+
+- Character not found in player list:
+
+```json
+{
+  "success": false,
+  "message": "Character is not in player list",
+  "playerName": "<canonical player name>",
+  "characterId": "<provided characterId>"
+}
+```
+
+- Drone not found in character list:
+
+```json
+{
+  "success": false,
+  "message": "Drone is not in character list",
+  "playerName": "<canonical player name>",
+  "characterId": "<provided characterId>"
+}
+```
+
+### Edge Cases
+
+- Invalid session emits `invalid-session`.
+- `drone-upsert` only mutates a drone already owned by the specified character.
+- The server always emits kinematics units as `distanceUnit: "km"` and `velocityUnit: "km/s"` when kinematics are present.
 
 ## Event: `character-delete-request`
 
