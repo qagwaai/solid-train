@@ -75,6 +75,8 @@ class CharacterAddMessageHandler {
             {
               id: `${response.characterId}-ship-1`,
               shipName: `${response.characterName} Ship 1`,
+              model: 'Scavenger Pod',
+              tier: 1,
               createdAt
             }
           ],

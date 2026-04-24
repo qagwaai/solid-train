@@ -643,7 +643,8 @@ including required fields, response payloads, and edge-case behavior.
       "id": "<ship id>",
       "name": "<ship name>",
       "status": "<optional status>",
-      "model": "<optional model>",
+      "model": "<ship model, e.g. Scavenger Pod>",
+      "tier": 1,
       "location": {
         "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
       },
@@ -721,11 +722,11 @@ including required fields, response payloads, and edge-case behavior.
 - `sessionKey` (required and must match the player)
 - `ship` (required object)
   - `id` (required; must exist in the character's ship list)
-  - `location.positionKm.x|y|z` (optional; required if `kinematics` omitted)
-  - `kinematics.position.x|y|z` (optional; required if `location` omitted)
-  - `kinematics.velocity.x|y|z` (optional; required if `location` omitted)
-  - `kinematics.reference.solarSystemId` (required with `kinematics`)
-  - `kinematics.reference.referenceKind` (required with `kinematics`; `barycentric` or `body-centered`)
+  - `model` (optional string; ship model name)
+  - `tier` (optional integer 1–10; ship tier)
+  - `location.positionKm.x|y|z` (optional; required if `kinematics` omitted and no `model`/`tier`)
+  - `kinematics.position.x|y|z` (optional; required if `location` omitted and no `model`/`tier`)
+  - `kinematics.velocity.x|y|z` (optional; required if `location` omitted and no `model`/`tier`)
   - `kinematics.reference.referenceBodyId` (optional with `kinematics`)
   - `kinematics.reference.epochMs` (required number with `kinematics`)
 
@@ -740,6 +741,8 @@ including required fields, response payloads, and edge-case behavior.
   "ship": {
     "id": "<ship id>",
     "shipName": "<ship name>",
+    "model": "<ship model>",
+    "tier": 1,
     "location": {
       "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
     },
@@ -777,7 +780,7 @@ including required fields, response payloads, and edge-case behavior.
 ```json
 {
   "success": false,
-  "message": "ship.location and/or ship.kinematics is required",
+  "message": "ship.location, ship.kinematics, ship.model, and/or ship.tier is required",
   "playerName": "<canonical player name>",
   "characterId": "<character id>"
 }

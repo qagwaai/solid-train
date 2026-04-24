@@ -50,6 +50,8 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
         {
           id: 'player-1-ship-1',
           shipName: 'RangerOne Ship 1',
+          model: 'Scavenger Pod',
+          tier: 1,
           createdAt: '2026-04-17T00:00:00.000Z'
         }
       ],

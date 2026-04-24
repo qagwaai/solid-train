@@ -93,6 +93,18 @@ const shipSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  model: {
+    type: String,
+    required: true,
+    default: 'Scavenger Pod'
+  },
+  tier: {
+    type: Number,
+    required: true,
+    default: 1,
+    min: 1,
+    max: 10
+  },
   createdAt: {
     type: String,
     required: true

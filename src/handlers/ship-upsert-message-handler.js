@@ -83,6 +83,11 @@ class ShipUpsertMessageHandler {
       || this.context.toNonEmptyString(payload?.ship?.name);
     const status = this.context.toNonEmptyString(payload?.ship?.status);
     const model = this.context.toNonEmptyString(payload?.ship?.model);
+    const tierPayload = payload?.ship?.tier;
+    const hasTier = tierPayload !== undefined && tierPayload !== null;
+    const tier = (hasTier && Number.isInteger(tierPayload) && tierPayload >= 1 && tierPayload <= 10)
+      ? tierPayload
+      : null;
     const hasLocation = Boolean(payload?.ship?.location);
     const hasKinematics = Boolean(payload?.ship?.kinematics);
     const location = this.normalizeLocation(payload?.ship?.location);
@@ -97,10 +102,19 @@ class ShipUpsertMessageHandler {
       };
     }
 
-    if (!hasLocation && !hasKinematics) {
+    if (!hasLocation && !hasKinematics && !model && !hasTier) {
       return {
         success: false,
-        message: 'ship.location and/or ship.kinematics is required',
+        message: 'ship.location, ship.kinematics, ship.model, and/or ship.tier is required',
+        playerName,
+        characterId
+      };
+    }
+
+    if (hasTier && tier === null) {
+      return {
+        success: false,
+        message: 'ship.tier must be an integer between 1 and 10',
         playerName,
         characterId
       };
@@ -154,6 +168,7 @@ class ShipUpsertMessageHandler {
       shipName: shipName || existingShip.shipName || existingShip.name || '',
       status: status || existingShip.status,
       model: model || existingShip.model,
+      tier: tier !== null ? tier : existingShip.tier,
       location: location || existingShip.location,
       kinematics: kinematics || existingShip.kinematics
     };

@@ -112,7 +112,7 @@ test('ShipUpsertMessageHandler rejects missing location and kinematics update', 
   });
 
   assert.equal(response.success, false);
-  assert.equal(response.message, 'ship.location and/or ship.kinematics is required');
+  assert.equal(response.message, 'ship.location, ship.kinematics, ship.model, and/or ship.tier is required');
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });
 
@@ -142,4 +142,43 @@ test('ShipUpsertMessageHandler emits invalid session before mutation', async () 
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
+});
+
+test('ShipUpsertMessageHandler updates ship model and tier', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            model: 'Scavenger Pod',
+            tier: 1,
+            createdAt: '2026-04-17T00:00:00.000Z'
+          }
+        ]
+      }
+    ]
+  });
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'shippilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: { id: 'ship-1', model: 'Reaver Hauler', tier: 2 }
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.message, 'Ship updated successfully');
+  assert.equal(response.ship.model, 'Reaver Hauler');
+  assert.equal(response.ship.tier, 2);
+  assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });

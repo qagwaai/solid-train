@@ -61,6 +61,8 @@ erDiagram
   SHIP {
     string id
     string shipName
+    string model
+    int tier
     string createdAt
     object kinematics
   }
@@ -176,6 +178,11 @@ Embedded under Player.characters[].ships.
 
 - id: String (required)
 - shipName: String (required)
+- model: String (required)
+  - Default: `'Scavenger Pod'`
+- tier: Number (required)
+  - Default: `1`
+  - Valid range: 1–10
 - createdAt: String (required)
 - location: ShipLocation | null (optional)
   - Contains barycentric/body-relative position in km

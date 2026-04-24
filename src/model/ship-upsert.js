@@ -43,6 +43,7 @@ const SHIP_UPSERT_RESPONSE_EVENT = 'ship-upsert-response';
  * @property {string} [shipName]
  * @property {string} [status]
  * @property {string} [model]
+ * @property {number} [tier]
  * @property {CelestialBodyLocation} [location]
  * @property {ShipKinematics} [kinematics]
  */

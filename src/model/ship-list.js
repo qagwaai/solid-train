@@ -57,6 +57,7 @@ const SHIP_LIST_RESPONSE_EVENT = 'ship-list-response';
  * @property {string} name
  * @property {string} [status]
  * @property {string} [model]
+ * @property {number} [tier]
  * @property {CelestialBodyLocation} [location]
  * @property {ShipKinematics} [kinematics]
  */
