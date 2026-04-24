@@ -46,16 +46,16 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
       id: 'player-1',
       characterName: 'RangerOne',
       createdAt: '2026-04-17T00:00:00.000Z',
-      drones: [
+      ships: [
         {
-          id: 'player-1-drone-1',
-          droneName: 'RangerOne Drone 1',
+          id: 'player-1-ship-1',
+          shipName: 'RangerOne Ship 1',
           createdAt: '2026-04-17T00:00:00.000Z'
         }
       ],
       missions: [
         {
-          missionId: 'The First Target',
+          missionId: 'first-target',
           status: 'available',
           updatedAt: '2026-04-17T00:00:00.000Z'
         }

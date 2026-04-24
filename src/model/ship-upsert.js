@@ -1,7 +1,7 @@
 'use strict';
 
-const DRONE_UPSERT_REQUEST_EVENT = 'drone-upsert-request';
-const DRONE_UPSERT_RESPONSE_EVENT = 'drone-upsert-response';
+const SHIP_UPSERT_REQUEST_EVENT = 'ship-upsert-request';
+const SHIP_UPSERT_RESPONSE_EVENT = 'ship-upsert-response';
 
 /**
  * @typedef {Object} Triple
@@ -30,41 +30,41 @@ const DRONE_UPSERT_RESPONSE_EVENT = 'drone-upsert-response';
  */
 
 /**
- * @typedef {Object} DroneKinematics
+ * @typedef {Object} ShipKinematics
  * @property {Triple} position
  * @property {Triple} velocity
  * @property {SpatialReference} reference
  */
 
 /**
- * @typedef {Object} DroneUpsertEntity
+ * @typedef {Object} ShipUpsertEntity
  * @property {string} id
  * @property {string} [name]
- * @property {string} [droneName]
+ * @property {string} [shipName]
  * @property {string} [status]
  * @property {string} [model]
  * @property {CelestialBodyLocation} [location]
- * @property {DroneKinematics} [kinematics]
+ * @property {ShipKinematics} [kinematics]
  */
 
 /**
- * @typedef {Object} DroneUpsertRequest
+ * @typedef {Object} ShipUpsertRequest
  * @property {string} playerName
  * @property {string} characterId
  * @property {string} sessionKey
- * @property {DroneUpsertEntity} drone
+ * @property {ShipUpsertEntity} ship
  */
 
 /**
- * @typedef {Object} DroneUpsertResponse
+ * @typedef {Object} ShipUpsertResponse
  * @property {boolean} success
  * @property {string} message
  * @property {string} playerName
  * @property {string} characterId
- * @property {DroneUpsertEntity} [drone]
+ * @property {ShipUpsertEntity} [ship]
  */
 
 module.exports = {
-  DRONE_UPSERT_REQUEST_EVENT,
-  DRONE_UPSERT_RESPONSE_EVENT
+  SHIP_UPSERT_REQUEST_EVENT,
+  SHIP_UPSERT_RESPONSE_EVENT
 };

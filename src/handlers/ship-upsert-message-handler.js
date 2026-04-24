@@ -1,14 +1,14 @@
 'use strict';
 
 const {
-  DRONE_UPSERT_RESPONSE_EVENT
-} = require('../model/drone-upsert');
+  SHIP_UPSERT_RESPONSE_EVENT
+} = require('../model/ship-upsert');
 const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
 } = require('../model/session');
 
-class DroneUpsertMessageHandler {
+class ShipUpsertMessageHandler {
   constructor(context) {
     this.context = context;
   }
@@ -78,20 +78,20 @@ class DroneUpsertMessageHandler {
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
-    const droneId = this.context.toNonEmptyString(payload?.drone?.id);
-    const droneName = this.context.toNonEmptyString(payload?.drone?.droneName)
-      || this.context.toNonEmptyString(payload?.drone?.name);
-    const status = this.context.toNonEmptyString(payload?.drone?.status);
-    const model = this.context.toNonEmptyString(payload?.drone?.model);
-    const hasLocation = Boolean(payload?.drone?.location);
-    const hasKinematics = Boolean(payload?.drone?.kinematics);
-    const location = this.normalizeLocation(payload?.drone?.location);
-    const kinematics = this.normalizeKinematics(payload?.drone?.kinematics);
+    const shipId = this.context.toNonEmptyString(payload?.ship?.id);
+    const shipName = this.context.toNonEmptyString(payload?.ship?.shipName)
+      || this.context.toNonEmptyString(payload?.ship?.name);
+    const status = this.context.toNonEmptyString(payload?.ship?.status);
+    const model = this.context.toNonEmptyString(payload?.ship?.model);
+    const hasLocation = Boolean(payload?.ship?.location);
+    const hasKinematics = Boolean(payload?.ship?.kinematics);
+    const location = this.normalizeLocation(payload?.ship?.location);
+    const kinematics = this.normalizeKinematics(payload?.ship?.kinematics);
 
-    if (!playerName || !characterId || !droneId) {
+    if (!playerName || !characterId || !shipId) {
       return {
         success: false,
-        message: 'playerName, characterId, and drone.id are required',
+        message: 'playerName, characterId, and ship.id are required',
         playerName,
         characterId
       };
@@ -100,7 +100,7 @@ class DroneUpsertMessageHandler {
     if (!hasLocation && !hasKinematics) {
       return {
         success: false,
-        message: 'drone.location and/or drone.kinematics is required',
+        message: 'ship.location and/or ship.kinematics is required',
         playerName,
         characterId
       };
@@ -109,7 +109,7 @@ class DroneUpsertMessageHandler {
     if ((hasLocation && !location) || (hasKinematics && !kinematics)) {
       return {
         success: false,
-        message: 'drone location/kinematics payload is invalid',
+        message: 'ship location/kinematics payload is invalid',
         playerName,
         characterId
       };
@@ -135,40 +135,40 @@ class DroneUpsertMessageHandler {
       };
     }
 
-    const existingDrone = Array.isArray(character.drones)
-      ? character.drones.find((drone) => drone.id === droneId)
+    const existingShip = Array.isArray(character.ships)
+      ? character.ships.find((ship) => ship.id === shipId)
       : null;
 
-    if (!existingDrone) {
+    if (!existingShip) {
       return {
         success: false,
-        message: 'Drone is not in character list',
+        message: 'Ship is not in character list',
         playerName: player.playerName,
         characterId
       };
     }
 
-    const nextDrone = {
-      ...existingDrone,
-      id: droneId,
-      droneName: droneName || existingDrone.droneName || existingDrone.name || '',
-      status: status || existingDrone.status,
-      model: model || existingDrone.model,
-      location: location || existingDrone.location,
-      kinematics: kinematics || existingDrone.kinematics
+    const nextShip = {
+      ...existingShip,
+      id: shipId,
+      shipName: shipName || existingShip.shipName || existingShip.name || '',
+      status: status || existingShip.status,
+      model: model || existingShip.model,
+      location: location || existingShip.location,
+      kinematics: kinematics || existingShip.kinematics
     };
 
     return {
       success: true,
-      message: 'Drone updated successfully',
+      message: 'Ship updated successfully',
       playerName: player.playerName,
       characterId,
-      drone: { ...nextDrone }
+      ship: { ...nextShip }
     };
   }
 
   async handle(socket, payload) {
-    this.context.logHandlerMessage('drone-upsert-request', payload);
+    this.context.logHandlerMessage('ship-upsert-request', payload);
 
     if (!this.context.hasValidSession(payload)) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -184,28 +184,28 @@ class DroneUpsertMessageHandler {
     if (response.success) {
       try {
         const character = this.context.findCharacter(response.playerName, response.characterId);
-        const nextDrones = Array.isArray(character?.drones)
-          ? character.drones.map((drone) => (drone.id === response.drone.id ? response.drone : drone))
+        const nextShips = Array.isArray(character?.ships)
+          ? character.ships.map((ship) => (ship.id === response.ship.id ? response.ship : ship))
           : [];
 
         await this.context.updateCharacterAsync(
           response.playerName,
           response.characterId,
-          { drones: nextDrones }
+          { ships: nextShips }
         );
       } catch (error) {
-        this.context.log(`[drone-upsert-handler] Failed to upsert drone: ${error.message}`);
+        this.context.log(`[ship-upsert-handler] Failed to upsert ship: ${error.message}`);
         response.success = false;
-        response.message = 'Failed to update drone: database error';
-        delete response.drone;
+        response.message = 'Failed to update ship: database error';
+        delete response.ship;
       }
     }
 
-    socket.emit(DRONE_UPSERT_RESPONSE_EVENT, response);
+    socket.emit(SHIP_UPSERT_RESPONSE_EVENT, response);
     return response;
   }
 }
 
 module.exports = {
-  DroneUpsertMessageHandler
+  ShipUpsertMessageHandler
 };

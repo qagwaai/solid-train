@@ -1,14 +1,14 @@
 'use strict';
 
 const {
-  DRONE_LIST_RESPONSE_EVENT
-} = require('../model/drone-list');
+  SHIP_LIST_RESPONSE_EVENT
+} = require('../model/ship-list');
 const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
 } = require('../model/session');
 
-class DroneListMessageHandler {
+class ShipListMessageHandler {
   constructor(context) {
     this.context = context;
   }
@@ -23,7 +23,7 @@ class DroneListMessageHandler {
         message: 'playerName and characterId are required',
         playerName,
         characterId,
-        drones: []
+        ships: []
       };
     }
 
@@ -35,7 +35,7 @@ class DroneListMessageHandler {
         message: 'Player is not registered',
         playerName,
         characterId,
-        drones: []
+        ships: []
       };
     }
 
@@ -47,25 +47,25 @@ class DroneListMessageHandler {
         message: 'Character is not in player list',
         playerName: player.playerName,
         characterId,
-        drones: []
+        ships: []
       };
     }
 
-    const drones = Array.isArray(character.drones)
-      ? character.drones.map((drone) => ({ ...drone }))
+    const ships = Array.isArray(character.ships)
+      ? character.ships.map((ship) => ({ ...ship }))
       : [];
 
     return {
       success: true,
-      message: 'Drone list retrieved successfully',
+      message: 'Ship list retrieved successfully',
       playerName: player.playerName,
       characterId,
-      drones
+      ships
     };
   }
 
   async handle(socket, payload) {
-    this.context.logHandlerMessage('drone-list-request', payload);
+    this.context.logHandlerMessage('ship-list-request', payload);
 
     if (!this.context.hasValidSession(payload)) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -77,11 +77,11 @@ class DroneListMessageHandler {
     this.context.touchJoinedCharacters(payload);
 
     const response = this.buildResponse(payload);
-    socket.emit(DRONE_LIST_RESPONSE_EVENT, response);
+    socket.emit(SHIP_LIST_RESPONSE_EVENT, response);
     return response;
   }
 }
 
 module.exports = {
-  DroneListMessageHandler
+  ShipListMessageHandler
 };

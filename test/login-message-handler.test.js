@@ -93,7 +93,7 @@ test('LoginMessageHandler hydrates player from database when memory is empty', a
           id: 'char-1',
           characterName: 'RangerOne',
           createdAt: '2026-04-20T00:00:00.000Z',
-          drones: []
+          ships: []
         }
       ];
     }
@@ -121,7 +121,7 @@ test('LoginMessageHandler hydrates player from database when memory is empty', a
       id: 'char-1',
       characterName: 'RangerOne',
       createdAt: '2026-04-20T00:00:00.000Z',
-      drones: [],
+      ships: [],
       missions: []
     }
   ]);
@@ -149,7 +149,7 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
           id: 'legacy-char-1',
           name: 'Legacy Ranger',
           createdAt: '2026-04-20T00:00:00.000Z',
-          drones: [{ id: 'd-1', name: 'Legacy Drone', createdAt: '2026-04-20T00:00:00.000Z' }]
+          ships: [{ id: 'd-1', name: 'Legacy Ship', createdAt: '2026-04-20T00:00:00.000Z' }]
         }
       ];
     }
@@ -171,11 +171,11 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
       name: 'Legacy Ranger',
       characterName: 'Legacy Ranger',
       createdAt: '2026-04-20T00:00:00.000Z',
-      drones: [
+      ships: [
         {
           id: 'd-1',
-          name: 'Legacy Drone',
-          droneName: 'Legacy Drone',
+          name: 'Legacy Ship',
+          shipName: 'Legacy Ship',
           createdAt: '2026-04-20T00:00:00.000Z'
         }
       ],

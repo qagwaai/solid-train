@@ -1,10 +1,10 @@
 'use strict';
 
-const DRONE_LIST_REQUEST_EVENT = 'drone-list-request';
-const DRONE_LIST_RESPONSE_EVENT = 'drone-list-response';
+const SHIP_LIST_REQUEST_EVENT = 'ship-list-request';
+const SHIP_LIST_RESPONSE_EVENT = 'ship-list-response';
 
 /**
- * @typedef {Object} DroneListRequest
+ * @typedef {Object} ShipListRequest
  * @property {string} playerName
  * @property {string} characterId
  * @property {string} sessionKey
@@ -45,32 +45,32 @@ const DRONE_LIST_RESPONSE_EVENT = 'drone-list-response';
  */
 
 /**
- * @typedef {Object} DroneKinematics
+ * @typedef {Object} ShipKinematics
  * @property {Triple} position - Position in 3D space
  * @property {Triple} velocity - Velocity in 3D space
  * @property {SpatialReference} reference - Spatial reference frame
  */
 
 /**
- * @typedef {Object} DroneSummary
+ * @typedef {Object} ShipSummary
  * @property {string} id
  * @property {string} name
  * @property {string} [status]
  * @property {string} [model]
  * @property {CelestialBodyLocation} [location]
- * @property {DroneKinematics} [kinematics]
+ * @property {ShipKinematics} [kinematics]
  */
 
 /**
- * @typedef {Object} DroneListResponse
+ * @typedef {Object} ShipListResponse
  * @property {boolean} success
  * @property {string} message
  * @property {string} playerName
  * @property {string} characterId
- * @property {DroneSummary[]} drones
+ * @property {ShipSummary[]} ships
  */
 
 module.exports = {
-  DRONE_LIST_REQUEST_EVENT,
-  DRONE_LIST_RESPONSE_EVENT
+  SHIP_LIST_REQUEST_EVENT,
+  SHIP_LIST_RESPONSE_EVENT
 };

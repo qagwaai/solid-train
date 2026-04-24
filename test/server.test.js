@@ -30,13 +30,13 @@ const {
   CHARACTER_EDIT_RESPONSE_EVENT
 } = require('../src/model/character-edit');
 const {
-  DRONE_LIST_REQUEST_EVENT,
-  DRONE_LIST_RESPONSE_EVENT
-} = require('../src/model/drone-list');
+  SHIP_LIST_REQUEST_EVENT,
+  SHIP_LIST_RESPONSE_EVENT
+} = require('../src/model/ship-list');
 const {
-  DRONE_UPSERT_REQUEST_EVENT,
-  DRONE_UPSERT_RESPONSE_EVENT
-} = require('../src/model/drone-upsert');
+  SHIP_UPSERT_REQUEST_EVENT,
+  SHIP_UPSERT_RESPONSE_EVENT
+} = require('../src/model/ship-upsert');
 const {
   GAME_JOIN_REQUEST_EVENT,
   GAME_JOIN_RESPONSE_EVENT
@@ -503,17 +503,17 @@ test('character add adds character and is returned by character list', async () 
   assert.equal(listResponse.characters[0].characterName, 'RangerOne');
   assert.equal(listResponse.characters[0].id, addResponse.characterId);
   assert.equal(typeof listResponse.characters[0].createdAt, 'string');
-  assert.equal(Array.isArray(listResponse.characters[0].drones), true);
-  assert.equal(listResponse.characters[0].drones.length >= 1, true);
-  assert.equal(typeof listResponse.characters[0].drones[0].id, 'string');
-  assert.equal(typeof listResponse.characters[0].drones[0].droneName, 'string');
+  assert.equal(Array.isArray(listResponse.characters[0].ships), true);
+  assert.equal(listResponse.characters[0].ships.length >= 1, true);
+  assert.equal(typeof listResponse.characters[0].ships[0].id, 'string');
+  assert.equal(typeof listResponse.characters[0].ships[0].shipName, 'string');
 
   await closeClient(client);
   io.close();
   server.close();
 });
 
-test('drone list returns drones for a character', async () => {
+test('ship list returns ships for a character', async () => {
   const { server, io } = createServer({ port: '3023' });
   const port = await listen(server);
 
@@ -522,43 +522,43 @@ test('drone list returns drones for a character', async () => {
 
   const loginResponse = await registerAndLogin(
     client,
-    'DronePilot',
-    'drone@example.com',
-    'drone-pass'
+    'ShipPilot',
+    'ship@example.com',
+    'ship-pass'
   );
 
   const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
-    playerName: 'DronePilot',
+    playerName: 'ShipPilot',
     sessionKey: loginResponse.sessionKey,
     characterName: 'RangerOne'
   });
   const addResponse = await addResponsePromise;
   assert.equal(addResponse.success, true);
 
-  const droneListResponsePromise = waitForEvent(client, DRONE_LIST_RESPONSE_EVENT);
-  client.emit(DRONE_LIST_REQUEST_EVENT, {
-    playerName: 'dronepilot',
+  const shipListResponsePromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
+  client.emit(SHIP_LIST_REQUEST_EVENT, {
+    playerName: 'shippilot',
     characterId: addResponse.characterId,
     sessionKey: loginResponse.sessionKey
   });
-  const droneListResponse = await droneListResponsePromise;
+  const shipListResponse = await shipListResponsePromise;
 
-  assert.equal(droneListResponse.success, true);
-  assert.equal(droneListResponse.message, 'Drone list retrieved successfully');
-  assert.equal(droneListResponse.playerName, 'DronePilot');
-  assert.equal(droneListResponse.characterId, addResponse.characterId);
-  assert.equal(Array.isArray(droneListResponse.drones), true);
-  assert.equal(droneListResponse.drones.length >= 1, true);
-  assert.equal(typeof droneListResponse.drones[0].id, 'string');
-  assert.equal(typeof droneListResponse.drones[0].droneName, 'string');
+  assert.equal(shipListResponse.success, true);
+  assert.equal(shipListResponse.message, 'Ship list retrieved successfully');
+  assert.equal(shipListResponse.playerName, 'ShipPilot');
+  assert.equal(shipListResponse.characterId, addResponse.characterId);
+  assert.equal(Array.isArray(shipListResponse.ships), true);
+  assert.equal(shipListResponse.ships.length >= 1, true);
+  assert.equal(typeof shipListResponse.ships[0].id, 'string');
+  assert.equal(typeof shipListResponse.ships[0].shipName, 'string');
 
   await closeClient(client);
   io.close();
   server.close();
 });
 
-test('drone upsert updates drone location and kinematics', async () => {
+test('ship upsert updates ship location and kinematics', async () => {
   const { server, io } = createServer({ port: '3040' });
   const port = await listen(server);
 
@@ -567,37 +567,37 @@ test('drone upsert updates drone location and kinematics', async () => {
 
   const loginResponse = await registerAndLogin(
     client,
-    'DroneUpsertPilot',
-    'drone-upsert@example.com',
-    'drone-upsert-pass'
+    'ShipUpsertPilot',
+    'ship-upsert@example.com',
+    'ship-upsert-pass'
   );
 
   const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
-    playerName: 'DroneUpsertPilot',
+    playerName: 'ShipUpsertPilot',
     sessionKey: loginResponse.sessionKey,
     characterName: 'RangerOne'
   });
   const addResponse = await addResponsePromise;
   assert.equal(addResponse.success, true);
 
-  const listResponsePromise = waitForEvent(client, DRONE_LIST_RESPONSE_EVENT);
-  client.emit(DRONE_LIST_REQUEST_EVENT, {
-    playerName: 'DroneUpsertPilot',
+  const listResponsePromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
+  client.emit(SHIP_LIST_REQUEST_EVENT, {
+    playerName: 'ShipUpsertPilot',
     characterId: addResponse.characterId,
     sessionKey: loginResponse.sessionKey
   });
   const listResponse = await listResponsePromise;
   assert.equal(listResponse.success, true);
-  assert.equal(listResponse.drones.length >= 1, true);
+  assert.equal(listResponse.ships.length >= 1, true);
 
-  const upsertResponsePromise = waitForEvent(client, DRONE_UPSERT_RESPONSE_EVENT);
-  client.emit(DRONE_UPSERT_REQUEST_EVENT, {
-    playerName: 'DroneUpsertPilot',
+  const upsertResponsePromise = waitForEvent(client, SHIP_UPSERT_RESPONSE_EVENT);
+  client.emit(SHIP_UPSERT_REQUEST_EVENT, {
+    playerName: 'ShipUpsertPilot',
     characterId: addResponse.characterId,
     sessionKey: loginResponse.sessionKey,
-    drone: {
-      id: listResponse.drones[0].id,
+    ship: {
+      id: listResponse.ships[0].id,
       location: {
         positionKm: { x: 100.5, y: 200.3, z: 50.1 }
       },
@@ -616,27 +616,27 @@ test('drone upsert updates drone location and kinematics', async () => {
 
   const upsertResponse = await upsertResponsePromise;
   assert.equal(upsertResponse.success, true);
-  assert.equal(upsertResponse.message, 'Drone updated successfully');
-  assert.equal(upsertResponse.playerName, 'DroneUpsertPilot');
+  assert.equal(upsertResponse.message, 'Ship updated successfully');
+  assert.equal(upsertResponse.playerName, 'ShipUpsertPilot');
   assert.equal(upsertResponse.characterId, addResponse.characterId);
-  assert.equal(upsertResponse.drone.id, listResponse.drones[0].id);
-  assert.deepEqual(upsertResponse.drone.location, {
+  assert.equal(upsertResponse.ship.id, listResponse.ships[0].id);
+  assert.deepEqual(upsertResponse.ship.location, {
     positionKm: { x: 100.5, y: 200.3, z: 50.1 }
   });
 
-  const droneListAfterUpsertPromise = waitForEvent(client, DRONE_LIST_RESPONSE_EVENT);
-  client.emit(DRONE_LIST_REQUEST_EVENT, {
-    playerName: 'DroneUpsertPilot',
+  const shipListAfterUpsertPromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
+  client.emit(SHIP_LIST_REQUEST_EVENT, {
+    playerName: 'ShipUpsertPilot',
     characterId: addResponse.characterId,
     sessionKey: loginResponse.sessionKey
   });
-  const droneListAfterUpsert = await droneListAfterUpsertPromise;
+  const shipListAfterUpsert = await shipListAfterUpsertPromise;
 
-  assert.equal(droneListAfterUpsert.success, true);
-  assert.deepEqual(droneListAfterUpsert.drones[0].location, {
+  assert.equal(shipListAfterUpsert.success, true);
+  assert.deepEqual(shipListAfterUpsert.ships[0].location, {
     positionKm: { x: 100.5, y: 200.3, z: 50.1 }
   });
-  assert.deepEqual(droneListAfterUpsert.drones[0].kinematics.reference, {
+  assert.deepEqual(shipListAfterUpsert.ships[0].kinematics.reference, {
     solarSystemId: 'system-sol',
     referenceKind: 'barycentric',
     referenceBodyId: null,
@@ -650,7 +650,7 @@ test('drone upsert updates drone location and kinematics', async () => {
   server.close();
 });
 
-test('drone upsert emits invalid session for wrong session key', async () => {
+test('ship upsert emits invalid session for wrong session key', async () => {
   const { server, io } = createServer({ port: '3041' });
   const port = await listen(server);
 
@@ -659,23 +659,23 @@ test('drone upsert emits invalid session for wrong session key', async () => {
 
   const loginResponse = await registerAndLogin(
     client,
-    'DroneUpsertSessionPilot',
-    'drone-upsert-session@example.com',
-    'drone-upsert-session-pass'
+    'ShipUpsertSessionPilot',
+    'ship-upsert-session@example.com',
+    'ship-upsert-session-pass'
   );
 
   const addResponsePromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
-    playerName: 'DroneUpsertSessionPilot',
+    playerName: 'ShipUpsertSessionPilot',
     sessionKey: loginResponse.sessionKey,
     characterName: 'RangerOne'
   });
   const addResponse = await addResponsePromise;
   assert.equal(addResponse.success, true);
 
-  const listResponsePromise = waitForEvent(client, DRONE_LIST_RESPONSE_EVENT);
-  client.emit(DRONE_LIST_REQUEST_EVENT, {
-    playerName: 'DroneUpsertSessionPilot',
+  const listResponsePromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
+  client.emit(SHIP_LIST_REQUEST_EVENT, {
+    playerName: 'ShipUpsertSessionPilot',
     characterId: addResponse.characterId,
     sessionKey: loginResponse.sessionKey
   });
@@ -683,12 +683,12 @@ test('drone upsert emits invalid session for wrong session key', async () => {
   assert.equal(listResponse.success, true);
 
   const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
-  client.emit(DRONE_UPSERT_REQUEST_EVENT, {
-    playerName: 'DroneUpsertSessionPilot',
+  client.emit(SHIP_UPSERT_REQUEST_EVENT, {
+    playerName: 'ShipUpsertSessionPilot',
     characterId: addResponse.characterId,
     sessionKey: 'wrong-session-key',
-    drone: {
-      id: listResponse.drones[0].id,
+    ship: {
+      id: listResponse.ships[0].id,
       location: {
         positionKm: { x: 10, y: 20, z: 30 }
       }
@@ -802,7 +802,7 @@ test('mission list emits invalid session for wrong session key', async () => {
   server.close();
 });
 
-test('drone list handles character missing from player list', async () => {
+test('ship list handles character missing from player list', async () => {
   const { server, io } = createServer({ port: '3024' });
   const port = await listen(server);
 
@@ -811,31 +811,31 @@ test('drone list handles character missing from player list', async () => {
 
   const loginResponse = await registerAndLogin(
     client,
-    'EdgeDronePilot',
-    'edge-drone@example.com',
-    'edge-drone-pass'
+    'EdgeShipPilot',
+    'edge-ship@example.com',
+    'edge-ship-pass'
   );
 
-  const droneListResponsePromise = waitForEvent(client, DRONE_LIST_RESPONSE_EVENT);
-  client.emit(DRONE_LIST_REQUEST_EVENT, {
-    playerName: 'EdgeDronePilot',
+  const shipListResponsePromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
+  client.emit(SHIP_LIST_REQUEST_EVENT, {
+    playerName: 'EdgeShipPilot',
     characterId: 'missing-character-id',
     sessionKey: loginResponse.sessionKey
   });
-  const droneListResponse = await droneListResponsePromise;
+  const shipListResponse = await shipListResponsePromise;
 
-  assert.equal(droneListResponse.success, false);
-  assert.equal(droneListResponse.message, 'Character is not in player list');
-  assert.equal(droneListResponse.playerName, 'EdgeDronePilot');
-  assert.equal(droneListResponse.characterId, 'missing-character-id');
-  assert.deepEqual(droneListResponse.drones, []);
+  assert.equal(shipListResponse.success, false);
+  assert.equal(shipListResponse.message, 'Character is not in player list');
+  assert.equal(shipListResponse.playerName, 'EdgeShipPilot');
+  assert.equal(shipListResponse.characterId, 'missing-character-id');
+  assert.deepEqual(shipListResponse.ships, []);
 
   await closeClient(client);
   io.close();
   server.close();
 });
 
-test('drone list emits invalid session for wrong session key', async () => {
+test('ship list emits invalid session for wrong session key', async () => {
   const { server, io } = createServer({ port: '3025' });
   const port = await listen(server);
 
@@ -844,14 +844,14 @@ test('drone list emits invalid session for wrong session key', async () => {
 
   await registerAndLogin(
     client,
-    'SessionDronePilot',
-    'session-drone@example.com',
-    'session-drone-pass'
+    'SessionShipPilot',
+    'session-ship@example.com',
+    'session-ship-pass'
   );
 
   const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
-  client.emit(DRONE_LIST_REQUEST_EVENT, {
-    playerName: 'SessionDronePilot',
+  client.emit(SHIP_LIST_REQUEST_EVENT, {
+    playerName: 'SessionShipPilot',
     characterId: 'any-id',
     sessionKey: 'wrong-session-key'
   });

@@ -3,11 +3,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  DroneListMessageHandler
-} = require('../src/handlers/drone-list-message-handler');
+  ShipListMessageHandler
+} = require('../src/handlers/ship-list-message-handler');
 const {
-  DRONE_LIST_RESPONSE_EVENT
-} = require('../src/model/drone-list');
+  SHIP_LIST_RESPONSE_EVENT
+} = require('../src/model/ship-list');
 const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
@@ -18,19 +18,19 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-test('DroneListMessageHandler returns drones for a player character', async () => {
+test('ShipListMessageHandler returns ships for a player character', async () => {
   const context = createTestContext();
   seedPlayer(context, {
-    playerName: 'DronePilot',
+    playerName: 'ShipPilot',
     sessionKey: 'session-1',
     characters: [
       {
         id: 'character-1',
         characterName: 'RangerOne',
-        drones: [
+        ships: [
           {
-            id: 'drone-1',
-            name: 'Scout Drone',
+            id: 'ship-1',
+            name: 'Scout Ship',
             status: 'active',
             model: 'scout-mk2',
             kinematics: {
@@ -48,23 +48,23 @@ test('DroneListMessageHandler returns drones for a player character', async () =
       }
     ]
   });
-  const handler = new DroneListMessageHandler(context);
+  const handler = new ShipListMessageHandler(context);
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
-    playerName: 'dronepilot',
+    playerName: 'shippilot',
     characterId: 'character-1',
     sessionKey: 'session-1'
   });
 
   assert.equal(response.success, true);
-  assert.equal(response.message, 'Drone list retrieved successfully');
-  assert.equal(response.playerName, 'DronePilot');
+  assert.equal(response.message, 'Ship list retrieved successfully');
+  assert.equal(response.playerName, 'ShipPilot');
   assert.equal(response.characterId, 'character-1');
-  assert.deepEqual(response.drones, [
+  assert.deepEqual(response.ships, [
     {
-      id: 'drone-1',
-      name: 'Scout Drone',
+      id: 'ship-1',
+      name: 'Scout Ship',
       status: 'active',
       model: 'scout-mk2',
       kinematics: {
@@ -79,17 +79,17 @@ test('DroneListMessageHandler returns drones for a player character', async () =
       }
     }
   ]);
-  assert.equal(socket.events[0].eventName, DRONE_LIST_RESPONSE_EVENT);
+  assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
 
-test('DroneListMessageHandler handles missing character in player list', async () => {
+test('ShipListMessageHandler handles missing character in player list', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'EdgePilot',
     sessionKey: 'session-1',
     characters: [{ id: 'character-1', characterName: 'ExistingCharacter' }]
   });
-  const handler = new DroneListMessageHandler(context);
+  const handler = new ShipListMessageHandler(context);
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
@@ -103,19 +103,19 @@ test('DroneListMessageHandler handles missing character in player list', async (
     message: 'Character is not in player list',
     playerName: 'EdgePilot',
     characterId: 'missing-character-id',
-    drones: []
+    ships: []
   });
-  assert.equal(socket.events[0].eventName, DRONE_LIST_RESPONSE_EVENT);
+  assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
 
-test('DroneListMessageHandler emits invalid session when session is not valid', async () => {
+test('ShipListMessageHandler emits invalid session when session is not valid', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'SessionPilot',
     sessionKey: 'session-1',
     characters: [{ id: 'character-1', characterName: 'RangerOne' }]
   });
-  const handler = new DroneListMessageHandler(context);
+  const handler = new ShipListMessageHandler(context);
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
@@ -128,7 +128,7 @@ test('DroneListMessageHandler emits invalid session when session is not valid', 
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
-test('DroneListMessageHandler returns drones with kinematics data', async () => {
+test('ShipListMessageHandler returns ships with kinematics data', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'KinematicsPilot',
@@ -137,9 +137,9 @@ test('DroneListMessageHandler returns drones with kinematics data', async () => 
       {
         id: 'character-1',
         characterName: 'Navigator',
-        drones: [
+        ships: [
           {
-            id: 'drone-1',
+            id: 'ship-1',
             name: 'Orbital Scout',
             status: 'active',
             model: 'scout-mk3',
@@ -155,7 +155,7 @@ test('DroneListMessageHandler returns drones with kinematics data', async () => 
             }
           },
           {
-            id: 'drone-2',
+            id: 'ship-2',
             name: 'Silent Runner',
             status: 'idle'
           }
@@ -163,7 +163,7 @@ test('DroneListMessageHandler returns drones with kinematics data', async () => 
       }
     ]
   });
-  const handler = new DroneListMessageHandler(context);
+  const handler = new ShipListMessageHandler(context);
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
@@ -173,8 +173,8 @@ test('DroneListMessageHandler returns drones with kinematics data', async () => 
   });
 
   assert.equal(response.success, true);
-  assert.equal(response.drones.length, 2);
-  assert.deepEqual(response.drones[0].kinematics, {
+  assert.equal(response.ships.length, 2);
+  assert.deepEqual(response.ships[0].kinematics, {
     position: { x: 150.0, y: 250.5, z: 75.3 },
     velocity: { x: 1.2, y: 0.8, z: -0.5 },
     reference: {
@@ -184,6 +184,6 @@ test('DroneListMessageHandler returns drones with kinematics data', async () => 
       epochMs: 1713607200000
     }
   });
-  assert.equal(response.drones[1].kinematics, undefined);
-  assert.equal(socket.events[0].eventName, DRONE_LIST_RESPONSE_EVENT);
+  assert.equal(response.ships[1].kinematics, undefined);
+  assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });

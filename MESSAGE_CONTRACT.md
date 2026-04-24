@@ -7,7 +7,7 @@ including required fields, response payloads, and edge-case behavior.
 
 - All message payload string fields are trimmed.
 - Player lookup is case-insensitive by `playerName`.
-- Character operations (`list`, `add`, `delete`, `edit`, `drone-list-request`,
+- Character operations (`list`, `add`, `delete`, `edit`, `ship-list-request`,
   `game-join`, `add-mission-request`, `list-missions-request`) require
   a valid session.
 - Invalid or missing session for character operations emits:
@@ -148,10 +148,10 @@ including required fields, response payloads, and edge-case behavior.
       "id": "<character id>",
       "characterName": "<name>",
       "createdAt": "<iso timestamp>",
-      "drones": [
+      "ships": [
         {
-          "id": "<drone id>",
-          "name": "<drone name>",
+          "id": "<ship id>",
+          "name": "<ship name>",
           "status": "active",
           "model": "starter-mk1"
         }
@@ -459,7 +459,7 @@ including required fields, response payloads, and edge-case behavior.
 
 - Invalid session emits `invalid-session`.
 - Added character stores `id`, `characterName`, and `createdAt`.
-- New characters are initialized with at least one starter drone in `drones`.
+- New characters are initialized with at least one starter ship in `ships`.
 - New characters are initialized with mission progress containing
   `The First Target` in status `available`.
 
@@ -618,10 +618,10 @@ including required fields, response payloads, and edge-case behavior.
 - `statuses` filter is optional and supports custom statuses.
 - Returned `missions` list is a defensive copy of server state.
 
-## Event: `drone-list-request`
+## Event: `ship-list-request`
 
-- Request event: `drone-list-request`
-- Response event: `drone-list-response`
+- Request event: `ship-list-request`
+- Response event: `ship-list-response`
 - Session failure event: `invalid-session`
 
 ### Request Payload
@@ -635,13 +635,13 @@ including required fields, response payloads, and edge-case behavior.
 ```json
 {
   "success": true,
-  "message": "Drone list retrieved successfully",
+  "message": "Ship list retrieved successfully",
   "playerName": "<canonical player name>",
   "characterId": "<character id>",
-  "drones": [
+  "ships": [
     {
-      "id": "<drone id>",
-      "name": "<drone name>",
+      "id": "<ship id>",
+      "name": "<ship name>",
       "status": "<optional status>",
       "model": "<optional model>",
       "location": {
@@ -674,7 +674,7 @@ including required fields, response payloads, and edge-case behavior.
   "message": "playerName and characterId are required",
   "playerName": "<trimmed playerName or empty>",
   "characterId": "<trimmed characterId or empty>",
-  "drones": []
+  "ships": []
 }
 ```
 
@@ -686,7 +686,7 @@ including required fields, response payloads, and edge-case behavior.
   "message": "Player is not registered",
   "playerName": "<trimmed playerName>",
   "characterId": "<provided characterId>",
-  "drones": []
+  "ships": []
 }
 ```
 
@@ -698,20 +698,20 @@ including required fields, response payloads, and edge-case behavior.
   "message": "Character is not in player list",
   "playerName": "<canonical player name>",
   "characterId": "<provided characterId>",
-  "drones": []
+  "ships": []
 }
 ```
 
 ### Edge Cases
 
 - Invalid session emits `invalid-session`.
-- Drones are scoped per character.
-- Returned `drones` list is a defensive copy of server state.
+- Ships are scoped per character.
+- Returned `ships` list is a defensive copy of server state.
 
-## Event: `drone-upsert-request`
+## Event: `ship-upsert-request`
 
-- Request event: `drone-upsert-request`
-- Response event: `drone-upsert-response`
+- Request event: `ship-upsert-request`
+- Response event: `ship-upsert-response`
 - Session failure event: `invalid-session`
 
 ### Request Payload
@@ -719,8 +719,8 @@ including required fields, response payloads, and edge-case behavior.
 - `playerName` (required)
 - `characterId` (required)
 - `sessionKey` (required and must match the player)
-- `drone` (required object)
-  - `id` (required; must exist in the character's drone list)
+- `ship` (required object)
+  - `id` (required; must exist in the character's ship list)
   - `location.positionKm.x|y|z` (optional; required if `kinematics` omitted)
   - `kinematics.position.x|y|z` (optional; required if `location` omitted)
   - `kinematics.velocity.x|y|z` (optional; required if `location` omitted)
@@ -734,12 +734,12 @@ including required fields, response payloads, and edge-case behavior.
 ```json
 {
   "success": true,
-  "message": "Drone updated successfully",
+  "message": "Ship updated successfully",
   "playerName": "<canonical player name>",
   "characterId": "<character id>",
-  "drone": {
-    "id": "<drone id>",
-    "droneName": "<drone name>",
+  "ship": {
+    "id": "<ship id>",
+    "shipName": "<ship name>",
     "location": {
       "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
     },
@@ -766,7 +766,7 @@ including required fields, response payloads, and edge-case behavior.
 ```json
 {
   "success": false,
-  "message": "playerName, characterId, and drone.id are required",
+  "message": "playerName, characterId, and ship.id are required",
   "playerName": "<trimmed playerName or empty>",
   "characterId": "<trimmed characterId or empty>"
 }
@@ -777,7 +777,7 @@ including required fields, response payloads, and edge-case behavior.
 ```json
 {
   "success": false,
-  "message": "drone.location and/or drone.kinematics is required",
+  "message": "ship.location and/or ship.kinematics is required",
   "playerName": "<canonical player name>",
   "characterId": "<character id>"
 }
@@ -788,7 +788,7 @@ including required fields, response payloads, and edge-case behavior.
 ```json
 {
   "success": false,
-  "message": "drone location/kinematics payload is invalid",
+  "message": "ship location/kinematics payload is invalid",
   "playerName": "<canonical player name>",
   "characterId": "<character id>"
 }
@@ -816,12 +816,12 @@ including required fields, response payloads, and edge-case behavior.
 }
 ```
 
-- Drone not found in character list:
+- Ship not found in character list:
 
 ```json
 {
   "success": false,
-  "message": "Drone is not in character list",
+  "message": "Ship is not in character list",
   "playerName": "<canonical player name>",
   "characterId": "<provided characterId>"
 }
@@ -830,7 +830,7 @@ including required fields, response payloads, and edge-case behavior.
 ### Edge Cases
 
 - Invalid session emits `invalid-session`.
-- `drone-upsert` only mutates a drone already owned by the specified character.
+- `ship-upsert` only mutates a ship already owned by the specified character.
 - The server always emits kinematics units as `distanceUnit: "km"` and `velocityUnit: "km/s"` when kinematics are present.
 
 ## Event: `character-delete-request`

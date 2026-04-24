@@ -102,13 +102,13 @@ class MessageHandlerContext {
     return value;
   }
 
-  normalizeDrone(drone) {
-    const source = this.toPlainObject(drone) || {};
-    const droneName = this.toNonEmptyString(source.droneName) || this.toNonEmptyString(source.name);
+  normalizeShip(ship) {
+    const source = this.toPlainObject(ship) || {};
+    const shipName = this.toNonEmptyString(source.shipName) || this.toNonEmptyString(source.name);
 
     return {
       ...source,
-      droneName: droneName || source.droneName || source.name || ''
+      shipName: shipName || source.shipName || source.name || ''
     };
   }
 
@@ -116,8 +116,8 @@ class MessageHandlerContext {
     const source = this.toPlainObject(character) || {};
     const characterName =
       this.toNonEmptyString(source.characterName) || this.toNonEmptyString(source.name);
-    const drones = Array.isArray(source.drones)
-      ? source.drones.map((drone) => this.normalizeDrone(drone))
+    const ships = Array.isArray(source.ships)
+      ? source.ships.map((ship) => this.normalizeShip(ship))
       : [];
     const missions = Array.isArray(source.missions)
       ? source.missions.map((mission) => this.normalizeMission(mission))
@@ -126,7 +126,7 @@ class MessageHandlerContext {
     return {
       ...source,
       characterName: characterName || source.characterName || source.name || '',
-      drones,
+      ships,
       missions
     };
   }
@@ -476,22 +476,22 @@ class MessageHandlerContext {
     }
   }
 
-  async addDroneAsync(playerName, characterId, droneData) {
+  async addShipAsync(playerName, characterId, shipData) {
     if (this.databaseService) {
       try {
-        await this.databaseService.addDrone(playerName, characterId, droneData);
+        await this.databaseService.addShip(playerName, characterId, shipData);
       } catch (error) {
-        this.log(`[context] Error adding drone in DB: ${error.message}`);
+        this.log(`[context] Error adding ship in DB: ${error.message}`);
         throw error;
       }
     }
     // Also update in-memory
     const character = this.findCharacter(playerName, characterId);
     if (character) {
-      if (!character.drones) {
-        character.drones = [];
+      if (!character.ships) {
+        character.ships = [];
       }
-      character.drones.push(droneData);
+      character.ships.push(shipData);
     }
   }
 

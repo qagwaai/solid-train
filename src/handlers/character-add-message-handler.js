@@ -71,10 +71,10 @@ class CharacterAddMessageHandler {
           id: response.characterId,
           characterName: response.characterName,
           createdAt,
-          drones: [
+          ships: [
             {
-              id: `${response.characterId}-drone-1`,
-              droneName: `${response.characterName} Drone 1`,
+              id: `${response.characterId}-ship-1`,
+              shipName: `${response.characterName} Ship 1`,
               createdAt
             }
           ],

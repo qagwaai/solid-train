@@ -3,11 +3,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  DroneUpsertMessageHandler
-} = require('../src/handlers/drone-upsert-message-handler');
+  ShipUpsertMessageHandler
+} = require('../src/handlers/ship-upsert-message-handler');
 const {
-  DRONE_UPSERT_RESPONSE_EVENT
-} = require('../src/model/drone-upsert');
+  SHIP_UPSERT_RESPONSE_EVENT
+} = require('../src/model/ship-upsert');
 const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
@@ -18,9 +18,9 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-function createDroneUpdate(overrides = {}) {
+function createShipUpdate(overrides = {}) {
   return {
-    id: 'drone-1',
+    id: 'ship-1',
     location: {
       positionKm: { x: 100.5, y: 200.3, z: 50.1 }
     },
@@ -38,19 +38,19 @@ function createDroneUpdate(overrides = {}) {
   };
 }
 
-test('DroneUpsertMessageHandler updates drone location and kinematics', async () => {
+test('ShipUpsertMessageHandler updates ship location and kinematics', async () => {
   const context = createTestContext();
   seedPlayer(context, {
-    playerName: 'DronePilot',
+    playerName: 'ShipPilot',
     sessionKey: 'session-1',
     characters: [
       {
         id: 'character-1',
         characterName: 'RangerOne',
-        drones: [
+        ships: [
           {
-            id: 'drone-1',
-            droneName: 'Scout Drone',
+            id: 'ship-1',
+            shipName: 'Scout Ship',
             createdAt: '2026-04-17T00:00:00.000Z'
           }
         ]
@@ -58,25 +58,25 @@ test('DroneUpsertMessageHandler updates drone location and kinematics', async ()
     ]
   });
 
-  const handler = new DroneUpsertMessageHandler(context);
+  const handler = new ShipUpsertMessageHandler(context);
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
-    playerName: 'dronepilot',
+    playerName: 'shippilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    drone: createDroneUpdate()
+    ship: createShipUpdate()
   });
 
   assert.equal(response.success, true);
-  assert.equal(response.message, 'Drone updated successfully');
-  assert.equal(response.playerName, 'DronePilot');
+  assert.equal(response.message, 'Ship updated successfully');
+  assert.equal(response.playerName, 'ShipPilot');
   assert.equal(response.characterId, 'character-1');
-  assert.equal(response.drone.id, 'drone-1');
-  assert.deepEqual(response.drone.location, {
+  assert.equal(response.ship.id, 'ship-1');
+  assert.deepEqual(response.ship.location, {
     positionKm: { x: 100.5, y: 200.3, z: 50.1 }
   });
-  assert.deepEqual(response.drone.kinematics.reference, {
+  assert.deepEqual(response.ship.kinematics.reference, {
     solarSystemId: 'system-sol',
     referenceKind: 'barycentric',
     referenceBodyId: null,
@@ -84,39 +84,39 @@ test('DroneUpsertMessageHandler updates drone location and kinematics', async ()
     velocityUnit: 'km/s',
     epochMs: 1713607200000
   });
-  assert.equal(socket.events[0].eventName, DRONE_UPSERT_RESPONSE_EVENT);
+  assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });
 
-test('DroneUpsertMessageHandler rejects missing location and kinematics update', async () => {
+test('ShipUpsertMessageHandler rejects missing location and kinematics update', async () => {
   const context = createTestContext();
   seedPlayer(context, {
-    playerName: 'DronePilot',
+    playerName: 'ShipPilot',
     sessionKey: 'session-1',
     characters: [
       {
         id: 'character-1',
         characterName: 'RangerOne',
-        drones: [{ id: 'drone-1', droneName: 'Scout Drone', createdAt: '2026-04-17T00:00:00.000Z' }]
+        ships: [{ id: 'ship-1', shipName: 'Scout Ship', createdAt: '2026-04-17T00:00:00.000Z' }]
       }
     ]
   });
 
-  const handler = new DroneUpsertMessageHandler(context);
+  const handler = new ShipUpsertMessageHandler(context);
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
-    playerName: 'DronePilot',
+    playerName: 'ShipPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    drone: { id: 'drone-1' }
+    ship: { id: 'ship-1' }
   });
 
   assert.equal(response.success, false);
-  assert.equal(response.message, 'drone.location and/or drone.kinematics is required');
-  assert.equal(socket.events[0].eventName, DRONE_UPSERT_RESPONSE_EVENT);
+  assert.equal(response.message, 'ship.location and/or ship.kinematics is required');
+  assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });
 
-test('DroneUpsertMessageHandler emits invalid session before mutation', async () => {
+test('ShipUpsertMessageHandler emits invalid session before mutation', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'SessionPilot',
@@ -125,19 +125,19 @@ test('DroneUpsertMessageHandler emits invalid session before mutation', async ()
       {
         id: 'character-1',
         characterName: 'RangerOne',
-        drones: [{ id: 'drone-1', droneName: 'Scout Drone', createdAt: '2026-04-17T00:00:00.000Z' }]
+        ships: [{ id: 'ship-1', shipName: 'Scout Ship', createdAt: '2026-04-17T00:00:00.000Z' }]
       }
     ]
   });
 
-  const handler = new DroneUpsertMessageHandler(context);
+  const handler = new ShipUpsertMessageHandler(context);
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
     playerName: 'SessionPilot',
     characterId: 'character-1',
     sessionKey: 'wrong-session',
-    drone: createDroneUpdate()
+    ship: createShipUpdate()
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });

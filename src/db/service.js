@@ -120,7 +120,7 @@ class DatabaseService {
   /**
    * Add a character to a player
     * @param {string} playerName
-    * @param {Object} characterData - { id, characterName, createdAt, drones, missions }
+    * @param {Object} characterData - { id, characterName, createdAt, ships, missions }
    * @returns {Promise<Object|null>}
    */
   async addCharacter(playerName, characterData) {
@@ -213,13 +213,13 @@ class DatabaseService {
   }
 
   /**
-   * Add a drone to a character
+   * Add a ship to a character
    * @param {string} playerName
    * @param {string} characterId
-   * @param {Object} droneData - { id, droneName, createdAt }
+   * @param {Object} shipData - { id, shipName, createdAt }
    * @returns {Promise<Object|null>}
    */
-  async addDrone(playerName, characterId, droneData) {
+  async addShip(playerName, characterId, shipData) {
     try {
       const playerNameNormalized = playerName.toLowerCase();
       const player = await Player.findOne({ playerNameNormalized });
@@ -233,15 +233,15 @@ class DatabaseService {
         return null;
       }
 
-      if (!character.drones) {
-        character.drones = [];
+      if (!character.ships) {
+        character.ships = [];
       }
-      character.drones.push(droneData);
+      character.ships.push(shipData);
       player.updatedAt = new Date();
       await player.save();
       return player.toObject();
     } catch (error) {
-      this.log(`[db-service] Error adding drone: ${error.message}`);
+      this.log(`[db-service] Error adding ship: ${error.message}`);
       throw error;
     }
   }
@@ -321,12 +321,12 @@ class DatabaseService {
   }
 
   /**
-   * Get all drones for a character
+   * Get all ships for a character
    * @param {string} playerName
    * @param {string} characterId
    * @returns {Promise<Array>}
    */
-  async getDrones(playerName, characterId) {
+  async getShips(playerName, characterId) {
     try {
       const playerNameNormalized = playerName.toLowerCase();
       const player = await Player.findOne({ playerNameNormalized });
@@ -336,9 +336,9 @@ class DatabaseService {
       }
 
       const character = player.characters.find(c => c.id === characterId);
-      return character && character.drones ? character.drones : [];
+      return character && character.ships ? character.ships : [];
     } catch (error) {
-      this.log(`[db-service] Error fetching drones: ${error.message}`);
+      this.log(`[db-service] Error fetching ships: ${error.message}`);
       throw error;
     }
   }

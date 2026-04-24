@@ -26,11 +26,11 @@ const {
   CHARACTER_EDIT_REQUEST_EVENT
 } = require('./model/character-edit');
 const {
-  DRONE_LIST_REQUEST_EVENT
-} = require('./model/drone-list');
+  SHIP_LIST_REQUEST_EVENT
+} = require('./model/ship-list');
 const {
-  DRONE_UPSERT_REQUEST_EVENT
-} = require('./model/drone-upsert');
+  SHIP_UPSERT_REQUEST_EVENT
+} = require('./model/ship-upsert');
 const {
   GAME_JOIN_REQUEST_EVENT
 } = require('./model/game-join');
@@ -68,11 +68,11 @@ const {
   CharacterEditMessageHandler
 } = require('./handlers/character-edit-message-handler');
 const {
-  DroneListMessageHandler
-} = require('./handlers/drone-list-message-handler');
+  ShipListMessageHandler
+} = require('./handlers/ship-list-message-handler');
 const {
-  DroneUpsertMessageHandler
-} = require('./handlers/drone-upsert-message-handler');
+  ShipUpsertMessageHandler
+} = require('./handlers/ship-upsert-message-handler');
 const {
   GameJoinMessageHandler
 } = require('./handlers/game-join-message-handler');
@@ -125,10 +125,10 @@ function createServer(options = {}) {
   const characterEditMessageHandler = new CharacterEditMessageHandler(
     messageHandlerContext
   );
-  const droneListMessageHandler = new DroneListMessageHandler(
+  const shipListMessageHandler = new ShipListMessageHandler(
     messageHandlerContext
   );
-  const droneUpsertMessageHandler = new DroneUpsertMessageHandler(
+  const shipUpsertMessageHandler = new ShipUpsertMessageHandler(
     messageHandlerContext
   );
   const gameJoinMessageHandler = new GameJoinMessageHandler(
@@ -214,15 +214,15 @@ function createServer(options = {}) {
       });
     });
 
-    socket.on(DRONE_LIST_REQUEST_EVENT, (payload) => {
-      droneListMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Drone list handler error: ${error.message}\n`);
+    socket.on(SHIP_LIST_REQUEST_EVENT, (payload) => {
+      shipListMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Ship list handler error: ${error.message}\n`);
       });
     });
 
-    socket.on(DRONE_UPSERT_REQUEST_EVENT, (payload) => {
-      droneUpsertMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Drone upsert handler error: ${error.message}\n`);
+    socket.on(SHIP_UPSERT_REQUEST_EVENT, (payload) => {
+      shipUpsertMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Ship upsert handler error: ${error.message}\n`);
       });
     });
 

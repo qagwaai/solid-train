@@ -10,7 +10,7 @@ The data model is document-oriented with two active collections:
 - Root model: Player
 - Embedded subdocuments:
   - Character (embedded in Player.characters)
-  - Drone (embedded in Character.drones)
+  - Ship (embedded in Character.ships)
   - MissionProgress (embedded in Character.missions)
 - Collection: cb
 - Root model: CelestialBody
@@ -22,10 +22,10 @@ Player-owned game state remains embedded in a Player document, while scanned cel
 ```mermaid
 erDiagram
   PLAYER ||--o{ CHARACTER : embeds
-  CHARACTER ||--o{ DRONE : embeds
+  CHARACTER ||--o{ SHIP : embeds
   CHARACTER ||--o{ MISSION_PROGRESS : embeds
   CHARACTER ||--o{ CELESTIAL_BODY : creates
-  DRONE ||--o| DRONE_KINEMATICS : embeds
+  SHIP ||--o| SHIP_KINEMATICS : embeds
 
   PLAYER {
     ObjectId _id
@@ -58,14 +58,14 @@ erDiagram
     string statusDetail
   }
 
-  DRONE {
+  SHIP {
     string id
-    string droneName
+    string shipName
     string createdAt
     object kinematics
   }
 
-  DRONE_KINEMATICS {
+  SHIP_KINEMATICS {
     object position
     object velocity
     object reference
@@ -138,7 +138,7 @@ Embedded under Player.characters.
 - id: String (required)
 - characterName: String (required)
 - createdAt: String (required)
-- drones: Drone[]
+- ships: Ship[]
 - missions: MissionProgress[]
 
 Notes:
@@ -168,30 +168,30 @@ Notes:
   `abandoned`, `paused`, `turned-in`.
 - Custom status values are allowed for server-side mission extensions.
 
-## Drone Subdocument Schema
+## Ship Subdocument Schema
 
-Embedded under Player.characters[].drones.
+Embedded under Player.characters[].ships.
 
 ### Fields
 
 - id: String (required)
-- droneName: String (required)
+- shipName: String (required)
 - createdAt: String (required)
-- location: DroneLocation | null (optional)
+- location: ShipLocation | null (optional)
   - Contains barycentric/body-relative position in km
   - Default: null
-- kinematics: DroneKinematics | null (optional)
+- kinematics: ShipKinematics | null (optional)
   - Contains position, velocity, and spatial reference information
   - Default: null
 
-### DroneLocation Subdocument Fields
+### ShipLocation Subdocument Fields
 
 - positionKm: Triple (required)
   - x: Number - X coordinate in km
   - y: Number - Y coordinate in km
   - z: Number - Z coordinate in km
 
-### DroneKinematics Subdocument Fields
+### ShipKinematics Subdocument Fields
 
 - position: Triple (required)
   - x: Number - X coordinate
@@ -210,8 +210,8 @@ Embedded under Player.characters[].drones.
   - epochMs: Number - Epoch timestamp in milliseconds
 
 Notes:
-- _id is disabled for Drone subdocuments (_id: false).
-- Drone identifiers use the id field, not MongoDB ObjectId.
+- _id is disabled for Ship subdocuments (_id: false).
+- Ship identifiers use the id field, not MongoDB ObjectId.
 - Kinematics data is optional and can be null when not applicable.
 
 ## CelestialBody Root Schema
@@ -278,11 +278,11 @@ Planned upgrade path for true geospatial indexing:
 ## Relationship Semantics
 
 - One Player to many Characters: 1:N (embedded)
-- One Character to many Drones: 1:N (embedded)
+- One Character to many Ships: 1:N (embedded)
 - One Character to many MissionProgress entries: 1:N (embedded)
 - One Character to many CelestialBody documents: 1:N (referenced by createdByCharacterId)
 
-Player, Character, Drone, and MissionProgress remain ownership relationships contained in a single Player document. CelestialBody is a separate root document referenced by character id.
+Player, Character, Ship, and MissionProgress remain ownership relationships contained in a single Player document. CelestialBody is a separate root document referenced by character id.
 
 ## Access Patterns
 
@@ -292,7 +292,7 @@ The service layer in src/db/service.js uses playerNameNormalized as the primary 
 - Fetch player by name
 - Update player session/socket
 - Add, edit, delete characters
-- Add and fetch drones
+- Add and fetch ships
 - Add and list character mission progress
 - Upsert celestial bodies by id in the `cb` collection
 

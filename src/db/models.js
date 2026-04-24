@@ -54,9 +54,9 @@ const spatialReferenceSchema = new mongoose.Schema({
 }, { _id: false });
 
 /**
- * Drone location schema for barycentric body-relative position
+ * Ship location schema for barycentric body-relative position
  */
-const droneLocationSchema = new mongoose.Schema({
+const shipLocationSchema = new mongoose.Schema({
   positionKm: {
     type: tripleSchema,
     required: true
@@ -64,9 +64,9 @@ const droneLocationSchema = new mongoose.Schema({
 }, { _id: false });
 
 /**
- * DroneKinematics schema for position and velocity data
+ * ShipKinematics schema for position and velocity data
  */
-const droneKinematicsSchema = new mongoose.Schema({
+const shipKinematicsSchema = new mongoose.Schema({
   position: {
     type: tripleSchema,
     required: true
@@ -82,14 +82,14 @@ const droneKinematicsSchema = new mongoose.Schema({
 }, { _id: false });
 
 /**
- * Drone schema for a character's drones
+ * Ship schema for a character's ships
  */
-const droneSchema = new mongoose.Schema({
+const shipSchema = new mongoose.Schema({
   id: {
     type: String,
     required: true
   },
-  droneName: {
+  shipName: {
     type: String,
     required: true
   },
@@ -98,11 +98,11 @@ const droneSchema = new mongoose.Schema({
     required: true
   },
   location: {
-    type: droneLocationSchema,
+    type: shipLocationSchema,
     default: null
   },
   kinematics: {
-    type: droneKinematicsSchema,
+    type: shipKinematicsSchema,
     default: null
   }
 }, { _id: false });
@@ -271,7 +271,7 @@ const characterSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  drones: [droneSchema],
+  ships: [shipSchema],
   missions: [missionSchema]
 }, { _id: false });
 
@@ -346,6 +346,6 @@ module.exports = {
   Player,
   playerSchema,
   characterSchema,
-  droneSchema,
+  shipSchema,
   missionSchema
 };
