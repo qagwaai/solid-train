@@ -41,6 +41,9 @@ const {
   CELESTIAL_BODY_UPSERT_REQUEST_EVENT
 } = require('./model/celestial-body-upsert');
 const {
+  CELESTIAL_BODY_LIST_REQUEST_EVENT
+} = require('./model/celestial-body-list');
+const {
   MISSION_LIST_REQUEST_EVENT
 } = require('./model/mission-list');
 const {
@@ -79,6 +82,9 @@ const {
 const {
   CelestialBodyUpsertMessageHandler
 } = require('./handlers/celestial-body-upsert-message-handler');
+const {
+  CelestialBodyListMessageHandler
+} = require('./handlers/celestial-body-list-message-handler');
 const {
   MissionListMessageHandler
 } = require('./handlers/mission-list-message-handler');
@@ -132,6 +138,9 @@ function createServer(options = {}) {
     messageHandlerContext
   );
   const celestialBodyUpsertMessageHandler = new CelestialBodyUpsertMessageHandler(
+    messageHandlerContext
+  );
+  const celestialBodyListMessageHandler = new CelestialBodyListMessageHandler(
     messageHandlerContext
   );
   const missionListMessageHandler = new MissionListMessageHandler(
@@ -232,6 +241,12 @@ function createServer(options = {}) {
     socket.on(CELESTIAL_BODY_UPSERT_REQUEST_EVENT, (payload) => {
       celestialBodyUpsertMessageHandler.handle(socket, payload).catch((error) => {
         process.stderr.write(`[socket] Celestial body upsert handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(CELESTIAL_BODY_LIST_REQUEST_EVENT, (payload) => {
+      celestialBodyListMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Celestial body list handler error: ${error.message}\n`);
       });
     });
 

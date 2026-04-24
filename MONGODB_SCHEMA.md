@@ -260,6 +260,20 @@ Defined in src/db/models.js and stored in the `cb` collection.
 
 - Unique index on id.
 - Non-unique indexes on catalogId, solarSystemId, sourceScanId, and createdByCharacterId.
+- Compound non-unique index on `solarSystemId` + `location.positionKm.x/y/z` to support
+  bounding-cube prefilter queries for spherical distance search.
+
+### Geospatial Index Roadmap
+
+The current schema stores position as a 3D triple (`location.positionKm.x/y/z`) and performs
+exact spherical filtering in application code after a bounding-cube Mongo query.
+
+Planned upgrade path for true geospatial indexing:
+
+1. Add a GeoJSON-compatible field (for example `locationPoint`) derived from current position data.
+2. Backfill existing `cb` documents with that field.
+3. Create a `2dsphere` index on the new field.
+4. Migrate proximity queries to `$near`/`$geoWithin` while retaining current distance semantics.
 
 ## Relationship Semantics
 

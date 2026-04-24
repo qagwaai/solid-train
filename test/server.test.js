@@ -50,6 +50,10 @@ const {
   CELESTIAL_BODY_UPSERT_RESPONSE_EVENT
 } = require('../src/model/celestial-body-upsert');
 const {
+  CELESTIAL_BODY_LIST_REQUEST_EVENT,
+  CELESTIAL_BODY_LIST_RESPONSE_EVENT
+} = require('../src/model/celestial-body-list');
+const {
   MISSION_LIST_REQUEST_EVENT,
   MISSION_LIST_RESPONSE_EVENT
 } = require('../src/model/mission-list');
@@ -1367,6 +1371,85 @@ test('celestial body upsert emits invalid session for wrong session key', async 
 
   const invalidSession = await invalidSessionPromise;
   assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('celestial body list returns sorted bodies filtered by spherical distance and limit', async () => {
+  const { server, io } = createServer({ port: '3025' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'ScannerListPilot',
+    'scanner-list@example.com',
+    'scanner-list-pass'
+  );
+
+  const characterAddPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'ScannerListPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'ProbeThree'
+  });
+  const characterAddResponse = await characterAddPromise;
+  assert.equal(characterAddResponse.success, true);
+
+  const celestialBodiesToCreate = [
+    createCelestialBody({
+      id: 'cb-list-near',
+      sourceScanId: 'scan-near',
+      createdByCharacterId: characterAddResponse.characterId,
+      location: { positionKm: { x: 3, y: 4, z: 0 } }
+    }),
+    createCelestialBody({
+      id: 'cb-list-mid',
+      sourceScanId: 'scan-mid',
+      createdByCharacterId: characterAddResponse.characterId,
+      location: { positionKm: { x: 0, y: 6, z: 8 } }
+    }),
+    createCelestialBody({
+      id: 'cb-list-far',
+      sourceScanId: 'scan-far',
+      createdByCharacterId: characterAddResponse.characterId,
+      location: { positionKm: { x: 100, y: 0, z: 0 } }
+    })
+  ];
+
+  for (const celestialBody of celestialBodiesToCreate) {
+    const upsertPromise = waitForEvent(client, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
+    client.emit(CELESTIAL_BODY_UPSERT_REQUEST_EVENT, {
+      playerName: 'ScannerListPilot',
+      sessionKey: loginResponse.sessionKey,
+      celestialBody
+    });
+    const upsertResponse = await upsertPromise;
+    assert.equal(upsertResponse.success, true);
+  }
+
+  const listResponsePromise = waitForEvent(client, CELESTIAL_BODY_LIST_RESPONSE_EVENT);
+  client.emit(CELESTIAL_BODY_LIST_REQUEST_EVENT, {
+    playerName: 'ScannerListPilot',
+    sessionKey: loginResponse.sessionKey,
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceKm: 10,
+    limit: 2
+  });
+
+  const listResponse = await listResponsePromise;
+  assert.equal(listResponse.success, true);
+  assert.equal(listResponse.message, 'Celestial body list retrieved successfully');
+  assert.equal(listResponse.celestialBodies.length, 2);
+  assert.equal(listResponse.celestialBodies[0].id, 'cb-list-near');
+  assert.equal(listResponse.celestialBodies[0].distanceKm, 5);
+  assert.equal(listResponse.celestialBodies[1].id, 'cb-list-mid');
+  assert.equal(listResponse.celestialBodies[1].distanceKm, 10);
 
   await closeClient(client);
   io.close();

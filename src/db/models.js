@@ -247,6 +247,14 @@ const celestialBodySchema = new mongoose.Schema({
   collection: 'cb'
 });
 
+// Supports fast bounding-cube prefilter for spherical distance queries.
+celestialBodySchema.index({
+  solarSystemId: 1,
+  'location.positionKm.x': 1,
+  'location.positionKm.y': 1,
+  'location.positionKm.z': 1
+});
+
 /**
  * Character schema - embedded within Player
  */

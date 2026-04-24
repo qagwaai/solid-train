@@ -39,6 +39,8 @@ The server listens on port `3000` by default. Set `PORT` to override.
 - `game-join` / `game-join-response`
 - `add-mission-request` / `add-mission-response`
 - `list-missions-request` / `list-missions-response`
+- `celestial-body-upsert-request` / `celestial-body-upsert-response`
+- `celestial-body-list-request` / `celestial-body-list-response`
 - `invalid-session` (server -> client): emitted when session validation fails
 
 ## Test

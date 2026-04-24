@@ -304,6 +304,123 @@ including required fields, response payloads, and edge-case behavior.
 - Incoming `createdAt` and `updatedAt` are preserved as provided.
 - Celestial bodies are not stored under player documents; they are persisted in the separate Mongo collection `cb`.
 
+## Event: `celestial-body-list-request`
+
+- Request event: `celestial-body-list-request`
+- Response event: `celestial-body-list-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `solarSystemId` (required string)
+- `positionKm` (required object)
+  - `x` (required finite number)
+  - `y` (required finite number)
+  - `z` (required finite number)
+- `distanceKm` (required finite number, must be `>= 0`)
+- `limit` (optional; positive integer when provided)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Celestial body list retrieved successfully",
+  "playerName": "<canonical player name>",
+  "solarSystemId": "sol",
+  "positionKm": { "x": 0, "y": 0, "z": 0 },
+  "distanceKm": 100,
+  "celestialBodies": [
+    {
+      "id": "<celestial body id>",
+      "catalogId": "<catalog id>",
+      "solarSystemId": "sol",
+      "sourceScanId": "<scan id>",
+      "createdByCharacterId": "<character id>",
+      "createdAt": "<iso timestamp>",
+      "updatedAt": "<iso timestamp>",
+      "location": {
+        "positionKm": { "x": 1, "y": 2, "z": 3 }
+      },
+      "kinematics": {
+        "velocityKmPerSec": { "x": 1, "y": 2, "z": 3 },
+        "angularVelocityRadPerSec": { "x": 0.1, "y": 0.2, "z": 0.3 },
+        "estimatedMassKg": 42000000000,
+        "estimatedDiameterM": 320
+      },
+      "composition": {
+        "rarity": "Rare",
+        "material": "Nickel-Iron",
+        "textureColor": "#8df7b2"
+      },
+      "distanceKm": 3.74
+    }
+  ]
+}
+```
+
+### Empty-Match Success Response
+
+```json
+{
+  "success": true,
+  "message": "No celestial bodies found within distance",
+  "playerName": "<canonical player name>",
+  "solarSystemId": "sol",
+  "positionKm": { "x": 0, "y": 0, "z": 0 },
+  "distanceKm": 100,
+  "celestialBodies": []
+}
+```
+
+### Failure and Edge Behavior
+
+- Invalid session emits `invalid-session` instead of `celestial-body-list-response`.
+- Missing/invalid required search fields return:
+
+```json
+{
+  "success": false,
+  "message": "playerName, solarSystemId, positionKm, and distanceKm are required",
+  "playerName": "<provided playerName or empty string>",
+  "solarSystemId": "<provided solarSystemId or empty string>",
+  "celestialBodies": []
+}
+```
+
+- Invalid optional `limit` returns:
+
+```json
+{
+  "success": false,
+  "message": "limit must be a positive integer when provided",
+  "playerName": "<provided playerName or empty string>",
+  "solarSystemId": "<provided solarSystemId or empty string>",
+  "celestialBodies": []
+}
+```
+
+- If the player is not registered:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<provided playerName>",
+  "solarSystemId": "<provided solarSystemId>",
+  "celestialBodies": []
+}
+```
+
+### Edge Cases
+
+- Match inclusion is spherical and inclusive of the boundary (`distance <= distanceKm`).
+- Distance is calculated in kilometers using 3D Euclidean distance from `positionKm`.
+- Results are sorted nearest-first by computed `distanceKm`.
+- `limit` is applied after filtering and sorting.
+
 ### Success Response
 
 ```json

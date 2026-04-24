@@ -12,6 +12,25 @@ class DatabaseService {
     this.log = options.log || ((line) => process.stdout.write(`${line}\n`));
   }
 
+  isFiniteNumber(value) {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  isTriple(value) {
+    return Boolean(value)
+      && this.isFiniteNumber(value.x)
+      && this.isFiniteNumber(value.y)
+      && this.isFiniteNumber(value.z);
+  }
+
+  calculateDistanceKm(fromPositionKm, toPositionKm) {
+    const dx = toPositionKm.x - fromPositionKm.x;
+    const dy = toPositionKm.y - fromPositionKm.y;
+    const dz = toPositionKm.z - fromPositionKm.z;
+
+    return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+  }
+
   /**
    * Register a new player
    * @param {Object} playerData - { playerId, playerName, email, password }
@@ -343,6 +362,72 @@ class DatabaseService {
       return celestialBody ? celestialBody.toObject() : null;
     } catch (error) {
       this.log(`[db-service] Error adding/updating celestial body: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Find celestial bodies in a spherical radius around a position.
+   * Uses a bounding-cube query first, then exact spherical distance filtering.
+   *
+   * Future optimization plan: migrate location to GeoJSON and add a 2dsphere index.
+   * @param {Object} query
+   * @param {string} query.solarSystemId
+   * @param {{x:number,y:number,z:number}} query.positionKm
+   * @param {number} query.distanceKm
+   * @returns {Promise<Array<{celestialBody:Object,distanceKm:number}>>}
+   */
+  async findCelestialBodiesNearPosition(query) {
+    const solarSystemId = typeof query?.solarSystemId === 'string'
+      ? query.solarSystemId.trim()
+      : '';
+    const positionKm = query?.positionKm;
+    const distanceKm = query?.distanceKm;
+
+    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
+      return [];
+    }
+
+    try {
+      const boundsQuery = {
+        solarSystemId,
+        'location.positionKm.x': {
+          $gte: positionKm.x - distanceKm,
+          $lte: positionKm.x + distanceKm
+        },
+        'location.positionKm.y': {
+          $gte: positionKm.y - distanceKm,
+          $lte: positionKm.y + distanceKm
+        },
+        'location.positionKm.z': {
+          $gte: positionKm.z - distanceKm,
+          $lte: positionKm.z + distanceKm
+        }
+      };
+
+      const candidates = await CelestialBody.find(boundsQuery).lean();
+
+      return candidates
+        .map((celestialBody) => {
+          const bodyPositionKm = celestialBody?.location?.positionKm;
+          if (!this.isTriple(bodyPositionKm)) {
+            return null;
+          }
+
+          const candidateDistanceKm = this.calculateDistanceKm(positionKm, bodyPositionKm);
+          if (candidateDistanceKm > distanceKm) {
+            return null;
+          }
+
+          return {
+            celestialBody,
+            distanceKm: candidateDistanceKm
+          };
+        })
+        .filter((entry) => Boolean(entry))
+        .sort((left, right) => left.distanceKm - right.distanceKm);
+    } catch (error) {
+      this.log(`[db-service] Error finding celestial bodies near position: ${error.message}`);
       throw error;
     }
   }

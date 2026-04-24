@@ -17,6 +17,25 @@ class MessageHandlerContext {
       options.getCurrentTimestamp || (() => new Date().toISOString());
   }
 
+  isFiniteNumber(value) {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  isTriple(value) {
+    return Boolean(value)
+      && this.isFiniteNumber(value.x)
+      && this.isFiniteNumber(value.y)
+      && this.isFiniteNumber(value.z);
+  }
+
+  calculateDistanceKm(fromPositionKm, toPositionKm) {
+    const dx = toPositionKm.x - fromPositionKm.x;
+    const dy = toPositionKm.y - fromPositionKm.y;
+    const dz = toPositionKm.z - fromPositionKm.z;
+
+    return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+  }
+
   toNonEmptyString(value) {
     if (typeof value !== 'string') {
       return '';
@@ -548,6 +567,68 @@ class MessageHandlerContext {
 
     this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
     return normalizedCelestialBody;
+  }
+
+  async getCelestialBodiesNearPositionAsync(query) {
+    const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
+    const positionKm = query?.positionKm;
+    const distanceKm = query?.distanceKm;
+    const limit = query?.limit;
+
+    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
+      return [];
+    }
+
+    let results = [];
+
+    if (this.databaseService) {
+      try {
+        const fromDb = await this.databaseService.findCelestialBodiesNearPosition({
+          solarSystemId,
+          positionKm,
+          distanceKm
+        });
+
+        results = fromDb.map((entry) => {
+          const normalizedCelestialBody = this.normalizeCelestialBody(entry.celestialBody);
+          this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
+          return {
+            celestialBody: normalizedCelestialBody,
+            distanceKm: entry.distanceKm
+          };
+        });
+      } catch (error) {
+        this.log(`[context] Error finding celestial bodies from DB: ${error.message}`);
+      }
+    } else {
+      results = Array.from(this.celestialBodiesById.values())
+        .map((celestialBody) => this.normalizeCelestialBody(celestialBody))
+        .filter((celestialBody) => celestialBody.solarSystemId === solarSystemId)
+        .map((celestialBody) => {
+          const bodyPositionKm = celestialBody?.location?.positionKm;
+          if (!this.isTriple(bodyPositionKm)) {
+            return null;
+          }
+
+          const candidateDistanceKm = this.calculateDistanceKm(positionKm, bodyPositionKm);
+          if (candidateDistanceKm > distanceKm) {
+            return null;
+          }
+
+          return {
+            celestialBody,
+            distanceKm: candidateDistanceKm
+          };
+        })
+        .filter((entry) => Boolean(entry))
+        .sort((left, right) => left.distanceKm - right.distanceKm);
+    }
+
+    if (!Number.isInteger(limit) || limit <= 0) {
+      return results;
+    }
+
+    return results.slice(0, limit);
   }
 }
 
