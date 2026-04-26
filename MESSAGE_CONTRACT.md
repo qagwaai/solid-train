@@ -8,7 +8,9 @@ including required fields, response payloads, and edge-case behavior.
 - All message payload string fields are trimmed.
 - Player lookup is case-insensitive by `playerName`.
 - Character operations (`list`, `add`, `delete`, `edit`, `ship-list-request`,
-  `game-join`, `add-mission-request`, `list-missions-request`) require
+  `game-join`, `add-mission-request`, `list-missions-request`,
+  `item-upsert-request`, `item-list-by-container-request`,
+  `item-list-by-location-request`) require
   a valid session.
 - Invalid or missing session for character operations emits:
   - event: `invalid-session`
@@ -1064,6 +1066,364 @@ including required fields, response payloads, and edge-case behavior.
   refreshed.
 - Server supports idle cleanup by detaching joined characters whose
   `lastMessageReceivedAt` is older than 30 minutes.
+
+## Event: `item-upsert-request`
+
+- Request event: `item-upsert-request`
+- Response event: `item-upsert-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `item` (required object)
+  - `id` (optional string; omit or pass empty to create a new item)
+  - `itemType` (required when creating; string identifying the item class, e.g. `expendable-dart-drone`)
+  - `displayName` (required when creating; human-readable label)
+  - `state` (optional; one of `contained`, `deployed`, `destroyed`)
+  - `damageStatus` (optional; one of `intact`, `damaged`, `disabled`, `destroyed`)
+  - `container` (optional; set to `null` to clear; otherwise object with `containerType` and `containerId`)
+    - `containerType` (required with container; one of `ship`, `market`)
+    - `containerId` (required with container; string id of the containing ship or market)
+  - `kinematics` (optional; set to update deployed position; see kinematics shape below)
+  - `owningPlayerId` (optional string)
+  - `owningCharacterId` (optional string)
+  - `destroyedAt` (optional ISO timestamp; auto-populated when `state` transitions to `destroyed` if not provided)
+  - `destroyedReason` (optional string)
+  - `discoveredAt` (optional ISO timestamp)
+  - `discoveredByCharacterId` (optional string)
+
+#### Kinematics Shape (item)
+
+```json
+{
+  "position": { "x": 100.0, "y": 200.0, "z": 300.0 },
+  "velocity": { "x": 1.0, "y": 0.5, "z": 0.0 },
+  "reference": {
+    "solarSystemId": "sol",
+    "referenceKind": "barycentric",
+    "referenceBodyId": null,
+    "distanceUnit": "km",
+    "velocityUnit": "km/s",
+    "epochMs": 1713607200000
+  }
+}
+```
+
+### Success Response (create)
+
+```json
+{
+  "success": true,
+  "message": "Item created successfully",
+  "playerName": "<canonical player name>",
+  "item": {
+    "id": "<uuid>",
+    "itemType": "expendable-dart-drone",
+    "displayName": "Expendable Dart Drone",
+    "state": "contained",
+    "damageStatus": "intact",
+    "container": {
+      "containerType": "ship",
+      "containerId": "<ship id>"
+    },
+    "kinematics": null,
+    "owningPlayerId": "<player id>",
+    "owningCharacterId": "<character id>",
+    "destroyedAt": null,
+    "destroyedReason": null,
+    "discoveredAt": null,
+    "discoveredByCharacterId": null,
+    "createdAt": "<iso timestamp>",
+    "updatedAt": "<iso timestamp>"
+  }
+}
+```
+
+### Success Response (update)
+
+Same shape as create; `message` is `"Item updated successfully"`.
+
+### Failure Responses
+
+- Missing `itemType`/`displayName` on create:
+
+```json
+{
+  "success": false,
+  "message": "item.itemType and item.displayName are required to create an item",
+  "playerName": "<canonical player name>"
+}
+```
+
+- Invalid `state`:
+
+```json
+{
+  "success": false,
+  "message": "item.state must be one of: contained, deployed, destroyed",
+  "playerName": "<canonical player name>"
+}
+```
+
+- Invalid `damageStatus`:
+
+```json
+{
+  "success": false,
+  "message": "item.damageStatus must be one of: intact, damaged, disabled, destroyed",
+  "playerName": "<canonical player name>"
+}
+```
+
+- Invalid kinematics:
+
+```json
+{
+  "success": false,
+  "message": "item.kinematics payload is invalid",
+  "playerName": "<canonical player name>"
+}
+```
+
+- Invalid container:
+
+```json
+{
+  "success": false,
+  "message": "item.container must include a valid containerType (ship or market) and containerId",
+  "playerName": "<canonical player name>"
+}
+```
+
+### Edge Cases
+
+- Invalid session emits `invalid-session`.
+- Any authenticated player may upsert any item (no ownership check).
+- When creating, `id` is server-generated if omitted or empty.
+- When `state` transitions to `destroyed` and no `destroyedAt` is provided, the server auto-sets `destroyedAt` to the current timestamp.
+- Items are stored in the global `items` collection, not embedded in player/ship documents.
+- Ship inventory stores item references `{ itemId, itemType }`; responses hydrate these to full item objects.
+- State transitions (deploy, destroy, discover) are all handled via this single upsert event by sending the relevant field updates.
+
+## Event: `item-list-by-container-request`
+
+- Request event: `item-list-by-container-request`
+- Response event: `item-list-by-container-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `containerType` (required; one of `ship`, `market`)
+- `containerId` (required string; id of the ship or market)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Items retrieved successfully",
+  "playerName": "<canonical player name>",
+  "containerType": "ship",
+  "containerId": "<ship id>",
+  "items": [
+    {
+      "id": "<item id>",
+      "itemType": "expendable-dart-drone",
+      "displayName": "Expendable Dart Drone",
+      "state": "contained",
+      "damageStatus": "intact",
+      "container": {
+        "containerType": "ship",
+        "containerId": "<ship id>"
+      },
+      "kinematics": null,
+      "owningPlayerId": "<player id>",
+      "owningCharacterId": "<character id>",
+      "destroyedAt": null,
+      "destroyedReason": null,
+      "discoveredAt": null,
+      "discoveredByCharacterId": null,
+      "createdAt": "<iso timestamp>",
+      "updatedAt": "<iso timestamp>"
+    }
+  ]
+}
+```
+
+### Empty-Match Success Response
+
+```json
+{
+  "success": true,
+  "message": "Items retrieved successfully",
+  "playerName": "<canonical player name>",
+  "containerType": "ship",
+  "containerId": "<ship id>",
+  "items": []
+}
+```
+
+### Failure Responses
+
+- Invalid `containerType`:
+
+```json
+{
+  "success": false,
+  "message": "containerType must be one of: ship, market",
+  "playerName": "<canonical player name>"
+}
+```
+
+- Missing `containerId`:
+
+```json
+{
+  "success": false,
+  "message": "containerId is required",
+  "playerName": "<canonical player name>"
+}
+```
+
+### Edge Cases
+
+- Invalid session emits `invalid-session`.
+- Returns all items whose `container.containerType` and `container.containerId` match exactly.
+- Items without a matching container (e.g. deployed items) are not returned.
+- When a DB connection is available, the query is run against the `items` collection. Otherwise the in-memory cache is filtered.
+
+## Event: `item-list-by-location-request`
+
+- Request event: `item-list-by-location-request`
+- Response event: `item-list-by-location-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `solarSystemId` (required string)
+- `positionKm` (required object)
+  - `x` (required finite number)
+  - `y` (required finite number)
+  - `z` (required finite number)
+- `distanceKm` (required finite number, must be `>= 0`)
+- `itemType` (optional string; filters results to a specific item type)
+- `limit` (optional; positive integer when provided)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Item list retrieved successfully",
+  "playerName": "<canonical player name>",
+  "solarSystemId": "sol",
+  "positionKm": { "x": 0, "y": 0, "z": 0 },
+  "distanceKm": 100,
+  "itemType": null,
+  "items": [
+    {
+      "id": "<item id>",
+      "itemType": "expendable-dart-drone",
+      "displayName": "Expendable Dart Drone",
+      "state": "deployed",
+      "damageStatus": "intact",
+      "container": null,
+      "kinematics": {
+        "position": { "x": 3, "y": 4, "z": 0 },
+        "velocity": { "x": 0, "y": 0, "z": 0 },
+        "reference": {
+          "solarSystemId": "sol",
+          "referenceKind": "barycentric",
+          "referenceBodyId": null,
+          "distanceUnit": "km",
+          "velocityUnit": "km/s",
+          "epochMs": 1713607200000
+        }
+      },
+      "owningPlayerId": "<player id>",
+      "owningCharacterId": "<character id>",
+      "destroyedAt": null,
+      "destroyedReason": null,
+      "discoveredAt": null,
+      "discoveredByCharacterId": null,
+      "createdAt": "<iso timestamp>",
+      "updatedAt": "<iso timestamp>",
+      "distanceKm": 5.0
+    }
+  ]
+}
+```
+
+### Empty-Match Success Response
+
+```json
+{
+  "success": true,
+  "message": "No items found within distance",
+  "playerName": "<canonical player name>",
+  "solarSystemId": "sol",
+  "positionKm": { "x": 0, "y": 0, "z": 0 },
+  "distanceKm": 100,
+  "itemType": null,
+  "items": []
+}
+```
+
+### Failure Responses
+
+- Missing/invalid required search fields:
+
+```json
+{
+  "success": false,
+  "message": "playerName, solarSystemId, positionKm, and distanceKm are required",
+  "playerName": "<provided playerName or empty string>",
+  "solarSystemId": "<provided solarSystemId or empty string>",
+  "items": []
+}
+```
+
+- Invalid optional `limit`:
+
+```json
+{
+  "success": false,
+  "message": "limit must be a positive integer when provided",
+  "playerName": "<provided playerName or empty string>",
+  "solarSystemId": "<provided solarSystemId or empty string>",
+  "items": []
+}
+```
+
+- Player not registered:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<provided playerName>",
+  "solarSystemId": "<provided solarSystemId>",
+  "items": []
+}
+```
+
+### Edge Cases
+
+- Invalid session emits `invalid-session`.
+- Match inclusion is spherical and inclusive of the boundary (`distance <= distanceKm`).
+- Distance is calculated in 3D Euclidean kilometers from `positionKm` to `item.kinematics.position`.
+- Items without `kinematics` (e.g. contained items with null kinematics) are excluded.
+- All item states (`contained`, `deployed`, `destroyed`) are included; callers filter by state if needed.
+- `itemType` filter is applied before distance filtering.
+- Results are sorted nearest-first by computed `distanceKm`.
+- `limit` is applied after filtering and sorting.
+- Solar system scoping is via `kinematics.reference.solarSystemId`.
 
 ## Notes For Client Implementers
 

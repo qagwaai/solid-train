@@ -47,6 +47,15 @@ const {
   MISSION_LIST_REQUEST_EVENT
 } = require('./model/mission-list');
 const {
+  ITEM_UPSERT_REQUEST_EVENT
+} = require('./model/item-upsert');
+const {
+  ITEM_LIST_BY_CONTAINER_REQUEST_EVENT
+} = require('./model/item-list-by-container');
+const {
+  ITEM_LIST_BY_LOCATION_REQUEST_EVENT
+} = require('./model/item-list-by-location');
+const {
   MessageHandlerContext
 } = require('./handlers/message-handler-context');
 const {
@@ -88,6 +97,15 @@ const {
 const {
   MissionListMessageHandler
 } = require('./handlers/mission-list-message-handler');
+const {
+  ItemUpsertMessageHandler
+} = require('./handlers/item-upsert-message-handler');
+const {
+  ItemListByContainerMessageHandler
+} = require('./handlers/item-list-by-container-message-handler');
+const {
+  ItemListByLocationMessageHandler
+} = require('./handlers/item-list-by-location-message-handler');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -146,6 +164,15 @@ function createServer(options = {}) {
     messageHandlerContext
   );
   const missionListMessageHandler = new MissionListMessageHandler(
+    messageHandlerContext
+  );
+  const itemUpsertMessageHandler = new ItemUpsertMessageHandler(
+    messageHandlerContext
+  );
+  const itemListByContainerMessageHandler = new ItemListByContainerMessageHandler(
+    messageHandlerContext
+  );
+  const itemListByLocationMessageHandler = new ItemListByLocationMessageHandler(
     messageHandlerContext
   );
 
@@ -255,6 +282,24 @@ function createServer(options = {}) {
     socket.on(MISSION_LIST_REQUEST_EVENT, (payload) => {
       missionListMessageHandler.handle(socket, payload).catch((error) => {
         process.stderr.write(`[socket] Mission list handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(ITEM_UPSERT_REQUEST_EVENT, (payload) => {
+      itemUpsertMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Item upsert handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(ITEM_LIST_BY_CONTAINER_REQUEST_EVENT, (payload) => {
+      itemListByContainerMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Item list by container handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(ITEM_LIST_BY_LOCATION_REQUEST_EVENT, (payload) => {
+      itemListByLocationMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Item list by location handler error: ${error.message}\n`);
       });
     });
   });

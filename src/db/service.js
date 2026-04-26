@@ -302,6 +302,45 @@ class DatabaseService {
   }
 
   /**
+   * Update a single item by id (full replace of mutable fields).
+   * @param {string} itemId
+   * @param {Object} updates
+   * @returns {Promise<Object|null>}
+   */
+  async updateItemById(itemId, updates) {
+    try {
+      const result = await Item.findOneAndUpdate(
+        { id: itemId },
+        { $set: updates },
+        { new: true }
+      ).lean();
+
+      return result;
+    } catch (error) {
+      this.log(`[db-service] Error updating item: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all items for a given container.
+   * @param {string} containerType
+   * @param {string} containerId
+   * @returns {Promise<Object[]>}
+   */
+  async getItemsByContainer(containerType, containerId) {
+    try {
+      return await Item.find({
+        'container.containerType': containerType,
+        'container.containerId': containerId
+      }).lean();
+    } catch (error) {
+      this.log(`[db-service] Error fetching items by container: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Add or update a mission for a character
    * @param {string} playerName
    * @param {string} characterId
@@ -483,6 +522,77 @@ class DatabaseService {
         .sort((left, right) => left.distanceKm - right.distanceKm);
     } catch (error) {
       this.log(`[db-service] Error finding celestial bodies near position: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Find items in a spherical radius around a position.
+   * Items are located via kinematics.position and kinematics.reference.solarSystemId.
+   * Uses a bounding-cube query first, then exact spherical distance filtering.
+   * @param {Object} query
+   * @param {string} query.solarSystemId
+   * @param {{x:number,y:number,z:number}} query.positionKm
+   * @param {number} query.distanceKm
+   * @param {string} [query.itemType]
+   * @returns {Promise<Array<{item:Object,distanceKm:number}>>}
+   */
+  async findItemsNearPosition(query) {
+    const solarSystemId = typeof query?.solarSystemId === 'string'
+      ? query.solarSystemId.trim()
+      : '';
+    const positionKm = query?.positionKm;
+    const distanceKm = query?.distanceKm;
+    const itemType = typeof query?.itemType === 'string' ? query.itemType.trim() : '';
+
+    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
+      return [];
+    }
+
+    try {
+      const boundsQuery = {
+        'kinematics.reference.solarSystemId': solarSystemId,
+        'kinematics.position.x': {
+          $gte: positionKm.x - distanceKm,
+          $lte: positionKm.x + distanceKm
+        },
+        'kinematics.position.y': {
+          $gte: positionKm.y - distanceKm,
+          $lte: positionKm.y + distanceKm
+        },
+        'kinematics.position.z': {
+          $gte: positionKm.z - distanceKm,
+          $lte: positionKm.z + distanceKm
+        }
+      };
+
+      if (itemType) {
+        boundsQuery.itemType = itemType;
+      }
+
+      const candidates = await Item.find(boundsQuery).lean();
+
+      return candidates
+        .map((item) => {
+          const itemPositionKm = item?.kinematics?.position;
+          if (!this.isTriple(itemPositionKm)) {
+            return null;
+          }
+
+          const candidateDistanceKm = this.calculateDistanceKm(positionKm, itemPositionKm);
+          if (candidateDistanceKm > distanceKm) {
+            return null;
+          }
+
+          return {
+            item,
+            distanceKm: candidateDistanceKm
+          };
+        })
+        .filter((entry) => Boolean(entry))
+        .sort((left, right) => left.distanceKm - right.distanceKm);
+    } catch (error) {
+      this.log(`[db-service] Error finding items near position: ${error.message}`);
       throw error;
     }
   }

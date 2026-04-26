@@ -338,6 +338,59 @@ class MessageHandlerContext {
     }
   }
 
+  async updateItemAsync(itemId, updates) {
+    const normalizedItemId = this.toNonEmptyString(itemId);
+    if (!normalizedItemId) {
+      return null;
+    }
+
+    const existing = this.getItem(normalizedItemId);
+    if (!existing) {
+      return null;
+    }
+
+    const updatedItem = this.normalizeItem({ ...existing, ...updates });
+    this.itemsById.set(normalizedItemId, updatedItem);
+
+    if (this.databaseService) {
+      try {
+        await this.databaseService.updateItemById(normalizedItemId, updatedItem);
+      } catch (error) {
+        this.log(`[context] Error updating item in DB: ${error.message}`);
+      }
+    }
+
+    return updatedItem;
+  }
+
+  async getItemsByContainerAsync(containerType, containerId) {
+    const normalizedContainerType = this.toNonEmptyString(containerType);
+    const normalizedContainerId = this.toNonEmptyString(containerId);
+
+    if (!normalizedContainerType || !normalizedContainerId) {
+      return [];
+    }
+
+    if (this.databaseService) {
+      try {
+        const items = await this.databaseService.getItemsByContainer(
+          normalizedContainerType,
+          normalizedContainerId
+        );
+
+        return this.cacheItems(items);
+      } catch (error) {
+        this.log(`[context] Error fetching items by container from DB: ${error.message}`);
+      }
+    }
+
+    return [...this.itemsById.values()].filter(
+      (item) =>
+        item.container?.containerType === normalizedContainerType &&
+        item.container?.containerId === normalizedContainerId
+    );
+  }
+
   async hydrateShipAsync(ship) {
     const normalizedShip = this.normalizeShip(ship);
     const inventoryReferences = Array.isArray(normalizedShip.inventory)
@@ -782,6 +835,80 @@ class MessageHandlerContext {
 
           return {
             celestialBody,
+            distanceKm: candidateDistanceKm
+          };
+        })
+        .filter((entry) => Boolean(entry))
+        .sort((left, right) => left.distanceKm - right.distanceKm);
+    }
+
+    if (!Number.isInteger(limit) || limit <= 0) {
+      return results;
+    }
+
+    return results.slice(0, limit);
+  }
+
+  async getItemsNearPositionAsync(query) {
+    const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
+    const positionKm = query?.positionKm;
+    const distanceKm = query?.distanceKm;
+    const itemType = this.toNonEmptyString(query?.itemType);
+    const limit = query?.limit;
+
+    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
+      return [];
+    }
+
+    let results = [];
+
+    if (this.databaseService) {
+      try {
+        const fromDb = await this.databaseService.findItemsNearPosition({
+          solarSystemId,
+          positionKm,
+          distanceKm,
+          itemType: itemType || undefined
+        });
+
+        results = fromDb.map((entry) => {
+          const normalizedItem = this.normalizeItem(entry.item);
+          this.itemsById.set(normalizedItem.id, normalizedItem);
+          return {
+            item: normalizedItem,
+            distanceKm: entry.distanceKm
+          };
+        });
+      } catch (error) {
+        this.log(`[context] Error finding items from DB: ${error.message}`);
+      }
+    } else {
+      results = Array.from(this.itemsById.values())
+        .map((item) => this.normalizeItem(item))
+        .filter((item) => {
+          if (item.kinematics?.reference?.solarSystemId !== solarSystemId) {
+            return false;
+          }
+
+          if (itemType && item.itemType !== itemType) {
+            return false;
+          }
+
+          return true;
+        })
+        .map((item) => {
+          const itemPositionKm = item?.kinematics?.position;
+          if (!this.isTriple(itemPositionKm)) {
+            return null;
+          }
+
+          const candidateDistanceKm = this.calculateDistanceKm(positionKm, itemPositionKm);
+          if (candidateDistanceKm > distanceKm) {
+            return null;
+          }
+
+          return {
+            item,
             distanceKm: candidateDistanceKm
           };
         })
