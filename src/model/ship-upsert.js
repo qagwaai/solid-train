@@ -37,6 +37,31 @@ const SHIP_UPSERT_RESPONSE_EVENT = 'ship-upsert-response';
  */
 
 /**
+ * @typedef {Object} ItemContainer
+ * @property {'ship'|'market'} containerType
+ * @property {string} containerId
+ */
+
+/**
+ * @typedef {Object} InventoryItemReference
+ * @property {string} itemId
+ * @property {string} itemType
+ */
+
+/**
+ * @typedef {Object} InventoryItem
+ * @property {string} id
+ * @property {string} itemType
+ * @property {string} displayName
+ * @property {'contained'|'deployed'|'destroyed'} state
+ * @property {'intact'|'damaged'|'disabled'|'destroyed'} damageStatus
+ * @property {ItemContainer|null} container
+ * @property {string} owningPlayerId
+ * @property {string} owningCharacterId
+ * @property {ShipKinematics|null} [kinematics]
+ */
+
+/**
  * @typedef {Object} ShipUpsertEntity
  * @property {string} id
  * @property {string} [name]
@@ -44,6 +69,7 @@ const SHIP_UPSERT_RESPONSE_EVENT = 'ship-upsert-response';
  * @property {string} [status]
  * @property {string} [model]
  * @property {number} [tier]
+ * @property {InventoryItemReference[]|InventoryItem[]} [inventory]
  * @property {CelestialBodyLocation} [location]
  * @property {ShipKinematics} [kinematics]
  */

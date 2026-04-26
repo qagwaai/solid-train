@@ -7,6 +7,7 @@ class MessageHandlerContext {
     this.registeredPlayers = options.registeredPlayers || new Map();
     this.charactersByPlayer = options.charactersByPlayer || new Map();
     this.celestialBodiesById = options.celestialBodiesById || new Map();
+    this.itemsById = options.itemsById || new Map();
     this.databaseService = options.databaseService || null;
     this.game = options.game || new GameState();
     this.log = options.log || ((line) => process.stdout.write(`${line}\n`));
@@ -105,10 +106,61 @@ class MessageHandlerContext {
   normalizeShip(ship) {
     const source = this.toPlainObject(ship) || {};
     const shipName = this.toNonEmptyString(source.shipName) || this.toNonEmptyString(source.name);
+    const inventory = Array.isArray(source.inventory)
+      ? source.inventory
+        .map((entry) => this.normalizeInventoryItemReference(entry))
+        .filter((entry) => Boolean(entry))
+      : [];
 
     return {
       ...source,
+      inventory,
       shipName: shipName || source.shipName || source.name || ''
+    };
+  }
+
+  normalizeInventoryItemReference(reference) {
+    const source = this.toPlainObject(reference) || {};
+    const itemId = this.toNonEmptyString(source.itemId);
+    const itemType = this.toNonEmptyString(source.itemType);
+
+    if (!itemId || !itemType) {
+      return null;
+    }
+
+    return {
+      itemId,
+      itemType
+    };
+  }
+
+  normalizeItem(item) {
+    const source = this.toPlainObject(item) || {};
+    const normalizedKinematics = source.kinematics ? {
+      position: source.kinematics.position ? { ...source.kinematics.position } : null,
+      velocity: source.kinematics.velocity ? { ...source.kinematics.velocity } : null,
+      reference: source.kinematics.reference ? { ...source.kinematics.reference } : null
+    } : null;
+    const normalizedContainer = source.container ? {
+      containerType: this.toNonEmptyString(source.container.containerType),
+      containerId: this.toNonEmptyString(source.container.containerId)
+    } : null;
+
+    return {
+      ...source,
+      id: this.toNonEmptyString(source.id),
+      itemType: this.toNonEmptyString(source.itemType),
+      displayName: this.toNonEmptyString(source.displayName),
+      state: this.toNonEmptyString(source.state),
+      damageStatus: this.toNonEmptyString(source.damageStatus),
+      container: normalizedContainer,
+      owningPlayerId: this.toNonEmptyString(source.owningPlayerId),
+      owningCharacterId: this.toNonEmptyString(source.owningCharacterId),
+      kinematics: normalizedKinematics,
+      createdAt: this.toNonEmptyString(source.createdAt),
+      updatedAt: this.toNonEmptyString(source.updatedAt),
+      destroyedAt: this.toNonEmptyString(source.destroyedAt) || null,
+      destroyedReason: this.toNonEmptyString(source.destroyedReason) || null
     };
   }
 
@@ -184,6 +236,16 @@ class MessageHandlerContext {
     return this.celestialBodiesById.get(normalizedCelestialBodyId) || null;
   }
 
+  getItem(itemId) {
+    const normalizedItemId = this.toNonEmptyString(itemId);
+
+    if (!normalizedItemId) {
+      return null;
+    }
+
+    return this.itemsById.get(normalizedItemId) || null;
+  }
+
   cacheCharacters(playerName, characters) {
     const normalizedPlayerName = this.normalizePlayerName(playerName);
     if (!normalizedPlayerName) {
@@ -196,6 +258,109 @@ class MessageHandlerContext {
 
     this.setCharacters(normalizedPlayerName, clonedCharacters);
     return clonedCharacters;
+  }
+
+  cacheItems(items) {
+    const normalizedItems = Array.isArray(items)
+      ? items.map((item) => this.normalizeItem(item)).filter((item) => Boolean(item.id))
+      : [];
+
+    for (const item of normalizedItems) {
+      this.itemsById.set(item.id, item);
+    }
+
+    return normalizedItems;
+  }
+
+  async getItemsByIdsAsync(itemIds) {
+    const normalizedItemIds = Array.isArray(itemIds)
+      ? itemIds.map((itemId) => this.toNonEmptyString(itemId)).filter((itemId) => Boolean(itemId))
+      : [];
+
+    if (normalizedItemIds.length === 0) {
+      return [];
+    }
+
+    if (this.databaseService) {
+      try {
+        const items = await this.databaseService.getItemsByIds(normalizedItemIds);
+        return this.cacheItems(items);
+      } catch (error) {
+        this.log(`[context] Error fetching items from DB: ${error.message}`);
+        return [];
+      }
+    }
+
+    return normalizedItemIds
+      .map((itemId) => this.getItem(itemId))
+      .filter((item) => Boolean(item))
+      .map((item) => this.normalizeItem(item));
+  }
+
+  async addItemsAsync(items) {
+    const normalizedItems = this.cacheItems(items);
+
+    if (this.databaseService) {
+      try {
+        await this.databaseService.addItems(normalizedItems);
+      } catch (error) {
+        for (const item of normalizedItems) {
+          this.itemsById.delete(item.id);
+        }
+        this.log(`[context] Error adding items in DB: ${error.message}`);
+        throw error;
+      }
+    }
+
+    return normalizedItems;
+  }
+
+  async deleteItemsAsync(itemIds) {
+    const normalizedItemIds = Array.isArray(itemIds)
+      ? itemIds.map((itemId) => this.toNonEmptyString(itemId)).filter((itemId) => Boolean(itemId))
+      : [];
+
+    if (normalizedItemIds.length === 0) {
+      return;
+    }
+
+    if (this.databaseService) {
+      try {
+        await this.databaseService.deleteItemsByIds(normalizedItemIds);
+      } catch (error) {
+        this.log(`[context] Error deleting items in DB: ${error.message}`);
+        throw error;
+      }
+    }
+
+    for (const itemId of normalizedItemIds) {
+      this.itemsById.delete(itemId);
+    }
+  }
+
+  async hydrateShipAsync(ship) {
+    const normalizedShip = this.normalizeShip(ship);
+    const inventoryReferences = Array.isArray(normalizedShip.inventory)
+      ? normalizedShip.inventory
+      : [];
+    const inventoryItemIds = inventoryReferences.map((reference) => reference.itemId);
+    const items = await this.getItemsByIdsAsync(inventoryItemIds);
+    const itemsById = new Map(items.map((item) => [item.id, item]));
+
+    return {
+      ...normalizedShip,
+      inventory: inventoryReferences
+        .map((reference) => itemsById.get(reference.itemId) || null)
+        .filter((item) => Boolean(item))
+    };
+  }
+
+  async hydrateShipsAsync(ships) {
+    if (!Array.isArray(ships) || ships.length === 0) {
+      return [];
+    }
+
+    return Promise.all(ships.map((ship) => this.hydrateShipAsync(ship)));
   }
 
   hasValidSession(payload) {

@@ -53,7 +53,12 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
           model: 'Scavenger Pod',
           tier: 1,
           createdAt: '2026-04-17T00:00:00.000Z',
-          inventory: ['Expendable Dart Drone']
+          inventory: [
+            {
+              itemId: 'player-1-ship-1-item-1',
+              itemType: 'expendable-dart-drone'
+            }
+          ]
         }
       ],
       missions: [
@@ -65,6 +70,24 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
       ]
     }
   ]);
+  assert.deepEqual(context.getItem('player-1-ship-1-item-1'), {
+    id: 'player-1-ship-1-item-1',
+    itemType: 'expendable-dart-drone',
+    displayName: 'Expendable Dart Drone',
+    state: 'contained',
+    damageStatus: 'intact',
+    container: {
+      containerType: 'ship',
+      containerId: 'player-1-ship-1'
+    },
+    owningPlayerId: 'player-seeded',
+    owningCharacterId: 'player-1',
+    kinematics: null,
+    createdAt: '2026-04-17T00:00:00.000Z',
+    updatedAt: '2026-04-17T00:00:00.000Z',
+    destroyedAt: null,
+    destroyedReason: null
+  });
 });
 
 test('CharacterAddMessageHandler rejects invalid sessions before mutating state', async () => {

@@ -104,10 +104,12 @@ function createServer(options = {}) {
   const registeredPlayers = new Map();
   const charactersByPlayer = new Map();
   const celestialBodiesById = new Map();
+  const itemsById = new Map();
   const messageHandlerContext = new MessageHandlerContext({
     registeredPlayers,
     charactersByPlayer,
     celestialBodiesById,
+    itemsById,
     databaseService: options.databaseService || null,
     createId: randomUUID
   });

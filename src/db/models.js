@@ -82,6 +82,111 @@ const shipKinematicsSchema = new mongoose.Schema({
 }, { _id: false });
 
 /**
+ * Inventory reference schema for ship-contained items
+ */
+const inventoryItemReferenceSchema = new mongoose.Schema({
+  itemId: {
+    type: String,
+    required: true
+  },
+  itemType: {
+    type: String,
+    required: true
+  }
+}, { _id: false });
+
+/**
+ * Item container schema for contained global items
+ */
+const itemContainerSchema = new mongoose.Schema({
+  containerType: {
+    type: String,
+    enum: ['ship', 'market'],
+    required: true
+  },
+  containerId: {
+    type: String,
+    required: true
+  }
+}, { _id: false });
+
+/**
+ * Global item schema for inventory and deployed space items
+ */
+const itemSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  itemType: {
+    type: String,
+    enum: ['expendable-dart-drone'],
+    required: true,
+    index: true
+  },
+  displayName: {
+    type: String,
+    required: true
+  },
+  state: {
+    type: String,
+    enum: ['contained', 'deployed', 'destroyed'],
+    required: true,
+    default: 'contained',
+    index: true
+  },
+  damageStatus: {
+    type: String,
+    enum: ['intact', 'damaged', 'disabled', 'destroyed'],
+    required: true,
+    default: 'intact'
+  },
+  container: {
+    type: itemContainerSchema,
+    default: null
+  },
+  owningPlayerId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  owningCharacterId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  kinematics: {
+    type: shipKinematicsSchema,
+    default: null
+  },
+  createdAt: {
+    type: String,
+    required: true
+  },
+  updatedAt: {
+    type: String,
+    required: true
+  },
+  destroyedAt: {
+    type: String,
+    default: null
+  },
+  destroyedReason: {
+    type: String,
+    default: null
+  }
+}, {
+  collection: 'items'
+});
+
+itemSchema.index({
+  'container.containerType': 1,
+  'container.containerId': 1
+});
+
+/**
  * Ship schema for a character's ships
  */
 const shipSchema = new mongoose.Schema({
@@ -110,7 +215,7 @@ const shipSchema = new mongoose.Schema({
     required: true
   },
   inventory: {
-    type: [String],
+    type: [inventoryItemReferenceSchema],
     default: []
   },
   location: {
@@ -352,6 +457,7 @@ playerSchema.pre('save', function (next) {
  */
 const Player = mongoose.model('Player', playerSchema);
 const CelestialBody = mongoose.model('CelestialBody', celestialBodySchema);
+const Item = mongoose.model('Item', itemSchema);
 
 module.exports = {
   CelestialBody,
@@ -359,9 +465,14 @@ module.exports = {
   asteroidMaterialProfileSchema,
   celestialBodyKinematicsSchema,
   celestialBodyLocationSchema,
+  Item,
+  itemSchema,
+  itemContainerSchema,
+  inventoryItemReferenceSchema,
   Player,
   playerSchema,
   characterSchema,
   shipSchema,
+  shipKinematicsSchema,
   missionSchema
 };

@@ -65,20 +65,53 @@ class CharacterAddMessageHandler {
     const response = this.buildResponse(payload);
 
     if (response.success) {
+      let createdItemIds = [];
+
       try {
         const createdAt = this.context.getCurrentTimestamp();
+        const starterShipId = `${response.characterId}-ship-1`;
+        const starterDroneId = `${starterShipId}-item-1`;
+        const starterItems = [
+          {
+            id: starterDroneId,
+            itemType: 'expendable-dart-drone',
+            displayName: 'Expendable Dart Drone',
+            state: 'contained',
+            damageStatus: 'intact',
+            container: {
+              containerType: 'ship',
+              containerId: starterShipId
+            },
+            owningPlayerId: this.context.toNonEmptyString(this.context.getPlayer(response.playerName)?.playerId),
+            owningCharacterId: response.characterId,
+            kinematics: null,
+            createdAt,
+            updatedAt: createdAt,
+            destroyedAt: null,
+            destroyedReason: null
+          }
+        ];
+
+        await this.context.addItemsAsync(starterItems);
+        createdItemIds = starterItems.map((item) => item.id);
+
         const characterData = {
           id: response.characterId,
           characterName: response.characterName,
           createdAt,
           ships: [
             {
-              id: `${response.characterId}-ship-1`,
+              id: starterShipId,
               shipName: `${response.characterName} Ship 1`,
               model: 'Scavenger Pod',
               tier: 1,
               createdAt,
-              inventory: ['Expendable Dart Drone']
+              inventory: [
+                {
+                  itemId: starterDroneId,
+                  itemType: 'expendable-dart-drone'
+                }
+              ]
             }
           ],
           missions: [
@@ -91,6 +124,13 @@ class CharacterAddMessageHandler {
         };
         await this.context.addCharacterAsync(payload?.playerName, characterData);
       } catch (error) {
+        if (createdItemIds.length > 0) {
+          try {
+            await this.context.deleteItemsAsync(createdItemIds);
+          } catch (cleanupError) {
+            this.context.log(`[character-add-handler] Failed to roll back starter items: ${cleanupError.message}`);
+          }
+        }
         this.context.log(`[character-add-handler] Failed to add character: ${error.message}`);
         response.success = false;
         response.message = 'Failed to add character: database error';

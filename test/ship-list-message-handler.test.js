@@ -15,11 +15,32 @@ const {
 const {
   createMockSocket,
   createTestContext,
+  seedItems,
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
 test('ShipListMessageHandler returns ships for a player character', async () => {
   const context = createTestContext();
+  seedItems(context, [
+    {
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1'
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      kinematics: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null
+    }
+  ]);
   seedPlayer(context, {
     playerName: 'ShipPilot',
     sessionKey: 'session-1',
@@ -33,6 +54,12 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
             name: 'Scout Ship',
             status: 'active',
             model: 'scout-mk2',
+            inventory: [
+              {
+                itemId: 'item-1',
+                itemType: 'expendable-dart-drone'
+              }
+            ],
             kinematics: {
               position: { x: 100.5, y: 200.3, z: 50.1 },
               velocity: { x: 0.5, y: -0.2, z: 0.1 },
@@ -65,8 +92,29 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
     {
       id: 'ship-1',
       name: 'Scout Ship',
+      shipName: 'Scout Ship',
       status: 'active',
       model: 'scout-mk2',
+      inventory: [
+        {
+          id: 'item-1',
+          itemType: 'expendable-dart-drone',
+          displayName: 'Expendable Dart Drone',
+          state: 'contained',
+          damageStatus: 'intact',
+          container: {
+            containerType: 'ship',
+            containerId: 'ship-1'
+          },
+          owningPlayerId: 'player-seeded',
+          owningCharacterId: 'character-1',
+          kinematics: null,
+          createdAt: '2026-04-17T00:00:00.000Z',
+          updatedAt: '2026-04-17T00:00:00.000Z',
+          destroyedAt: null,
+          destroyedReason: null
+        }
+      ],
       kinematics: {
         position: { x: 100.5, y: 200.3, z: 50.1 },
         velocity: { x: 0.5, y: -0.2, z: 0.1 },
@@ -130,6 +178,26 @@ test('ShipListMessageHandler emits invalid session when session is not valid', a
 
 test('ShipListMessageHandler returns ships with kinematics data', async () => {
   const context = createTestContext();
+  seedItems(context, [
+    {
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1'
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      kinematics: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null
+    }
+  ]);
   seedPlayer(context, {
     playerName: 'KinematicsPilot',
     sessionKey: 'session-1',
@@ -143,6 +211,12 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
             name: 'Orbital Scout',
             status: 'active',
             model: 'scout-mk3',
+            inventory: [
+              {
+                itemId: 'item-1',
+                itemType: 'expendable-dart-drone'
+              }
+            ],
             kinematics: {
               position: { x: 150.0, y: 250.5, z: 75.3 },
               velocity: { x: 1.2, y: 0.8, z: -0.5 },
@@ -174,6 +248,26 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
 
   assert.equal(response.success, true);
   assert.equal(response.ships.length, 2);
+  assert.deepEqual(response.ships[0].inventory, [
+    {
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1'
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      kinematics: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null
+    }
+  ]);
   assert.deepEqual(response.ships[0].kinematics, {
     position: { x: 150.0, y: 250.5, z: 75.3 },
     velocity: { x: 1.2, y: 0.8, z: -0.5 },
@@ -185,5 +279,6 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
     }
   });
   assert.equal(response.ships[1].kinematics, undefined);
+  assert.deepEqual(response.ships[1].inventory, []);
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });

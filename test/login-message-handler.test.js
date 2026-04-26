@@ -176,6 +176,7 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
           id: 'd-1',
           name: 'Legacy Ship',
           shipName: 'Legacy Ship',
+          inventory: [],
           createdAt: '2026-04-20T00:00:00.000Z'
         }
       ],

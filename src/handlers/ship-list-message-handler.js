@@ -13,7 +13,7 @@ class ShipListMessageHandler {
     this.context = context;
   }
 
-  buildResponse(payload) {
+  async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
 
@@ -52,7 +52,7 @@ class ShipListMessageHandler {
     }
 
     const ships = Array.isArray(character.ships)
-      ? character.ships.map((ship) => ({ ...ship }))
+      ? await this.context.hydrateShipsAsync(character.ships)
       : [];
 
     return {
@@ -76,7 +76,7 @@ class ShipListMessageHandler {
     this.context.detachIdleGameCharacters();
     this.context.touchJoinedCharacters(payload);
 
-    const response = this.buildResponse(payload);
+    const response = await this.buildResponse(payload);
     socket.emit(SHIP_LIST_RESPONSE_EVENT, response);
     return response;
   }

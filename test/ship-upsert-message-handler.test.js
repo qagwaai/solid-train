@@ -15,6 +15,7 @@ const {
 const {
   createMockSocket,
   createTestContext,
+  seedItems,
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
@@ -40,6 +41,26 @@ function createShipUpdate(overrides = {}) {
 
 test('ShipUpsertMessageHandler updates ship location and kinematics', async () => {
   const context = createTestContext();
+  seedItems(context, [
+    {
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1'
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      kinematics: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null
+    }
+  ]);
   seedPlayer(context, {
     playerName: 'ShipPilot',
     sessionKey: 'session-1',
@@ -51,6 +72,12 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
           {
             id: 'ship-1',
             shipName: 'Scout Ship',
+            inventory: [
+              {
+                itemId: 'item-1',
+                itemType: 'expendable-dart-drone'
+              }
+            ],
             createdAt: '2026-04-17T00:00:00.000Z'
           }
         ]
@@ -76,6 +103,26 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
   assert.deepEqual(response.ship.location, {
     positionKm: { x: 100.5, y: 200.3, z: 50.1 }
   });
+  assert.deepEqual(response.ship.inventory, [
+    {
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1'
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      kinematics: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null
+    }
+  ]);
   assert.deepEqual(response.ship.kinematics.reference, {
     solarSystemId: 'system-sol',
     referenceKind: 'barycentric',
@@ -146,6 +193,26 @@ test('ShipUpsertMessageHandler emits invalid session before mutation', async () 
 
 test('ShipUpsertMessageHandler updates ship model and tier', async () => {
   const context = createTestContext();
+  seedItems(context, [
+    {
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1'
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      kinematics: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null
+    }
+  ]);
   seedPlayer(context, {
     playerName: 'ShipPilot',
     sessionKey: 'session-1',
@@ -159,6 +226,12 @@ test('ShipUpsertMessageHandler updates ship model and tier', async () => {
             shipName: 'Scout Ship',
             model: 'Scavenger Pod',
             tier: 1,
+            inventory: [
+              {
+                itemId: 'item-1',
+                itemType: 'expendable-dart-drone'
+              }
+            ],
             createdAt: '2026-04-17T00:00:00.000Z'
           }
         ]
@@ -180,5 +253,6 @@ test('ShipUpsertMessageHandler updates ship model and tier', async () => {
   assert.equal(response.message, 'Ship updated successfully');
   assert.equal(response.ship.model, 'Reaver Hauler');
   assert.equal(response.ship.tier, 2);
+  assert.equal(response.ship.inventory[0].id, 'item-1');
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });

@@ -52,12 +52,32 @@ const SHIP_LIST_RESPONSE_EVENT = 'ship-list-response';
  */
 
 /**
+ * @typedef {Object} ItemContainer
+ * @property {'ship'|'market'} containerType
+ * @property {string} containerId
+ */
+
+/**
+ * @typedef {Object} InventoryItem
+ * @property {string} id
+ * @property {string} itemType
+ * @property {string} displayName
+ * @property {'contained'|'deployed'|'destroyed'} state
+ * @property {'intact'|'damaged'|'disabled'|'destroyed'} damageStatus
+ * @property {ItemContainer|null} container
+ * @property {string} owningPlayerId
+ * @property {string} owningCharacterId
+ * @property {ShipKinematics|null} [kinematics]
+ */
+
+/**
  * @typedef {Object} ShipSummary
  * @property {string} id
  * @property {string} name
  * @property {string} [status]
  * @property {string} [model]
  * @property {number} [tier]
+ * @property {InventoryItem[]} [inventory]
  * @property {CelestialBodyLocation} [location]
  * @property {ShipKinematics} [kinematics]
  */

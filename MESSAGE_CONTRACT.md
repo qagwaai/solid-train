@@ -645,7 +645,22 @@ including required fields, response payloads, and edge-case behavior.
       "status": "<optional status>",
       "model": "<ship model, e.g. Scavenger Pod>",
       "tier": 1,
-      "inventory": ["Expendable Dart Drone"],
+      "inventory": [
+        {
+          "id": "<item id>",
+          "itemType": "expendable-dart-drone",
+          "displayName": "Expendable Dart Drone",
+          "state": "contained",
+          "damageStatus": "intact",
+          "container": {
+            "containerType": "ship",
+            "containerId": "<ship id>"
+          },
+          "owningPlayerId": "<player id>",
+          "owningCharacterId": "<character id>",
+          "kinematics": null
+        }
+      ],
       "location": {
         "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
       },
@@ -725,6 +740,7 @@ including required fields, response payloads, and edge-case behavior.
   - `id` (required; must exist in the character's ship list)
   - `model` (optional string; ship model name)
   - `tier` (optional integer 1–10; ship tier)
+  - `inventory` is server-managed; responses return hydrated item objects and persistence stores item references
   - `location.positionKm.x|y|z` (optional; required if `kinematics` omitted and no `model`/`tier`)
   - `kinematics.position.x|y|z` (optional; required if `location` omitted and no `model`/`tier`)
   - `kinematics.velocity.x|y|z` (optional; required if `location` omitted and no `model`/`tier`)
@@ -744,7 +760,22 @@ including required fields, response payloads, and edge-case behavior.
     "shipName": "<ship name>",
     "model": "<ship model>",
     "tier": 1,
-    "inventory": ["Expendable Dart Drone"],
+    "inventory": [
+      {
+        "id": "<item id>",
+        "itemType": "expendable-dart-drone",
+        "displayName": "Expendable Dart Drone",
+        "state": "contained",
+        "damageStatus": "intact",
+        "container": {
+          "containerType": "ship",
+          "containerId": "<ship id>"
+        },
+        "owningPlayerId": "<player id>",
+        "owningCharacterId": "<character id>",
+        "kinematics": null
+      }
+    ],
     "location": {
       "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
     },
@@ -836,6 +867,7 @@ including required fields, response payloads, and edge-case behavior.
 
 - Invalid session emits `invalid-session`.
 - `ship-upsert` only mutates a ship already owned by the specified character.
+- Ship inventory is persisted as item references but returned as hydrated item objects in ship responses.
 - The server always emits kinematics units as `distanceUnit: "km"` and `velocityUnit: "km/s"` when kinematics are present.
 
 ## Event: `character-delete-request`

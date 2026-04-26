@@ -25,6 +25,16 @@ function createMockSocket(id = 'socket-1') {
   };
 }
 
+function seedItems(context, items = []) {
+  const normalizedItems = Array.isArray(items) ? items : [];
+
+  for (const item of normalizedItems) {
+    context.itemsById.set(item.id, item);
+  }
+
+  return normalizedItems;
+}
+
 function seedPlayer(context, overrides = {}) {
   const normalizedPlayerName = (overrides.playerName || 'PilotOne').toLowerCase();
   const player = {
@@ -45,5 +55,6 @@ function seedPlayer(context, overrides = {}) {
 module.exports = {
   createMockSocket,
   createTestContext,
+  seedItems,
   seedPlayer
 };

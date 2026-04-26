@@ -1,6 +1,6 @@
 'use strict';
 
-const { CelestialBody, Player } = require('./models');
+const { CelestialBody, Item, Player } = require('./models');
 
 /**
  * Database service layer - provides a clean interface for CRUD operations
@@ -247,6 +247,61 @@ class DatabaseService {
   }
 
   /**
+   * Create one or more global items.
+   * @param {Object[]} itemsData
+   * @returns {Promise<Object[]>}
+   */
+  async addItems(itemsData) {
+    try {
+      if (!Array.isArray(itemsData) || itemsData.length === 0) {
+        return [];
+      }
+
+      const items = await Item.insertMany(itemsData, { ordered: true });
+      return items.map((item) => item.toObject());
+    } catch (error) {
+      this.log(`[db-service] Error adding items: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete global items by id.
+   * @param {string[]} itemIds
+   * @returns {Promise<void>}
+   */
+  async deleteItemsByIds(itemIds) {
+    try {
+      if (!Array.isArray(itemIds) || itemIds.length === 0) {
+        return;
+      }
+
+      await Item.deleteMany({ id: { $in: itemIds } });
+    } catch (error) {
+      this.log(`[db-service] Error deleting items: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Get global items by id.
+   * @param {string[]} itemIds
+   * @returns {Promise<Object[]>}
+   */
+  async getItemsByIds(itemIds) {
+    try {
+      if (!Array.isArray(itemIds) || itemIds.length === 0) {
+        return [];
+      }
+
+      return await Item.find({ id: { $in: itemIds } }).lean();
+    } catch (error) {
+      this.log(`[db-service] Error fetching items: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Add or update a mission for a character
    * @param {string} playerName
    * @param {string} characterId
@@ -440,6 +495,7 @@ class DatabaseService {
     try {
       await Player.deleteMany({});
       await CelestialBody.deleteMany({});
+      await Item.deleteMany({});
       this.log('[db-service] All players cleared');
     } catch (error) {
       this.log(`[db-service] Error clearing players: ${error.message}`);

@@ -4,7 +4,7 @@ This document describes the active MongoDB schema used by the Node.js server thr
 
 ## Overview
 
-The data model is document-oriented with two active collections:
+The data model is document-oriented with three active collections:
 
 - Collection: players
 - Root model: Player
@@ -12,10 +12,12 @@ The data model is document-oriented with two active collections:
   - Character (embedded in Player.characters)
   - Ship (embedded in Character.ships)
   - MissionProgress (embedded in Character.missions)
+- Collection: items
+- Root model: Item
 - Collection: cb
 - Root model: CelestialBody
 
-Player-owned game state remains embedded in a Player document, while scanned celestial bodies are stored independently in `cb`.
+Player-owned character and ship state remains embedded in a Player document, while globally queryable inventory items and scanned celestial bodies are stored independently in `items` and `cb`.
 
 ## Entity Relationship Diagram
 
@@ -25,7 +27,11 @@ erDiagram
   CHARACTER ||--o{ SHIP : embeds
   CHARACTER ||--o{ MISSION_PROGRESS : embeds
   CHARACTER ||--o{ CELESTIAL_BODY : creates
+  SHIP ||--o{ INVENTORY_ITEM_REF : contains
+  INVENTORY_ITEM_REF }o--|| ITEM : references
   SHIP ||--o| SHIP_KINEMATICS : embeds
+  ITEM ||--o| ITEM_CONTAINER : contained-by
+  ITEM ||--o| SHIP_KINEMATICS : moves-with
 
   PLAYER {
     ObjectId _id
@@ -68,10 +74,37 @@ erDiagram
     object kinematics
   }
 
+  INVENTORY_ITEM_REF {
+    string itemId
+    string itemType
+  }
+
   SHIP_KINEMATICS {
     object position
     object velocity
     object reference
+  }
+
+  ITEM {
+    ObjectId _id
+    string id
+    string itemType
+    string displayName
+    string state
+    string damageStatus
+    string owningPlayerId
+    string owningCharacterId
+    string createdAt
+    string updatedAt
+    string destroyedAt
+    string destroyedReason
+    object container
+    object kinematics
+  }
+
+  ITEM_CONTAINER {
+    string containerType
+    string containerId
   }
 
   CELESTIAL_BODY {
@@ -185,10 +218,10 @@ Embedded under Player.characters[].ships.
   - Default: `1`
   - Valid range: 1–10
 - createdAt: String (required)
-- inventory: String[] (optional)
-  - List of item names stored in the ship's inventory.
+- inventory: InventoryItemReference[] (optional)
+  - List of globally stored item references contained in the ship.
   - Default: []
-  - Ships of model `'Scavenger Pod'` are initialized with `['Expendable Dart Drone']`.
+  - Ships of model `'Scavenger Pod'` are initialized with one `expendable-dart-drone` item reference.
 - location: ShipLocation | null (optional)
   - Contains barycentric/body-relative position in km
   - Default: null
@@ -225,6 +258,74 @@ Notes:
 - _id is disabled for Ship subdocuments (_id: false).
 - Ship identifiers use the id field, not MongoDB ObjectId.
 - Kinematics data is optional and can be null when not applicable.
+
+### InventoryItemReference Subdocument Fields
+
+- itemId: String (required)
+  - References Item.id.
+- itemType: String (required)
+  - Current supported value: `expendable-dart-drone`.
+
+## Item Root Schema
+
+Defined in src/db/models.js and stored in the `items` collection.
+
+### Fields
+
+- _id: ObjectId
+  - MongoDB-generated primary key.
+- id: String
+  - Required.
+  - Unique index.
+  - Application-level item identifier.
+- itemType: String
+  - Required.
+  - Indexed.
+  - Current supported value: `expendable-dart-drone`.
+- displayName: String
+  - Required.
+- state: String
+  - Required.
+  - Indexed.
+  - Canonical values: `contained`, `deployed`, `destroyed`.
+- damageStatus: String
+  - Required.
+  - Canonical values: `intact`, `damaged`, `disabled`, `destroyed`.
+- container: ItemContainer | null
+  - Present when the item is physically contained by another entity.
+  - Null when the item is deployed in space or destroyed.
+- owningPlayerId: String
+  - Required.
+  - Indexed.
+- owningCharacterId: String
+  - Required.
+  - Indexed.
+- kinematics: ShipKinematics | null
+  - Optional.
+  - Null while `state = contained`; contained items inherit location from their container.
+- createdAt: String
+  - Required.
+- updatedAt: String
+  - Required.
+- destroyedAt: String | null
+  - Optional.
+- destroyedReason: String | null
+  - Optional.
+
+### ItemContainer Subdocument Fields
+
+- containerType: String (required)
+  - Canonical values: `ship`, `market`.
+- containerId: String (required)
+
+### Indexes and Constraints
+
+- Unique index on id.
+- Non-unique index on itemType.
+- Non-unique index on state.
+- Non-unique index on owningPlayerId.
+- Non-unique index on owningCharacterId.
+- Compound non-unique index on `container.containerType` + `container.containerId`.
 
 ## CelestialBody Root Schema
 
@@ -292,9 +393,11 @@ Planned upgrade path for true geospatial indexing:
 - One Player to many Characters: 1:N (embedded)
 - One Character to many Ships: 1:N (embedded)
 - One Character to many MissionProgress entries: 1:N (embedded)
+- One Ship to many InventoryItemReference entries: 1:N (embedded references)
+- One InventoryItemReference to one Item: N:1 (referenced)
 - One Character to many CelestialBody documents: 1:N (referenced by createdByCharacterId)
 
-Player, Character, Ship, and MissionProgress remain ownership relationships contained in a single Player document. CelestialBody is a separate root document referenced by character id.
+Player, Character, Ship, and MissionProgress remain ownership relationships contained in a single Player document. Item and CelestialBody are separate root documents referenced by ids.
 
 ## Access Patterns
 

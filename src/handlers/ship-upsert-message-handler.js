@@ -216,6 +216,10 @@ class ShipUpsertMessageHandler {
       }
     }
 
+    if (response.success && response.ship) {
+      response.ship = await this.context.hydrateShipAsync(response.ship);
+    }
+
     socket.emit(SHIP_UPSERT_RESPONSE_EVENT, response);
     return response;
   }

@@ -552,6 +552,26 @@ test('ship list returns ships for a character', async () => {
   assert.equal(shipListResponse.ships.length >= 1, true);
   assert.equal(typeof shipListResponse.ships[0].id, 'string');
   assert.equal(typeof shipListResponse.ships[0].shipName, 'string');
+  assert.deepEqual(shipListResponse.ships[0].inventory, [
+    {
+      id: `${addResponse.characterId}-ship-1-item-1`,
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: `${addResponse.characterId}-ship-1`
+      },
+      owningPlayerId: loginResponse.playerId,
+      owningCharacterId: addResponse.characterId,
+      kinematics: null,
+      createdAt: shipListResponse.ships[0].inventory[0].createdAt,
+      updatedAt: shipListResponse.ships[0].inventory[0].updatedAt,
+      destroyedAt: null,
+      destroyedReason: null
+    }
+  ]);
 
   await closeClient(client);
   io.close();
@@ -620,6 +640,7 @@ test('ship upsert updates ship location and kinematics', async () => {
   assert.equal(upsertResponse.playerName, 'ShipUpsertPilot');
   assert.equal(upsertResponse.characterId, addResponse.characterId);
   assert.equal(upsertResponse.ship.id, listResponse.ships[0].id);
+  assert.equal(upsertResponse.ship.inventory[0].id, `${addResponse.characterId}-ship-1-item-1`);
   assert.deepEqual(upsertResponse.ship.location, {
     positionKm: { x: 100.5, y: 200.3, z: 50.1 }
   });
@@ -633,6 +654,7 @@ test('ship upsert updates ship location and kinematics', async () => {
   const shipListAfterUpsert = await shipListAfterUpsertPromise;
 
   assert.equal(shipListAfterUpsert.success, true);
+  assert.equal(shipListAfterUpsert.ships[0].inventory[0].id, `${addResponse.characterId}-ship-1-item-1`);
   assert.deepEqual(shipListAfterUpsert.ships[0].location, {
     positionKm: { x: 100.5, y: 200.3, z: 50.1 }
   });
