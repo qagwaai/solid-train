@@ -109,6 +109,10 @@ const shipSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  inventory: {
+    type: [String],
+    default: []
+  },
   location: {
     type: shipLocationSchema,
     default: null

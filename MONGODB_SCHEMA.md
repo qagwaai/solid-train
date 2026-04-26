@@ -64,6 +64,7 @@ erDiagram
     string model
     int tier
     string createdAt
+    array inventory
     object kinematics
   }
 
@@ -184,6 +185,10 @@ Embedded under Player.characters[].ships.
   - Default: `1`
   - Valid range: 1–10
 - createdAt: String (required)
+- inventory: String[] (optional)
+  - List of item names stored in the ship's inventory.
+  - Default: []
+  - Ships of model `'Scavenger Pod'` are initialized with `['Expendable Dart Drone']`.
 - location: ShipLocation | null (optional)
   - Contains barycentric/body-relative position in km
   - Default: null

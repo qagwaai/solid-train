@@ -645,6 +645,7 @@ including required fields, response payloads, and edge-case behavior.
       "status": "<optional status>",
       "model": "<ship model, e.g. Scavenger Pod>",
       "tier": 1,
+      "inventory": ["Expendable Dart Drone"],
       "location": {
         "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
       },
@@ -743,6 +744,7 @@ including required fields, response payloads, and edge-case behavior.
     "shipName": "<ship name>",
     "model": "<ship model>",
     "tier": 1,
+    "inventory": ["Expendable Dart Drone"],
     "location": {
       "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
     },

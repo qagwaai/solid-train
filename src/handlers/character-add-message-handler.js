@@ -77,7 +77,8 @@ class CharacterAddMessageHandler {
               shipName: `${response.characterName} Ship 1`,
               model: 'Scavenger Pod',
               tier: 1,
-              createdAt
+              createdAt,
+              inventory: ['Expendable Dart Drone']
             }
           ],
           missions: [

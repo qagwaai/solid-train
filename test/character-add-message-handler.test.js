@@ -52,7 +52,8 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
           shipName: 'RangerOne Ship 1',
           model: 'Scavenger Pod',
           tier: 1,
-          createdAt: '2026-04-17T00:00:00.000Z'
+          createdAt: '2026-04-17T00:00:00.000Z',
+          inventory: ['Expendable Dart Drone']
         }
       ],
       missions: [
