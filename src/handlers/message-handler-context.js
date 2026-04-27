@@ -115,7 +115,8 @@ class MessageHandlerContext {
     return {
       ...source,
       inventory,
-      shipName: shipName || source.shipName || source.name || ''
+      shipName: shipName || source.shipName || source.name || '',
+      launchable: source.launchable != null ? Boolean(source.launchable) : true
     };
   }
 
@@ -160,7 +161,8 @@ class MessageHandlerContext {
       createdAt: this.toNonEmptyString(source.createdAt),
       updatedAt: this.toNonEmptyString(source.updatedAt),
       destroyedAt: this.toNonEmptyString(source.destroyedAt) || null,
-      destroyedReason: this.toNonEmptyString(source.destroyedReason) || null
+      destroyedReason: this.toNonEmptyString(source.destroyedReason) || null,
+      launchable: source.launchable != null ? Boolean(source.launchable) : true
     };
   }
 

@@ -166,7 +166,9 @@ class ItemUpsertMessageHandler {
       destroyedReason: this.context.toNonEmptyString(itemPayload.destroyedReason) || null,
       discoveredAt: this.context.toNonEmptyString(itemPayload.discoveredAt) || null,
       discoveredByCharacterId:
-        this.context.toNonEmptyString(itemPayload.discoveredByCharacterId) || null
+        this.context.toNonEmptyString(itemPayload.discoveredByCharacterId) || null,
+      hasLaunchable: 'launchable' in itemPayload,
+      launchable: itemPayload.launchable != null ? Boolean(itemPayload.launchable) : null
     };
   }
 
@@ -216,6 +218,9 @@ class ItemUpsertMessageHandler {
           discoveredAt: parsed.discoveredAt || existing?.discoveredAt || null,
           discoveredByCharacterId:
             parsed.discoveredByCharacterId || existing?.discoveredByCharacterId || null,
+          launchable: parsed.hasLaunchable
+            ? parsed.launchable
+            : (existing?.launchable != null ? existing.launchable : true),
           createdAt: existing?.createdAt || now,
           updatedAt: now
         };

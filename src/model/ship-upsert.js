@@ -59,6 +59,7 @@ const SHIP_UPSERT_RESPONSE_EVENT = 'ship-upsert-response';
  * @property {string} owningPlayerId
  * @property {string} owningCharacterId
  * @property {ShipKinematics|null} [kinematics]
+ * @property {boolean} [launchable]
  */
 
 /**
@@ -72,6 +73,7 @@ const SHIP_UPSERT_RESPONSE_EVENT = 'ship-upsert-response';
  * @property {InventoryItemReference[]|InventoryItem[]} [inventory]
  * @property {CelestialBodyLocation} [location]
  * @property {ShipKinematics} [kinematics]
+ * @property {boolean} [launchable]
  */
 
 /**

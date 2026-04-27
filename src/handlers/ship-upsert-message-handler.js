@@ -92,6 +92,10 @@ class ShipUpsertMessageHandler {
     const hasKinematics = Boolean(payload?.ship?.kinematics);
     const location = this.normalizeLocation(payload?.ship?.location);
     const kinematics = this.normalizeKinematics(payload?.ship?.kinematics);
+    const hasLaunchable = payload?.ship != null && 'launchable' in payload.ship;
+    const launchable = hasLaunchable
+      ? (payload.ship.launchable != null ? Boolean(payload.ship.launchable) : null)
+      : null;
 
     if (!playerName || !characterId || !shipId) {
       return {
@@ -170,7 +174,10 @@ class ShipUpsertMessageHandler {
       model: model || existingShip.model,
       tier: tier !== null ? tier : existingShip.tier,
       location: location || existingShip.location,
-      kinematics: kinematics || existingShip.kinematics
+      kinematics: kinematics || existingShip.kinematics,
+      launchable: hasLaunchable && launchable !== null
+        ? launchable
+        : (existingShip.launchable != null ? existingShip.launchable : true)
     };
 
     return {

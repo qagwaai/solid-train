@@ -68,6 +68,7 @@ const SHIP_LIST_RESPONSE_EVENT = 'ship-list-response';
  * @property {string} owningPlayerId
  * @property {string} owningCharacterId
  * @property {ShipKinematics|null} [kinematics]
+ * @property {boolean} [launchable]
  */
 
 /**
@@ -80,6 +81,7 @@ const SHIP_LIST_RESPONSE_EVENT = 'ship-list-response';
  * @property {InventoryItem[]} [inventory]
  * @property {CelestialBodyLocation} [location]
  * @property {ShipKinematics} [kinematics]
+ * @property {boolean} [launchable]
  */
 
 /**

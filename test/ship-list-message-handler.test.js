@@ -112,7 +112,8 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
           createdAt: '2026-04-17T00:00:00.000Z',
           updatedAt: '2026-04-17T00:00:00.000Z',
           destroyedAt: null,
-          destroyedReason: null
+          destroyedReason: null,
+          launchable: true
         }
       ],
       kinematics: {
@@ -124,7 +125,8 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
           referenceBodyId: null,
           epochMs: 1713607200000
         }
-      }
+      },
+      launchable: true
     }
   ]);
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
@@ -265,7 +267,8 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
       createdAt: '2026-04-17T00:00:00.000Z',
       updatedAt: '2026-04-17T00:00:00.000Z',
       destroyedAt: null,
-      destroyedReason: null
+      destroyedReason: null,
+      launchable: true
     }
   ]);
   assert.deepEqual(response.ships[0].kinematics, {

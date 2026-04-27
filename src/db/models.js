@@ -176,6 +176,11 @@ const itemSchema = new mongoose.Schema({
   destroyedReason: {
     type: String,
     default: null
+  },
+  launchable: {
+    type: Boolean,
+    required: true,
+    default: true
   }
 }, {
   collection: 'items'
@@ -225,6 +230,11 @@ const shipSchema = new mongoose.Schema({
   kinematics: {
     type: shipKinematicsSchema,
     default: null
+  },
+  launchable: {
+    type: Boolean,
+    required: true,
+    default: true
   }
 }, { _id: false });
 

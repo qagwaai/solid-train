@@ -53,6 +53,7 @@ const ITEM_UPSERT_RESPONSE_EVENT = 'item-upsert-response';
  * @property {string|null} [destroyedReason]
  * @property {string|null} [discoveredAt]
  * @property {string|null} [discoveredByCharacterId]
+ * @property {boolean} [launchable]
  */
 
 /**

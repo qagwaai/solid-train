@@ -660,7 +660,8 @@ including required fields, response payloads, and edge-case behavior.
           },
           "owningPlayerId": "<player id>",
           "owningCharacterId": "<character id>",
-          "kinematics": null
+          "kinematics": null,
+          "launchable": true
         }
       ],
       "location": {
@@ -677,7 +678,8 @@ including required fields, response payloads, and edge-case behavior.
           "velocityUnit": "km/s",
           "epochMs": 1713607200000
         }
-      }
+      },
+      "launchable": true
     }
   ]
 }
@@ -748,6 +750,7 @@ including required fields, response payloads, and edge-case behavior.
   - `kinematics.velocity.x|y|z` (optional; required if `location` omitted and no `model`/`tier`)
   - `kinematics.reference.referenceBodyId` (optional with `kinematics`)
   - `kinematics.reference.epochMs` (required number with `kinematics`)
+  - `launchable` (optional boolean; whether the ship can be launched; defaults to `true`)
 
 ### Success Response
 
@@ -775,7 +778,8 @@ including required fields, response payloads, and edge-case behavior.
         },
         "owningPlayerId": "<player id>",
         "owningCharacterId": "<character id>",
-        "kinematics": null
+        "kinematics": null,
+        "launchable": true
       }
     ],
     "location": {
@@ -792,7 +796,8 @@ including required fields, response payloads, and edge-case behavior.
         "velocityUnit": "km/s",
         "epochMs": 1713607200000
       }
-    }
+    },
+    "launchable": true
   }
 }
 ```
@@ -1093,6 +1098,7 @@ including required fields, response payloads, and edge-case behavior.
   - `destroyedReason` (optional string)
   - `discoveredAt` (optional ISO timestamp)
   - `discoveredByCharacterId` (optional string)
+  - `launchable` (optional boolean; whether the item can be launched; defaults to `true` when not provided)
 
 #### Kinematics Shape (item)
 
@@ -1135,6 +1141,7 @@ including required fields, response payloads, and edge-case behavior.
     "destroyedReason": null,
     "discoveredAt": null,
     "discoveredByCharacterId": null,
+    "launchable": true,
     "createdAt": "<iso timestamp>",
     "updatedAt": "<iso timestamp>"
   }
@@ -1247,6 +1254,7 @@ Same shape as create; `message` is `"Item updated successfully"`.
       "destroyedReason": null,
       "discoveredAt": null,
       "discoveredByCharacterId": null,
+      "launchable": true,
       "createdAt": "<iso timestamp>",
       "updatedAt": "<iso timestamp>"
     }
@@ -1264,6 +1272,7 @@ Same shape as create; `message` is `"Item updated successfully"`.
   "containerType": "ship",
   "containerId": "<ship id>",
   "items": []
+}
 }
 ```
 
@@ -1352,6 +1361,7 @@ Same shape as create; `message` is `"Item updated successfully"`.
       "destroyedReason": null,
       "discoveredAt": null,
       "discoveredByCharacterId": null,
+      "launchable": true,
       "createdAt": "<iso timestamp>",
       "updatedAt": "<iso timestamp>",
       "distanceKm": 5.0

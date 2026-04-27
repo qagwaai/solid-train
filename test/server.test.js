@@ -569,7 +569,8 @@ test('ship list returns ships for a character', async () => {
       createdAt: shipListResponse.ships[0].inventory[0].createdAt,
       updatedAt: shipListResponse.ships[0].inventory[0].updatedAt,
       destroyedAt: null,
-      destroyedReason: null
+      destroyedReason: null,
+      launchable: true
     }
   ]);
 
