@@ -25,6 +25,14 @@ class LaunchItemMessageHandler {
     return Number.isInteger(value) && HOTKEY_VALUES.has(value);
   }
 
+  /**
+   * Resolve yielded material quantity from target asteroid mass and rarity.
+   *
+   * Formula:
+   * - baseFromMass = max(1, round(estimatedMassKg / 5,000,000,000))
+   * - rarity multiplier: Common=1, Uncommon=2, Rare=4, Exotic=8
+   * - quantity = clamp(baseFromMass * multiplier, 1, 100)
+   */
   resolveYieldQuantity(targetCelestialBody) {
     const massKg = Number(targetCelestialBody?.kinematics?.estimatedMassKg);
     const rarity = this.context.toNonEmptyString(targetCelestialBody?.composition?.rarity);
@@ -262,13 +270,14 @@ class LaunchItemMessageHandler {
       }
     ];
 
-    const yieldedItemsToCreate = yieldedMaterials.flatMap((entry) => {
+    const yieldedItemsToCreate = yieldedMaterials.map((entry) => {
       const itemType = this.toRawMaterialItemType(entry.material);
 
-      return Array.from({ length: entry.quantity }, () => ({
+      return {
         id: this.context.createId(),
         itemType,
         displayName: `${entry.material} (Raw Material)`,
+        quantity: entry.quantity,
         state: 'contained',
         damageStatus: 'intact',
         container: {
@@ -283,7 +292,7 @@ class LaunchItemMessageHandler {
         launchable: false,
         createdAt: now,
         updatedAt: now
-      }));
+      };
     });
 
     const yieldedItems = yieldedItemsToCreate.length > 0

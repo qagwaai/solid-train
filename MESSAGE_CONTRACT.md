@@ -1493,6 +1493,7 @@ Same shape as create; `message` is `"Item updated successfully"`.
         "id": "<item id>",
         "itemType": "raw-material-nickel-iron",
         "displayName": "Nickel-Iron (Raw Material)",
+        "quantity": 32,
         "state": "contained",
         "container": {
           "containerType": "ship",
@@ -1599,7 +1600,26 @@ Same shape as create; `message` is `"Item updated successfully"`.
 - Invalid session emits `invalid-session`.
 - The launched item is always consumed for valid launch processing paths, including `no-effect` outcomes.
 - `launchSeed` is deterministic for the same launch inputs and target identifiers.
-- For `target-destroyed`, yielded items are persisted and added to the firing ship inventory as item references.
+- For `target-destroyed`, yielded materials are persisted as quantity-based item records (one item per material/itemType, with `quantity`) and added to the firing ship inventory as item references.
+
+### Yield Quantity Rules (Target Size -> Material Amount)
+
+For `target-destroyed` outcomes, the server computes yielded material quantity from asteroid mass and rarity:
+
+- `baseFromMass = max(1, round(estimatedMassKg / 5,000,000,000))`
+- rarity multiplier:
+  - `Common`: `1`
+  - `Uncommon`: `2`
+  - `Rare`: `4`
+  - `Exotic`: `8`
+- final quantity:
+  - `quantity = clamp(baseFromMass * rarityMultiplier, 1, 100)`
+
+Behavior notes:
+
+- Larger asteroids (higher `estimatedMassKg`) produce more material.
+- Rarity scales the mass-derived base amount.
+- Quantity is always at least `1` and capped at `100`.
 
 ## Notes For Client Implementers
 

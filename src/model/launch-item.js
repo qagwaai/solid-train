@@ -27,11 +27,22 @@ const LAUNCH_ITEM_RESPONSE_EVENT = 'launch-item-response';
  */
 
 /**
+ * @typedef {Object} LaunchYieldItem
+ * @property {string} id
+ * @property {string} itemType
+ * @property {string} displayName
+ * @property {number} quantity
+ * @property {'contained'|'deployed'|'destroyed'} state
+ * @property {Object|null} container
+ * @property {boolean} launchable
+ */
+
+/**
  * @typedef {Object} LaunchResolution
  * @property {'target-destroyed'|'no-effect'} outcome
  * @property {boolean} targetDestroyed
  * @property {LaunchYieldMaterial[]} yieldedMaterials
- * @property {Object[]} yieldedItems
+ * @property {LaunchYieldItem[]} yieldedItems
  * @property {Object} [targetCelestialBody]
  * @property {number} launchSeed
  */
