@@ -474,7 +474,7 @@ class MessageHandlerContext {
       }
     }
 
-    return cachedMatches;
+    return cachedMatches.map((item) => this.normalizeItem(item));
   }
 
   async syncShipInventoryReferenceForItemAsync(playerName, previousItem, nextItem) {
@@ -551,14 +551,30 @@ class MessageHandlerContext {
       ? normalizedShip.inventory
       : [];
     const inventoryItemIds = inventoryReferences.map((reference) => reference.itemId);
-    const items = await this.getItemsByIdsAsync(inventoryItemIds);
-    const itemsById = new Map(items.map((item) => [item.id, item]));
+    const referencedItems = await this.getItemsByIdsAsync(inventoryItemIds);
+    const containedItems = normalizedShip.id
+      ? await this.getItemsByContainerAsync('ship', normalizedShip.id)
+      : [];
+
+    const itemsById = new Map();
+    for (const item of containedItems) {
+      itemsById.set(item.id, item);
+    }
+    for (const item of referencedItems) {
+      itemsById.set(item.id, item);
+    }
+
+    const referencedInOrder = inventoryReferences
+      .map((reference) => itemsById.get(reference.itemId) || null)
+      .filter((item) => Boolean(item));
+
+    const additionalContainedItems = containedItems.filter(
+      (item) => !inventoryItemIds.includes(item.id)
+    );
 
     return {
       ...normalizedShip,
-      inventory: inventoryReferences
-        .map((reference) => itemsById.get(reference.itemId) || null)
-        .filter((item) => Boolean(item))
+      inventory: [...referencedInOrder, ...additionalContainedItems]
     };
   }
 
