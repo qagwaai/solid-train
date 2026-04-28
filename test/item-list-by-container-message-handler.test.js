@@ -182,3 +182,40 @@ test('ItemListByContainerMessageHandler emits invalid-session before query', asy
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
+
+test('ItemListByContainerMessageHandler merges cache and DB matches for a ship container', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+
+  const cachedItem = createItem({
+    id: 'item-cache-only',
+    container: { containerType: 'ship', containerId: 'ship-1' }
+  });
+  seedItems(context, [cachedItem]);
+
+  context.databaseService = {
+    async getItemsByContainer() {
+      return [
+        createItem({
+          id: 'item-db-only',
+          container: { containerType: 'ship', containerId: 'ship-1' }
+        })
+      ];
+    }
+  };
+
+  const handler = new ItemListByContainerMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    containerType: 'ship',
+    containerId: 'ship-1'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.items.length, 2);
+  assert.ok(response.items.some((item) => item.id === 'item-cache-only'));
+  assert.ok(response.items.some((item) => item.id === 'item-db-only'));
+});

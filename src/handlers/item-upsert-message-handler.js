@@ -231,6 +231,12 @@ class ItemUpsertMessageHandler {
         } else {
           response.item = await this.context.updateItemAsync(itemId, itemData) || itemData;
         }
+
+        await this.context.syncShipInventoryReferenceForItemAsync(
+          parsed.playerName,
+          existing,
+          response.item
+        );
       } catch (error) {
         this.context.log(`[item-upsert-handler] Failed to upsert item: ${error.message}`);
         response.success = false;

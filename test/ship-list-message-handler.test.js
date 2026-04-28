@@ -285,3 +285,68 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
   assert.deepEqual(response.ships[1].inventory, []);
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
+
+test('ShipListMessageHandler hydrates inventory from cache when DB item lookup returns empty', async () => {
+  const context = createTestContext();
+  seedItems(context, [
+    {
+      id: 'item-cache-only',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1'
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      kinematics: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null
+    }
+  ]);
+  context.databaseService = {
+    async getItemsByIds() {
+      return [];
+    }
+  };
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            inventory: [
+              {
+                itemId: 'item-cache-only',
+                itemType: 'expendable-dart-drone'
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.ships[0].inventory.length, 1);
+  assert.equal(response.ships[0].inventory[0].id, 'item-cache-only');
+  assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
+});

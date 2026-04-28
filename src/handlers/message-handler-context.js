@@ -345,18 +345,27 @@ class MessageHandlerContext {
       return [];
     }
 
+    const cachedById = new Map(
+      normalizedItemIds
+        .map((itemId) => [itemId, this.getItem(itemId)])
+        .filter(([, item]) => Boolean(item))
+        .map(([itemId, item]) => [itemId, this.normalizeItem(item)])
+    );
+
     if (this.databaseService) {
       try {
         const items = await this.databaseService.getItemsByIds(normalizedItemIds);
-        return this.cacheItems(items);
+        const dbItems = this.cacheItems(items);
+        for (const item of dbItems) {
+          cachedById.set(item.id, item);
+        }
       } catch (error) {
         this.log(`[context] Error fetching items from DB: ${error.message}`);
-        return [];
       }
     }
 
     return normalizedItemIds
-      .map((itemId) => this.getItem(itemId))
+      .map((itemId) => cachedById.get(itemId) || null)
       .filter((item) => Boolean(item))
       .map((item) => this.normalizeItem(item));
   }
@@ -435,6 +444,12 @@ class MessageHandlerContext {
       return [];
     }
 
+    const cachedMatches = [...this.itemsById.values()].filter(
+      (item) =>
+        item.container?.containerType === normalizedContainerType
+        && item.container?.containerId === normalizedContainerId
+    );
+
     if (this.databaseService) {
       try {
         const items = await this.databaseService.getItemsByContainer(
@@ -442,17 +457,92 @@ class MessageHandlerContext {
           normalizedContainerId
         );
 
-        return this.cacheItems(items);
+        const dbItems = this.cacheItems(items);
+        const mergedById = new Map();
+
+        for (const item of cachedMatches) {
+          mergedById.set(item.id, this.normalizeItem(item));
+        }
+
+        for (const item of dbItems) {
+          mergedById.set(item.id, item);
+        }
+
+        return [...mergedById.values()];
       } catch (error) {
         this.log(`[context] Error fetching items by container from DB: ${error.message}`);
       }
     }
 
-    return [...this.itemsById.values()].filter(
-      (item) =>
-        item.container?.containerType === normalizedContainerType &&
-        item.container?.containerId === normalizedContainerId
+    return cachedMatches;
+  }
+
+  async syncShipInventoryReferenceForItemAsync(playerName, previousItem, nextItem) {
+    const canonicalPlayerName = this.toNonEmptyString(playerName);
+    if (!canonicalPlayerName || !nextItem?.id) {
+      return;
+    }
+
+    await this.getCharactersAsync(canonicalPlayerName);
+
+    const normalizedPreviousCharacterId = this.toNonEmptyString(previousItem?.owningCharacterId);
+    const normalizedNextCharacterId = this.toNonEmptyString(nextItem?.owningCharacterId);
+    const normalizedNextItemType = this.toNonEmptyString(nextItem?.itemType);
+    const normalizedNextShipId = this.toNonEmptyString(nextItem?.container?.containerId);
+    const shouldAttachToShip =
+      this.toNonEmptyString(nextItem?.container?.containerType) === 'ship'
+      && Boolean(normalizedNextShipId)
+      && Boolean(normalizedNextCharacterId)
+      && Boolean(normalizedNextItemType);
+
+    const candidateCharacterIds = new Set(
+      [normalizedPreviousCharacterId, normalizedNextCharacterId].filter((value) => Boolean(value))
     );
+
+    for (const characterId of candidateCharacterIds) {
+      const character = this.findCharacter(canonicalPlayerName, characterId);
+      if (!character) {
+        continue;
+      }
+
+      const ships = Array.isArray(character.ships) ? character.ships : [];
+      let changed = false;
+
+      const nextShips = ships.map((ship) => {
+        const inventory = Array.isArray(ship.inventory) ? ship.inventory : [];
+        const filteredInventory = inventory.filter((entry) => entry?.itemId !== nextItem.id);
+        const wasRemoved = filteredInventory.length !== inventory.length;
+
+        let nextInventory = filteredInventory;
+        if (shouldAttachToShip
+          && characterId === normalizedNextCharacterId
+          && ship.id === normalizedNextShipId) {
+          nextInventory = [
+            ...filteredInventory,
+            {
+              itemId: nextItem.id,
+              itemType: normalizedNextItemType
+            }
+          ];
+        }
+
+        if (wasRemoved || nextInventory.length !== inventory.length) {
+          changed = true;
+          return {
+            ...ship,
+            inventory: nextInventory
+          };
+        }
+
+        return ship;
+      });
+
+      if (changed) {
+        await this.updateCharacterAsync(canonicalPlayerName, characterId, {
+          ships: nextShips
+        });
+      }
+    }
   }
 
   async hydrateShipAsync(ship) {
@@ -893,6 +983,27 @@ class MessageHandlerContext {
 
     let results = [];
 
+    const cacheResults = Array.from(this.celestialBodiesById.values())
+      .map((celestialBody) => this.normalizeCelestialBody(celestialBody))
+      .filter((celestialBody) => celestialBody.solarSystemId === solarSystemId)
+      .map((celestialBody) => {
+        const bodyPositionKm = celestialBody?.location?.positionKm;
+        if (!this.isTriple(bodyPositionKm)) {
+          return null;
+        }
+
+        const candidateDistanceKm = this.calculateDistanceKm(positionKm, bodyPositionKm);
+        if (candidateDistanceKm > distanceKm) {
+          return null;
+        }
+
+        return {
+          celestialBody,
+          distanceKm: candidateDistanceKm
+        };
+      })
+      .filter((entry) => Boolean(entry));
+
     if (this.databaseService) {
       try {
         const fromDb = await this.databaseService.findCelestialBodiesNearPosition({
@@ -901,7 +1012,7 @@ class MessageHandlerContext {
           distanceKm
         });
 
-        results = fromDb.map((entry) => {
+        const fromDbResults = fromDb.map((entry) => {
           const normalizedCelestialBody = this.normalizeCelestialBody(entry.celestialBody);
           this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
           return {
@@ -909,31 +1020,22 @@ class MessageHandlerContext {
             distanceKm: entry.distanceKm
           };
         });
+
+        const mergedById = new Map();
+        for (const entry of cacheResults) {
+          mergedById.set(entry.celestialBody.id, entry);
+        }
+        for (const entry of fromDbResults) {
+          mergedById.set(entry.celestialBody.id, entry);
+        }
+
+        results = [...mergedById.values()].sort((left, right) => left.distanceKm - right.distanceKm);
       } catch (error) {
         this.log(`[context] Error finding celestial bodies from DB: ${error.message}`);
+        results = cacheResults.sort((left, right) => left.distanceKm - right.distanceKm);
       }
     } else {
-      results = Array.from(this.celestialBodiesById.values())
-        .map((celestialBody) => this.normalizeCelestialBody(celestialBody))
-        .filter((celestialBody) => celestialBody.solarSystemId === solarSystemId)
-        .map((celestialBody) => {
-          const bodyPositionKm = celestialBody?.location?.positionKm;
-          if (!this.isTriple(bodyPositionKm)) {
-            return null;
-          }
-
-          const candidateDistanceKm = this.calculateDistanceKm(positionKm, bodyPositionKm);
-          if (candidateDistanceKm > distanceKm) {
-            return null;
-          }
-
-          return {
-            celestialBody,
-            distanceKm: candidateDistanceKm
-          };
-        })
-        .filter((entry) => Boolean(entry))
-        .sort((left, right) => left.distanceKm - right.distanceKm);
+      results = cacheResults.sort((left, right) => left.distanceKm - right.distanceKm);
     }
 
     if (!Number.isInteger(limit) || limit <= 0) {
@@ -956,6 +1058,37 @@ class MessageHandlerContext {
 
     let results = [];
 
+    const cacheResults = Array.from(this.itemsById.values())
+      .map((item) => this.normalizeItem(item))
+      .filter((item) => {
+        if (item.kinematics?.reference?.solarSystemId !== solarSystemId) {
+          return false;
+        }
+
+        if (itemType && item.itemType !== itemType) {
+          return false;
+        }
+
+        return true;
+      })
+      .map((item) => {
+        const itemPositionKm = item?.kinematics?.position;
+        if (!this.isTriple(itemPositionKm)) {
+          return null;
+        }
+
+        const candidateDistanceKm = this.calculateDistanceKm(positionKm, itemPositionKm);
+        if (candidateDistanceKm > distanceKm) {
+          return null;
+        }
+
+        return {
+          item,
+          distanceKm: candidateDistanceKm
+        };
+      })
+      .filter((entry) => Boolean(entry));
+
     if (this.databaseService) {
       try {
         const fromDb = await this.databaseService.findItemsNearPosition({
@@ -965,7 +1098,7 @@ class MessageHandlerContext {
           itemType: itemType || undefined
         });
 
-        results = fromDb.map((entry) => {
+        const fromDbResults = fromDb.map((entry) => {
           const normalizedItem = this.normalizeItem(entry.item);
           this.itemsById.set(normalizedItem.id, normalizedItem);
           return {
@@ -973,41 +1106,22 @@ class MessageHandlerContext {
             distanceKm: entry.distanceKm
           };
         });
+
+        const mergedById = new Map();
+        for (const entry of cacheResults) {
+          mergedById.set(entry.item.id, entry);
+        }
+        for (const entry of fromDbResults) {
+          mergedById.set(entry.item.id, entry);
+        }
+
+        results = [...mergedById.values()].sort((left, right) => left.distanceKm - right.distanceKm);
       } catch (error) {
         this.log(`[context] Error finding items from DB: ${error.message}`);
+        results = cacheResults.sort((left, right) => left.distanceKm - right.distanceKm);
       }
     } else {
-      results = Array.from(this.itemsById.values())
-        .map((item) => this.normalizeItem(item))
-        .filter((item) => {
-          if (item.kinematics?.reference?.solarSystemId !== solarSystemId) {
-            return false;
-          }
-
-          if (itemType && item.itemType !== itemType) {
-            return false;
-          }
-
-          return true;
-        })
-        .map((item) => {
-          const itemPositionKm = item?.kinematics?.position;
-          if (!this.isTriple(itemPositionKm)) {
-            return null;
-          }
-
-          const candidateDistanceKm = this.calculateDistanceKm(positionKm, itemPositionKm);
-          if (candidateDistanceKm > distanceKm) {
-            return null;
-          }
-
-          return {
-            item,
-            distanceKm: candidateDistanceKm
-          };
-        })
-        .filter((entry) => Boolean(entry))
-        .sort((left, right) => left.distanceKm - right.distanceKm);
+      results = cacheResults.sort((left, right) => left.distanceKm - right.distanceKm);
     }
 
     if (!Number.isInteger(limit) || limit <= 0) {

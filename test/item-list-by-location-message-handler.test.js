@@ -297,3 +297,48 @@ test('ItemListByLocationMessageHandler emits invalid session before query', asyn
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
+
+test('ItemListByLocationMessageHandler merges cache results when DB query returns empty', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+
+  seedItems(context, [
+    createDeployedItem({
+      id: 'item-cache-only',
+      kinematics: {
+        position: { x: 1, y: 0, z: 0 },
+        velocity: { x: 0, y: 0, z: 0 },
+        reference: {
+          solarSystemId: 'sol',
+          referenceKind: 'barycentric',
+          referenceBodyId: null,
+          distanceUnit: 'km',
+          velocityUnit: 'km/s',
+          epochMs: 1000000
+        }
+      }
+    })
+  ]);
+
+  context.databaseService = {
+    async findItemsNearPosition() {
+      return [];
+    }
+  };
+
+  const handler = new ItemListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceKm: 10
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.items.length, 1);
+  assert.equal(response.items[0].id, 'item-cache-only');
+  assert.equal(socket.events[0].eventName, ITEM_LIST_BY_LOCATION_RESPONSE_EVENT);
+});

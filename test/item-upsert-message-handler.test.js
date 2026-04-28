@@ -295,3 +295,41 @@ test('ItemUpsertMessageHandler emits invalid-session before mutation', async () 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
+
+test('ItemUpsertMessageHandler adds created ship-contained items to ship inventory references', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            inventory: [],
+            createdAt: '2026-04-17T00:00:00.000Z'
+          }
+        ]
+      }
+    ]
+  });
+
+  const handler = new ItemUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    item: createItemPayload({ id: '' })
+  });
+
+  assert.equal(response.success, true);
+
+  const character = context.findCharacter('PilotOne', 'character-1');
+  assert.equal(character.ships[0].inventory.length, 1);
+  assert.equal(character.ships[0].inventory[0].itemId, response.item.id);
+  assert.equal(character.ships[0].inventory[0].itemType, response.item.itemType);
+});

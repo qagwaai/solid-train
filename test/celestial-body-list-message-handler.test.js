@@ -166,3 +166,43 @@ test('CelestialBodyListMessageHandler emits invalid session before query', async
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
+
+test('CelestialBodyListMessageHandler merges cache results when DB query returns empty', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ScannerOne',
+    sessionKey: 'session-1',
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+  });
+
+  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
+    id: 'cb-cache-only',
+    location: { positionKm: { x: 3, y: 4, z: 0 } }
+  }));
+
+  context.databaseService = {
+    async addOrUpdateCelestialBody() {
+      return null;
+    },
+    async findCelestialBodiesNearPosition() {
+      return [];
+    }
+  };
+
+  const handler = new CelestialBodyListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ScannerOne',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceKm: 10
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.celestialBodies.length, 1);
+  assert.equal(response.celestialBodies[0].id, 'cb-cache-only');
+  assert.equal(response.celestialBodies[0].distanceKm, 5);
+  assert.equal(socket.events[0].eventName, CELESTIAL_BODY_LIST_RESPONSE_EVENT);
+});
