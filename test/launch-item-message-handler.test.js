@@ -234,3 +234,20 @@ test('LaunchItemMessageHandler emits invalid session before processing', async (
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
+
+test('LaunchItemMessageHandler resolves launch against an unscanned target asteroid', async () => {
+  const context = createTestContext();
+  seedLaunchScenario(context);
+
+  const target = context.getCelestialBody('cb-1');
+  target.state = 'unscanned';
+
+  const handler = new LaunchItemMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, createLaunchPayload());
+
+  assert.equal(response.success, true);
+  assert.equal(response.resolution.outcome, 'target-destroyed');
+  assert.equal(response.resolution.targetCelestialBody.state, 'destroyed');
+});

@@ -205,6 +205,8 @@ class MessageHandlerContext {
       solarSystemId: this.toNonEmptyString(source.solarSystemId),
       sourceScanId: this.toNonEmptyString(source.sourceScanId),
       createdByCharacterId: this.toNonEmptyString(source.createdByCharacterId),
+      missionId: this.toNonEmptyString(source.missionId) || null,
+      missionInstanceId: this.toNonEmptyString(source.missionInstanceId) || null,
       createdAt: this.toNonEmptyString(source.createdAt),
       updatedAt: this.toNonEmptyString(source.updatedAt),
       location: source.location ? {
@@ -280,6 +282,73 @@ class MessageHandlerContext {
       this.log(`[context] Error fetching celestial body by id from DB: ${error.message}`);
       return null;
     }
+  }
+
+  async getCelestialBodiesAsync(query = {}) {
+    const normalizedSolarSystemId = this.toNonEmptyString(query?.solarSystemId);
+    const normalizedCreatedByCharacterId = this.toNonEmptyString(query?.createdByCharacterId);
+    const normalizedMissionId = this.toNonEmptyString(query?.missionId);
+    const normalizedStateValues = Array.isArray(query?.stateValues)
+      ? query.stateValues
+        .map((stateValue) => this.toNonEmptyString(stateValue))
+        .filter((stateValue) => Boolean(stateValue))
+      : [];
+
+    const cacheMatches = Array.from(this.celestialBodiesById.values())
+      .map((celestialBody) => this.normalizeCelestialBody(celestialBody))
+      .filter((celestialBody) => {
+        if (normalizedSolarSystemId && celestialBody.solarSystemId !== normalizedSolarSystemId) {
+          return false;
+        }
+
+        if (
+          normalizedCreatedByCharacterId
+          && celestialBody.createdByCharacterId !== normalizedCreatedByCharacterId
+        ) {
+          return false;
+        }
+
+        if (normalizedMissionId && celestialBody.missionId !== normalizedMissionId) {
+          return false;
+        }
+
+        if (
+          normalizedStateValues.length > 0
+          && !normalizedStateValues.includes(celestialBody.state)
+        ) {
+          return false;
+        }
+
+        return true;
+      });
+
+    if (this.databaseService) {
+      try {
+        const fromDb = await this.databaseService.getCelestialBodies({
+          solarSystemId: normalizedSolarSystemId || undefined,
+          createdByCharacterId: normalizedCreatedByCharacterId || undefined,
+          missionId: normalizedMissionId || undefined,
+          stateValues: normalizedStateValues.length > 0 ? normalizedStateValues : undefined
+        });
+
+        const mergedById = new Map();
+        for (const celestialBody of cacheMatches) {
+          mergedById.set(celestialBody.id, celestialBody);
+        }
+
+        for (const celestialBody of fromDb) {
+          const normalizedCelestialBody = this.normalizeCelestialBody(celestialBody);
+          this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
+          mergedById.set(normalizedCelestialBody.id, normalizedCelestialBody);
+        }
+
+        return [...mergedById.values()];
+      } catch (error) {
+        this.log(`[context] Error fetching celestial bodies from DB: ${error.message}`);
+      }
+    }
+
+    return cacheMatches;
   }
 
   async deleteCelestialBodyByIdAsync(celestialBodyId) {
@@ -991,6 +1060,13 @@ class MessageHandlerContext {
     const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
     const positionKm = query?.positionKm;
     const distanceKm = query?.distanceKm;
+    const createdByCharacterId = this.toNonEmptyString(query?.createdByCharacterId);
+    const missionId = this.toNonEmptyString(query?.missionId);
+    const stateValues = Array.isArray(query?.stateValues)
+      ? query.stateValues
+        .map((stateValue) => this.toNonEmptyString(stateValue))
+        .filter((stateValue) => Boolean(stateValue))
+      : [];
     const limit = query?.limit;
 
     if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
@@ -1001,7 +1077,25 @@ class MessageHandlerContext {
 
     const cacheResults = Array.from(this.celestialBodiesById.values())
       .map((celestialBody) => this.normalizeCelestialBody(celestialBody))
-      .filter((celestialBody) => celestialBody.solarSystemId === solarSystemId)
+      .filter((celestialBody) => {
+        if (celestialBody.solarSystemId !== solarSystemId) {
+          return false;
+        }
+
+        if (createdByCharacterId && celestialBody.createdByCharacterId !== createdByCharacterId) {
+          return false;
+        }
+
+        if (missionId && celestialBody.missionId !== missionId) {
+          return false;
+        }
+
+        if (stateValues.length > 0 && !stateValues.includes(celestialBody.state)) {
+          return false;
+        }
+
+        return true;
+      })
       .map((celestialBody) => {
         const bodyPositionKm = celestialBody?.location?.positionKm;
         if (!this.isTriple(bodyPositionKm)) {
@@ -1025,7 +1119,10 @@ class MessageHandlerContext {
         const fromDb = await this.databaseService.findCelestialBodiesNearPosition({
           solarSystemId,
           positionKm,
-          distanceKm
+          distanceKm,
+          createdByCharacterId: createdByCharacterId || undefined,
+          missionId: missionId || undefined,
+          stateValues: stateValues.length > 0 ? stateValues : undefined
         });
 
         const fromDbResults = fromDb.map((entry) => {

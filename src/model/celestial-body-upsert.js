@@ -4,6 +4,7 @@ const CELESTIAL_BODY_UPSERT_REQUEST_EVENT = 'celestial-body-upsert-request';
 const CELESTIAL_BODY_UPSERT_RESPONSE_EVENT = 'celestial-body-upsert-response';
 const DEFAULT_SOLAR_SYSTEM_ID = 'sol';
 const ASTEROID_MATERIAL_RARITY_VALUES = ['Common', 'Uncommon', 'Rare', 'Exotic'];
+const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
 
 /**
  * @typedef {Object} Triple
@@ -34,16 +35,19 @@ const ASTEROID_MATERIAL_RARITY_VALUES = ['Common', 'Uncommon', 'Rare', 'Exotic']
 
 /**
  * @typedef {Object} CelestialBodyUpsertEntity
- * @property {string} id
+ * @property {string} [id]
  * @property {string} catalogId
  * @property {string} solarSystemId
  * @property {string} sourceScanId
  * @property {string} createdByCharacterId
+ * @property {string} [missionId]
+ * @property {string} [missionInstanceId]
  * @property {string} createdAt
  * @property {string} updatedAt
  * @property {CelestialBodyLocation} location
  * @property {AsteroidKinematics} kinematics
- * @property {AsteroidMaterialProfile} composition
+ * @property {AsteroidMaterialProfile} [composition]
+ * @property {'unscanned'|'active'|'destroyed'} [state]
  */
 
 /**
@@ -63,6 +67,7 @@ const ASTEROID_MATERIAL_RARITY_VALUES = ['Common', 'Uncommon', 'Rare', 'Exotic']
 
 module.exports = {
   ASTEROID_MATERIAL_RARITY_VALUES,
+  CELESTIAL_BODY_STATE_VALUES,
   CELESTIAL_BODY_UPSERT_REQUEST_EVENT,
   CELESTIAL_BODY_UPSERT_RESPONSE_EVENT,
   DEFAULT_SOLAR_SYSTEM_ID

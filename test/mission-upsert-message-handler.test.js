@@ -243,3 +243,70 @@ test('MissionUpsertMessageHandler allows custom status strings', async () => {
   assert.equal(response.success, true);
   assert.equal(response.mission.status, 'reward-claimed');
 });
+
+test('MissionUpsertMessageHandler seeds first-target asteroid field on mission start', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'MissionPilot',
+    sessionKey: 'session-1',
+    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
+  });
+
+  const handler = new MissionUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    missionId: 'first-target',
+    status: 'started',
+    sessionKey: 'session-1'
+  });
+
+  assert.equal(response.success, true);
+
+  const seededField = await context.getCelestialBodiesAsync({
+    createdByCharacterId: 'character-1',
+    missionId: 'first-target'
+  });
+
+  assert.equal(seededField.length, 10);
+  assert.ok(seededField.every((body) => body.state === 'unscanned'));
+  assert.ok(seededField.every((body) => body.missionId === 'first-target'));
+  assert.ok(seededField.every((body) => body.sourceScanId));
+});
+
+test('MissionUpsertMessageHandler does not duplicate first-target asteroid field on repeated start', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'MissionPilot',
+    sessionKey: 'session-1',
+    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
+  });
+
+  const handler = new MissionUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  await handler.handle(socket, {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    missionId: 'first-target',
+    status: 'started',
+    sessionKey: 'session-1'
+  });
+
+  await handler.handle(socket, {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    missionId: 'first-target',
+    status: 'started',
+    sessionKey: 'session-1'
+  });
+
+  const seededField = await context.getCelestialBodiesAsync({
+    createdByCharacterId: 'character-1',
+    missionId: 'first-target'
+  });
+
+  assert.equal(seededField.length, 10);
+});

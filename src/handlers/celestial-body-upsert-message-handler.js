@@ -2,6 +2,7 @@
 
 const {
   ASTEROID_MATERIAL_RARITY_VALUES,
+  CELESTIAL_BODY_STATE_VALUES,
   CELESTIAL_BODY_UPSERT_RESPONSE_EVENT,
   DEFAULT_SOLAR_SYSTEM_ID
 } = require('../model/celestial-body-upsert');
@@ -39,6 +40,10 @@ class CelestialBodyUpsertMessageHandler {
   }
 
   hasValidComposition(composition) {
+    if (!composition) {
+      return false;
+    }
+
     const rarity = this.context.toNonEmptyString(composition?.rarity);
     const material = this.context.toNonEmptyString(composition?.material);
     const textureColor = this.context.toNonEmptyString(composition?.textureColor);
@@ -48,13 +53,46 @@ class CelestialBodyUpsertMessageHandler {
       && Boolean(textureColor);
   }
 
+  toSafeIdPart(value) {
+    return this.context
+      .toNonEmptyString(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9\-]/g, '-');
+  }
+
+  createDeterministicCelestialBodyId(celestialBody) {
+    const createdByCharacterId = this.toSafeIdPart(celestialBody?.createdByCharacterId);
+    const missionId = this.toSafeIdPart(celestialBody?.missionId);
+    const sourceScanId = this.toSafeIdPart(celestialBody?.sourceScanId);
+
+    if (!createdByCharacterId || !missionId || !sourceScanId) {
+      return '';
+    }
+
+    return `cb-${createdByCharacterId}-${missionId}-${sourceScanId}`;
+  }
+
+  normalizeState(state) {
+    const normalizedState = this.context.toNonEmptyString(state).toLowerCase();
+    if (!normalizedState) {
+      return 'active';
+    }
+
+    return CELESTIAL_BODY_STATE_VALUES.includes(normalizedState)
+      ? normalizedState
+      : '';
+  }
+
   normalizeCelestialBody(celestialBody) {
+    const normalizedId = this.context.toNonEmptyString(celestialBody?.id);
     return {
-      id: this.context.toNonEmptyString(celestialBody?.id),
+      id: normalizedId || this.createDeterministicCelestialBodyId(celestialBody),
       catalogId: this.context.toNonEmptyString(celestialBody?.catalogId),
       solarSystemId: DEFAULT_SOLAR_SYSTEM_ID,
       sourceScanId: this.context.toNonEmptyString(celestialBody?.sourceScanId),
       createdByCharacterId: this.context.toNonEmptyString(celestialBody?.createdByCharacterId),
+      missionId: this.context.toNonEmptyString(celestialBody?.missionId) || null,
+      missionInstanceId: this.context.toNonEmptyString(celestialBody?.missionInstanceId) || null,
       createdAt: this.context.toNonEmptyString(celestialBody?.createdAt),
       updatedAt: this.context.toNonEmptyString(celestialBody?.updatedAt),
       location: celestialBody?.location ? {
@@ -70,13 +108,16 @@ class CelestialBodyUpsertMessageHandler {
         rarity: this.context.toNonEmptyString(celestialBody.composition.rarity),
         material: this.context.toNonEmptyString(celestialBody.composition.material),
         textureColor: this.context.toNonEmptyString(celestialBody.composition.textureColor)
-      } : null
+      } : null,
+      state: this.normalizeState(celestialBody?.state)
     };
   }
 
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const celestialBody = this.normalizeCelestialBody(payload?.celestialBody);
+    const requiresComposition = celestialBody.state !== 'unscanned';
+    const hasValidState = Boolean(celestialBody.state);
 
     if (
       !playerName
@@ -88,7 +129,9 @@ class CelestialBodyUpsertMessageHandler {
       || !celestialBody.updatedAt
       || !this.hasValidLocation(celestialBody.location)
       || !this.hasValidKinematics(celestialBody.kinematics)
-      || !this.hasValidComposition(celestialBody.composition)
+      || !hasValidState
+      || (requiresComposition && !this.hasValidComposition(celestialBody.composition))
+      || (celestialBody.composition && !this.hasValidComposition(celestialBody.composition))
     ) {
       return {
         success: false,

@@ -4,6 +4,9 @@ const {
   CELESTIAL_BODY_LIST_RESPONSE_EVENT
 } = require('../model/celestial-body-list');
 const {
+  CELESTIAL_BODY_STATE_VALUES
+} = require('../model/celestial-body-upsert');
+const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
 } = require('../model/session');
@@ -44,6 +47,26 @@ class CelestialBodyListMessageHandler {
     return value;
   }
 
+  normalizeStateFilters(states) {
+    if (states === undefined || states === null) {
+      return [];
+    }
+
+    if (!Array.isArray(states)) {
+      return null;
+    }
+
+    const normalized = states
+      .map((stateValue) => this.context.toNonEmptyString(stateValue).toLowerCase())
+      .filter((stateValue) => Boolean(stateValue));
+
+    if (normalized.some((stateValue) => !CELESTIAL_BODY_STATE_VALUES.includes(stateValue))) {
+      return null;
+    }
+
+    return normalized;
+  }
+
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
@@ -56,6 +79,9 @@ class CelestialBodyListMessageHandler {
       : null;
     const distanceKm = this.toPositiveNumberOrZero(payload?.distanceKm);
     const limit = this.toValidLimit(payload?.limit);
+    const states = this.normalizeStateFilters(payload?.states);
+    const createdByCharacterId = this.context.toNonEmptyString(payload?.createdByCharacterId);
+    const missionId = this.context.toNonEmptyString(payload?.missionId);
 
     if (!playerName || !solarSystemId || !positionKm || distanceKm === null) {
       return {
@@ -77,6 +103,16 @@ class CelestialBodyListMessageHandler {
       };
     }
 
+    if (payload?.states !== undefined && states === null) {
+      return {
+        success: false,
+        message: `states must be an array with values from: ${CELESTIAL_BODY_STATE_VALUES.join(', ')}`,
+        playerName,
+        solarSystemId,
+        celestialBodies: []
+      };
+    }
+
     const player = this.context.getPlayer(playerName);
     if (!player) {
       return {
@@ -92,6 +128,9 @@ class CelestialBodyListMessageHandler {
       solarSystemId,
       positionKm,
       distanceKm,
+      stateValues: states,
+      createdByCharacterId: createdByCharacterId || undefined,
+      missionId: missionId || undefined,
       limit
     });
 

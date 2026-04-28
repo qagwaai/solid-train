@@ -380,6 +380,15 @@ const celestialBodySchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  missionId: {
+    type: String,
+    default: null,
+    index: true
+  },
+  missionInstanceId: {
+    type: String,
+    default: null
+  },
   createdAt: {
     type: String,
     required: true
@@ -402,7 +411,7 @@ const celestialBodySchema = new mongoose.Schema({
   },
   state: {
     type: String,
-    enum: ['active', 'destroyed'],
+    enum: ['unscanned', 'active', 'destroyed'],
     required: true,
     default: 'active',
     index: true
@@ -433,6 +442,12 @@ celestialBodySchema.index({
   'location.positionKm.x': 1,
   'location.positionKm.y': 1,
   'location.positionKm.z': 1
+});
+
+celestialBodySchema.index({
+  createdByCharacterId: 1,
+  missionId: 1,
+  sourceScanId: 1
 });
 
 /**

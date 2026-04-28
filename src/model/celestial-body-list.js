@@ -18,6 +18,9 @@ const CELESTIAL_BODY_LIST_RESPONSE_EVENT = 'celestial-body-list-response';
  * @property {Triple} positionKm
  * @property {number} distanceKm
  * @property {number} [limit]
+ * @property {('unscanned'|'active'|'destroyed')[]} [states]
+ * @property {string} [createdByCharacterId]
+ * @property {string} [missionId]
  */
 
 /**

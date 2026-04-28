@@ -116,3 +116,33 @@ test('CelestialBodyUpsertMessageHandler emits invalid session before mutation', 
   assert.equal(context.getCelestialBody('cb-1'), null);
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
+
+test('CelestialBodyUpsertMessageHandler supports unscanned mission-seeded asteroid creation', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ScannerOne',
+    sessionKey: 'session-1',
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+  });
+
+  const handler = new CelestialBodyUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'scannerone',
+    sessionKey: 'session-1',
+    celestialBody: createCelestialBody({
+      id: '',
+      sourceScanId: 'sample-a3',
+      missionId: 'first-target',
+      state: 'unscanned',
+      composition: null
+    })
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.celestialBody.state, 'unscanned');
+  assert.equal(response.celestialBody.missionId, 'first-target');
+  assert.ok(response.celestialBody.id.startsWith('cb-character-1-first-target-sample-a3'));
+  assert.equal(socket.events[0].eventName, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
+});

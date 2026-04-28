@@ -218,11 +218,13 @@ including required fields, response payloads, and edge-case behavior.
 - `playerName` (required)
 - `sessionKey` (required and must match the player)
 - `celestialBody` (required object)
-  - `id` (required, stable unique identifier; used as upsert key)
+  - `id` (optional, stable unique identifier)
   - `catalogId` (required)
   - `solarSystemId` (accepted but currently forced to `sol` by the server)
   - `sourceScanId` (required)
   - `createdByCharacterId` (required and must match a character belonging to the player)
+  - `missionId` (optional string; recommended for mission-scoped asteroid fields)
+  - `missionInstanceId` (optional string)
   - `createdAt` (required ISO timestamp)
   - `updatedAt` (required ISO timestamp)
   - `location.positionKm.x|y|z` (required numbers)
@@ -230,9 +232,11 @@ including required fields, response payloads, and edge-case behavior.
   - `kinematics.angularVelocityRadPerSec.x|y|z` (required numbers)
   - `kinematics.estimatedMassKg` (required number)
   - `kinematics.estimatedDiameterM` (required number)
-  - `composition.rarity` (required; one of `Common`, `Uncommon`, `Rare`, `Exotic`)
-  - `composition.material` (required string)
-  - `composition.textureColor` (required string)
+  - `composition` (required for `state=active|destroyed`; optional for `state=unscanned`)
+    - `rarity` (one of `Common`, `Uncommon`, `Rare`, `Exotic`)
+    - `material` (string)
+    - `textureColor` (string)
+  - `state` (optional; one of `unscanned`, `active`, `destroyed`; defaults to `active`)
 
 ### Success Response
 
@@ -247,6 +251,8 @@ including required fields, response payloads, and edge-case behavior.
     "solarSystemId": "sol",
     "sourceScanId": "<scan id>",
     "createdByCharacterId": "<character id>",
+    "missionId": "first-target",
+    "missionInstanceId": null,
     "createdAt": "<iso timestamp>",
     "updatedAt": "<iso timestamp>",
     "location": {
@@ -262,6 +268,28 @@ including required fields, response payloads, and edge-case behavior.
       "rarity": "Rare",
       "material": "Nickel-Iron",
       "textureColor": "#8df7b2"
+    },
+    "state": "unscanned"
+  }
+}
+```
+
+### Success Response Example (Unscanned Mission Seed)
+
+```json
+{
+  "success": true,
+  "message": "Celestial body recorded successfully",
+  "playerName": "<canonical player name>",
+  "celestialBody": {
+    "id": "cb-character-1-first-target-sample-a3",
+    "sourceScanId": "sample-a3",
+    "state": "unscanned",
+    "missionId": "first-target",
+    "composition": {
+      "material": "Iron",
+      "rarity": "Common",
+      "textureColor": "#8f99a7"
     }
   }
 }
@@ -302,9 +330,12 @@ including required fields, response payloads, and edge-case behavior.
 
 ### Edge Cases
 
-- Upsert identity is based on `celestialBody.id`.
+- Upsert identity supports either:
+  - `celestialBody.id` (preferred deterministic key), or
+  - derived deterministic id from `sourceScanId + createdByCharacterId + missionId` when `id` is omitted.
 - Incoming `createdAt` and `updatedAt` are preserved as provided.
 - Celestial bodies are not stored under player documents; they are persisted in the separate Mongo collection `cb`.
+- Lifecycle states are backend-authoritative: `unscanned -> active -> destroyed`.
 
 ## Event: `celestial-body-list-request`
 
@@ -323,6 +354,9 @@ including required fields, response payloads, and edge-case behavior.
   - `z` (required finite number)
 - `distanceKm` (required finite number, must be `>= 0`)
 - `limit` (optional; positive integer when provided)
+- `states` (optional array; each value one of `unscanned`, `active`, `destroyed`)
+- `createdByCharacterId` (optional string)
+- `missionId` (optional string; recommended for mission-scoped asteroid field queries)
 
 ### Success Response
 
@@ -341,6 +375,8 @@ including required fields, response payloads, and edge-case behavior.
       "solarSystemId": "sol",
       "sourceScanId": "<scan id>",
       "createdByCharacterId": "<character id>",
+      "missionId": "first-target",
+      "missionInstanceId": null,
       "createdAt": "<iso timestamp>",
       "updatedAt": "<iso timestamp>",
       "location": {
@@ -364,6 +400,19 @@ including required fields, response payloads, and edge-case behavior.
       "debris": [],
       "distanceKm": 3.74
     }
+  ]
+}
+```
+
+### Success Response Example (Including Unscanned)
+
+```json
+{
+  "success": true,
+  "message": "Celestial body list retrieved successfully",
+  "celestialBodies": [
+    { "id": "cb-1", "state": "unscanned", "sourceScanId": "sample-a1" },
+    { "id": "cb-2", "state": "active", "sourceScanId": "sample-a2" }
   ]
 }
 ```
@@ -409,6 +458,18 @@ including required fields, response payloads, and edge-case behavior.
 }
 ```
 
+- Invalid optional `states` returns:
+
+```json
+{
+  "success": false,
+  "message": "states must be an array with values from: unscanned, active, destroyed",
+  "playerName": "<provided playerName or empty string>",
+  "solarSystemId": "<provided solarSystemId or empty string>",
+  "celestialBodies": []
+}
+```
+
 - If the player is not registered:
 
 ```json
@@ -427,6 +488,8 @@ including required fields, response payloads, and edge-case behavior.
 - Distance is calculated in kilometers using 3D Euclidean distance from `positionKm`.
 - Results are sorted nearest-first by computed `distanceKm`.
 - `limit` is applied after filtering and sorting.
+- By default, list includes all lifecycle states (`unscanned`, `active`, `destroyed`) unless `states` filter is provided.
+- `createdByCharacterId` and `missionId` can be used together to scope a mission-specific asteroid field.
 
 ### Success Response
 
@@ -548,6 +611,8 @@ including required fields, response payloads, and edge-case behavior.
   `available`, `started`, `in-progress`, `failed`, `completed`, `locked`,
   `abandoned`, `paused`, `turned-in`.
 - Custom statuses are allowed for server-side extensions.
+- For `missionId=first-target`, transition to `started`/`in-progress` seeds a backend-owned asteroid field as celestial-body records with `state=unscanned` (idempotent; no duplicate spawns on repeated start calls).
+- Mission payload remains status progression only; asteroid world-state is persisted and queried through celestial-body events.
 
 ## Event: `list-missions-request`
 
@@ -1601,6 +1666,7 @@ Same shape as create; `message` is `"Item updated successfully"`.
 - The launched item is always consumed for valid launch processing paths, including `no-effect` outcomes.
 - `launchSeed` is deterministic for the same launch inputs and target identifiers.
 - For `target-destroyed`, yielded materials are persisted as quantity-based item records (one item per material/itemType, with `quantity`) and added to the firing ship inventory as item references.
+- Target resolution supports `unscanned`, `active`, and `destroyed` celestial-body lifecycle records; launch destruction transitions target state to `destroyed`.
 
 ### Yield Quantity Rules (Target Size -> Material Amount)
 
@@ -1629,3 +1695,8 @@ Behavior notes:
   when present.
 - For login failures, branch on `reason` in addition to `message`.
 - Treat `gameJoinedAt`/`gameLastMessageReceivedAt` as server-managed fields.
+
+## Migration Note
+
+- Existing celestial body records that predate lifecycle expansion are treated as `state: active` by default.
+- For mission-scoped asteroid continuity, new records should include `missionId` (and optionally `missionInstanceId`).

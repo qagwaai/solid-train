@@ -206,3 +206,53 @@ test('CelestialBodyListMessageHandler merges cache results when DB query returns
   assert.equal(response.celestialBodies[0].distanceKm, 5);
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_LIST_RESPONSE_EVENT);
 });
+
+test('CelestialBodyListMessageHandler filters by states, createdByCharacterId, and missionId', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ScannerOne',
+    sessionKey: 'session-1',
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+  });
+
+  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
+    id: 'cb-unscanned',
+    state: 'unscanned',
+    missionId: 'first-target',
+    createdByCharacterId: 'character-1',
+    location: { positionKm: { x: 1, y: 0, z: 0 } }
+  }));
+  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
+    id: 'cb-active',
+    state: 'active',
+    missionId: 'first-target',
+    createdByCharacterId: 'character-1',
+    location: { positionKm: { x: 2, y: 0, z: 0 } }
+  }));
+  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
+    id: 'cb-destroyed',
+    state: 'destroyed',
+    missionId: 'first-target',
+    createdByCharacterId: 'character-1',
+    location: { positionKm: { x: 3, y: 0, z: 0 } }
+  }));
+
+  const handler = new CelestialBodyListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ScannerOne',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceKm: 20,
+    states: ['unscanned', 'active'],
+    createdByCharacterId: 'character-1',
+    missionId: 'first-target'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.celestialBodies.length, 2);
+  assert.ok(response.celestialBodies.some((entry) => entry.id === 'cb-unscanned'));
+  assert.ok(response.celestialBodies.some((entry) => entry.id === 'cb-active'));
+});
