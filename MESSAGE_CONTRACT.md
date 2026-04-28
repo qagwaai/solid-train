@@ -10,7 +10,7 @@ including required fields, response payloads, and edge-case behavior.
 - Character operations (`list`, `add`, `delete`, `edit`, `ship-list-request`,
   `game-join`, `add-mission-request`, `list-missions-request`,
   `item-upsert-request`, `item-list-by-container-request`,
-  `item-list-by-location-request`) require
+  `item-list-by-location-request`, `launch-item-request`) require
   a valid session.
 - Invalid or missing session for character operations emits:
   - event: `invalid-session`
@@ -357,6 +357,11 @@ including required fields, response payloads, and edge-case behavior.
         "material": "Nickel-Iron",
         "textureColor": "#8df7b2"
       },
+      "state": "active",
+      "destroyedAt": null,
+      "destroyedReason": null,
+      "debrisSeed": null,
+      "debris": [],
       "distanceKm": 3.74
     }
   ]
@@ -1273,7 +1278,6 @@ Same shape as create; `message` is `"Item updated successfully"`.
   "containerId": "<ship id>",
   "items": []
 }
-}
 ```
 
 ### Failure Responses
@@ -1434,6 +1438,168 @@ Same shape as create; `message` is `"Item updated successfully"`.
 - Results are sorted nearest-first by computed `distanceKm`.
 - `limit` is applied after filtering and sorting.
 - Solar system scoping is via `kinematics.reference.solarSystemId`.
+
+## Event: `launch-item-request`
+
+- Request event: `launch-item-request`
+- Response event: `launch-item-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `characterId` (required)
+- `shipId` (required)
+- `targetCelestialBodyId` (required)
+- `hotkey` (required integer; one of `1`, `2`, `3`, `4`, `5`)
+- `itemId` (required)
+- `itemType` (required)
+
+### Success Response (`target-destroyed` outcome)
+
+```json
+{
+  "success": true,
+  "message": "Launch successful: target destroyed and materials yielded",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>",
+  "shipId": "<ship id>",
+  "targetCelestialBodyId": "<celestial body id>",
+  "hotkey": 3,
+  "itemId": "<item id>",
+  "itemType": "expendable-dart-drone",
+  "launchedItem": {
+    "id": "<item id>",
+    "state": "destroyed",
+    "container": null,
+    "launchable": false,
+    "destroyedAt": "<iso timestamp>",
+    "destroyedReason": "expended-on-target:<celestial body id>",
+    "updatedAt": "<iso timestamp>"
+  },
+  "resolution": {
+    "outcome": "target-destroyed",
+    "targetDestroyed": true,
+    "yieldedMaterials": [
+      {
+        "material": "Nickel-Iron",
+        "rarity": "Rare",
+        "quantity": 32
+      }
+    ],
+    "yieldedItems": [
+      {
+        "id": "<item id>",
+        "itemType": "raw-material-nickel-iron",
+        "displayName": "Nickel-Iron (Raw Material)",
+        "state": "contained",
+        "container": {
+          "containerType": "ship",
+          "containerId": "<ship id>"
+        },
+        "launchable": false
+      }
+    ],
+    "targetCelestialBody": {
+      "id": "<celestial body id>",
+      "state": "destroyed",
+      "destroyedAt": "<iso timestamp>",
+      "destroyedReason": "impacted-by:expendable-dart-drone",
+      "debrisSeed": 123456789,
+      "debris": [
+        {
+          "material": "Nickel-Iron",
+          "rarity": "Rare",
+          "quantity": 32,
+          "itemType": "raw-material-nickel-iron"
+        }
+      ]
+    },
+    "launchSeed": 123456789
+  }
+}
+```
+
+### Success Response (`no-effect` outcome)
+
+```json
+{
+  "success": true,
+  "message": "Launch completed with no effect for itemType: basic-mining-laser",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>",
+  "shipId": "<ship id>",
+  "targetCelestialBodyId": "<celestial body id>",
+  "hotkey": 2,
+  "itemId": "<item id>",
+  "itemType": "basic-mining-laser",
+  "launchedItem": {
+    "id": "<item id>",
+    "state": "destroyed",
+    "container": null,
+    "launchable": false
+  },
+  "resolution": {
+    "outcome": "no-effect",
+    "targetDestroyed": false,
+    "yieldedMaterials": [],
+    "yieldedItems": [],
+    "launchSeed": 123456789
+  }
+}
+```
+
+### Failure Responses
+
+- Missing/invalid required fields:
+
+```json
+{
+  "success": false,
+  "message": "playerName, characterId, shipId, targetCelestialBodyId, hotkey, itemId, and itemType are required",
+  "playerName": "<provided playerName or empty string>",
+  "characterId": "<provided characterId or empty string>",
+  "shipId": "<provided shipId or empty string>",
+  "targetCelestialBodyId": "<provided targetCelestialBodyId or empty string>",
+  "hotkey": 1,
+  "itemId": "<provided itemId or empty string>",
+  "itemType": "<provided itemType or empty string>"
+}
+```
+
+- Player not registered:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<provided playerName>",
+  "characterId": "<provided characterId>",
+  "shipId": "<provided shipId>",
+  "targetCelestialBodyId": "<provided targetCelestialBodyId>",
+  "hotkey": 3,
+  "itemId": "<provided itemId>",
+  "itemType": "<provided itemType>"
+}
+```
+
+- Character/ship/item/target validation failures return `success: false` with one of these messages and the same identifying fields as above:
+  - `Character is not in player list`
+  - `Ship is not in character list`
+  - `Item is not in ship inventory`
+  - `Launch item does not exist`
+  - `itemType does not match launch item`
+  - `Launch item is not launchable`
+  - `Launch item is destroyed`
+  - `Target celestial body does not exist`
+
+### Edge Cases
+
+- Invalid session emits `invalid-session`.
+- The launched item is always consumed for valid launch processing paths, including `no-effect` outcomes.
+- `launchSeed` is deterministic for the same launch inputs and target identifiers.
+- For `target-destroyed`, yielded items are persisted and added to the firing ship inventory as item references.
 
 ## Notes For Client Implementers
 

@@ -535,6 +535,44 @@ class DatabaseService {
   }
 
   /**
+   * Get a celestial body by id.
+   * @param {string} celestialBodyId
+   * @returns {Promise<Object|null>}
+   */
+  async getCelestialBodyById(celestialBodyId) {
+    try {
+      if (!celestialBodyId || typeof celestialBodyId !== 'string') {
+        return null;
+      }
+
+      const celestialBody = await CelestialBody.findOne({ id: celestialBodyId.trim() }).lean();
+      return celestialBody || null;
+    } catch (error) {
+      this.log(`[db-service] Error fetching celestial body by id: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a celestial body by id.
+   * @param {string} celestialBodyId
+   * @returns {Promise<boolean>}
+   */
+  async deleteCelestialBodyById(celestialBodyId) {
+    try {
+      if (!celestialBodyId || typeof celestialBodyId !== 'string') {
+        return false;
+      }
+
+      const result = await CelestialBody.deleteOne({ id: celestialBodyId.trim() });
+      return result.deletedCount > 0;
+    } catch (error) {
+      this.log(`[db-service] Error deleting celestial body by id: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Find celestial bodies in a spherical radius around a position.
    * Uses a bounding-cube query first, then exact spherical distance filtering.
    *

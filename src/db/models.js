@@ -122,7 +122,6 @@ const itemSchema = new mongoose.Schema({
   },
   itemType: {
     type: String,
-    enum: ['expendable-dart-drone'],
     required: true,
     index: true
   },
@@ -181,6 +180,12 @@ const itemSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
     default: true
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    default: 1,
+    min: 1
   }
 }, {
   collection: 'items'
@@ -324,6 +329,27 @@ const asteroidMaterialProfileSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
+const celestialBodyDebrisMaterialSchema = new mongoose.Schema({
+  material: {
+    type: String,
+    required: true
+  },
+  rarity: {
+    type: String,
+    enum: ['Common', 'Uncommon', 'Rare', 'Exotic'],
+    required: true
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  itemType: {
+    type: String,
+    required: true
+  }
+}, { _id: false });
+
 /**
  * Celestial body schema - root document in the cb collection
  */
@@ -373,6 +399,29 @@ const celestialBodySchema = new mongoose.Schema({
   composition: {
     type: asteroidMaterialProfileSchema,
     required: true
+  },
+  state: {
+    type: String,
+    enum: ['active', 'destroyed'],
+    required: true,
+    default: 'active',
+    index: true
+  },
+  destroyedAt: {
+    type: String,
+    default: null
+  },
+  destroyedReason: {
+    type: String,
+    default: null
+  },
+  debrisSeed: {
+    type: Number,
+    default: null
+  },
+  debris: {
+    type: [celestialBodyDebrisMaterialSchema],
+    default: []
   }
 }, {
   collection: 'cb'

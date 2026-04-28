@@ -42,6 +42,7 @@ The server listens on port `3000` by default. Set `PORT` to override.
 - `celestial-body-upsert-request` / `celestial-body-upsert-response`
 - `celestial-body-list-request` / `celestial-body-list-response`
 - `invalid-session` (server -> client): emitted when session validation fails
+- `launch-item-request` / `launch-item-response`
 
 ## Test
 

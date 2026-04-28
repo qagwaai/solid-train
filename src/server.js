@@ -56,6 +56,9 @@ const {
   ITEM_LIST_BY_LOCATION_REQUEST_EVENT
 } = require('./model/item-list-by-location');
 const {
+  LAUNCH_ITEM_REQUEST_EVENT
+} = require('./model/launch-item');
+const {
   MessageHandlerContext
 } = require('./handlers/message-handler-context');
 const {
@@ -106,6 +109,9 @@ const {
 const {
   ItemListByLocationMessageHandler
 } = require('./handlers/item-list-by-location-message-handler');
+const {
+  LaunchItemMessageHandler
+} = require('./handlers/launch-item-message-handler');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -173,6 +179,9 @@ function createServer(options = {}) {
     messageHandlerContext
   );
   const itemListByLocationMessageHandler = new ItemListByLocationMessageHandler(
+    messageHandlerContext
+  );
+  const launchItemMessageHandler = new LaunchItemMessageHandler(
     messageHandlerContext
   );
 
@@ -300,6 +309,12 @@ function createServer(options = {}) {
     socket.on(ITEM_LIST_BY_LOCATION_REQUEST_EVENT, (payload) => {
       itemListByLocationMessageHandler.handle(socket, payload).catch((error) => {
         process.stderr.write(`[socket] Item list by location handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(LAUNCH_ITEM_REQUEST_EVENT, (payload) => {
+      launchItemMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Launch item handler error: ${error.message}\n`);
       });
     });
   });

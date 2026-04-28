@@ -224,7 +224,19 @@ class MessageHandlerContext {
         rarity: this.toNonEmptyString(source.composition.rarity),
         material: this.toNonEmptyString(source.composition.material),
         textureColor: this.toNonEmptyString(source.composition.textureColor)
-      } : null
+      } : null,
+      state: this.toNonEmptyString(source.state) || 'active',
+      destroyedAt: this.toNonEmptyString(source.destroyedAt) || null,
+      destroyedReason: this.toNonEmptyString(source.destroyedReason) || null,
+      debrisSeed: Number.isInteger(source.debrisSeed) ? source.debrisSeed : null,
+      debris: Array.isArray(source.debris)
+        ? source.debris.map((entry) => ({
+          material: this.toNonEmptyString(entry?.material),
+          rarity: this.toNonEmptyString(entry?.rarity),
+          quantity: Number.isInteger(entry?.quantity) && entry.quantity > 0 ? entry.quantity : 1,
+          itemType: this.toNonEmptyString(entry?.itemType)
+        }))
+        : []
     };
   }
 
@@ -236,6 +248,56 @@ class MessageHandlerContext {
     }
 
     return this.celestialBodiesById.get(normalizedCelestialBodyId) || null;
+  }
+
+  async getCelestialBodyByIdAsync(celestialBodyId) {
+    const normalizedCelestialBodyId = this.toNonEmptyString(celestialBodyId);
+    if (!normalizedCelestialBodyId) {
+      return null;
+    }
+
+    const cached = this.getCelestialBody(normalizedCelestialBodyId);
+    if (cached) {
+      return cached;
+    }
+
+    if (!this.databaseService) {
+      return null;
+    }
+
+    try {
+      const celestialBody = await this.databaseService.getCelestialBodyById(
+        normalizedCelestialBodyId
+      );
+      if (!celestialBody) {
+        return null;
+      }
+
+      const normalized = this.normalizeCelestialBody(celestialBody);
+      this.celestialBodiesById.set(normalized.id, normalized);
+      return normalized;
+    } catch (error) {
+      this.log(`[context] Error fetching celestial body by id from DB: ${error.message}`);
+      return null;
+    }
+  }
+
+  async deleteCelestialBodyByIdAsync(celestialBodyId) {
+    const normalizedCelestialBodyId = this.toNonEmptyString(celestialBodyId);
+    if (!normalizedCelestialBodyId) {
+      return false;
+    }
+
+    if (this.databaseService) {
+      try {
+        await this.databaseService.deleteCelestialBodyById(normalizedCelestialBodyId);
+      } catch (error) {
+        this.log(`[context] Error deleting celestial body in DB: ${error.message}`);
+        throw error;
+      }
+    }
+
+    return this.celestialBodiesById.delete(normalizedCelestialBodyId);
   }
 
   getItem(itemId) {

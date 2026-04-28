@@ -35,6 +35,16 @@ function seedItems(context, items = []) {
   return normalizedItems;
 }
 
+function seedCelestialBodies(context, celestialBodies = []) {
+  const normalizedBodies = Array.isArray(celestialBodies) ? celestialBodies : [];
+
+  for (const celestialBody of normalizedBodies) {
+    context.celestialBodiesById.set(celestialBody.id, celestialBody);
+  }
+
+  return normalizedBodies;
+}
+
 function seedPlayer(context, overrides = {}) {
   const normalizedPlayerName = (overrides.playerName || 'PilotOne').toLowerCase();
   const player = {
@@ -55,6 +65,7 @@ function seedPlayer(context, overrides = {}) {
 module.exports = {
   createMockSocket,
   createTestContext,
+  seedCelestialBodies,
   seedItems,
   seedPlayer
 };
