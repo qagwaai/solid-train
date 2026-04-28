@@ -61,7 +61,7 @@ class CharacterEditMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-edit', payload);
 
-    if (!this.context.hasValidSession(payload)) {
+    if (!await this.context.hasValidSessionAsync(payload)) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;

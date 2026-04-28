@@ -429,6 +429,36 @@ class MessageHandlerContext {
     return player.sessionKey === sessionKey;
   }
 
+  async ensurePlayerLoadedAsync(playerName) {
+    const normalizedPlayerName = this.normalizePlayerName(playerName);
+    if (!normalizedPlayerName) {
+      return null;
+    }
+
+    let player = this.getPlayer(normalizedPlayerName);
+    if (player || !this.databaseService) {
+      return player;
+    }
+
+    await this.getPlayerAsync(normalizedPlayerName);
+    player = this.getPlayer(normalizedPlayerName);
+    return player;
+  }
+
+  async hasValidSessionAsync(payload) {
+    const sessionKey = this.toNonEmptyString(payload?.sessionKey);
+    if (!sessionKey) {
+      return false;
+    }
+
+    const player = await this.ensurePlayerLoadedAsync(payload?.playerName);
+    if (!player || !player.sessionKey) {
+      return false;
+    }
+
+    return player.sessionKey === sessionKey;
+  }
+
   logHandlerMessage(messageType, payload) {
     const player = this.toNonEmptyString(payload?.playerName) || '-';
     const character =

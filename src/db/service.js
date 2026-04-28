@@ -12,6 +12,33 @@ class DatabaseService {
     this.log = options.log || ((line) => process.stdout.write(`${line}\n`));
   }
 
+  toNonEmptyString(value) {
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    return value.trim();
+  }
+
+  escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  buildPlayerNameQuery(playerName) {
+    const normalized = this.toNonEmptyString(playerName).toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+
+    // Support legacy player documents that predate playerNameNormalized.
+    return {
+      $or: [
+        { playerNameNormalized: normalized },
+        { playerName: new RegExp(`^${this.escapeRegExp(normalized)}$`, 'i') }
+      ]
+    };
+  }
+
   isFiniteNumber(value) {
     return typeof value === 'number' && Number.isFinite(value);
   }
@@ -39,7 +66,7 @@ class DatabaseService {
   async registerPlayer(playerData) {
     try {
       const { playerId, playerName, email, password } = playerData;
-      const playerNameNormalized = playerName.toLowerCase();
+      const playerNameNormalized = this.toNonEmptyString(playerName).toLowerCase();
 
       // Check if player already exists
       const existing = await Player.findOne({ playerNameNormalized });
@@ -72,8 +99,19 @@ class DatabaseService {
    */
   async getPlayerByName(playerName) {
     try {
-      const playerNameNormalized = playerName.toLowerCase();
-      const player = await Player.findOne({ playerNameNormalized });
+      const playerNameQuery = this.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) {
+        return null;
+      }
+
+      const normalizedPlayerName = this.toNonEmptyString(playerName).toLowerCase();
+      const player = await Player.findOne(playerNameQuery);
+
+      if (player && !player.playerNameNormalized && normalizedPlayerName) {
+        player.playerNameNormalized = normalizedPlayerName;
+        await player.save();
+      }
+
       return player ? player.toObject() : null;
     } catch (error) {
       this.log(`[db-service] Error fetching player: ${error.message}`);
@@ -104,9 +142,13 @@ class DatabaseService {
    */
   async updatePlayer(playerName, updates) {
     try {
-      const playerNameNormalized = playerName.toLowerCase();
+      const playerNameQuery = this.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) {
+        return null;
+      }
+
       const player = await Player.findOneAndUpdate(
-        { playerNameNormalized },
+        playerNameQuery,
         { ...updates, updatedAt: new Date() },
         { new: true }
       );
@@ -125,9 +167,13 @@ class DatabaseService {
    */
   async addCharacter(playerName, characterData) {
     try {
-      const playerNameNormalized = playerName.toLowerCase();
+      const playerNameQuery = this.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) {
+        return null;
+      }
+
       const player = await Player.findOneAndUpdate(
-        { playerNameNormalized },
+        playerNameQuery,
         {
           $push: { characters: characterData },
           updatedAt: new Date()
@@ -148,8 +194,12 @@ class DatabaseService {
    */
   async getCharacters(playerName) {
     try {
-      const playerNameNormalized = playerName.toLowerCase();
-      const player = await Player.findOne({ playerNameNormalized }, { characters: 1 }).lean();
+      const playerNameQuery = this.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) {
+        return [];
+      }
+
+      const player = await Player.findOne(playerNameQuery, { characters: 1 }).lean();
       return player && Array.isArray(player.characters) ? player.characters : [];
     } catch (error) {
       this.log(`[db-service] Error fetching characters: ${error.message}`);
@@ -165,9 +215,13 @@ class DatabaseService {
    */
   async deleteCharacter(playerName, characterId) {
     try {
-      const playerNameNormalized = playerName.toLowerCase();
+      const playerNameQuery = this.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) {
+        return null;
+      }
+
       const player = await Player.findOneAndUpdate(
-        { playerNameNormalized },
+        playerNameQuery,
         {
           $pull: { characters: { id: characterId } },
           updatedAt: new Date()
@@ -190,8 +244,12 @@ class DatabaseService {
    */
   async updateCharacter(playerName, characterId, updates) {
     try {
-      const playerNameNormalized = playerName.toLowerCase();
-      const player = await Player.findOne({ playerNameNormalized });
+      const playerNameQuery = this.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) {
+        return null;
+      }
+
+      const player = await Player.findOne(playerNameQuery);
       
       if (!player) {
         return null;
@@ -221,8 +279,12 @@ class DatabaseService {
    */
   async addShip(playerName, characterId, shipData) {
     try {
-      const playerNameNormalized = playerName.toLowerCase();
-      const player = await Player.findOne({ playerNameNormalized });
+      const playerNameQuery = this.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) {
+        return null;
+      }
+
+      const player = await Player.findOne(playerNameQuery);
       
       if (!player) {
         return null;
@@ -349,8 +411,12 @@ class DatabaseService {
    */
   async addOrUpdateMission(playerName, characterId, missionData) {
     try {
-      const playerNameNormalized = playerName.toLowerCase();
-      const player = await Player.findOne({ playerNameNormalized });
+      const playerNameQuery = this.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) {
+        return null;
+      }
+
+      const player = await Player.findOne(playerNameQuery);
 
       if (!player) {
         return null;
@@ -395,8 +461,12 @@ class DatabaseService {
    */
   async getMissions(playerName, characterId) {
     try {
-      const playerNameNormalized = playerName.toLowerCase();
-      const player = await Player.findOne({ playerNameNormalized });
+      const playerNameQuery = this.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) {
+        return [];
+      }
+
+      const player = await Player.findOne(playerNameQuery);
 
       if (!player) {
         return [];
@@ -422,8 +492,12 @@ class DatabaseService {
    */
   async getShips(playerName, characterId) {
     try {
-      const playerNameNormalized = playerName.toLowerCase();
-      const player = await Player.findOne({ playerNameNormalized });
+      const playerNameQuery = this.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) {
+        return [];
+      }
+
+      const player = await Player.findOne(playerNameQuery);
       
       if (!player) {
         return [];
