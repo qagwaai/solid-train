@@ -178,7 +178,9 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
           shipName: 'Legacy Ship',
           inventory: [],
           createdAt: '2026-04-20T00:00:00.000Z',
-          launchable: true
+          status: null,
+          launchable: true,
+          damageProfile: null
         }
       ],
       missions: []

@@ -126,7 +126,8 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
           epochMs: 1713607200000
         }
       },
-      launchable: true
+      launchable: true,
+      damageProfile: null
     }
   ]);
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);

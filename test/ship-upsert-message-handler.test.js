@@ -257,3 +257,269 @@ test('ShipUpsertMessageHandler updates ship model and tier', async () => {
   assert.equal(response.ship.inventory[0].id, 'item-1');
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });
+
+function createDamageProfile(overrides = {}) {
+  return {
+    overallStatus: 'damaged',
+    summary: 'Hull breach in sector 4',
+    origin: 'combat',
+    updatedAt: '2026-04-28T10:00:00.000Z',
+    systems: [
+      {
+        code: 'hull',
+        label: 'Hull Integrity',
+        severity: 'major',
+        summary: 'Breach detected',
+        repairPriority: 1
+      }
+    ],
+    ...overrides
+  };
+}
+
+function seedShipPlayer(context) {
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            createdAt: '2026-04-17T00:00:00.000Z'
+          }
+        ]
+      }
+    ]
+  });
+}
+
+test('ShipUpsertMessageHandler persists status and damageProfile', async () => {
+  const context = createTestContext();
+  seedShipPlayer(context);
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+  const profile = createDamageProfile();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: {
+      id: 'ship-1',
+      status: 'docked',
+      damageProfile: profile
+    }
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.ship.status, 'docked');
+  assert.deepEqual(response.ship.damageProfile, {
+    overallStatus: 'damaged',
+    summary: 'Hull breach in sector 4',
+    origin: 'combat',
+    updatedAt: '2026-04-28T10:00:00.000Z',
+    systems: [
+      {
+        code: 'hull',
+        label: 'Hull Integrity',
+        severity: 'major',
+        summary: 'Breach detected',
+        repairPriority: 1
+      }
+    ]
+  });
+  assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
+});
+
+test('ShipUpsertMessageHandler echoes persisted status and damageProfile in response', async () => {
+  const context = createTestContext();
+  seedShipPlayer(context);
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+  const profile = createDamageProfile();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: { id: 'ship-1', status: 'in-flight', damageProfile: profile }
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.ship.status, 'in-flight');
+  assert.equal(response.ship.damageProfile.overallStatus, 'damaged');
+  assert.equal(response.ship.damageProfile.origin, 'combat');
+  assert.equal(response.ship.damageProfile.systems.length, 1);
+});
+
+test('ShipUpsertMessageHandler ship-list returns persisted status and damageProfile', async () => {
+  const { ShipListMessageHandler } = require('../src/handlers/ship-list-message-handler');
+  const context = createTestContext();
+  seedShipPlayer(context);
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const listHandler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+  const profile = createDamageProfile();
+
+  await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: { id: 'ship-1', status: 'docked', damageProfile: profile }
+  });
+
+  const listResponse = await listHandler.handle(createMockSocket(), {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1'
+  });
+
+  assert.equal(listResponse.success, true);
+  assert.equal(listResponse.ships[0].status, 'docked');
+  assert.equal(listResponse.ships[0].damageProfile.overallStatus, 'damaged');
+});
+
+test('ShipUpsertMessageHandler partial upsert without damageProfile preserves existing', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            status: 'docked',
+            damageProfile: createDamageProfile(),
+            createdAt: '2026-04-17T00:00:00.000Z'
+          }
+        ]
+      }
+    ]
+  });
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: { id: 'ship-1', status: 'in-flight' }
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.ship.status, 'in-flight');
+  assert.equal(response.ship.damageProfile.overallStatus, 'damaged');
+});
+
+test('ShipUpsertMessageHandler explicit damageProfile null clears stored profile', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            damageProfile: createDamageProfile(),
+            createdAt: '2026-04-17T00:00:00.000Z'
+          }
+        ]
+      }
+    ]
+  });
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: { id: 'ship-1', damageProfile: null }
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.ship.damageProfile, null);
+});
+
+test('ShipUpsertMessageHandler rejects invalid damageProfile with success false', async () => {
+  const context = createTestContext();
+  seedShipPlayer(context);
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: {
+      id: 'ship-1',
+      damageProfile: {
+        overallStatus: 'broken',
+        summary: 'bad data',
+        origin: 'combat',
+        updatedAt: '2026-04-28T10:00:00.000Z',
+        systems: []
+      }
+    }
+  });
+
+  assert.equal(response.success, false);
+  assert.ok(response.message.includes('overallStatus'), `Expected message about overallStatus, got: ${response.message}`);
+  assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
+});
+
+test('ShipUpsertMessageHandler rejects non-string status', async () => {
+  const context = createTestContext();
+  seedShipPlayer(context);
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: { id: 'ship-1', status: 42 }
+  });
+
+  assert.equal(response.success, false);
+  assert.ok(response.message.includes('status'), `Expected message about status, got: ${response.message}`);
+  assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
+});
+
+test('ShipUpsertMessageHandler status and damageProfile only update does not require location', async () => {
+  const context = createTestContext();
+  seedShipPlayer(context);
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: { id: 'ship-1', status: 'docked', damageProfile: createDamageProfile() }
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.ship.status, 'docked');
+});
+

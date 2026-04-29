@@ -75,13 +75,73 @@ class ShipUpsertMessageHandler {
     };
   }
 
+  normalizeDamageProfile(raw) {
+    const overallStatus = raw?.overallStatus;
+    if (!['intact', 'damaged', 'disabled', 'destroyed'].includes(overallStatus)) {
+      return { error: 'damageProfile.overallStatus must be one of: intact, damaged, disabled, destroyed' };
+    }
+
+    const summary = this.context.toNonEmptyString(raw.summary);
+    if (!summary) {
+      return { error: 'damageProfile.summary must be a non-empty string' };
+    }
+
+    const origin = raw.origin;
+    if (!['cold-boot-scripted', 'combat', 'wear', 'unknown'].includes(origin)) {
+      return { error: 'damageProfile.origin must be one of: cold-boot-scripted, combat, wear, unknown' };
+    }
+
+    const updatedAt = this.context.toNonEmptyString(raw.updatedAt);
+    if (!updatedAt) {
+      return { error: 'damageProfile.updatedAt must be a non-empty string' };
+    }
+
+    if (!Array.isArray(raw.systems)) {
+      return { error: 'damageProfile.systems must be an array' };
+    }
+
+    const systems = [];
+    for (const sys of raw.systems) {
+      const code = this.context.toNonEmptyString(sys?.code);
+      if (!code) {
+        return { error: 'damageProfile.systems[].code must be a non-empty string' };
+      }
+      const label = this.context.toNonEmptyString(sys.label);
+      if (!label) {
+        return { error: 'damageProfile.systems[].label must be a non-empty string' };
+      }
+      const severity = sys.severity;
+      if (!['minor', 'major', 'critical'].includes(severity)) {
+        return { error: 'damageProfile.systems[].severity must be one of: minor, major, critical' };
+      }
+      const sysSummary = this.context.toNonEmptyString(sys.summary);
+      if (!sysSummary) {
+        return { error: 'damageProfile.systems[].summary must be a non-empty string' };
+      }
+      if (!Number.isInteger(sys.repairPriority)) {
+        return { error: 'damageProfile.systems[].repairPriority must be an integer' };
+      }
+      systems.push({
+        code,
+        label,
+        severity,
+        summary: sysSummary,
+        repairPriority: sys.repairPriority
+      });
+    }
+
+    return { overallStatus, summary, origin, updatedAt, systems };
+  }
+
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
     const shipId = this.context.toNonEmptyString(payload?.ship?.id);
     const shipName = this.context.toNonEmptyString(payload?.ship?.shipName)
       || this.context.toNonEmptyString(payload?.ship?.name);
-    const status = this.context.toNonEmptyString(payload?.ship?.status);
+    const statusRaw = payload?.ship?.status;
+    const hasStatusKey = payload?.ship != null && 'status' in payload.ship;
+    const hasDamageProfileKey = payload?.ship != null && 'damageProfile' in payload.ship;
     const model = this.context.toNonEmptyString(payload?.ship?.model);
     const tierPayload = payload?.ship?.tier;
     const hasTier = tierPayload !== undefined && tierPayload !== null;
@@ -106,7 +166,7 @@ class ShipUpsertMessageHandler {
       };
     }
 
-    if (!hasLocation && !hasKinematics && !model && !hasTier) {
+    if (!hasLocation && !hasKinematics && !model && !hasTier && !hasStatusKey && !hasDamageProfileKey) {
       return {
         success: false,
         message: 'ship.location, ship.kinematics, ship.model, and/or ship.tier is required',
@@ -131,6 +191,35 @@ class ShipUpsertMessageHandler {
         playerName,
         characterId
       };
+    }
+
+    if (hasStatusKey && typeof statusRaw !== 'string') {
+      return {
+        success: false,
+        message: 'ship.status must be a string',
+        playerName,
+        characterId
+      };
+    }
+
+    const status = hasStatusKey ? (statusRaw.trim() || null) : undefined;
+
+    let normalizedDamageProfile;
+    if (hasDamageProfileKey) {
+      if (payload.ship.damageProfile === null) {
+        normalizedDamageProfile = null;
+      } else {
+        const validation = this.normalizeDamageProfile(payload.ship.damageProfile);
+        if (validation?.error) {
+          return {
+            success: false,
+            message: validation.error,
+            playerName,
+            characterId
+          };
+        }
+        normalizedDamageProfile = validation;
+      }
     }
 
     const player = this.context.getPlayer(playerName);
@@ -170,14 +259,15 @@ class ShipUpsertMessageHandler {
       ...existingShip,
       id: shipId,
       shipName: shipName || existingShip.shipName || existingShip.name || '',
-      status: status || existingShip.status,
+      status: hasStatusKey ? status : (existingShip.status ?? null),
       model: model || existingShip.model,
       tier: tier !== null ? tier : existingShip.tier,
       location: location || existingShip.location,
       kinematics: kinematics || existingShip.kinematics,
       launchable: hasLaunchable && launchable !== null
         ? launchable
-        : (existingShip.launchable != null ? existingShip.launchable : true)
+        : (existingShip.launchable != null ? existingShip.launchable : true),
+      damageProfile: hasDamageProfileKey ? normalizedDamageProfile : (existingShip.damageProfile ?? null)
     };
 
     return {

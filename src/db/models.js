@@ -197,6 +197,61 @@ itemSchema.index({
 });
 
 /**
+ * Damage system (subsystem) schema for a ship damage profile entry
+ */
+const damageSystemSchema = new mongoose.Schema({
+  code: {
+    type: String,
+    required: true
+  },
+  label: {
+    type: String,
+    required: true
+  },
+  severity: {
+    type: String,
+    enum: ['minor', 'major', 'critical'],
+    required: true
+  },
+  summary: {
+    type: String,
+    required: true
+  },
+  repairPriority: {
+    type: Number,
+    required: true
+  }
+}, { _id: false });
+
+/**
+ * Damage profile schema for ship-level structural damage summary
+ */
+const damageProfileSchema = new mongoose.Schema({
+  overallStatus: {
+    type: String,
+    enum: ['intact', 'damaged', 'disabled', 'destroyed'],
+    required: true
+  },
+  summary: {
+    type: String,
+    required: true
+  },
+  origin: {
+    type: String,
+    enum: ['cold-boot-scripted', 'combat', 'wear', 'unknown'],
+    required: true
+  },
+  updatedAt: {
+    type: String,
+    required: true
+  },
+  systems: {
+    type: [damageSystemSchema],
+    default: []
+  }
+}, { _id: false });
+
+/**
  * Ship schema for a character's ships
  */
 const shipSchema = new mongoose.Schema({
@@ -207,6 +262,10 @@ const shipSchema = new mongoose.Schema({
   shipName: {
     type: String,
     required: true
+  },
+  status: {
+    type: String,
+    default: null
   },
   model: {
     type: String,
@@ -240,6 +299,10 @@ const shipSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
     default: true
+  },
+  damageProfile: {
+    type: damageProfileSchema,
+    default: null
   }
 }, { _id: false });
 

@@ -714,7 +714,7 @@ including required fields, response payloads, and edge-case behavior.
     {
       "id": "<ship id>",
       "name": "<ship name>",
-      "status": "<optional status>",
+      "status": "<status string or null>",
       "model": "<ship model, e.g. Scavenger Pod>",
       "tier": 1,
       "inventory": [
@@ -749,7 +749,22 @@ including required fields, response payloads, and edge-case behavior.
           "epochMs": 1713607200000
         }
       },
-      "launchable": true
+      "launchable": true,
+      "damageProfile": {
+        "overallStatus": "damaged",
+        "summary": "Hull breach in sector 4",
+        "origin": "combat",
+        "updatedAt": "2026-04-28T10:00:00.000Z",
+        "systems": [
+          {
+            "code": "hull",
+            "label": "Hull Integrity",
+            "severity": "major",
+            "summary": "Breach detected",
+            "repairPriority": 1
+          }
+        ]
+      }
     }
   ]
 }
@@ -814,13 +829,21 @@ including required fields, response payloads, and edge-case behavior.
   - `id` (required; must exist in the character's ship list)
   - `model` (optional string; ship model name)
   - `tier` (optional integer 1–10; ship tier)
+  - `status` (optional string; current ship status label, e.g. `"docked"` or `"in-flight"`; trimmed; omit to preserve stored value)
   - `inventory` is server-managed; responses return hydrated item objects and persistence stores item references
-  - `location.positionKm.x|y|z` (optional; required if `kinematics` omitted and no `model`/`tier`)
-  - `kinematics.position.x|y|z` (optional; required if `location` omitted and no `model`/`tier`)
-  - `kinematics.velocity.x|y|z` (optional; required if `location` omitted and no `model`/`tier`)
+  - `location.positionKm.x|y|z` (optional; required if `kinematics` omitted and no `model`/`tier`/`status`/`damageProfile`)
+  - `kinematics.position.x|y|z` (optional; required if `location` omitted and no `model`/`tier`/`status`/`damageProfile`)
+  - `kinematics.velocity.x|y|z` (optional; required if `location` omitted and no `model`/`tier`/`status`/`damageProfile`)
   - `kinematics.reference.referenceBodyId` (optional with `kinematics`)
   - `kinematics.reference.epochMs` (required number with `kinematics`)
   - `launchable` (optional boolean; whether the ship can be launched; defaults to `true`)
+  - `damageProfile` (optional object or `null`; omit to preserve stored profile; send `null` to clear it)
+    - `overallStatus` (required string; one of `intact`, `damaged`, `disabled`, `destroyed`)
+    - `summary` (required non-empty string)
+    - `origin` (required string; one of `cold-boot-scripted`, `combat`, `wear`, `unknown`)
+    - `updatedAt` (required non-empty string; ISO timestamp)
+    - `systems` (required array of subsystem entries)
+      - Each entry: `code` (non-empty string), `label` (non-empty string), `severity` (`minor`|`major`|`critical`), `summary` (non-empty string), `repairPriority` (integer)
 
 ### Success Response
 
@@ -833,6 +856,7 @@ including required fields, response payloads, and edge-case behavior.
   "ship": {
     "id": "<ship id>",
     "shipName": "<ship name>",
+    "status": "<status string or null>",
     "model": "<ship model>",
     "tier": 1,
     "inventory": [
@@ -867,7 +891,22 @@ including required fields, response payloads, and edge-case behavior.
         "epochMs": 1713607200000
       }
     },
-    "launchable": true
+    "launchable": true,
+    "damageProfile": {
+      "overallStatus": "damaged",
+      "summary": "Hull breach in sector 4",
+      "origin": "combat",
+      "updatedAt": "2026-04-28T10:00:00.000Z",
+      "systems": [
+        {
+          "code": "hull",
+          "label": "Hull Integrity",
+          "severity": "major",
+          "summary": "Breach detected",
+          "repairPriority": 1
+        }
+      ]
+    }
   }
 }
 ```
@@ -902,6 +941,28 @@ including required fields, response payloads, and edge-case behavior.
 {
   "success": false,
   "message": "ship location/kinematics payload is invalid",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>"
+}
+```
+
+- Invalid `status` type:
+
+```json
+{
+  "success": false,
+  "message": "ship.status must be a string",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>"
+}
+```
+
+- Invalid `damageProfile` field:
+
+```json
+{
+  "success": false,
+  "message": "damageProfile.<fieldName> must be ...",
   "playerName": "<canonical player name>",
   "characterId": "<character id>"
 }
@@ -946,6 +1007,9 @@ including required fields, response payloads, and edge-case behavior.
 - `ship-upsert` only mutates a ship already owned by the specified character.
 - Ship inventory is persisted as item references but returned as hydrated item objects in ship responses.
 - The server always emits kinematics units as `distanceUnit: "km"` and `velocityUnit: "km/s"` when kinematics are present.
+- `status` and `damageProfile` use patch semantics: omitting a field preserves the stored value; sending `damageProfile: null` explicitly clears it.
+- Ships without a stored `damageProfile` return `damageProfile: null`.
+- At least one of `location`, `kinematics`, `model`, `tier`, `status`, or `damageProfile` must be present in the update payload.
 
 ## Event: `character-delete-request`
 

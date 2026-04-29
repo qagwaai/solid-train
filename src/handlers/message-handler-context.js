@@ -116,7 +116,9 @@ class MessageHandlerContext {
       ...source,
       inventory,
       shipName: shipName || source.shipName || source.name || '',
-      launchable: source.launchable != null ? Boolean(source.launchable) : true
+      status: this.toNonEmptyString(source.status) || null,
+      launchable: source.launchable != null ? Boolean(source.launchable) : true,
+      damageProfile: source.damageProfile != null ? source.damageProfile : null
     };
   }
 
