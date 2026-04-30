@@ -9,10 +9,10 @@ const {
 const EXPENDABLE_DART_DRONE_ITEM_TYPE = 'expendable-dart-drone';
 const HOTKEY_VALUES = new Set([1, 2, 3, 4, 5]);
 const MATERIAL_YIELD_MULTIPLIER_BY_RARITY = {
-  Common: 1,
+  Common: 2,
   Uncommon: 2,
-  Rare: 4,
-  Exotic: 8
+  Rare: 2,
+  Exotic: 2
 };
 const MAX_YIELD_QUANTITY = 100;
 
@@ -30,8 +30,11 @@ class LaunchItemMessageHandler {
    *
    * Formula:
    * - baseFromMass = max(1, round(estimatedMassKg / 5,000,000,000))
-   * - rarity multiplier: Common=1, Uncommon=2, Rare=4, Exotic=8
+   * - rarity multiplier: all rarities = 2
    * - quantity = clamp(baseFromMass * multiplier, 1, 100)
+   *
+   * Distribution: ~1–100 over the range 2.5B–250B kg.
+   * An asteroid at 250,000,000,000 kg yields the maximum of 100.
    */
   resolveYieldQuantity(targetCelestialBody) {
     const massKg = Number(targetCelestialBody?.kinematics?.estimatedMassKg);

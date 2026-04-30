@@ -1737,18 +1737,14 @@ Same shape as create; `message` is `"Item updated successfully"`.
 For `target-destroyed` outcomes, the server computes yielded material quantity from asteroid mass and rarity:
 
 - `baseFromMass = max(1, round(estimatedMassKg / 5,000,000,000))`
-- rarity multiplier:
-  - `Common`: `1`
-  - `Uncommon`: `2`
-  - `Rare`: `4`
-  - `Exotic`: `8`
+- rarity multiplier: all rarities = `2`
 - final quantity:
-  - `quantity = clamp(baseFromMass * rarityMultiplier, 1, 100)`
+  - `quantity = clamp(baseFromMass * 2, 1, 100)`
 
 Behavior notes:
 
 - Larger asteroids (higher `estimatedMassKg`) produce more material.
-- Rarity scales the mass-derived base amount.
+- Distribution spans ~1–100 over the mass range up to 250,000,000,000 kg.
 - Quantity is always at least `1` and capped at `100`.
 
 ## Notes For Client Implementers

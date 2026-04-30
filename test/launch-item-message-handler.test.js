@@ -132,9 +132,9 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   assert.equal(response.resolution.yieldedMaterials.length, 1);
   assert.equal(response.resolution.yieldedMaterials[0].material, 'Nickel-Iron');
   assert.equal(response.resolution.yieldedMaterials[0].rarity, 'Rare');
-  assert.equal(response.resolution.yieldedMaterials[0].quantity, 32);
+  assert.equal(response.resolution.yieldedMaterials[0].quantity, 16);
   assert.equal(response.resolution.yieldedItems.length, 1);
-  assert.equal(response.resolution.yieldedItems[0].quantity, 32);
+  assert.equal(response.resolution.yieldedItems[0].quantity, 16);
   assert.equal(response.resolution.launchSeed >= 0, true);
   assert.equal(response.launchedItem.state, 'destroyed');
   assert.equal(response.launchedItem.launchable, false);
@@ -150,7 +150,7 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   const materialItems = await context.getItemsByIdsAsync(materialItemIds);
   assert.equal(materialItems.length, 1);
   assert.equal(materialItems[0].itemType, 'raw-material-nickel-iron');
-  assert.equal(materialItems[0].quantity, 32);
+  assert.equal(materialItems[0].quantity, 16);
   assert.equal(materialItems[0].container.containerType, 'ship');
   assert.equal(materialItems[0].container.containerId, 'ship-1');
 
