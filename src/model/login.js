@@ -13,6 +13,7 @@ const LOGIN_FAILURE_REASONS = {
  * @typedef {Object} LoginRequest
  * @property {string} playerName
  * @property {string} password
+ * @property {string} [locale]
  */
 
 /**

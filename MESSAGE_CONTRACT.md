@@ -33,6 +33,10 @@ including required fields, response payloads, and edge-case behavior.
 - `playerName` (required, non-empty string)
 - `email` (required, non-empty string)
 - `password` (required, non-empty string)
+- `locale` (optional string; normalized as lowercase base language code)
+  - Region values are reduced to base language (for example `it-IT` -> `it`)
+  - Supported locales: `en`, `it`
+  - Unknown or missing locale falls back to `en`
 
 ### Success Response
 
@@ -68,6 +72,7 @@ including required fields, response payloads, and edge-case behavior.
 
 - `playerName` uniqueness is enforced case-insensitively.
 - On successful register, an empty character list is initialized for the player.
+- On successful register, normalized locale is persisted as player `preferredLocale`.
 
 ## Event: `login`
 
@@ -78,6 +83,11 @@ including required fields, response payloads, and edge-case behavior.
 
 - `playerName` (required, non-empty string)
 - `password` (required, non-empty string)
+- `locale` (optional string; normalized as lowercase base language code)
+  - Region values are reduced to base language (for example `it-IT` -> `it`)
+  - Supported locales: `en`, `it`
+  - Unknown locale falls back to `en`
+  - If omitted, existing stored locale is preserved
 
 ### Success Response
 
@@ -126,6 +136,7 @@ including required fields, response payloads, and edge-case behavior.
 
 - Login regenerates a fresh `sessionKey` every successful login.
 - `playerName` matching is case-insensitive.
+- When `locale` is provided on a successful login, player `preferredLocale` is updated using normalized/fallback rules.
 
 ## Event: `character-list-request`
 

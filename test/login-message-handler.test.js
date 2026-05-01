@@ -39,6 +39,7 @@ test('LoginMessageHandler authenticates and rotates session key', async () => {
   assert.equal(socket.events[0].eventName, LOGIN_RESPONSE_EVENT);
   assert.equal(context.getPlayer('OrbitFox').sessionKey, 'player-1');
   assert.equal(context.getPlayer('OrbitFox').socketId, 'socket-login');
+  assert.equal(context.getPlayer('OrbitFox').preferredLocale, 'en');
 });
 
 test('LoginMessageHandler rejects password mismatches', async () => {
@@ -186,4 +187,63 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
       missions: []
     }
   ]);
+});
+
+test('LoginMessageHandler accepts locale and persists normalized base code', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerId: 'player-1',
+    playerName: 'OrbitFox',
+    password: 'safe-pass',
+    preferredLocale: 'en'
+  });
+  const handler = new LoginMessageHandler(context);
+
+  const response = await handler.handle(createMockSocket('socket-login-locale'), {
+    playerName: 'orbitfox',
+    password: 'safe-pass',
+    locale: 'it-IT'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(context.getPlayer('OrbitFox').preferredLocale, 'it');
+});
+
+test('LoginMessageHandler falls back unknown locale to en', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerId: 'player-1',
+    playerName: 'OrbitFox',
+    password: 'safe-pass',
+    preferredLocale: 'it'
+  });
+  const handler = new LoginMessageHandler(context);
+
+  const response = await handler.handle(createMockSocket('socket-login-unknown-locale'), {
+    playerName: 'orbitfox',
+    password: 'safe-pass',
+    locale: 'es-MX'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(context.getPlayer('OrbitFox').preferredLocale, 'en');
+});
+
+test('LoginMessageHandler keeps existing locale when locale is omitted', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerId: 'player-1',
+    playerName: 'OrbitFox',
+    password: 'safe-pass',
+    preferredLocale: 'it'
+  });
+  const handler = new LoginMessageHandler(context);
+
+  const response = await handler.handle(createMockSocket('socket-login-no-locale'), {
+    playerName: 'orbitfox',
+    password: 'safe-pass'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(context.getPlayer('OrbitFox').preferredLocale, 'it');
 });

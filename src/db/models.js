@@ -562,6 +562,12 @@ const playerSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  preferredLocale: {
+    type: String,
+    enum: ['en', 'it'],
+    required: true,
+    default: 'en'
+  },
   sessionKey: {
     type: String,
     default: null

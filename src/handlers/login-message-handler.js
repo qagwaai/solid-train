@@ -46,6 +46,8 @@ class LoginMessageHandler {
 
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const password = this.context.toNonEmptyString(payload?.password);
+    const hasLocale = payload != null && Object.prototype.hasOwnProperty.call(payload, 'locale');
+    const preferredLocale = hasLocale ? this.context.normalizeLocale(payload?.locale) : null;
 
     const missingCredentials = this.buildMissingCredentialsResponse(payload);
     if (missingCredentials) {
@@ -82,9 +84,16 @@ class LoginMessageHandler {
     if (response.success) {
       try {
         player.socketId = socket.id;
-        await this.context.updatePlayerAsync(playerName, {
+        const updates = {
           sessionKey: response.sessionKey,
           socketId: socket.id
+        };
+        if (hasLocale) {
+          updates.preferredLocale = preferredLocale;
+        }
+
+        await this.context.updatePlayerAsync(playerName, {
+          ...updates
         });
 
         // Refresh character cache from persistence so character flows work after restarts.

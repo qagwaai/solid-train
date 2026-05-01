@@ -52,6 +52,7 @@ function seedPlayer(context, overrides = {}) {
     playerName: overrides.playerName || 'PilotOne',
     email: overrides.email || 'pilot@example.com',
     password: overrides.password || 'secret',
+    preferredLocale: overrides.preferredLocale || 'en',
     sessionKey: overrides.sessionKey || null,
     socketId: overrides.socketId || null
   };

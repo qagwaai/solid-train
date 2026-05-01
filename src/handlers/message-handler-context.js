@@ -1,6 +1,7 @@
 'use strict';
 
 const { GameState } = require('../model/game');
+const SUPPORTED_LOCALES = new Set(['en', 'it']);
 
 class MessageHandlerContext {
   constructor(options = {}) {
@@ -45,6 +46,16 @@ class MessageHandlerContext {
     return value.trim();
   }
 
+  normalizeLocale(value) {
+    const raw = this.toNonEmptyString(value).toLowerCase();
+    if (!raw) {
+      return 'en';
+    }
+
+    const base = raw.split('-')[0];
+    return SUPPORTED_LOCALES.has(base) ? base : 'en';
+  }
+
   normalizePlayerName(value) {
     const playerName = this.toNonEmptyString(value);
 
@@ -80,7 +91,10 @@ class MessageHandlerContext {
       ...existing,
       ...playerData,
       sessionKey: playerData.sessionKey ?? existing.sessionKey ?? null,
-      socketId: playerData.socketId ?? existing.socketId ?? null
+      socketId: playerData.socketId ?? existing.socketId ?? null,
+      preferredLocale: this.normalizeLocale(
+        playerData.preferredLocale ?? existing.preferredLocale
+      )
     };
 
     this.registeredPlayers.set(normalizedPlayerName, merged);

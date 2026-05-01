@@ -65,7 +65,13 @@ class DatabaseService {
    */
   async registerPlayer(playerData) {
     try {
-      const { playerId, playerName, email, password } = playerData;
+      const {
+        playerId,
+        playerName,
+        email,
+        password,
+        preferredLocale = 'en'
+      } = playerData;
       const playerNameNormalized = this.toNonEmptyString(playerName).toLowerCase();
 
       // Check if player already exists
@@ -80,6 +86,7 @@ class DatabaseService {
         playerNameNormalized,
         email,
         password,
+        preferredLocale,
         characters: []
       });
 

@@ -34,12 +34,14 @@ class RegisterMessageHandler {
       const playerName = this.context.toNonEmptyString(payload?.playerName);
       const email = this.context.toNonEmptyString(payload?.email);
       const password = this.context.toNonEmptyString(payload?.password);
+      const preferredLocale = this.context.normalizeLocale(payload?.locale);
 
       const playerData = {
         playerId: this.context.createId(),
         playerName,
         email,
-        password
+        password,
+        preferredLocale
       };
 
       try {

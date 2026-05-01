@@ -8,6 +8,7 @@ const REGISTER_RESPONSE_EVENT = 'register-response';
  * @property {string} playerName
  * @property {string} email
  * @property {string} password
+ * @property {string} [locale]
  */
 
 /**
