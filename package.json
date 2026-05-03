@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "test": "node --test",
-    "start": "node src/server.js",
+    "start": "cross-env MONGODB_URI=mongodb://localhost:27017/solid-train node src/server.js",
     "dev": "node --watch src/server.js"
   },
   "repository": {
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/qagwaai/solid-train#readme",
   "dependencies": {
+    "cross-env": "^10.1.0",
     "dotenv": "^16.4.5",
     "mongoose": "^8.1.4",
     "socket.io": "^4.8.3"

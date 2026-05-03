@@ -5,6 +5,7 @@ Simple Socket.IO server with Node.js.
 ## Requirements
 
 - Node.js 20+
+- MongoDB (local default: `mongodb://localhost:27017`)
 
 ## Setup
 
@@ -19,6 +20,21 @@ npm start
 ```
 
 The server listens on port `3000` by default. Set `PORT` to override.
+
+`npm start` uses a cross-platform script (`cross-env`) and sets:
+
+- `MONGODB_URI=mongodb://localhost:27017/solid-train`
+
+This works across bash, cmd, and PowerShell.
+
+## MongoDB configuration
+
+- Default (from `npm start`): `mongodb://localhost:27017/solid-train`
+- If you want a different URI, run the server directly with your own env var:
+
+```bash
+npx cross-env MONGODB_URI=mongodb://localhost:27017/my-db node src/server.js
+```
 
 ## Endpoints
 
