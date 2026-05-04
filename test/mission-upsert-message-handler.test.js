@@ -18,8 +18,7 @@ const {
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-test('MissionUpsertMessageHandler upserts mission progress to a character', async () => {
-  const context = createTestContext();
+function seedMissionPilot(context, missions = []) {
   seedPlayer(context, {
     playerName: 'MissionPilot',
     sessionKey: 'session-1',
@@ -27,10 +26,15 @@ test('MissionUpsertMessageHandler upserts mission progress to a character', asyn
       {
         id: 'character-1',
         characterName: 'RangerOne',
-        missions: []
+        missions
       }
     ]
   });
+}
+
+test('MissionUpsertMessageHandler upserts mission progress to a character', async () => {
+  const context = createTestContext();
+  seedMissionPilot(context, []);
 
   const handler = new MissionUpsertMessageHandler(context);
   const socket = createMockSocket();
@@ -38,7 +42,7 @@ test('MissionUpsertMessageHandler upserts mission progress to a character', asyn
   const response = await handler.handle(socket, {
     playerName: 'missionpilot',
     characterId: 'character-1',
-    missionId: 'The First Target',
+    missionId: 'first-target',
     status: 'started',
     sessionKey: 'session-1'
   });
@@ -47,37 +51,28 @@ test('MissionUpsertMessageHandler upserts mission progress to a character', asyn
   assert.equal(response.message, 'Mission recorded successfully');
   assert.equal(response.playerName, 'MissionPilot');
   assert.equal(response.characterId, 'character-1');
-  assert.equal(response.mission.missionId, 'The First Target');
+  assert.equal(response.mission.missionId, 'first-target');
   assert.equal(response.mission.status, 'started');
   assert.equal(response.mission.startedAt, '2026-04-17T00:00:00.000Z');
   assert.equal(response.mission.updatedAt, '2026-04-17T00:00:00.000Z');
 
-  const mission = context.getCharacters('missionpilot')[0].missions[0];
-  assert.equal(mission.missionId, 'The First Target');
+  const missions = context.getCharacters('missionpilot')[0].missions;
+  const mission = missions.find((entry) => entry.missionId === 'first-target');
+  assert.ok(mission);
   assert.equal(mission.status, 'started');
   assert.equal(socket.events[0].eventName, MISSION_UPSERT_RESPONSE_EVENT);
 });
 
 test('MissionUpsertMessageHandler updates existing mission (upsert)', async () => {
   const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'MissionPilot',
-    sessionKey: 'session-1',
-    characters: [
-      {
-        id: 'character-1',
-        characterName: 'RangerOne',
-        missions: [
-          {
-            missionId: 'The First Target',
-            status: 'started',
-            startedAt: '2026-04-01T00:00:00.000Z',
-            updatedAt: '2026-04-01T00:00:00.000Z'
-          }
-        ]
-      }
-    ]
-  });
+  seedMissionPilot(context, [
+    {
+      missionId: 'first-target',
+      status: 'started',
+      startedAt: '2026-04-01T00:00:00.000Z',
+      updatedAt: '2026-04-01T00:00:00.000Z'
+    }
+  ]);
 
   const handler = new MissionUpsertMessageHandler(context);
   const socket = createMockSocket();
@@ -85,7 +80,7 @@ test('MissionUpsertMessageHandler updates existing mission (upsert)', async () =
   const response = await handler.handle(socket, {
     playerName: 'MissionPilot',
     characterId: 'character-1',
-    missionId: 'The First Target',
+    missionId: 'first-target',
     status: 'in-progress',
     sessionKey: 'session-1'
   });
@@ -96,18 +91,17 @@ test('MissionUpsertMessageHandler updates existing mission (upsert)', async () =
   assert.equal(response.mission.inProgressAt, '2026-04-17T00:00:00.000Z');
   assert.equal(response.mission.updatedAt, '2026-04-17T00:00:00.000Z');
 
-  const mission = context.getCharacters('missionpilot')[0].missions[0];
+  const mission = context.getCharacters('missionpilot')[0].missions.find(
+    (entry) => entry.missionId === 'first-target'
+  );
+  assert.ok(mission);
   assert.equal(mission.status, 'in-progress');
   assert.equal(socket.events[0].eventName, MISSION_UPSERT_RESPONSE_EVENT);
 });
 
 test('MissionUpsertMessageHandler requires status field', async () => {
   const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'MissionPilot',
-    sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
-  });
+  seedMissionPilot(context, []);
 
   const handler = new MissionUpsertMessageHandler(context);
   const socket = createMockSocket();
@@ -115,7 +109,7 @@ test('MissionUpsertMessageHandler requires status field', async () => {
   const response = await handler.handle(socket, {
     playerName: 'MissionPilot',
     characterId: 'character-1',
-    missionId: 'The First Target',
+    missionId: 'first-target',
     sessionKey: 'session-1'
     // status omitted intentionally
   });
@@ -134,7 +128,7 @@ test('MissionUpsertMessageHandler buildResponse rejects unregistered player', ()
   const response = handler.buildResponse({
     playerName: 'UnknownPlayer',
     characterId: 'character-1',
-    missionId: 'The First Target',
+    missionId: 'first-target',
     status: 'available',
     sessionKey: 'session-1'
   });
@@ -145,11 +139,7 @@ test('MissionUpsertMessageHandler buildResponse rejects unregistered player', ()
 
 test('MissionUpsertMessageHandler rejects unknown character', async () => {
   const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'MissionPilot',
-    sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
-  });
+  seedMissionPilot(context, []);
 
   const handler = new MissionUpsertMessageHandler(context);
   const socket = createMockSocket();
@@ -157,7 +147,7 @@ test('MissionUpsertMessageHandler rejects unknown character', async () => {
   const response = await handler.handle(socket, {
     playerName: 'MissionPilot',
     characterId: 'no-such-character',
-    missionId: 'The First Target',
+    missionId: 'first-target',
     status: 'available',
     sessionKey: 'session-1'
   });
@@ -169,11 +159,7 @@ test('MissionUpsertMessageHandler rejects unknown character', async () => {
 
 test('MissionUpsertMessageHandler emits invalid session before mutation', async () => {
   const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'MissionPilot',
-    sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
-  });
+  seedMissionPilot(context, []);
 
   const handler = new MissionUpsertMessageHandler(context);
   const socket = createMockSocket();
@@ -181,7 +167,7 @@ test('MissionUpsertMessageHandler emits invalid session before mutation', async 
   const response = await handler.handle(socket, {
     playerName: 'MissionPilot',
     characterId: 'character-1',
-    missionId: 'The First Target',
+    missionId: 'first-target',
     status: 'started',
     sessionKey: 'wrong-session'
   });
@@ -199,11 +185,7 @@ test('MissionUpsertMessageHandler handles all canonical status values', async ()
 
   for (const status of canonicalStatuses) {
     const context = createTestContext();
-    seedPlayer(context, {
-      playerName: 'MissionPilot',
-      sessionKey: 'session-1',
-      characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
-    });
+    seedMissionPilot(context, []);
 
     const handler = new MissionUpsertMessageHandler(context);
     const socket = createMockSocket();
@@ -211,7 +193,7 @@ test('MissionUpsertMessageHandler handles all canonical status values', async ()
     const response = await handler.handle(socket, {
       playerName: 'MissionPilot',
       characterId: 'character-1',
-      missionId: 'mission-x',
+      missionId: 'm-01',
       status,
       sessionKey: 'session-1'
     });
@@ -221,13 +203,9 @@ test('MissionUpsertMessageHandler handles all canonical status values', async ()
   }
 });
 
-test('MissionUpsertMessageHandler allows custom status strings', async () => {
+test('MissionUpsertMessageHandler rejects unknown mission ids', async () => {
   const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'MissionPilot',
-    sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
-  });
+  seedMissionPilot(context, []);
 
   const handler = new MissionUpsertMessageHandler(context);
   const socket = createMockSocket();
@@ -235,22 +213,18 @@ test('MissionUpsertMessageHandler allows custom status strings', async () => {
   const response = await handler.handle(socket, {
     playerName: 'MissionPilot',
     characterId: 'character-1',
-    missionId: 'mission-x',
-    status: 'reward-claimed',
+    missionId: 'not-in-catalog',
+    status: 'available',
     sessionKey: 'session-1'
   });
 
-  assert.equal(response.success, true);
-  assert.equal(response.mission.status, 'reward-claimed');
+  assert.equal(response.success, false);
+  assert.ok(response.message.includes('missionId must be one of'));
 });
 
 test('MissionUpsertMessageHandler seeds first-target asteroid field on mission start', async () => {
   const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'MissionPilot',
-    sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
-  });
+  seedMissionPilot(context, []);
 
   const handler = new MissionUpsertMessageHandler(context);
   const socket = createMockSocket();
@@ -278,11 +252,7 @@ test('MissionUpsertMessageHandler seeds first-target asteroid field on mission s
 
 test('MissionUpsertMessageHandler does not duplicate first-target asteroid field on repeated start', async () => {
   const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'MissionPilot',
-    sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
-  });
+  seedMissionPilot(context, []);
 
   const handler = new MissionUpsertMessageHandler(context);
   const socket = createMockSocket();
@@ -309,4 +279,78 @@ test('MissionUpsertMessageHandler does not duplicate first-target asteroid field
   });
 
   assert.equal(seededField.length, 10);
+});
+
+test('MissionUpsertMessageHandler persists statusDetail exactly as sent', async () => {
+  const context = createTestContext();
+  seedMissionPilot(context, []);
+
+  const handler = new MissionUpsertMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    missionId: 'm-01',
+    status: 'in-progress',
+    statusDetail: '  Keep spacing exactly.  ',
+    sessionKey: 'session-1'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.mission.statusDetail, '  Keep spacing exactly.  ');
+  const mission = context.getCharacters('missionpilot')[0].missions.find(
+    (entry) => entry.missionId === 'm-01'
+  );
+  assert.equal(mission.statusDetail, '  Keep spacing exactly.  ');
+});
+
+test('MissionUpsertMessageHandler completing first-target unlocks dependent missions once', async () => {
+  const context = createTestContext();
+  seedMissionPilot(context, []);
+  const handler = new MissionUpsertMessageHandler(context);
+
+  const payload = {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    missionId: 'first-target',
+    status: 'completed',
+    sessionKey: 'session-1'
+  };
+
+  const firstResponse = await handler.handle(createMockSocket(), payload);
+  assert.equal(firstResponse.success, true);
+
+  const secondResponse = await handler.handle(createMockSocket(), payload);
+  assert.equal(secondResponse.success, true);
+
+  const missions = context.getCharacters('missionpilot')[0].missions;
+  const missionIds = missions.map((mission) => mission.missionId);
+
+  assert.equal(missionIds.filter((missionId) => missionId === 'm-01').length, 1);
+  assert.equal(missionIds.filter((missionId) => missionId === 'sq-02').length, 1);
+  assert.equal(missionIds.filter((missionId) => missionId === 'sq-03').length, 1);
+
+  const m01 = missions.find((mission) => mission.missionId === 'm-01');
+  const sq02 = missions.find((mission) => mission.missionId === 'sq-02');
+  const sq03 = missions.find((mission) => mission.missionId === 'sq-03');
+  assert.equal(m01.status, 'available');
+  assert.equal(sq02.status, 'available');
+  assert.equal(sq03.status, 'available');
+});
+
+test('MissionUpsertMessageHandler echoes requestId when present', async () => {
+  const context = createTestContext();
+  seedMissionPilot(context, []);
+  const handler = new MissionUpsertMessageHandler(context);
+
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    missionId: 'm-01',
+    status: 'started',
+    requestId: 'req-123',
+    sessionKey: 'session-1'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.requestId, 'req-123');
 });

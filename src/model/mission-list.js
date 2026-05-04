@@ -9,6 +9,7 @@ const MISSION_LIST_RESPONSE_EVENT = 'list-missions-response';
  * @property {string} characterId
  * @property {string} sessionKey
  * @property {string[]} [statuses]
+ * @property {string} [requestId]
  */
 
 /**
@@ -18,6 +19,7 @@ const MISSION_LIST_RESPONSE_EVENT = 'list-missions-response';
  * @property {string} playerName
  * @property {string} characterId
  * @property {import('./mission').CharacterMissionProgress[]} missions
+ * @property {string} [requestId]
  */
 
 module.exports = {

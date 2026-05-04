@@ -38,7 +38,7 @@ test('MissionUpsertMessageHandler adds mission progress to a character', async (
   const response = await handler.handle(socket, {
     playerName: 'missionpilot',
     characterId: 'character-1',
-    missionId: 'The First Target',
+    missionId: 'first-target',
     status: 'started',
     sessionKey: 'session-1'
   });
@@ -47,13 +47,13 @@ test('MissionUpsertMessageHandler adds mission progress to a character', async (
   assert.equal(response.message, 'Mission recorded successfully');
   assert.equal(response.playerName, 'MissionPilot');
   assert.equal(response.characterId, 'character-1');
-  assert.equal(response.mission.missionId, 'The First Target');
+  assert.equal(response.mission.missionId, 'first-target');
   assert.equal(response.mission.status, 'started');
   assert.equal(response.mission.startedAt, '2026-04-17T00:00:00.000Z');
   assert.equal(response.mission.updatedAt, '2026-04-17T00:00:00.000Z');
 
   const mission = context.getCharacters('missionpilot')[0].missions[0];
-  assert.equal(mission.missionId, 'The First Target');
+  assert.equal(mission.missionId, 'first-target');
   assert.equal(mission.status, 'started');
   assert.equal(socket.events[0].eventName, MISSION_UPSERT_RESPONSE_EVENT);
 });
@@ -72,7 +72,7 @@ test('MissionUpsertMessageHandler emits invalid session before mutation', async 
   const response = await handler.handle(socket, {
     playerName: 'MissionPilot',
     characterId: 'character-1',
-    missionId: 'The First Target',
+    missionId: 'first-target',
     status: 'started',
     sessionKey: 'wrong-session'
   });

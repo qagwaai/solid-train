@@ -207,7 +207,14 @@ class MessageHandlerContext {
     return {
       ...source,
       missionId: this.toNonEmptyString(source.missionId),
-      status: this.toNonEmptyString(source.status)
+      status: this.toNonEmptyString(source.status),
+      startedAt: this.toNonEmptyString(source.startedAt) || undefined,
+      inProgressAt: this.toNonEmptyString(source.inProgressAt) || undefined,
+      failedAt: this.toNonEmptyString(source.failedAt) || undefined,
+      completedAt: this.toNonEmptyString(source.completedAt) || undefined,
+      updatedAt: this.toNonEmptyString(source.updatedAt) || undefined,
+      failureReason: typeof source.failureReason === 'string' ? source.failureReason : undefined,
+      statusDetail: typeof source.statusDetail === 'string' ? source.statusDetail : undefined
     };
   }
 

@@ -753,7 +753,7 @@ test('mission add stores mission progress and mission list returns it', async ()
   client.emit(MISSION_ADD_REQUEST_EVENT, {
     playerName: 'MissionSocketPilot',
     characterId: addCharacter.characterId,
-    missionId: 'The First Target',
+    missionId: 'first-target',
     status: 'started',
     sessionKey: loginResponse.sessionKey
   });
@@ -763,7 +763,7 @@ test('mission add stores mission progress and mission list returns it', async ()
   assert.equal(addMission.message, 'Mission recorded successfully');
   assert.equal(addMission.playerName, 'MissionSocketPilot');
   assert.equal(addMission.characterId, addCharacter.characterId);
-  assert.equal(addMission.mission.missionId, 'The First Target');
+  assert.equal(addMission.mission.missionId, 'first-target');
   assert.equal(addMission.mission.status, 'started');
 
   const listMissionsPromise = waitForEvent(client, MISSION_LIST_RESPONSE_EVENT);
@@ -780,7 +780,7 @@ test('mission add stores mission progress and mission list returns it', async ()
   assert.equal(listMissions.playerName, 'MissionSocketPilot');
   assert.equal(listMissions.characterId, addCharacter.characterId);
   assert.equal(listMissions.missions.length, 1);
-  assert.equal(listMissions.missions[0].missionId, 'The First Target');
+  assert.equal(listMissions.missions[0].missionId, 'first-target');
   assert.equal(listMissions.missions[0].status, 'started');
 
   await closeClient(client);

@@ -35,7 +35,9 @@ const {
   GAME_JOIN_REQUEST_EVENT
 } = require('./model/game-join');
 const {
-  MISSION_UPSERT_REQUEST_EVENT
+  MISSION_UPSERT_REQUEST_EVENT,
+  MISSION_UPSERT_ALIAS_REQUEST_EVENT,
+  MISSION_UPSERT_ALIAS_RESPONSE_EVENT
 } = require('./model/mission-upsert');
 const {
   CELESTIAL_BODY_UPSERT_REQUEST_EVENT
@@ -273,6 +275,14 @@ function createServer(options = {}) {
     socket.on(MISSION_UPSERT_REQUEST_EVENT, (payload) => {
       missionUpsertMessageHandler.handle(socket, payload).catch((error) => {
         process.stderr.write(`[socket] Mission upsert handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(MISSION_UPSERT_ALIAS_REQUEST_EVENT, (payload) => {
+      missionUpsertMessageHandler.handle(socket, payload).then((response) => {
+        socket.emit(MISSION_UPSERT_ALIAS_RESPONSE_EVENT, response);
+      }).catch((error) => {
+        process.stderr.write(`[socket] Mission upsert alias handler error: ${error.message}\n`);
       });
     });
 

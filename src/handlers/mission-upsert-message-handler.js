@@ -4,7 +4,12 @@ const {
   MISSION_UPSERT_RESPONSE_EVENT
 } = require('../model/mission-upsert');
 const {
-  DEFAULT_STARTER_MISSION_ID
+  DEFAULT_STARTER_MISSION_ID,
+  MISSION_CATALOG_IDS,
+  MISSION_CATALOG_ID_SET,
+  MISSION_PREREQUISITES_BY_ID,
+  MISSION_STATUS_VALUES,
+  MISSION_UNLOCK_SOURCE_STATUSES
 } = require('../model/mission');
 const {
   INVALID_SESSION_EVENT,
@@ -17,6 +22,7 @@ const {
 const STARTER_MISSION_ASTEROID_STATE = 'unscanned';
 const STARTER_MISSION_ASTEROID_COUNT = 10;
 const STARTER_MISSION_ACTIVATION_STATUSES = new Set(['started', 'in-progress']);
+const MISSION_STATUS_SET = new Set(MISSION_STATUS_VALUES);
 const STARTER_MISSION_ASTEROID_MATERIALS = [
   { rarity: 'Common', material: 'Iron', textureColor: '#8f99a7' },
   { rarity: 'Common', material: 'Nickel-Iron', textureColor: '#8da6b3' },
@@ -35,51 +41,130 @@ class MissionUpsertMessageHandler {
     this.context = context;
   }
 
+  attachRequestId(response, payload) {
+    const requestId = this.context.toNonEmptyString(payload?.requestId);
+    if (requestId) {
+      response.requestId = requestId;
+    }
+
+    return response;
+  }
+
+  formatMissionForResponse(mission) {
+    const normalized = this.context.normalizeMission(mission);
+    const responseMission = {
+      missionId: normalized.missionId,
+      status: normalized.status
+    };
+
+    const optionalFields = [
+      'startedAt',
+      'inProgressAt',
+      'failedAt',
+      'completedAt',
+      'updatedAt',
+      'failureReason',
+      'statusDetail'
+    ];
+
+    for (const field of optionalFields) {
+      if (normalized[field] !== undefined) {
+        responseMission[field] = normalized[field];
+      }
+    }
+
+    return responseMission;
+  }
+
+  resolveUnlockedMissionIds(missionsById) {
+    const unlocked = [];
+
+    for (const missionId of MISSION_CATALOG_IDS) {
+      if (missionsById.has(missionId)) {
+        continue;
+      }
+
+      const prerequisites = MISSION_PREREQUISITES_BY_ID[missionId] || [];
+      const allSatisfied = prerequisites.every((prerequisiteId) => {
+        const prerequisite = missionsById.get(prerequisiteId);
+        return prerequisite && MISSION_UNLOCK_SOURCE_STATUSES.has(prerequisite.status);
+      });
+
+      if (allSatisfied) {
+        unlocked.push(missionId);
+      }
+    }
+
+    return unlocked;
+  }
+
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
     const missionId = this.context.toNonEmptyString(payload?.missionId);
     const status = this.context.toNonEmptyString(payload?.status);
+    const statusDetail = typeof payload?.statusDetail === 'string'
+      ? payload.statusDetail
+      : undefined;
 
     if (!playerName || !characterId || !missionId || !status) {
-      return {
+      return this.attachRequestId({
         success: false,
         message: 'playerName, characterId, missionId, and status are required',
         playerName,
         characterId
-      };
+      }, payload);
+    }
+
+    if (!MISSION_CATALOG_ID_SET.has(missionId)) {
+      return this.attachRequestId({
+        success: false,
+        message: `missionId must be one of: ${MISSION_CATALOG_IDS.join(', ')}`,
+        playerName,
+        characterId
+      }, payload);
+    }
+
+    if (!MISSION_STATUS_SET.has(status)) {
+      return this.attachRequestId({
+        success: false,
+        message: `status must be one of: ${MISSION_STATUS_VALUES.join(', ')}`,
+        playerName,
+        characterId
+      }, payload);
     }
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return {
+      return this.attachRequestId({
         success: false,
         message: 'Player is not registered',
         playerName,
         characterId
-      };
+      }, payload);
     }
 
     const character = this.context.findCharacter(playerName, characterId);
     if (!character) {
-      return {
+      return this.attachRequestId({
         success: false,
         message: 'Character is not in player list',
         playerName: player.playerName,
         characterId
-      };
+      }, payload);
     }
 
-    return {
+    return this.attachRequestId({
       success: true,
       message: 'Mission recorded successfully',
       playerName: player.playerName,
       characterId,
       mission: {
         missionId,
-        status
+        status,
+        ...(statusDetail !== undefined ? { statusDetail } : {})
       }
-    };
+    }, payload);
   }
 
   enrichMissionTimestamps(mission, existingMission, timestamp) {
@@ -103,6 +188,34 @@ class MissionUpsertMessageHandler {
     }
 
     return nextMission;
+  }
+
+  async ensureUnlockedMissionsAsync(parsed) {
+    if (!MISSION_UNLOCK_SOURCE_STATUSES.has(parsed.status)) {
+      return;
+    }
+
+    const timestamp = this.context.getCurrentTimestamp();
+    const missions = await this.context.getMissionsAsync(parsed.playerName, parsed.characterId);
+    const missionsById = new Map(
+      missions.map((mission) => [mission.missionId, mission])
+    );
+
+    const unlockedMissionIds = this.resolveUnlockedMissionIds(missionsById);
+    for (const missionId of unlockedMissionIds) {
+      const unlockedMission = {
+        missionId,
+        status: 'available',
+        updatedAt: timestamp
+      };
+
+      await this.context.addOrUpdateMissionAsync(
+        parsed.playerName,
+        parsed.characterId,
+        unlockedMission
+      );
+      missionsById.set(missionId, unlockedMission);
+    }
   }
 
   createStarterMissionAsteroidField(parsed) {
@@ -214,13 +327,20 @@ class MissionUpsertMessageHandler {
           missionWithTimestamps
         );
 
+        await this.ensureUnlockedMissionsAsync({
+          playerName: payload?.playerName,
+          characterId: payload?.characterId,
+          missionId: response.mission.missionId,
+          status: response.mission.status
+        });
+
         await this.ensureStarterMissionAsteroidsAsync({
           missionId: response.mission.missionId,
           status: response.mission.status,
           characterId: response.characterId
         });
 
-        response.mission = { ...missionWithTimestamps };
+        response.mission = this.formatMissionForResponse(missionWithTimestamps);
       } catch (error) {
         this.context.log(`[mission-upsert-handler] Failed to upsert mission: ${error.message}`);
         response.success = false;

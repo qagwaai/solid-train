@@ -548,6 +548,8 @@ including required fields, response payloads, and edge-case behavior.
 
 - Request event: `add-mission-request`
 - Response event: `add-mission-response`
+- Alias request event: `mission-upsert-request`
+- Alias response event: `mission-upsert-response`
 - Session failure event: `invalid-session`
 
 ### Request Payload
@@ -556,7 +558,30 @@ including required fields, response payloads, and edge-case behavior.
 - `characterId` (required)
 - `missionId` (required)
 - `sessionKey` (required and must match the player)
-- `status` (required, must be a non-empty string)
+- `status` (required; one of `available`, `started`, `in-progress`, `failed`, `completed`, `locked`, `abandoned`, `paused`, `turned-in`)
+- `statusDetail` (optional string; persisted exactly as provided)
+- `requestId` (optional string; echoed in response when present)
+
+Mission catalog IDs:
+
+- `first-target`
+- `m-01`
+- `m-02`
+- `m-03`
+- `m-04`
+- `m-05`
+- `sq-01`
+- `sq-02`
+- `sq-03`
+- `sq-04`
+
+Prerequisite graph:
+
+- `first-target` -> `m-01`, `sq-02`, `sq-03`
+- `m-01` -> `m-02`
+- `m-02` -> `m-03`, `sq-01`
+- `m-03` -> `m-04`
+- `m-04` -> `m-05`, `sq-04`
 
 ### Success Response
 
@@ -566,6 +591,7 @@ including required fields, response payloads, and edge-case behavior.
   "message": "Mission recorded successfully",
   "playerName": "<canonical player name>",
   "characterId": "<character id>",
+  "requestId": "<optional echo when provided>",
   "mission": {
     "missionId": "<mission id>",
     "status": "<mission status>",
@@ -573,7 +599,9 @@ including required fields, response payloads, and edge-case behavior.
     "startedAt": "<optional when status is started>",
     "inProgressAt": "<optional when status is in-progress>",
     "failedAt": "<optional when status is failed>",
-    "completedAt": "<optional when status is completed>"
+    "completedAt": "<optional when status is completed>",
+    "failureReason": "<optional failure reason>",
+    "statusDetail": "<optional status detail>"
   }
 }
 ```
@@ -617,11 +645,8 @@ including required fields, response payloads, and edge-case behavior.
 
 - Invalid session emits `invalid-session`.
 - Mission progress is scoped to a character.
-- Re-adding the same `missionId` updates the existing mission progress.
-- Canonical status values include:
-  `available`, `started`, `in-progress`, `failed`, `completed`, `locked`,
-  `abandoned`, `paused`, `turned-in`.
-- Custom statuses are allowed for server-side extensions.
+- Re-adding the same `missionId` updates the existing mission progress (idempotent upsert; no duplicate mission rows for a mission/character pair).
+- On status transition to `completed` or `turned-in`, the server evaluates prerequisites and auto-creates newly unlocked missions as `available` when missing (idempotent; retries do not create duplicates).
 - For `missionId=first-target`, transition to `started`/`in-progress` seeds a backend-owned asteroid field as celestial-body records with `state=unscanned` (idempotent; no duplicate spawns on repeated start calls).
 - Mission payload remains status progression only; asteroid world-state is persisted and queried through celestial-body events.
 
@@ -637,6 +662,7 @@ including required fields, response payloads, and edge-case behavior.
 - `characterId` (required)
 - `sessionKey` (required and must match the player)
 - `statuses` (optional list of statuses to filter)
+- `requestId` (optional string; echoed in response when present)
 
 ### Success Response
 
@@ -646,11 +672,18 @@ including required fields, response payloads, and edge-case behavior.
   "message": "Mission list retrieved successfully",
   "playerName": "<canonical player name>",
   "characterId": "<character id>",
+  "requestId": "<optional echo when provided>",
   "missions": [
     {
       "missionId": "<mission id>",
       "status": "<mission status>",
-      "updatedAt": "<iso timestamp>"
+      "startedAt": "<optional started timestamp>",
+      "inProgressAt": "<optional in-progress timestamp>",
+      "failedAt": "<optional failed timestamp>",
+      "completedAt": "<optional completed timestamp>",
+      "updatedAt": "<optional updated timestamp>",
+      "failureReason": "<optional failure reason>",
+      "statusDetail": "<optional status detail>"
     }
   ]
 }
@@ -698,7 +731,8 @@ including required fields, response payloads, and edge-case behavior.
 
 - Invalid session emits `invalid-session`.
 - Mission list is scoped to the requested character.
-- `statuses` filter is optional and supports custom statuses.
+- `statuses` filter is optional.
+- Missions are returned as an array and sorted deterministically by catalog order.
 - Returned `missions` list is a defensive copy of server state.
 
 ## Event: `ship-list-request`
