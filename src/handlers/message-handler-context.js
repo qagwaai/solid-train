@@ -9,6 +9,7 @@ const {
 } = require('../model/solar-system-market-seed');
 const SUPPORTED_LOCALES = new Set(['en', 'it']);
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
+const MARKET_DOCKING_DISTANCE_KM = 50;
 
 function buildMarketKey(marketId, solarSystemId) {
   return `${solarSystemId}:${marketId}`;
@@ -436,6 +437,209 @@ class MessageHandlerContext {
       .filter((market) => !normalizedSolarSystemId || market.solarSystemId === normalizedSolarSystemId)
       .map((market) => this.applyMarketRestock({ ...market }, nowTimestamp))
       .sort((left, right) => left.marketName.localeCompare(right.marketName));
+  }
+
+  normalizeAngleRadians(value) {
+    const twoPi = Math.PI * 2;
+    const normalized = value % twoPi;
+    return normalized < 0 ? normalized + twoPi : normalized;
+  }
+
+  solveEccentricAnomaly(meanAnomalyRad, eccentricity) {
+    let eccentricAnomaly = meanAnomalyRad;
+
+    for (let index = 0; index < 8; index += 1) {
+      const delta = (eccentricAnomaly - (eccentricity * Math.sin(eccentricAnomaly)) - meanAnomalyRad)
+        / (1 - (eccentricity * Math.cos(eccentricAnomaly)));
+      eccentricAnomaly -= delta;
+
+      if (Math.abs(delta) < 1e-8) {
+        break;
+      }
+    }
+
+    return eccentricAnomaly;
+  }
+
+  rotatePerifocalVector(perifocalVector, orbit) {
+    const omega = (orbit.argumentOfPeriapsisDeg * Math.PI) / 180;
+    const inclination = (orbit.inclinationDeg * Math.PI) / 180;
+    const ascendingNode = (orbit.longitudeOfAscendingNodeDeg * Math.PI) / 180;
+
+    const cosOmega = Math.cos(omega);
+    const sinOmega = Math.sin(omega);
+    const cosI = Math.cos(inclination);
+    const sinI = Math.sin(inclination);
+    const cosNode = Math.cos(ascendingNode);
+    const sinNode = Math.sin(ascendingNode);
+
+    const px = perifocalVector.x;
+    const py = perifocalVector.y;
+    const pz = perifocalVector.z;
+
+    const x = (
+      (cosNode * cosOmega - sinNode * sinOmega * cosI) * px
+      + (-cosNode * sinOmega - sinNode * cosOmega * cosI) * py
+      + (sinNode * sinI) * pz
+    );
+    const y = (
+      (sinNode * cosOmega + cosNode * sinOmega * cosI) * px
+      + (-sinNode * sinOmega + cosNode * cosOmega * cosI) * py
+      + (-cosNode * sinI) * pz
+    );
+    const z = ((sinOmega * sinI) * px) + ((cosOmega * sinI) * py) + (cosI * pz);
+
+    return { x, y, z };
+  }
+
+  computeRelativeOrbitPositionKm(orbit, timestamp) {
+    const a = Math.max(0, orbit.semiMajorAxisKm);
+    const e = Math.max(0, Math.min(0.99, orbit.eccentricity));
+    const periodSec = Math.max(1, orbit.orbitalPeriodSec);
+    const epochMs = Date.parse(orbit.epoch);
+    const timestampMs = Date.parse(timestamp);
+    const baselineMs = Number.isNaN(epochMs) ? timestampMs : epochMs;
+    const nowMs = Number.isNaN(timestampMs) ? baselineMs : timestampMs;
+
+    const meanMotionRadPerSec = (Math.PI * 2) / periodSec;
+    const elapsedSec = (nowMs - baselineMs) / 1000;
+    const meanAnomalyAtEpoch = (orbit.meanAnomalyAtEpochDeg * Math.PI) / 180;
+    const meanAnomaly = this.normalizeAngleRadians(meanAnomalyAtEpoch + (meanMotionRadPerSec * elapsedSec));
+    const eccentricAnomaly = this.solveEccentricAnomaly(meanAnomaly, e);
+
+    const xPerifocal = a * (Math.cos(eccentricAnomaly) - e);
+    const yPerifocal = a * Math.sqrt(1 - (e * e)) * Math.sin(eccentricAnomaly);
+
+    return this.rotatePerifocalVector(
+      { x: xPerifocal, y: yPerifocal, z: 0 },
+      orbit
+    );
+  }
+
+  async resolveMarketPositionKmAsync(market, timestamp) {
+    const orbit = this.normalizeMarketOrbit(market?.orbit);
+    const relative = this.computeRelativeOrbitPositionKm(orbit, timestamp || this.getCurrentTimestamp());
+    const anchorBody = await this.getCelestialBodyByIdAsync(orbit.anchorBodyId);
+    const anchorPosition = this.isTriple(anchorBody?.location?.positionKm)
+      ? anchorBody.location.positionKm
+      : { x: 0, y: 0, z: 0 };
+
+    return {
+      x: anchorPosition.x + relative.x,
+      y: anchorPosition.y + relative.y,
+      z: anchorPosition.z + relative.z
+    };
+  }
+
+  getShipPositionKm(ship) {
+    if (this.isTriple(ship?.kinematics?.position)) {
+      return ship.kinematics.position;
+    }
+
+    if (this.isTriple(ship?.location?.positionKm)) {
+      return ship.location.positionKm;
+    }
+
+    return null;
+  }
+
+  async resolveDockingStateAsync(request = {}) {
+    const playerName = this.toNonEmptyString(request.playerName);
+    const characterId = this.toNonEmptyString(request.characterId);
+    const shipId = this.toNonEmptyString(request.shipId);
+    const markets = Array.isArray(request.markets) ? request.markets : [];
+
+    if (!playerName || !characterId || markets.length === 0) {
+      return {
+        isDocked: false,
+        dockedMarketId: null,
+        perMarketDocked: new Map()
+      };
+    }
+
+    const character = this.findCharacter(playerName, characterId);
+    if (!character) {
+      return {
+        isDocked: false,
+        dockedMarketId: null,
+        perMarketDocked: new Map()
+      };
+    }
+
+    const ships = Array.isArray(character.ships) ? character.ships : [];
+    const ship = shipId
+      ? ships.find((candidate) => this.toNonEmptyString(candidate?.id) === shipId) || null
+      : ships[0] || null;
+    const shipPositionKm = this.getShipPositionKm(ship);
+    if (!shipPositionKm) {
+      return {
+        isDocked: false,
+        dockedMarketId: null,
+        perMarketDocked: new Map()
+      };
+    }
+
+    const nearestDock = markets
+      .map((market) => ({
+        marketId: market.marketId,
+        distanceKm: this.calculateDistanceKm(shipPositionKm, market.positionKm)
+      }))
+      .filter((entry) => entry.distanceKm <= MARKET_DOCKING_DISTANCE_KM)
+      .sort((left, right) => left.distanceKm - right.distanceKm)[0] || null;
+
+    const dockedMarketId = nearestDock ? nearestDock.marketId : null;
+    const perMarketDocked = new Map(
+      markets.map((market) => [market.marketId, market.marketId === dockedMarketId])
+    );
+
+    return {
+      isDocked: Boolean(dockedMarketId),
+      dockedMarketId,
+      perMarketDocked
+    };
+  }
+
+  async getMarketsByLocationAsync(query = {}) {
+    const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
+    const positionKm = query?.positionKm;
+    const distanceKm = query?.distanceKm;
+    const asOf = this.toNonEmptyString(query?.asOf) || this.getCurrentTimestamp();
+    const limit = Number.isInteger(query?.limit) && query.limit > 0 ? query.limit : null;
+    const locationTypes = Array.isArray(query?.locationTypes)
+      ? query.locationTypes
+        .map((value) => this.toNonEmptyString(value).toLowerCase())
+        .filter((value) => Boolean(value))
+      : [];
+
+    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
+      return [];
+    }
+
+    const markets = await this.getMarketsAsync({ solarSystemId, asOf });
+    const spatial = [];
+
+    for (const market of markets) {
+      const normalizedLocationType = this.toNonEmptyString(market.locationType).toLowerCase();
+      if (locationTypes.length > 0 && !locationTypes.includes(normalizedLocationType)) {
+        continue;
+      }
+
+      const marketPositionKm = await this.resolveMarketPositionKmAsync(market, asOf);
+      const computedDistanceKm = this.calculateDistanceKm(positionKm, marketPositionKm);
+
+      if (computedDistanceKm > distanceKm) {
+        continue;
+      }
+
+      spatial.push({
+        ...market,
+        positionKm: marketPositionKm,
+        distanceKm: computedDistanceKm
+      });
+    }
+
+    const sorted = spatial.sort((left, right) => left.distanceKm - right.distanceKm);
+    return limit ? sorted.slice(0, limit) : sorted;
   }
 
   async getMarketQuoteAsync(request = {}) {

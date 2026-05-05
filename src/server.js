@@ -64,6 +64,9 @@ const {
   MARKET_LIST_REQUEST_EVENT
 } = require('./model/market-list');
 const {
+  MARKET_LIST_BY_LOCATION_REQUEST_EVENT
+} = require('./model/market-list-by-location');
+const {
   MARKET_QUOTE_REQUEST_EVENT
 } = require('./model/market-quote');
 const {
@@ -135,6 +138,9 @@ const {
 const {
   MarketListMessageHandler
 } = require('./handlers/market-list-message-handler');
+const {
+  MarketListByLocationMessageHandler
+} = require('./handlers/market-list-by-location-message-handler');
 const {
   MarketQuoteMessageHandler
 } = require('./handlers/market-quote-message-handler');
@@ -223,6 +229,9 @@ function createServer(options = {}) {
     messageHandlerContext
   );
   const marketListMessageHandler = new MarketListMessageHandler(
+    messageHandlerContext
+  );
+  const marketListByLocationMessageHandler = new MarketListByLocationMessageHandler(
     messageHandlerContext
   );
   const marketQuoteMessageHandler = new MarketQuoteMessageHandler(
@@ -385,6 +394,12 @@ function createServer(options = {}) {
     socket.on(MARKET_LIST_REQUEST_EVENT, (payload) => {
       marketListMessageHandler.handle(socket, payload).catch((error) => {
         process.stderr.write(`[socket] Market list handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(MARKET_LIST_BY_LOCATION_REQUEST_EVENT, (payload) => {
+      marketListByLocationMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Market list by location handler error: ${error.message}\n`);
       });
     });
 

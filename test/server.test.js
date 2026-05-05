@@ -71,6 +71,10 @@ const {
   MARKET_LIST_RESPONSE_EVENT
 } = require('../src/model/market-list');
 const {
+  MARKET_LIST_BY_LOCATION_REQUEST_EVENT,
+  MARKET_LIST_BY_LOCATION_RESPONSE_EVENT
+} = require('../src/model/market-list-by-location');
+const {
   MARKET_QUOTE_REQUEST_EVENT,
   MARKET_QUOTE_RESPONSE_EVENT
 } = require('../src/model/market-quote');
@@ -411,6 +415,52 @@ test('market list and market quote return responses for a valid session', async 
     marketQuote.quote.totalPrice,
     marketQuote.quote.unitPrice * marketQuote.quote.quantity
   );
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('market list by location returns response for valid session', async () => {
+  const { server, io } = createServer({ port: '3051' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'MarketRangePilot',
+    'market-range@example.com',
+    'market-range-pass'
+  );
+
+  const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'MarketRangePilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'RangeTrader'
+  });
+  const addCharacter = await addCharacterPromise;
+  assert.equal(addCharacter.success, true);
+
+  const responsePromise = waitForEvent(client, MARKET_LIST_BY_LOCATION_RESPONSE_EVENT);
+  client.emit(MARKET_LIST_BY_LOCATION_REQUEST_EVENT, {
+    playerName: 'MarketRangePilot',
+    sessionKey: loginResponse.sessionKey,
+    characterId: addCharacter.characterId,
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceKm: 1000000000,
+    limit: 3
+  });
+  const response = await responsePromise;
+
+  assert.equal(response.success, true);
+  assert.ok(Array.isArray(response.markets));
+  assert.ok(response.markets.length >= 1);
+  assert.equal(typeof response.markets[0].distanceKm, 'number');
+  assert.equal(typeof response.isDocked, 'boolean');
 
   await closeClient(client);
   io.close();

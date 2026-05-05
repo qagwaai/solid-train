@@ -11,7 +11,7 @@ including required fields, response payloads, and edge-case behavior.
   `game-join`, `add-mission-request`, `list-missions-request`,
   `item-upsert-request`, `item-list-by-container-request`,
   `item-list-by-location-request`, `launch-item-request`,
-  `market-list-request`, `market-quote-request`,
+  `market-list-request`, `market-list-by-location-request`, `market-quote-request`,
   `market-inventory-list-request`, `market-buy-request`,
   `market-sell-request`, `market-ledger-list-request`) require
   a valid session.
@@ -375,6 +375,135 @@ Each character carries a `creditLedger` array and a computed `credits` summary f
 - Invalid session emits `invalid-session` instead of `market-list-response`.
 - Omitting `solarSystemId` returns markets across all solar systems.
 - Market stock is restocked lazily on reads based on `restockIntervalMinutes`.
+
+## Event: `market-list-by-location-request`
+
+- Request event: `market-list-by-location-request`
+- Response event: `market-list-by-location-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `solarSystemId` (required)
+- `positionKm` (required object with numeric `x`, `y`, `z`)
+- `distanceKm` (required number, must be `>= 0`)
+- `limit` (optional positive integer)
+- `locationTypes` (optional array of non-empty strings; case-insensitive match)
+- `characterId` (optional; required to compute docking state)
+- `shipId` (optional; when omitted server uses the character's first ship)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Local market list retrieved successfully",
+  "playerName": "<canonical player name>",
+  "solarSystemId": "sol",
+  "positionKm": { "x": 0, "y": 0, "z": 0 },
+  "distanceKm": 100000,
+  "locationTypes": ["station"],
+  "isDocked": false,
+  "dockedMarketId": null,
+  "markets": [
+    {
+      "marketId": "sol-ceres-exchange",
+      "solarSystemId": "sol",
+      "marketName": "Ceres Exchange",
+      "locationType": "station",
+      "locationName": "Ceres Belt Trade Ring",
+      "isStarterMarket": true,
+      "orbit": {
+        "anchorBodyId": "ceres",
+        "semiMajorAxisKm": 480,
+        "eccentricity": 0.006,
+        "inclinationDeg": 2.1,
+        "longitudeOfAscendingNodeDeg": 95,
+        "argumentOfPeriapsisDeg": 12,
+        "meanAnomalyAtEpochDeg": 8,
+        "orbitalPeriodSec": 21600,
+        "epoch": "<iso timestamp>"
+      },
+      "positionKm": { "x": 123.45, "y": -22.1, "z": 0.9 },
+      "distanceKm": 4821.8,
+      "isDocked": false,
+      "priceMultiplier": 1,
+      "driftPercentPerHour": 6,
+      "restockIntervalMinutes": 60
+    }
+  ]
+}
+```
+
+When no markets are found inside radius, the response remains successful:
+
+```json
+{
+  "success": true,
+  "message": "No markets found within distance",
+  "playerName": "<canonical player name>",
+  "solarSystemId": "sol",
+  "positionKm": { "x": 0, "y": 0, "z": 0 },
+  "distanceKm": 100,
+  "locationTypes": [],
+  "isDocked": false,
+  "dockedMarketId": null,
+  "markets": []
+}
+```
+
+### Failure Responses
+
+- Missing or invalid required radius inputs:
+
+```json
+{
+  "success": false,
+  "message": "playerName, solarSystemId, positionKm, and distanceKm are required",
+  "playerName": "<provided playerName>",
+  "solarSystemId": "<provided solarSystemId>",
+  "markets": [],
+  "isDocked": false,
+  "dockedMarketId": null
+}
+```
+
+- Invalid `limit` format:
+
+```json
+{
+  "success": false,
+  "message": "limit must be a positive integer when provided",
+  "playerName": "<provided playerName>",
+  "solarSystemId": "<provided solarSystemId>",
+  "markets": [],
+  "isDocked": false,
+  "dockedMarketId": null
+}
+```
+
+- Invalid `locationTypes` format:
+
+```json
+{
+  "success": false,
+  "message": "locationTypes must be an array of non-empty strings when provided",
+  "playerName": "<provided playerName>",
+  "solarSystemId": "<provided solarSystemId>",
+  "markets": [],
+  "isDocked": false,
+  "dockedMarketId": null
+}
+```
+
+### Edge Cases
+
+- Invalid session emits `invalid-session` instead of `market-list-by-location-response`.
+- Distances are authoritative and server-computed from market orbit and request `positionKm`.
+- Results are sorted nearest-first before applying `limit`.
+- If `characterId` (and optional `shipId`) is supplied, response docking state indicates whether the specified ship is currently docked at one of the returned markets.
 
 ## Event: `market-quote-request`
 
