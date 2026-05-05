@@ -1,7 +1,70 @@
 'use strict';
 
 const { GameState } = require('../model/game');
+const { MARKET_CATALOG, MARKET_CATALOG_BY_ID } = require('../model/market-catalog');
+const { computeMidpointPrice } = require('../model/market-pricing');
 const SUPPORTED_LOCALES = new Set(['en', 'it']);
+const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
+
+const DEFAULT_MARKETS = [
+  {
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol',
+    marketName: 'Ceres Exchange',
+    locationType: 'station',
+    locationName: 'Ceres Belt Trade Ring',
+    priceMultiplier: 1.0,
+    driftPercentPerHour: 6
+  },
+  {
+    marketId: 'sol-mars-shipyard',
+    solarSystemId: 'sol',
+    marketName: 'Ares Surface Shipyard',
+    locationType: 'surface-settlement',
+    locationName: 'Mars Lowland Foundry',
+    priceMultiplier: 1.07,
+    driftPercentPerHour: 5
+  },
+  {
+    marketId: 'sol-drifter-17',
+    solarSystemId: 'sol',
+    marketName: 'Drifter 17 Bazaar',
+    locationType: 'free-floating',
+    locationName: 'Jovian Transfer Lane',
+    priceMultiplier: 0.95,
+    driftPercentPerHour: 8
+  }
+];
+
+function buildMarketKey(marketId, solarSystemId) {
+  return `${solarSystemId}:${marketId}`;
+}
+
+function getDefaultStockByRarity(rarity) {
+  switch (rarity) {
+  case 'Exotic':
+    return 80;
+  case 'Rare':
+    return 260;
+  case 'Uncommon':
+    return 640;
+  default:
+    return 1200;
+  }
+}
+
+function buildDefaultInventoryEntry(catalogEntry) {
+  const maxStock = getDefaultStockByRarity(catalogEntry.rarity);
+
+  return {
+    itemId: catalogEntry.itemId,
+    stock: maxStock,
+    maxStock,
+    restockPerInterval: Math.max(1, Math.round(maxStock * 0.08)),
+    marketCanBuy: Boolean(catalogEntry.marketCanBuy),
+    marketCanSell: Boolean(catalogEntry.marketCanSell)
+  };
+}
 
 class MessageHandlerContext {
   constructor(options = {}) {
@@ -9,6 +72,7 @@ class MessageHandlerContext {
     this.charactersByPlayer = options.charactersByPlayer || new Map();
     this.celestialBodiesById = options.celestialBodiesById || new Map();
     this.itemsById = options.itemsById || new Map();
+    this.marketsByKey = options.marketsByKey || new Map();
     this.databaseService = options.databaseService || null;
     this.game = options.game || new GameState();
     this.log = options.log || ((line) => process.stdout.write(`${line}\n`));
@@ -17,6 +81,24 @@ class MessageHandlerContext {
     });
     this.getCurrentTimestamp =
       options.getCurrentTimestamp || (() => new Date().toISOString());
+
+    if (this.marketsByKey.size === 0) {
+      this.seedDefaultMarkets();
+    }
+  }
+
+  seedDefaultMarkets() {
+    const now = new Date().toISOString();
+
+    for (const market of DEFAULT_MARKETS) {
+      this.cacheMarket({
+        ...market,
+        restockIntervalMinutes: DEFAULT_RESTOCK_INTERVAL_MINUTES,
+        lastRestockAt: now,
+        inventory: MARKET_CATALOG.map((catalogEntry) => buildDefaultInventoryEntry(catalogEntry)),
+        ledger: []
+      });
+    }
   }
 
   isFiniteNumber(value) {
@@ -109,6 +191,663 @@ class MessageHandlerContext {
     this.charactersByPlayer.set(normalizedPlayerName, characters);
   }
 
+  normalizeMarketInventoryEntry(entry) {
+    const source = this.toPlainObject(entry) || {};
+    const catalogEntry = MARKET_CATALOG_BY_ID.get(this.toNonEmptyString(source.itemId));
+    const defaults = catalogEntry ? buildDefaultInventoryEntry(catalogEntry) : {
+      itemId: this.toNonEmptyString(source.itemId),
+      stock: 0,
+      maxStock: 0,
+      restockPerInterval: 0,
+      marketCanBuy: false,
+      marketCanSell: false
+    };
+
+    return {
+      itemId: defaults.itemId,
+      stock: Number.isInteger(source.stock) && source.stock >= 0 ? source.stock : defaults.stock,
+      maxStock: Number.isInteger(source.maxStock) && source.maxStock >= 0
+        ? source.maxStock
+        : defaults.maxStock,
+      restockPerInterval: Number.isInteger(source.restockPerInterval) && source.restockPerInterval >= 0
+        ? source.restockPerInterval
+        : defaults.restockPerInterval,
+      marketCanBuy: source.marketCanBuy != null ? Boolean(source.marketCanBuy) : defaults.marketCanBuy,
+      marketCanSell: source.marketCanSell != null ? Boolean(source.marketCanSell) : defaults.marketCanSell
+    };
+  }
+
+  normalizeMarket(market) {
+    const source = this.toPlainObject(market) || {};
+    const marketId = this.toNonEmptyString(source.marketId);
+    const solarSystemId = this.toNonEmptyString(source.solarSystemId);
+    const rawInventory = Array.isArray(source.inventory)
+      ? source.inventory
+      : MARKET_CATALOG.map((catalogEntry) => buildDefaultInventoryEntry(catalogEntry));
+    const inventory = rawInventory
+      .map((entry) => this.normalizeMarketInventoryEntry(entry))
+      .filter((entry) => Boolean(entry.itemId));
+    const ledger = Array.isArray(source.ledger)
+      ? source.ledger.map((entry) => this.normalizeMarketLedgerEntry(entry))
+      : [];
+
+    return {
+      marketId,
+      solarSystemId,
+      marketName: this.toNonEmptyString(source.marketName),
+      locationType: this.toNonEmptyString(source.locationType),
+      locationName: this.toNonEmptyString(source.locationName),
+      priceMultiplier: this.isFiniteNumber(source.priceMultiplier) && source.priceMultiplier > 0
+        ? source.priceMultiplier
+        : 1,
+      driftPercentPerHour: this.isFiniteNumber(source.driftPercentPerHour) && source.driftPercentPerHour >= 0
+        ? source.driftPercentPerHour
+        : 0,
+      restockIntervalMinutes: Number.isInteger(source.restockIntervalMinutes)
+        && source.restockIntervalMinutes > 0
+        ? source.restockIntervalMinutes
+        : DEFAULT_RESTOCK_INTERVAL_MINUTES,
+      lastRestockAt: this.toNonEmptyString(source.lastRestockAt) || this.getCurrentTimestamp(),
+      inventory,
+      ledger
+    };
+  }
+
+  normalizeMarketLedgerEntry(entry) {
+    const source = this.toPlainObject(entry) || {};
+
+    return {
+      transactionId: this.toNonEmptyString(source.transactionId),
+      requestId: this.toNonEmptyString(source.requestId) || null,
+      characterId: this.toNonEmptyString(source.characterId),
+      itemId: this.toNonEmptyString(source.itemId),
+      direction: this.toNonEmptyString(source.direction),
+      quantity: Number.isInteger(source.quantity) ? source.quantity : 0,
+      unitPrice: Number.isInteger(source.unitPrice) ? source.unitPrice : 0,
+      totalPrice: Number.isInteger(source.totalPrice) ? source.totalPrice : 0,
+      timestamp: this.toNonEmptyString(source.timestamp),
+      reversalOfTransactionId: this.toNonEmptyString(source.reversalOfTransactionId) || null
+    };
+  }
+
+  cacheMarket(market) {
+    const normalized = this.normalizeMarket(market);
+    if (!normalized.marketId || !normalized.solarSystemId) {
+      return null;
+    }
+
+    this.marketsByKey.set(
+      buildMarketKey(normalized.marketId, normalized.solarSystemId),
+      normalized
+    );
+    return normalized;
+  }
+
+  getMarket(marketId, solarSystemId = '') {
+    const normalizedMarketId = this.toNonEmptyString(marketId);
+    const normalizedSolarSystemId = this.toNonEmptyString(solarSystemId);
+    if (!normalizedMarketId) {
+      return null;
+    }
+
+    if (normalizedSolarSystemId) {
+      return this.marketsByKey.get(buildMarketKey(normalizedMarketId, normalizedSolarSystemId)) || null;
+    }
+
+    const allMarkets = Array.from(this.marketsByKey.values());
+    return allMarkets.find((market) => market.marketId === normalizedMarketId) || null;
+  }
+
+  applyMarketRestock(market, nowTimestamp) {
+    const asOf = new Date(nowTimestamp);
+    const lastRestock = new Date(market.lastRestockAt);
+    if (Number.isNaN(asOf.getTime()) || Number.isNaN(lastRestock.getTime())) {
+      market.lastRestockAt = this.getCurrentTimestamp();
+      return market;
+    }
+
+    const elapsedMinutes = Math.floor((asOf.getTime() - lastRestock.getTime()) / (60 * 1000));
+    const intervalMinutes = Math.max(1, market.restockIntervalMinutes);
+    const intervals = Math.floor(elapsedMinutes / intervalMinutes);
+    if (intervals <= 0) {
+      return market;
+    }
+
+    market.inventory = market.inventory.map((entry) => ({
+      ...entry,
+      stock: Math.min(
+        entry.maxStock,
+        entry.stock + (entry.restockPerInterval * intervals)
+      )
+    }));
+
+    const advancedAt = new Date(lastRestock.getTime() + (intervals * intervalMinutes * 60 * 1000));
+    market.lastRestockAt = advancedAt.toISOString();
+    this.cacheMarket(market);
+    return market;
+  }
+
+  async getMarketsAsync(query = {}) {
+    const normalizedSolarSystemId = this.toNonEmptyString(query?.solarSystemId);
+    const nowTimestamp = this.toNonEmptyString(query?.asOf) || this.getCurrentTimestamp();
+
+    return Array.from(this.marketsByKey.values())
+      .filter((market) => !normalizedSolarSystemId || market.solarSystemId === normalizedSolarSystemId)
+      .map((market) => this.applyMarketRestock({ ...market }, nowTimestamp))
+      .sort((left, right) => left.marketName.localeCompare(right.marketName));
+  }
+
+  async getMarketQuoteAsync(request = {}) {
+    const marketId = this.toNonEmptyString(request.marketId);
+    const solarSystemId = this.toNonEmptyString(request.solarSystemId);
+    const itemId = this.toNonEmptyString(request.itemId).toLowerCase();
+    const direction = this.toNonEmptyString(request.direction).toLowerCase();
+    const quantity = Number.isInteger(request.quantity) ? request.quantity : Number(request.quantity);
+    const asOf = this.toNonEmptyString(request.asOf) || this.getCurrentTimestamp();
+
+    const market = this.getMarket(marketId, solarSystemId);
+    if (!market) {
+      return { success: false, reason: 'MARKET_NOT_FOUND' };
+    }
+
+    const catalogEntry = MARKET_CATALOG_BY_ID.get(itemId);
+    if (!catalogEntry) {
+      return { success: false, reason: 'ITEM_NOT_FOUND' };
+    }
+
+    if (direction !== 'buy' && direction !== 'sell') {
+      return { success: false, reason: 'INVALID_DIRECTION' };
+    }
+
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      return { success: false, reason: 'INVALID_QUANTITY' };
+    }
+
+    const hydratedMarket = this.applyMarketRestock({ ...market }, asOf);
+    const inventoryEntry = hydratedMarket.inventory.find((entry) => entry.itemId === itemId);
+    if (!inventoryEntry || !inventoryEntry.marketCanSell) {
+      return { success: false, reason: 'ITEM_NOT_TRADEABLE' };
+    }
+
+    if (direction === 'sell' && !inventoryEntry.marketCanBuy) {
+      return { success: false, reason: 'MARKET_DOES_NOT_BUY_ITEM' };
+    }
+
+    const pricing = computeMidpointPrice({
+      baseMidpointPrice: catalogEntry.baseMidpointPrice,
+      marketMultiplier: hydratedMarket.priceMultiplier,
+      marketId: hydratedMarket.marketId,
+      itemId,
+      timestamp: asOf,
+      driftPercentPerHour: hydratedMarket.driftPercentPerHour
+    });
+
+    return {
+      success: true,
+      quote: {
+        marketId: hydratedMarket.marketId,
+        solarSystemId: hydratedMarket.solarSystemId,
+        itemId,
+        itemType: catalogEntry.itemType,
+        displayName: catalogEntry.displayName,
+        rarity: catalogEntry.rarity,
+        direction,
+        quantity,
+        unitPrice: pricing.midpointPrice,
+        totalPrice: pricing.midpointPrice * quantity,
+        availableStock: inventoryEntry.stock,
+        marketCanBuy: inventoryEntry.marketCanBuy,
+        marketCanSell: inventoryEntry.marketCanSell,
+        marketMultiplier: hydratedMarket.priceMultiplier,
+        driftMultiplier: pricing.driftMultiplier,
+        quotedAt: asOf
+      }
+    };
+  }
+
+  async getMarketInventoryAsync(query = {}) {
+    const marketId = this.toNonEmptyString(query?.marketId);
+    const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
+    const offset = Number.isInteger(query?.offset) && query.offset >= 0 ? query.offset : 0;
+    const limit = Number.isInteger(query?.limit) && query.limit > 0 ? query.limit : 50;
+    const asOf = this.toNonEmptyString(query?.asOf) || this.getCurrentTimestamp();
+
+    const market = this.getMarket(marketId, solarSystemId);
+    if (!market) {
+      return {
+        success: false,
+        reason: 'MARKET_NOT_FOUND',
+        inventory: [],
+        total: 0,
+        offset,
+        limit
+      };
+    }
+
+    const hydratedMarket = this.applyMarketRestock({ ...market }, asOf);
+    const inventory = hydratedMarket.inventory
+      .map((entry) => {
+        const catalogEntry = MARKET_CATALOG_BY_ID.get(entry.itemId);
+        if (!catalogEntry) {
+          return null;
+        }
+
+        return {
+          itemId: entry.itemId,
+          itemType: catalogEntry.itemType,
+          displayName: catalogEntry.displayName,
+          rarity: catalogEntry.rarity,
+          stock: entry.stock,
+          maxStock: entry.maxStock,
+          restockPerInterval: entry.restockPerInterval,
+          marketCanBuy: entry.marketCanBuy,
+          marketCanSell: entry.marketCanSell
+        };
+      })
+      .filter((entry) => Boolean(entry))
+      .sort((left, right) => left.displayName.localeCompare(right.displayName));
+
+    return {
+      success: true,
+      marketId: hydratedMarket.marketId,
+      solarSystemId: hydratedMarket.solarSystemId,
+      marketName: hydratedMarket.marketName,
+      inventory: inventory.slice(offset, offset + limit),
+      total: inventory.length,
+      offset,
+      limit,
+      asOf
+    };
+  }
+
+  async getMarketLedgerAsync(query = {}) {
+    const marketId = this.toNonEmptyString(query?.marketId);
+    const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
+    const characterId = this.toNonEmptyString(query?.characterId);
+    const itemId = this.toNonEmptyString(query?.itemId).toLowerCase();
+    const direction = this.toNonEmptyString(query?.direction).toLowerCase();
+    const offset = Number.isInteger(query?.offset) && query.offset >= 0 ? query.offset : 0;
+    const limit = Number.isInteger(query?.limit) && query.limit > 0 ? query.limit : 50;
+    const startAt = this.toNonEmptyString(query?.startAt);
+    const endAt = this.toNonEmptyString(query?.endAt);
+
+    const market = this.getMarket(marketId, solarSystemId);
+    if (!market) {
+      return {
+        success: false,
+        reason: 'MARKET_NOT_FOUND',
+        entries: [],
+        total: 0,
+        offset,
+        limit
+      };
+    }
+
+    const startAtMs = startAt ? Date.parse(startAt) : Number.NEGATIVE_INFINITY;
+    const endAtMs = endAt ? Date.parse(endAt) : Number.POSITIVE_INFINITY;
+
+    const filtered = market.ledger
+      .filter((entry) => {
+        if (characterId && entry.characterId !== characterId) {
+          return false;
+        }
+        if (itemId && entry.itemId !== itemId) {
+          return false;
+        }
+        if (direction && entry.direction !== direction) {
+          return false;
+        }
+
+        const timestampMs = Date.parse(entry.timestamp);
+        if (!Number.isNaN(startAtMs) && timestampMs < startAtMs) {
+          return false;
+        }
+        if (!Number.isNaN(endAtMs) && timestampMs > endAtMs) {
+          return false;
+        }
+        return true;
+      })
+      .sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp));
+
+    return {
+      success: true,
+      marketId: market.marketId,
+      solarSystemId: market.solarSystemId,
+      entries: filtered.slice(offset, offset + limit),
+      total: filtered.length,
+      offset,
+      limit
+    };
+  }
+
+  async getCharacterTradeItemsAsync(playerName, characterId, itemId) {
+    const character = this.findCharacter(playerName, characterId);
+    if (!character) {
+      return [];
+    }
+
+    const ships = Array.isArray(character.ships) ? character.ships : [];
+    const containers = await Promise.all(
+      ships.map((ship) => this.getItemsByContainerAsync('ship', this.toNonEmptyString(ship.id)))
+    );
+
+    return containers
+      .flat()
+      .map((item) => this.normalizeItem(item))
+      .filter((item) => (
+        item.owningCharacterId === characterId
+        && item.state === 'contained'
+        && item.itemType === itemId
+      ));
+  }
+
+  async applyMarketStockDeltaAsync(marketId, solarSystemId, itemId, delta) {
+    const market = this.getMarket(marketId, solarSystemId);
+    if (!market) {
+      return false;
+    }
+
+    const nextMarket = this.normalizeMarket({ ...market });
+    nextMarket.inventory = nextMarket.inventory.map((entry) => {
+      if (entry.itemId !== itemId) {
+        return entry;
+      }
+
+      const nextStock = Math.max(0, Math.min(entry.maxStock, entry.stock + delta));
+      return {
+        ...entry,
+        stock: nextStock
+      };
+    });
+
+    this.cacheMarket(nextMarket);
+    return true;
+  }
+
+  async appendCharacterLedgerEntryAsync(playerName, characterId, entry) {
+    const character = this.findCharacter(playerName, characterId);
+    if (!character) {
+      return false;
+    }
+
+    const creditLedger = Array.isArray(character.creditLedger) ? [...character.creditLedger] : [];
+    creditLedger.push(this.normalizeCreditLedgerEntry(entry));
+    await this.updateCharacterAsync(playerName, characterId, {
+      creditLedger,
+      credits: this.calculateCharacterCredits({ creditLedger })
+    });
+    return true;
+  }
+
+  async appendMarketLedgerEntryAsync(marketId, solarSystemId, entry) {
+    const market = this.getMarket(marketId, solarSystemId);
+    if (!market) {
+      return false;
+    }
+
+    const nextMarket = this.normalizeMarket({ ...market });
+    nextMarket.ledger = [...nextMarket.ledger, this.normalizeMarketLedgerEntry(entry)];
+    this.cacheMarket(nextMarket);
+    return true;
+  }
+
+  async addTradeItemToCharacterAsync(player, character, itemId, quantity) {
+    const normalizedItemId = this.toNonEmptyString(itemId).toLowerCase();
+    const tradeItems = await this.getCharacterTradeItemsAsync(
+      player.playerName,
+      character.id,
+      normalizedItemId
+    );
+    const now = this.getCurrentTimestamp();
+
+    if (tradeItems.length > 0) {
+      const target = tradeItems[0];
+      await this.updateItemAsync(target.id, {
+        quantity: target.quantity + quantity,
+        updatedAt: now
+      });
+      return true;
+    }
+
+    const ships = Array.isArray(character.ships) ? character.ships : [];
+    const targetShipId = this.toNonEmptyString(ships[0]?.id);
+    if (!targetShipId) {
+      return false;
+    }
+
+    const catalogEntry = MARKET_CATALOG_BY_ID.get(normalizedItemId);
+    const newItem = {
+      id: `${character.id}-${normalizedItemId}-${this.createId()}`,
+      itemType: normalizedItemId,
+      displayName: catalogEntry?.displayName || normalizedItemId,
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: targetShipId
+      },
+      owningPlayerId: this.toNonEmptyString(player.playerId),
+      owningCharacterId: character.id,
+      kinematics: null,
+      createdAt: now,
+      updatedAt: now,
+      destroyedAt: null,
+      destroyedReason: null,
+      launchable: false,
+      quantity
+    };
+
+    await this.addItemsAsync([newItem]);
+    return true;
+  }
+
+  async removeTradeItemFromCharacterAsync(playerName, characterId, itemId, quantity) {
+    let remaining = quantity;
+    const tradeItems = await this.getCharacterTradeItemsAsync(playerName, characterId, itemId);
+    const normalizedItems = tradeItems.sort((left, right) => left.id.localeCompare(right.id));
+
+    for (const item of normalizedItems) {
+      if (remaining <= 0) {
+        break;
+      }
+
+      if (item.quantity > remaining) {
+        await this.updateItemAsync(item.id, {
+          quantity: item.quantity - remaining,
+          updatedAt: this.getCurrentTimestamp()
+        });
+        remaining = 0;
+        break;
+      }
+
+      remaining -= item.quantity;
+      await this.syncShipInventoryReferenceForItemAsync(playerName, item, {
+        ...item,
+        container: null
+      });
+      await this.deleteItemsAsync([item.id]);
+    }
+
+    return remaining === 0;
+  }
+
+  async executeMarketTransactionAsync(request = {}) {
+    const playerName = this.toNonEmptyString(request.playerName);
+    const characterId = this.toNonEmptyString(request.characterId);
+    const marketId = this.toNonEmptyString(request.marketId);
+    const solarSystemId = this.toNonEmptyString(request.solarSystemId);
+    const itemId = this.toNonEmptyString(request.itemId).toLowerCase();
+    const direction = this.toNonEmptyString(request.direction).toLowerCase();
+    const quantity = Number.isInteger(request.quantity) ? request.quantity : Number(request.quantity);
+    const requestId = this.toNonEmptyString(request.requestId) || null;
+
+    const player = this.getPlayer(playerName);
+    if (!player) {
+      return { success: false, reason: 'PLAYER_NOT_REGISTERED' };
+    }
+
+    const character = this.findCharacter(player.playerName, characterId);
+    if (!character) {
+      return { success: false, reason: 'CHARACTER_NOT_FOUND' };
+    }
+
+    const quoteResult = await this.getMarketQuoteAsync({
+      marketId,
+      solarSystemId,
+      itemId,
+      direction,
+      quantity,
+      asOf: this.getCurrentTimestamp()
+    });
+    if (!quoteResult.success) {
+      return quoteResult;
+    }
+
+    const quote = quoteResult.quote;
+    if (direction === 'buy' && quote.availableStock < quantity) {
+      return { success: false, reason: 'INSUFFICIENT_MARKET_STOCK' };
+    }
+
+    if (direction === 'buy' && this.calculateCharacterCredits(character) < quote.totalPrice) {
+      return { success: false, reason: 'INSUFFICIENT_CREDITS' };
+    }
+
+    const ownedItems = direction === 'sell'
+      ? await this.getCharacterTradeItemsAsync(player.playerName, character.id, itemId)
+      : [];
+    const ownedQuantity = ownedItems.reduce((total, item) => total + item.quantity, 0);
+    if (direction === 'sell' && ownedQuantity < quantity) {
+      return { success: false, reason: 'INSUFFICIENT_ITEM_QUANTITY' };
+    }
+
+    if (direction === 'buy') {
+      const ships = Array.isArray(character.ships) ? character.ships : [];
+      if (ships.length === 0) {
+        return { success: false, reason: 'NO_SHIP_AVAILABLE' };
+      }
+    }
+
+    const transactionId = this.toNonEmptyString(request.transactionId) || this.createId();
+    const timestamp = this.getCurrentTimestamp();
+    const characterLedgerEntry = {
+      type: direction === 'buy' ? 'take' : 'put',
+      amount: quote.totalPrice,
+      description: `Market ${direction}: ${quote.displayName} x${quantity}`,
+      timestamp,
+      referenceId: transactionId
+    };
+    const marketLedgerEntry = {
+      transactionId,
+      requestId,
+      characterId,
+      itemId,
+      direction,
+      quantity,
+      unitPrice: quote.unitPrice,
+      totalPrice: quote.totalPrice,
+      timestamp,
+      reversalOfTransactionId: null
+    };
+
+    let stockApplied = false;
+    let itemsApplied = false;
+    let characterLedgerApplied = false;
+    let marketLedgerApplied = false;
+
+    try {
+      await this.applyMarketStockDeltaAsync(
+        marketId,
+        solarSystemId,
+        itemId,
+        direction === 'buy' ? -quantity : quantity
+      );
+      stockApplied = true;
+
+      if (direction === 'buy') {
+        itemsApplied = await this.addTradeItemToCharacterAsync(player, character, itemId, quantity);
+      } else {
+        itemsApplied = await this.removeTradeItemFromCharacterAsync(
+          player.playerName,
+          character.id,
+          itemId,
+          quantity
+        );
+      }
+
+      if (!itemsApplied) {
+        throw new Error('Item mutation failed');
+      }
+
+      await this.appendCharacterLedgerEntryAsync(player.playerName, character.id, characterLedgerEntry);
+      characterLedgerApplied = true;
+
+      await this.appendMarketLedgerEntryAsync(marketId, solarSystemId, marketLedgerEntry);
+      marketLedgerApplied = true;
+
+      const updatedCharacter = this.findCharacter(player.playerName, character.id);
+      const updatedMarket = this.getMarket(marketId, solarSystemId);
+      const inventoryEntry = updatedMarket?.inventory?.find((entry) => entry.itemId === itemId) || null;
+
+      return {
+        success: true,
+        transaction: {
+          transactionId,
+          requestId,
+          marketId,
+          solarSystemId,
+          characterId,
+          itemId,
+          direction,
+          quantity,
+          unitPrice: quote.unitPrice,
+          totalPrice: quote.totalPrice,
+          timestamp,
+          characterCredits: updatedCharacter
+            ? this.calculateCharacterCredits(updatedCharacter)
+            : null,
+          marketStock: inventoryEntry?.stock ?? null
+        }
+      };
+    } catch (error) {
+      if (stockApplied) {
+        await this.applyMarketStockDeltaAsync(
+          marketId,
+          solarSystemId,
+          itemId,
+          direction === 'buy' ? quantity : -quantity
+        );
+      }
+
+      if (characterLedgerApplied) {
+        await this.appendCharacterLedgerEntryAsync(player.playerName, character.id, {
+          type: direction === 'buy' ? 'put' : 'take',
+          amount: quote.totalPrice,
+          description: `Reversal for transaction ${transactionId}`,
+          timestamp: this.getCurrentTimestamp(),
+          referenceId: transactionId
+        });
+      }
+
+      if (marketLedgerApplied) {
+        await this.appendMarketLedgerEntryAsync(marketId, solarSystemId, {
+          ...marketLedgerEntry,
+          transactionId: this.createId(),
+          direction: 'reversal',
+          reversalOfTransactionId: transactionId,
+          timestamp: this.getCurrentTimestamp()
+        });
+      }
+
+      this.log(`[context] Market transaction failed: ${error.message}`);
+      return {
+        success: false,
+        reason: characterLedgerApplied || marketLedgerApplied
+          ? 'PARTIAL_WRITE_REVERSED'
+          : 'TRANSACTION_FAILED'
+      };
+    }
+  }
+
   toPlainObject(value) {
     if (value && typeof value.toObject === 'function') {
       return value.toObject();
@@ -178,7 +917,8 @@ class MessageHandlerContext {
       updatedAt: this.toNonEmptyString(source.updatedAt),
       destroyedAt: this.toNonEmptyString(source.destroyedAt) || null,
       destroyedReason: this.toNonEmptyString(source.destroyedReason) || null,
-      launchable: source.launchable != null ? Boolean(source.launchable) : true
+      launchable: source.launchable != null ? Boolean(source.launchable) : true,
+      quantity: Number.isInteger(source.quantity) && source.quantity > 0 ? source.quantity : 1
     };
   }
 
@@ -192,6 +932,17 @@ class MessageHandlerContext {
       timestamp: this.toNonEmptyString(source.timestamp),
       referenceId: this.toNonEmptyString(source.referenceId) || null
     };
+  }
+
+  calculateCharacterCredits(character) {
+    const source = this.toPlainObject(character) || {};
+    const creditLedger = Array.isArray(source.creditLedger)
+      ? source.creditLedger.map((entry) => this.normalizeCreditLedgerEntry(entry))
+      : [];
+
+    return creditLedger.reduce((total, entry) => {
+      return entry.type === 'put' ? total + entry.amount : total - entry.amount;
+    }, 0);
   }
 
   normalizeCharacter(character) {

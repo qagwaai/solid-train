@@ -10,7 +10,10 @@ including required fields, response payloads, and edge-case behavior.
 - Character operations (`list`, `add`, `delete`, `edit`, `ship-list-request`,
   `game-join`, `add-mission-request`, `list-missions-request`,
   `item-upsert-request`, `item-list-by-container-request`,
-  `item-list-by-location-request`, `launch-item-request`) require
+  `item-list-by-location-request`, `launch-item-request`,
+  `market-list-request`, `market-quote-request`,
+  `market-inventory-list-request`, `market-buy-request`,
+  `market-sell-request`, `market-ledger-list-request`) require
   a valid session.
 - Invalid or missing session for character operations emits:
   - event: `invalid-session`
@@ -307,6 +310,332 @@ Each character carries a `creditLedger` array and a computed `credits` summary f
 - Always computed from the ledger: `credits = sum(put.amount) - sum(take.amount)`
 - Never stored independently; recalculated on every `normalizeCharacter` call
 - Characters with no ledger entries have `credits: 0` and `creditLedger: []`
+
+## Event: `market-list-request`
+
+- Request event: `market-list-request`
+- Response event: `market-list-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `solarSystemId` (optional string filter)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Market list retrieved successfully",
+  "playerName": "<canonical player name>",
+  "solarSystemId": "sol",
+  "markets": [
+    {
+      "marketId": "sol-ceres-exchange",
+      "solarSystemId": "sol",
+      "marketName": "Ceres Exchange",
+      "locationType": "station",
+      "locationName": "Ceres Belt Trade Ring",
+      "priceMultiplier": 1,
+      "driftPercentPerHour": 6,
+      "restockIntervalMinutes": 60
+    }
+  ]
+}
+```
+
+### Failure Responses
+
+- Missing `playerName`:
+
+```json
+{
+  "success": false,
+  "message": "playerName is required",
+  "playerName": "",
+  "markets": []
+}
+```
+
+- Unregistered player:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<provided playerName>",
+  "markets": []
+}
+```
+
+### Edge Cases
+
+- Invalid session emits `invalid-session` instead of `market-list-response`.
+- Omitting `solarSystemId` returns markets across all solar systems.
+- Market stock is restocked lazily on reads based on `restockIntervalMinutes`.
+
+## Event: `market-quote-request`
+
+- Request event: `market-quote-request`
+- Response event: `market-quote-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `characterId` (required; must belong to the player)
+- `sessionKey` (required and must match the player)
+- `marketId` (required)
+- `solarSystemId` (required)
+- `itemId` (required; market catalog item id)
+- `direction` (required; `buy` or `sell`)
+- `quantity` (required positive integer)
+- `requestId` (optional idempotency/request correlation token; echoed in response)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Market quote retrieved successfully",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>",
+  "requestId": "<optional request id>",
+  "quote": {
+    "marketId": "sol-ceres-exchange",
+    "solarSystemId": "sol",
+    "itemId": "iron",
+    "itemType": "raw-material",
+    "displayName": "Iron",
+    "rarity": "Common",
+    "direction": "buy",
+    "quantity": 5,
+    "unitPrice": 29,
+    "totalPrice": 145,
+    "availableStock": 1200,
+    "marketCanBuy": true,
+    "marketCanSell": true,
+    "marketMultiplier": 1,
+    "driftMultiplier": 0.97,
+    "quotedAt": "<iso timestamp>"
+  }
+}
+```
+
+### Failure Responses
+
+```json
+{
+  "success": false,
+  "message": "direction must be buy or sell",
+  "reason": "INVALID_DIRECTION",
+  "requestId": "<optional request id>"
+}
+```
+
+Possible `reason` values:
+
+- `INVALID_PAYLOAD`
+- `PLAYER_NOT_REGISTERED`
+- `CHARACTER_NOT_FOUND`
+- `MARKET_NOT_FOUND`
+- `ITEM_NOT_FOUND`
+- `ITEM_NOT_TRADEABLE`
+- `INVALID_DIRECTION`
+- `INVALID_QUANTITY`
+- `MARKET_DOES_NOT_BUY_ITEM`
+
+### Edge Cases
+
+- Invalid session emits `invalid-session` instead of `market-quote-response`.
+- Price is evaluated at execution-time quote request (not pre-locked).
+- Unit price is the market midpoint after applying market multiplier and hourly deterministic drift.
+- Buy and sell currently use the same midpoint pricing model in phase 1.
+
+## Event: `market-inventory-list-request`
+
+- Request event: `market-inventory-list-request`
+- Response event: `market-inventory-list-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `marketId` (required)
+- `solarSystemId` (required)
+- `offset` (optional non-negative integer; default `0`)
+- `limit` (optional positive integer; default `50`)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Market inventory retrieved successfully",
+  "playerName": "<canonical player name>",
+  "marketId": "sol-ceres-exchange",
+  "solarSystemId": "sol",
+  "marketName": "Ceres Exchange",
+  "inventory": [
+    {
+      "itemId": "iron",
+      "itemType": "raw-material",
+      "displayName": "Iron",
+      "rarity": "Common",
+      "stock": 1198,
+      "maxStock": 1200,
+      "restockPerInterval": 96,
+      "marketCanBuy": true,
+      "marketCanSell": true
+    }
+  ],
+  "total": 21,
+  "offset": 0,
+  "limit": 50,
+  "asOf": "<iso timestamp>"
+}
+```
+
+## Event: `market-buy-request`
+
+- Request event: `market-buy-request`
+- Response event: `market-buy-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `characterId` (required)
+- `sessionKey` (required and must match the player)
+- `marketId` (required)
+- `solarSystemId` (required)
+- `itemId` (required)
+- `quantity` (required positive integer)
+- `requestId` (optional, echoed)
+- `transactionId` (optional idempotency/trace id; autogenerated when omitted)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Market buy transaction completed",
+  "requestId": "buy-1",
+  "transaction": {
+    "transactionId": "<id>",
+    "requestId": "buy-1",
+    "marketId": "sol-ceres-exchange",
+    "solarSystemId": "sol",
+    "characterId": "<character id>",
+    "itemId": "iron",
+    "direction": "buy",
+    "quantity": 3,
+    "unitPrice": 29,
+    "totalPrice": 87,
+    "timestamp": "<iso timestamp>",
+    "characterCredits": 338,
+    "marketStock": 1197
+  }
+}
+```
+
+### Failure Reasons
+
+- `INVALID_PAYLOAD`
+- `PLAYER_NOT_REGISTERED`
+- `CHARACTER_NOT_FOUND`
+- `MARKET_NOT_FOUND`
+- `ITEM_NOT_FOUND`
+- `ITEM_NOT_TRADEABLE`
+- `INSUFFICIENT_CREDITS`
+- `INSUFFICIENT_MARKET_STOCK`
+- `NO_SHIP_AVAILABLE`
+- `PARTIAL_WRITE_REVERSED`
+- `TRANSACTION_FAILED`
+
+## Event: `market-sell-request`
+
+- Request event: `market-sell-request`
+- Response event: `market-sell-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- Same as `market-buy-request` except direction is implied as sell by event type.
+
+### Success Response
+
+- Same `transaction` shape as `market-buy-response`, with `direction: "sell"`.
+
+### Failure Reasons
+
+- `INVALID_PAYLOAD`
+- `PLAYER_NOT_REGISTERED`
+- `CHARACTER_NOT_FOUND`
+- `MARKET_NOT_FOUND`
+- `ITEM_NOT_FOUND`
+- `ITEM_NOT_TRADEABLE`
+- `MARKET_DOES_NOT_BUY_ITEM`
+- `INSUFFICIENT_ITEM_QUANTITY`
+- `PARTIAL_WRITE_REVERSED`
+- `TRANSACTION_FAILED`
+
+## Event: `market-ledger-list-request`
+
+- Request event: `market-ledger-list-request`
+- Response event: `market-ledger-list-response`
+- Session failure event: `invalid-session`
+
+### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required and must match the player)
+- `marketId` (required)
+- `solarSystemId` (required)
+- `characterId` (optional)
+- `itemId` (optional)
+- `direction` (optional; `buy`, `sell`, `reversal`)
+- `startAt` (optional inclusive ISO timestamp)
+- `endAt` (optional inclusive ISO timestamp)
+- `offset` (optional non-negative integer; default `0`)
+- `limit` (optional positive integer; default `50`)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Market ledger retrieved successfully",
+  "playerName": "<canonical player name>",
+  "marketId": "sol-ceres-exchange",
+  "solarSystemId": "sol",
+  "entries": [
+    {
+      "transactionId": "<id>",
+      "requestId": "buy-1",
+      "characterId": "<character id>",
+      "itemId": "iron",
+      "direction": "buy",
+      "quantity": 3,
+      "unitPrice": 29,
+      "totalPrice": 87,
+      "timestamp": "<iso timestamp>",
+      "reversalOfTransactionId": null
+    }
+  ],
+  "total": 2,
+  "offset": 0,
+  "limit": 50
+}
+```
+
+### Edge Behavior
+
+- Ledger is append-only.
+- If one ledger write succeeds and another fails, a reversal is appended where possible and response reason is `PARTIAL_WRITE_REVERSED`.
 
 ## Event: `celestial-body-upsert-request`
 

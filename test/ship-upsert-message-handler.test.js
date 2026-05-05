@@ -121,7 +121,8 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
       updatedAt: '2026-04-17T00:00:00.000Z',
       destroyedAt: null,
       destroyedReason: null,
-      launchable: true
+      launchable: true,
+      quantity: 1
     }
   ]);
   assert.deepEqual(response.ship.kinematics.reference, {

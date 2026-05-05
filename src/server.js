@@ -61,6 +61,24 @@ const {
   LAUNCH_ITEM_REQUEST_EVENT
 } = require('./model/launch-item');
 const {
+  MARKET_LIST_REQUEST_EVENT
+} = require('./model/market-list');
+const {
+  MARKET_QUOTE_REQUEST_EVENT
+} = require('./model/market-quote');
+const {
+  MARKET_INVENTORY_LIST_REQUEST_EVENT
+} = require('./model/market-inventory-list');
+const {
+  MARKET_LEDGER_LIST_REQUEST_EVENT
+} = require('./model/market-ledger-list');
+const {
+  MARKET_BUY_REQUEST_EVENT
+} = require('./model/market-buy');
+const {
+  MARKET_SELL_REQUEST_EVENT
+} = require('./model/market-sell');
+const {
   MessageHandlerContext
 } = require('./handlers/message-handler-context');
 const {
@@ -114,6 +132,24 @@ const {
 const {
   LaunchItemMessageHandler
 } = require('./handlers/launch-item-message-handler');
+const {
+  MarketListMessageHandler
+} = require('./handlers/market-list-message-handler');
+const {
+  MarketQuoteMessageHandler
+} = require('./handlers/market-quote-message-handler');
+const {
+  MarketInventoryListMessageHandler
+} = require('./handlers/market-inventory-list-message-handler');
+const {
+  MarketLedgerListMessageHandler
+} = require('./handlers/market-ledger-list-message-handler');
+const {
+  MarketBuyMessageHandler
+} = require('./handlers/market-buy-message-handler');
+const {
+  MarketSellMessageHandler
+} = require('./handlers/market-sell-message-handler');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -184,6 +220,24 @@ function createServer(options = {}) {
     messageHandlerContext
   );
   const launchItemMessageHandler = new LaunchItemMessageHandler(
+    messageHandlerContext
+  );
+  const marketListMessageHandler = new MarketListMessageHandler(
+    messageHandlerContext
+  );
+  const marketQuoteMessageHandler = new MarketQuoteMessageHandler(
+    messageHandlerContext
+  );
+  const marketInventoryListMessageHandler = new MarketInventoryListMessageHandler(
+    messageHandlerContext
+  );
+  const marketLedgerListMessageHandler = new MarketLedgerListMessageHandler(
+    messageHandlerContext
+  );
+  const marketBuyMessageHandler = new MarketBuyMessageHandler(
+    messageHandlerContext
+  );
+  const marketSellMessageHandler = new MarketSellMessageHandler(
     messageHandlerContext
   );
 
@@ -325,6 +379,42 @@ function createServer(options = {}) {
     socket.on(LAUNCH_ITEM_REQUEST_EVENT, (payload) => {
       launchItemMessageHandler.handle(socket, payload).catch((error) => {
         process.stderr.write(`[socket] Launch item handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(MARKET_LIST_REQUEST_EVENT, (payload) => {
+      marketListMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Market list handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(MARKET_QUOTE_REQUEST_EVENT, (payload) => {
+      marketQuoteMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Market quote handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(MARKET_INVENTORY_LIST_REQUEST_EVENT, (payload) => {
+      marketInventoryListMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Market inventory list handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(MARKET_LEDGER_LIST_REQUEST_EVENT, (payload) => {
+      marketLedgerListMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Market ledger list handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(MARKET_BUY_REQUEST_EVENT, (payload) => {
+      marketBuyMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Market buy handler error: ${error.message}\n`);
+      });
+    });
+
+    socket.on(MARKET_SELL_REQUEST_EVENT, (payload) => {
+      marketSellMessageHandler.handle(socket, payload).catch((error) => {
+        process.stderr.write(`[socket] Market sell handler error: ${error.message}\n`);
       });
     });
   });

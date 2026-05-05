@@ -514,6 +514,159 @@ celestialBodySchema.index({
 });
 
 /**
+ * Market inventory entry schema for finite stock + time-based restock.
+ */
+const marketInventoryEntrySchema = new mongoose.Schema({
+  itemId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  stock: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  },
+  maxStock: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  },
+  restockPerInterval: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  },
+  marketCanBuy: {
+    type: Boolean,
+    required: true,
+    default: true
+  },
+  marketCanSell: {
+    type: Boolean,
+    required: true,
+    default: true
+  }
+}, { _id: false });
+
+/**
+ * Market ledger schema for append-only market transactions.
+ */
+const marketLedgerEntrySchema = new mongoose.Schema({
+  transactionId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  requestId: {
+    type: String,
+    default: null,
+    index: true
+  },
+  characterId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  itemId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  direction: {
+    type: String,
+    enum: ['buy', 'sell', 'reversal'],
+    required: true
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  unitPrice: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  totalPrice: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  timestamp: {
+    type: String,
+    required: true,
+    index: true
+  },
+  reversalOfTransactionId: {
+    type: String,
+    default: null
+  }
+}, { _id: false });
+
+/**
+ * Market schema for market metadata, pricing controls, inventory, and ledger.
+ */
+const marketSchema = new mongoose.Schema({
+  marketId: {
+    type: String,
+    required: true
+  },
+  solarSystemId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  marketName: {
+    type: String,
+    required: true
+  },
+  locationType: {
+    type: String,
+    enum: ['station', 'surface-settlement', 'free-floating'],
+    required: true
+  },
+  locationName: {
+    type: String,
+    required: true
+  },
+  priceMultiplier: {
+    type: Number,
+    required: true,
+    default: 1
+  },
+  driftPercentPerHour: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  restockIntervalMinutes: {
+    type: Number,
+    required: true,
+    default: 60
+  },
+  lastRestockAt: {
+    type: String,
+    required: true
+  },
+  inventory: {
+    type: [marketInventoryEntrySchema],
+    default: []
+  },
+  ledger: {
+    type: [marketLedgerEntrySchema],
+    default: []
+  }
+}, {
+  collection: 'markets'
+});
+
+marketSchema.index({ marketId: 1, solarSystemId: 1 }, { unique: true });
+
+/**
  * Character schema - embedded within Player
  */
 const creditLedgerEntrySchema = new mongoose.Schema({
@@ -626,6 +779,7 @@ playerSchema.pre('save', function (next) {
 const Player = mongoose.model('Player', playerSchema);
 const CelestialBody = mongoose.model('CelestialBody', celestialBodySchema);
 const Item = mongoose.model('Item', itemSchema);
+const Market = mongoose.model('Market', marketSchema);
 
 module.exports = {
   CelestialBody,
@@ -637,6 +791,10 @@ module.exports = {
   itemSchema,
   itemContainerSchema,
   inventoryItemReferenceSchema,
+  Market,
+  marketSchema,
+  marketInventoryEntrySchema,
+  marketLedgerEntrySchema,
   Player,
   playerSchema,
   characterSchema,

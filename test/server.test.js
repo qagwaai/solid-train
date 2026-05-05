@@ -61,6 +61,30 @@ const {
   INVALID_SESSION_EVENT,
   INVALID_SESSION_MESSAGE
 } = require('../src/model/session');
+const {
+  MARKET_LIST_REQUEST_EVENT,
+  MARKET_LIST_RESPONSE_EVENT
+} = require('../src/model/market-list');
+const {
+  MARKET_QUOTE_REQUEST_EVENT,
+  MARKET_QUOTE_RESPONSE_EVENT
+} = require('../src/model/market-quote');
+const {
+  MARKET_INVENTORY_LIST_REQUEST_EVENT,
+  MARKET_INVENTORY_LIST_RESPONSE_EVENT
+} = require('../src/model/market-inventory-list');
+const {
+  MARKET_LEDGER_LIST_REQUEST_EVENT,
+  MARKET_LEDGER_LIST_RESPONSE_EVENT
+} = require('../src/model/market-ledger-list');
+const {
+  MARKET_BUY_REQUEST_EVENT,
+  MARKET_BUY_RESPONSE_EVENT
+} = require('../src/model/market-buy');
+const {
+  MARKET_SELL_REQUEST_EVENT,
+  MARKET_SELL_RESPONSE_EVENT
+} = require('../src/model/market-sell');
 
 test('resolvePort returns default port when not set', () => {
   assert.equal(resolvePort(undefined), 3000);
@@ -184,6 +208,69 @@ test('register returns success and playerId for a unique playerName', async () =
   assert.equal(response.message, 'Registration successful');
   assert.equal(typeof response.playerId, 'string');
   assert.ok(response.playerId.length > 0);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('market list and market quote return responses for a valid session', async () => {
+  const { server, io } = createServer({ port: '3050' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'MarketSocketPilot',
+    'market-socket@example.com',
+    'market-pass'
+  );
+
+  const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'MarketSocketPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'TraderOne'
+  });
+  const addCharacter = await addCharacterPromise;
+  assert.equal(addCharacter.success, true);
+
+  const marketListPromise = waitForEvent(client, MARKET_LIST_RESPONSE_EVENT);
+  client.emit(MARKET_LIST_REQUEST_EVENT, {
+    playerName: 'MarketSocketPilot',
+    sessionKey: loginResponse.sessionKey,
+    solarSystemId: 'sol'
+  });
+  const marketList = await marketListPromise;
+
+  assert.equal(marketList.success, true);
+  assert.ok(Array.isArray(marketList.markets));
+  assert.ok(marketList.markets.length >= 1);
+
+  const marketQuotePromise = waitForEvent(client, MARKET_QUOTE_RESPONSE_EVENT);
+  client.emit(MARKET_QUOTE_REQUEST_EVENT, {
+    requestId: 'quote-1',
+    playerName: 'MarketSocketPilot',
+    characterId: addCharacter.characterId,
+    sessionKey: loginResponse.sessionKey,
+    marketId: marketList.markets[0].marketId,
+    solarSystemId: marketList.markets[0].solarSystemId,
+    itemId: 'iron',
+    direction: 'buy',
+    quantity: 3
+  });
+  const marketQuote = await marketQuotePromise;
+
+  assert.equal(marketQuote.success, true);
+  assert.equal(marketQuote.requestId, 'quote-1');
+  assert.equal(marketQuote.quote.itemId, 'iron');
+  assert.equal(marketQuote.quote.quantity, 3);
+  assert.equal(
+    marketQuote.quote.totalPrice,
+    marketQuote.quote.unitPrice * marketQuote.quote.quantity
+  );
 
   await closeClient(client);
   io.close();
@@ -570,7 +657,8 @@ test('ship list returns ships for a character', async () => {
       updatedAt: shipListResponse.ships[0].inventory[0].updatedAt,
       destroyedAt: null,
       destroyedReason: null,
-      launchable: true
+      launchable: true,
+      quantity: 1
     }
   ]);
 
@@ -1473,6 +1561,92 @@ test('celestial body list returns sorted bodies filtered by spherical distance a
   assert.equal(listResponse.celestialBodies[0].distanceKm, 5);
   assert.equal(listResponse.celestialBodies[1].id, 'cb-list-mid');
   assert.equal(listResponse.celestialBodies[1].distanceKm, 10);
+
+  await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('market inventory, buy, sell, and market ledger list flow works end-to-end', async () => {
+  const { server, io } = createServer({ port: '3051' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    client,
+    'MarketFlowPilot',
+    'market-flow@example.com',
+    'market-flow-pass'
+  );
+
+  const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+  client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'MarketFlowPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'TraderCore'
+  });
+  const addCharacter = await addCharacterPromise;
+  assert.equal(addCharacter.success, true);
+
+  const inventoryPromise = waitForEvent(client, MARKET_INVENTORY_LIST_RESPONSE_EVENT);
+  client.emit(MARKET_INVENTORY_LIST_REQUEST_EVENT, {
+    playerName: 'MarketFlowPilot',
+    sessionKey: loginResponse.sessionKey,
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol',
+    offset: 0,
+    limit: 10
+  });
+  const inventoryResponse = await inventoryPromise;
+  assert.equal(inventoryResponse.success, true);
+  assert.equal(Array.isArray(inventoryResponse.inventory), true);
+
+  const buyPromise = waitForEvent(client, MARKET_BUY_RESPONSE_EVENT);
+  client.emit(MARKET_BUY_REQUEST_EVENT, {
+    requestId: 'flow-buy-1',
+    playerName: 'MarketFlowPilot',
+    characterId: addCharacter.characterId,
+    sessionKey: loginResponse.sessionKey,
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol',
+    itemId: 'iron',
+    quantity: 2
+  });
+  const buyResponse = await buyPromise;
+  assert.equal(buyResponse.success, true);
+  assert.equal(buyResponse.transaction.itemId, 'iron');
+
+  const sellPromise = waitForEvent(client, MARKET_SELL_RESPONSE_EVENT);
+  client.emit(MARKET_SELL_REQUEST_EVENT, {
+    requestId: 'flow-sell-1',
+    playerName: 'MarketFlowPilot',
+    characterId: addCharacter.characterId,
+    sessionKey: loginResponse.sessionKey,
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol',
+    itemId: 'iron',
+    quantity: 1
+  });
+  const sellResponse = await sellPromise;
+  assert.equal(sellResponse.success, true);
+  assert.equal(sellResponse.transaction.itemId, 'iron');
+
+  const ledgerPromise = waitForEvent(client, MARKET_LEDGER_LIST_RESPONSE_EVENT);
+  client.emit(MARKET_LEDGER_LIST_REQUEST_EVENT, {
+    playerName: 'MarketFlowPilot',
+    sessionKey: loginResponse.sessionKey,
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol',
+    characterId: addCharacter.characterId,
+    itemId: 'iron'
+  });
+  const ledgerResponse = await ledgerPromise;
+
+  assert.equal(ledgerResponse.success, true);
+  assert.equal(Array.isArray(ledgerResponse.entries), true);
+  assert.equal(ledgerResponse.entries.length >= 2, true);
 
   await closeClient(client);
   io.close();
