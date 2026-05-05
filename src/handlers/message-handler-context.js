@@ -3,38 +3,12 @@
 const { GameState } = require('../model/game');
 const { MARKET_CATALOG, MARKET_CATALOG_BY_ID } = require('../model/market-catalog');
 const { computeMidpointPrice } = require('../model/market-pricing');
+const {
+  SOLAR_SYSTEM_MARKET_SEED_VERSION,
+  buildSeededMarketsForSolarSystem
+} = require('../model/solar-system-market-seed');
 const SUPPORTED_LOCALES = new Set(['en', 'it']);
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
-
-const DEFAULT_MARKETS = [
-  {
-    marketId: 'sol-ceres-exchange',
-    solarSystemId: 'sol',
-    marketName: 'Ceres Exchange',
-    locationType: 'station',
-    locationName: 'Ceres Belt Trade Ring',
-    priceMultiplier: 1.0,
-    driftPercentPerHour: 6
-  },
-  {
-    marketId: 'sol-mars-shipyard',
-    solarSystemId: 'sol',
-    marketName: 'Ares Surface Shipyard',
-    locationType: 'surface-settlement',
-    locationName: 'Mars Lowland Foundry',
-    priceMultiplier: 1.07,
-    driftPercentPerHour: 5
-  },
-  {
-    marketId: 'sol-drifter-17',
-    solarSystemId: 'sol',
-    marketName: 'Drifter 17 Bazaar',
-    locationType: 'free-floating',
-    locationName: 'Jovian Transfer Lane',
-    priceMultiplier: 0.95,
-    driftPercentPerHour: 8
-  }
-];
 
 function buildMarketKey(marketId, solarSystemId) {
   return `${solarSystemId}:${marketId}`;
@@ -89,16 +63,48 @@ class MessageHandlerContext {
 
   seedDefaultMarkets() {
     const now = new Date().toISOString();
+    const defaults = buildSeededMarketsForSolarSystem('sol', now);
 
-    for (const market of DEFAULT_MARKETS) {
-      this.cacheMarket({
-        ...market,
-        restockIntervalMinutes: DEFAULT_RESTOCK_INTERVAL_MINUTES,
-        lastRestockAt: now,
-        inventory: MARKET_CATALOG.map((catalogEntry) => buildDefaultInventoryEntry(catalogEntry)),
-        ledger: []
-      });
+    for (const market of defaults) {
+      this.cacheMarket(this.createSeedMarketPayload(market, now));
     }
+  }
+
+  createSeedMarketPayload(seedMarket, timestamp) {
+    return {
+      ...seedMarket,
+      restockIntervalMinutes: Number.isInteger(seedMarket?.restockIntervalMinutes)
+        && seedMarket.restockIntervalMinutes > 0
+        ? seedMarket.restockIntervalMinutes
+        : DEFAULT_RESTOCK_INTERVAL_MINUTES,
+      lastRestockAt: this.toNonEmptyString(seedMarket?.lastRestockAt) || timestamp,
+      inventory: MARKET_CATALOG.map((catalogEntry) => buildDefaultInventoryEntry(catalogEntry)),
+      ledger: []
+    };
+  }
+
+  normalizeMarketOrbit(value) {
+    const source = this.toPlainObject(value) || {};
+
+    return {
+      anchorBodyId: this.toNonEmptyString(source.anchorBodyId),
+      anchorBodyName: this.toNonEmptyString(source.anchorBodyName),
+      orbitType: this.toNonEmptyString(source.orbitType) || 'elliptical',
+      semiMajorAxisKm: this.isFiniteNumber(source.semiMajorAxisKm) ? source.semiMajorAxisKm : 0,
+      eccentricity: this.isFiniteNumber(source.eccentricity) ? source.eccentricity : 0,
+      inclinationDeg: this.isFiniteNumber(source.inclinationDeg) ? source.inclinationDeg : 0,
+      longitudeOfAscendingNodeDeg: this.isFiniteNumber(source.longitudeOfAscendingNodeDeg)
+        ? source.longitudeOfAscendingNodeDeg
+        : 0,
+      argumentOfPeriapsisDeg: this.isFiniteNumber(source.argumentOfPeriapsisDeg)
+        ? source.argumentOfPeriapsisDeg
+        : 0,
+      meanAnomalyAtEpochDeg: this.isFiniteNumber(source.meanAnomalyAtEpochDeg)
+        ? source.meanAnomalyAtEpochDeg
+        : 0,
+      orbitalPeriodSec: this.isFiniteNumber(source.orbitalPeriodSec) ? source.orbitalPeriodSec : 0,
+      epoch: this.toNonEmptyString(source.epoch) || this.getCurrentTimestamp()
+    };
   }
 
   isFiniteNumber(value) {
@@ -237,6 +243,8 @@ class MessageHandlerContext {
       marketName: this.toNonEmptyString(source.marketName),
       locationType: this.toNonEmptyString(source.locationType),
       locationName: this.toNonEmptyString(source.locationName),
+      orbit: this.normalizeMarketOrbit(source.orbit),
+      isStarterMarket: Boolean(source.isStarterMarket),
       priceMultiplier: this.isFiniteNumber(source.priceMultiplier) && source.priceMultiplier > 0
         ? source.priceMultiplier
         : 1,
@@ -251,6 +259,99 @@ class MessageHandlerContext {
       inventory,
       ledger
     };
+  }
+
+  async seedSolarSystemMarketsAsync(request = {}) {
+    const solarSystemId = this.toNonEmptyString(request?.solarSystemId).toLowerCase() || 'sol';
+    const asOf = this.toNonEmptyString(request?.asOf) || this.getCurrentTimestamp();
+    const force = Boolean(request?.force);
+    const seeded = buildSeededMarketsForSolarSystem(solarSystemId, asOf);
+
+    if (seeded.length === 0) {
+      return {
+        success: false,
+        reason: 'UNSUPPORTED_SOLAR_SYSTEM',
+        solarSystemId,
+        marketCount: 0
+      };
+    }
+
+    const payloads = seeded.map((market) => this.createSeedMarketPayload(market, asOf));
+
+    if (!this.databaseService) {
+      for (const market of payloads) {
+        this.cacheMarket(market);
+      }
+
+      return {
+        success: true,
+        solarSystemId,
+        seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
+        marketCount: payloads.length,
+        source: 'in-memory'
+      };
+    }
+
+    try {
+      const existingSeedState = await this.databaseService.getSolarSystemMarketSeedState(solarSystemId);
+      const isCurrentVersion = existingSeedState
+        && existingSeedState.seedVersion === SOLAR_SYSTEM_MARKET_SEED_VERSION;
+
+      if (!force && isCurrentVersion) {
+        const persistedMarkets = await this.databaseService.getMarkets({ solarSystemId });
+        if (Array.isArray(persistedMarkets) && persistedMarkets.length > 0) {
+          for (const market of persistedMarkets) {
+            this.cacheMarket(market);
+          }
+
+          return {
+            success: true,
+            solarSystemId,
+            seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
+            marketCount: persistedMarkets.length,
+            source: 'database-cache'
+          };
+        }
+      }
+
+      for (const market of payloads) {
+        await this.databaseService.upsertMarket(market);
+      }
+
+      await this.databaseService.setSolarSystemMarketSeedState(
+        solarSystemId,
+        SOLAR_SYSTEM_MARKET_SEED_VERSION,
+        asOf
+      );
+
+      const persistedMarkets = await this.databaseService.getMarkets({ solarSystemId });
+      const marketsToCache = persistedMarkets.length > 0 ? persistedMarkets : payloads;
+      for (const market of marketsToCache) {
+        this.cacheMarket(market);
+      }
+
+      return {
+        success: true,
+        solarSystemId,
+        seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
+        marketCount: marketsToCache.length,
+        source: 'database-upsert'
+      };
+    } catch (error) {
+      this.log(`[context] Error seeding solar system markets: ${error.message}`);
+
+      for (const market of payloads) {
+        this.cacheMarket(market);
+      }
+
+      return {
+        success: true,
+        solarSystemId,
+        seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
+        marketCount: payloads.length,
+        source: 'in-memory-fallback'
+      };
+    }
   }
 
   normalizeMarketLedgerEntry(entry) {

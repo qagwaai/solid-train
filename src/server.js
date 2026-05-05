@@ -419,7 +419,7 @@ function createServer(options = {}) {
     });
   });
 
-  return { port, server, io };
+  return { port, server, io, messageHandlerContext };
 }
 
 async function startServer(options = {}) {
@@ -443,10 +443,17 @@ async function startServer(options = {}) {
     process.stdout.write('[server] MONGODB_URI not configured; running with in-memory storage\n');
   }
 
-  const { port, server, io } = createServer({
+  const { port, server, io, messageHandlerContext } = createServer({
     ...options,
     databaseService
   });
+
+  const marketSeedResult = await messageHandlerContext.seedSolarSystemMarketsAsync({
+    solarSystemId: 'sol'
+  });
+  process.stdout.write(
+    `[server] Market seeding ${marketSeedResult.success ? 'completed' : 'skipped'} for ${marketSeedResult.solarSystemId}: ${marketSeedResult.marketCount}\n`
+  );
 
   server.listen(port, () => {
     process.stdout.write(`Stellar Socket.IO server listening on port ${port}\n`);
@@ -482,7 +489,15 @@ async function startServer(options = {}) {
   process.once('SIGINT', shutdown);
   process.once('SIGTERM', shutdown);
 
-  return { port, server, io, shutdown, mongoConnection, databaseService };
+  return {
+    port,
+    server,
+    io,
+    shutdown,
+    mongoConnection,
+    databaseService,
+    messageHandlerContext
+  };
 }
 
 if (require.main === module) {

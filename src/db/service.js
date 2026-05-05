@@ -1,6 +1,9 @@
 'use strict';
 
-const { CelestialBody, Item, Player } = require('./models');
+const { CelestialBody, GameStateDocument, Item, Market, Player } = require('./models');
+const {
+  SOLAR_SYSTEM_MARKET_SEED_STATE_KEY
+} = require('../model/solar-system-market-seed');
 
 /**
  * Database service layer - provides a clean interface for CRUD operations
@@ -797,6 +800,123 @@ class DatabaseService {
         .sort((left, right) => left.distanceKm - right.distanceKm);
     } catch (error) {
       this.log(`[db-service] Error finding items near position: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async upsertMarket(marketData) {
+    try {
+      const marketId = this.toNonEmptyString(marketData?.marketId);
+      const solarSystemId = this.toNonEmptyString(marketData?.solarSystemId);
+      if (!marketId || !solarSystemId) {
+        return null;
+      }
+
+      const persisted = await Market.findOneAndUpdate(
+        { marketId, solarSystemId },
+        marketData,
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true
+        }
+      );
+
+      return persisted ? persisted.toObject() : null;
+    } catch (error) {
+      this.log(`[db-service] Error upserting market: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getMarkets(query = {}) {
+    try {
+      const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
+      const mongoQuery = solarSystemId ? { solarSystemId } : {};
+      return await Market.find(mongoQuery).lean();
+    } catch (error) {
+      this.log(`[db-service] Error fetching markets: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getSolarSystemMarketSeedState(solarSystemId) {
+    try {
+      const normalizedSolarSystemId = this.toNonEmptyString(solarSystemId).toLowerCase();
+      if (!normalizedSolarSystemId) {
+        return null;
+      }
+
+      const state = await GameStateDocument.findOne({
+        key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY
+      }).lean();
+
+      const systems = Array.isArray(state?.value?.systems) ? state.value.systems : [];
+      const match = systems.find((entry) => (
+        this.toNonEmptyString(entry?.solarSystemId).toLowerCase() === normalizedSolarSystemId
+      ));
+
+      if (!match) {
+        return null;
+      }
+
+      return {
+        solarSystemId: normalizedSolarSystemId,
+        seedVersion: this.toNonEmptyString(match.seedVersion),
+        seededAt: this.toNonEmptyString(match.seededAt)
+      };
+    } catch (error) {
+      this.log(`[db-service] Error fetching market seed state: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async setSolarSystemMarketSeedState(solarSystemId, seedVersion, seededAt) {
+    try {
+      const normalizedSolarSystemId = this.toNonEmptyString(solarSystemId).toLowerCase();
+      const normalizedSeedVersion = this.toNonEmptyString(seedVersion);
+      const normalizedSeededAt = this.toNonEmptyString(seededAt);
+
+      if (!normalizedSolarSystemId || !normalizedSeedVersion || !normalizedSeededAt) {
+        return null;
+      }
+
+      const state = await GameStateDocument.findOne({
+        key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY
+      });
+
+      const systems = Array.isArray(state?.value?.systems)
+        ? state.value.systems.map((entry) => ({
+          solarSystemId: this.toNonEmptyString(entry?.solarSystemId).toLowerCase(),
+          seedVersion: this.toNonEmptyString(entry?.seedVersion),
+          seededAt: this.toNonEmptyString(entry?.seededAt)
+        }))
+        : [];
+
+      const filtered = systems.filter((entry) => entry.solarSystemId !== normalizedSolarSystemId);
+      filtered.push({
+        solarSystemId: normalizedSolarSystemId,
+        seedVersion: normalizedSeedVersion,
+        seededAt: normalizedSeededAt
+      });
+
+      const persisted = await GameStateDocument.findOneAndUpdate(
+        { key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY },
+        {
+          key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY,
+          value: { systems: filtered },
+          updatedAt: new Date()
+        },
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true
+        }
+      ).lean();
+
+      return persisted;
+    } catch (error) {
+      this.log(`[db-service] Error setting market seed state: ${error.message}`);
       throw error;
     }
   }

@@ -607,6 +607,63 @@ const marketLedgerEntrySchema = new mongoose.Schema({
   }
 }, { _id: false });
 
+const marketOrbitSchema = new mongoose.Schema({
+  anchorBodyId: {
+    type: String,
+    required: true
+  },
+  anchorBodyName: {
+    type: String,
+    required: true
+  },
+  orbitType: {
+    type: String,
+    enum: ['elliptical', 'circular'],
+    required: true,
+    default: 'elliptical'
+  },
+  semiMajorAxisKm: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  eccentricity: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 0.99
+  },
+  inclinationDeg: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  longitudeOfAscendingNodeDeg: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  argumentOfPeriapsisDeg: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  meanAnomalyAtEpochDeg: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  orbitalPeriodSec: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  epoch: {
+    type: String,
+    required: true
+  }
+}, { _id: false });
+
 /**
  * Market schema for market metadata, pricing controls, inventory, and ledger.
  */
@@ -632,6 +689,15 @@ const marketSchema = new mongoose.Schema({
   locationName: {
     type: String,
     required: true
+  },
+  orbit: {
+    type: marketOrbitSchema,
+    required: true
+  },
+  isStarterMarket: {
+    type: Boolean,
+    required: true,
+    default: false
   },
   priceMultiplier: {
     type: Number,
@@ -665,6 +731,31 @@ const marketSchema = new mongoose.Schema({
 });
 
 marketSchema.index({ marketId: 1, solarSystemId: 1 }, { unique: true });
+
+const gameStateDocumentSchema = new mongoose.Schema({
+  key: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  value: {
+    type: mongoose.Schema.Types.Mixed,
+    required: true,
+    default: {}
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  collection: 'game_state'
+});
+
+gameStateDocumentSchema.pre('save', function (next) {
+  this.updatedAt = new Date();
+  next();
+});
 
 /**
  * Character schema - embedded within Player
@@ -780,6 +871,7 @@ const Player = mongoose.model('Player', playerSchema);
 const CelestialBody = mongoose.model('CelestialBody', celestialBodySchema);
 const Item = mongoose.model('Item', itemSchema);
 const Market = mongoose.model('Market', marketSchema);
+const GameStateDocument = mongoose.model('GameStateDocument', gameStateDocumentSchema);
 
 module.exports = {
   CelestialBody,
@@ -795,6 +887,9 @@ module.exports = {
   marketSchema,
   marketInventoryEntrySchema,
   marketLedgerEntrySchema,
+  marketOrbitSchema,
+  GameStateDocument,
+  gameStateDocumentSchema,
   Player,
   playerSchema,
   characterSchema,

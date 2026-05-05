@@ -37,8 +37,10 @@ test('MarketListMessageHandler returns markets for a solar system', async () => 
   assert.equal(response.playerName, 'MarketPilot');
   assert.equal(response.solarSystemId, 'sol');
   assert.ok(Array.isArray(response.markets));
-  assert.ok(response.markets.length >= 3);
+  assert.ok(response.markets.length >= 14);
   assert.ok(response.markets.every((market) => market.solarSystemId === 'sol'));
+  assert.ok(response.markets.every((market) => market.orbit));
+  assert.ok(response.markets.some((market) => market.isStarterMarket));
   assert.equal(socket.events[0].eventName, MARKET_LIST_RESPONSE_EVENT);
 });
 

@@ -49,6 +49,8 @@ class MarketListMessageHandler {
         marketName: market.marketName,
         locationType: market.locationType,
         locationName: market.locationName,
+        isStarterMarket: Boolean(market.isStarterMarket),
+        orbit: market.orbit,
         priceMultiplier: market.priceMultiplier,
         driftPercentPerHour: market.driftPercentPerHour,
         restockIntervalMinutes: market.restockIntervalMinutes
