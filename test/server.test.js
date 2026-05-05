@@ -2,8 +2,9 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const http = require('node:http');
 const { io: createClient } = require('socket.io-client');
-const { createServer, resolvePort } = require('../src/server');
+const { createServer, resolvePort, startServer } = require('../src/server');
 const {
   REGISTER_EVENT,
   REGISTER_RESPONSE_EVENT
@@ -45,6 +46,10 @@ const {
   MISSION_ADD_REQUEST_EVENT,
   MISSION_ADD_RESPONSE_EVENT
 } = require('../src/model/mission-add');
+const {
+  MISSION_UPSERT_ALIAS_REQUEST_EVENT,
+  MISSION_UPSERT_ALIAS_RESPONSE_EVENT
+} = require('../src/model/mission-upsert');
 const {
   CELESTIAL_BODY_UPSERT_REQUEST_EVENT,
   CELESTIAL_BODY_UPSERT_RESPONSE_EVENT
@@ -105,6 +110,123 @@ test('createServer returns server and io instances', () => {
   server.close();
 });
 
+test('startServer runs without MongoDB URI and shutdown exits cleanly', async () => {
+  const originalMongoUri = process.env.MONGODB_URI;
+  const originalExit = process.exit;
+
+  delete process.env.MONGODB_URI;
+
+  let exitCode = null;
+  let resolveExit;
+  const exitPromise = new Promise((resolve) => {
+    resolveExit = resolve;
+  });
+
+  process.exit = (code) => {
+    exitCode = code;
+    resolveExit();
+  };
+
+  try {
+    const started = await startServer({ port: '3064' });
+    assert.equal(typeof started.shutdown, 'function');
+
+    await started.shutdown();
+    await exitPromise;
+
+    assert.equal(exitCode, 0);
+  } finally {
+    process.exit = originalExit;
+    if (originalMongoUri === undefined) {
+      delete process.env.MONGODB_URI;
+    } else {
+      process.env.MONGODB_URI = originalMongoUri;
+    }
+  }
+});
+
+test('server health endpoint responds with ok JSON payload', async () => {
+  const { server, io } = createServer({ port: '3061' });
+  const port = await listen(server);
+
+  try {
+    const response = await httpGetJson(`http://127.0.0.1:${port}/health`);
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(JSON.parse(response.body), { status: 'ok' });
+  } finally {
+    io.close();
+    server.close();
+  }
+});
+
+test('server broadcasts generic message payload to connected clients', async () => {
+  const { server, io } = createServer({ port: '3062' });
+  const port = await listen(server);
+
+  const sender = connectClient(port);
+  const receiver = connectClient(port);
+  await waitForEvent(sender, 'connect');
+  await waitForEvent(receiver, 'connect');
+
+  try {
+    const forwardedMessagePromise = waitForEvent(receiver, 'message');
+    sender.emit('message', { text: 'hello' });
+
+    const forwarded = await forwardedMessagePromise;
+    assert.equal(typeof forwarded.id, 'string');
+    assert.deepEqual(forwarded.payload, { text: 'hello' });
+  } finally {
+    await closeClient(sender);
+    await closeClient(receiver);
+    io.close();
+    server.close();
+  }
+});
+
+test('mission upsert alias request emits alias response event', async () => {
+  const { server, io } = createServer({ port: '3063' });
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const loginResponse = await registerAndLogin(
+      client,
+      'AliasPilot',
+      'alias@example.com',
+      'alias-pass'
+    );
+
+    const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+    client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+      playerName: 'AliasPilot',
+      sessionKey: loginResponse.sessionKey,
+      characterName: 'AliasCharacter'
+    });
+    const addCharacter = await addCharacterPromise;
+    assert.equal(addCharacter.success, true);
+
+    const aliasResponsePromise = waitForEvent(client, MISSION_UPSERT_ALIAS_RESPONSE_EVENT);
+    client.emit(MISSION_UPSERT_ALIAS_REQUEST_EVENT, {
+      playerName: 'AliasPilot',
+      characterId: addCharacter.characterId,
+      missionId: 'first-target',
+      status: 'started',
+      sessionKey: loginResponse.sessionKey
+    });
+
+    const aliasResponse = await aliasResponsePromise;
+    assert.equal(aliasResponse.success, true);
+    assert.equal(aliasResponse.characterId, addCharacter.characterId);
+    assert.equal(aliasResponse.mission.missionId, 'first-target');
+  } finally {
+    await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
 function listen(server) {
   return new Promise((resolve, reject) => {
     server.listen(0, () => {
@@ -125,6 +247,24 @@ function connectClient(port) {
 function waitForEvent(socket, eventName) {
   return new Promise((resolve) => {
     socket.once(eventName, resolve);
+  });
+}
+
+function httpGetJson(url) {
+  return new Promise((resolve, reject) => {
+    http.get(url, (response) => {
+      let body = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => {
+        body += chunk;
+      });
+      response.on('end', () => {
+        resolve({
+          statusCode: response.statusCode,
+          body
+        });
+      });
+    }).on('error', reject);
   });
 }
 

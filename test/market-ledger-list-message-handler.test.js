@@ -61,3 +61,63 @@ test('MarketLedgerListMessageHandler returns filtered entries', async () => {
   assert.ok(response.entries.every((entry) => entry.characterId === 'character-1'));
   assert.equal(socket.events[0].eventName, MARKET_LEDGER_LIST_RESPONSE_EVENT);
 });
+
+test('MarketLedgerListMessageHandler rejects missing required fields', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'MarketPilot',
+    sessionKey: 'session-1'
+  });
+  const handler = new MarketLedgerListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'MarketPilot',
+    sessionKey: 'session-1',
+    marketId: 'sol-ceres-exchange'
+  });
+
+  assert.equal(response.success, false);
+  assert.equal(response.message, 'playerName, marketId, and solarSystemId are required');
+  assert.deepEqual(response.entries, []);
+  assert.equal(socket.events[0].eventName, MARKET_LEDGER_LIST_RESPONSE_EVENT);
+});
+
+test('MarketLedgerListMessageHandler rejects unregistered player', async () => {
+  const context = createTestContext();
+  context.hasValidSessionAsync = async () => true;
+  const handler = new MarketLedgerListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'GhostPilot',
+    sessionKey: 'session-1',
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol'
+  });
+
+  assert.equal(response.success, false);
+  assert.equal(response.message, 'Player is not registered');
+  assert.deepEqual(response.entries, []);
+});
+
+test('MarketLedgerListMessageHandler returns market-not-found reason', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'MarketPilot',
+    sessionKey: 'session-1'
+  });
+  const handler = new MarketLedgerListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'MarketPilot',
+    sessionKey: 'session-1',
+    marketId: 'unknown-market',
+    solarSystemId: 'sol'
+  });
+
+  assert.equal(response.success, false);
+  assert.equal(response.message, 'Market was not found');
+  assert.equal(response.reason, 'MARKET_NOT_FOUND');
+});
