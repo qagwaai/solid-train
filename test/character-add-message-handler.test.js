@@ -58,16 +58,35 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
               itemId: 'player-1-ship-1-item-1',
               itemType: 'expendable-dart-drone'
             }
-          ]
+          ],
+          status: null,
+          launchable: true,
+          damageProfile: null
         }
       ],
       missions: [
         {
           missionId: 'first-target',
           status: 'available',
-          updatedAt: '2026-04-17T00:00:00.000Z'
+          updatedAt: '2026-04-17T00:00:00.000Z',
+          startedAt: undefined,
+          inProgressAt: undefined,
+          failedAt: undefined,
+          completedAt: undefined,
+          failureReason: undefined,
+          statusDetail: undefined
         }
-      ]
+      ],
+      creditLedger: [
+        {
+          type: 'put',
+          amount: 425,
+          description: 'Starting credits',
+          timestamp: '2026-04-17T00:00:00.000Z',
+          referenceId: null
+        }
+      ],
+      credits: 425
     }
   ]);
   assert.deepEqual(context.getItem('player-1-ship-1-item-1'), {

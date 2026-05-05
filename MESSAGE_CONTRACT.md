@@ -161,6 +161,16 @@ including required fields, response payloads, and edge-case behavior.
       "id": "<character id>",
       "characterName": "<name>",
       "createdAt": "<iso timestamp>",
+      "credits": 425,
+      "creditLedger": [
+        {
+          "type": "put",
+          "amount": 425,
+          "description": "Starting credits",
+          "timestamp": "<iso timestamp>",
+          "referenceId": null
+        }
+      ],
       "ships": [
         {
           "id": "<ship id>",
@@ -217,6 +227,86 @@ including required fields, response payloads, and edge-case behavior.
 - `playerName` (required)
 - `sessionKey` (required and must match the player)
 - `characterName` (required)
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Character added successfully",
+  "playerName": "<canonical player name>",
+  "characterName": "<provided characterName>",
+  "characterId": "<new character id>"
+}
+```
+
+### Failure Responses
+
+- Missing required fields:
+
+```json
+{
+  "success": false,
+  "message": "playerName and characterName are required",
+  "playerName": ""
+}
+```
+
+- Player not registered:
+
+```json
+{
+  "success": false,
+  "message": "Player is not registered",
+  "playerName": "<provided playerName>"
+}
+```
+
+- Database error during creation:
+
+```json
+{
+  "success": false,
+  "message": "Failed to add character: database error",
+  "playerName": "<canonical player name>"
+}
+```
+
+### Edge Cases
+
+- On success, a starter ship (`Scavenger Pod`, Tier 1) is created and attached to the character.
+- An initial `first-target` mission is seeded with status `available`.
+- The character is initialized with a starting balance of **425 credits**, recorded as a `put` ledger entry with description `"Starting credits"`.
+- `credits` is always a computed sum: `sum(put amounts) - sum(take amounts)` across the `creditLedger` array.
+- If item creation fails, starter items are rolled back before the error response is returned.
+
+## Credit Ledger
+
+Each character carries a `creditLedger` array and a computed `credits` summary field.
+
+### Ledger Entry Shape
+
+```json
+{
+  "type": "put",
+  "amount": 425,
+  "description": "Starting credits",
+  "timestamp": "<iso timestamp>",
+  "referenceId": null
+}
+```
+
+- `type` — `"put"` (credits in) or `"take"` (credits out)
+- `amount` — positive number
+- `description` — human-readable reason for the transaction
+- `timestamp` — ISO 8601 timestamp of the transaction
+- `referenceId` — optional identifier linking to a source event (mission, market item, etc.); `null` when not applicable
+
+### `credits` Field
+
+- Always computed from the ledger: `credits = sum(put.amount) - sum(take.amount)`
+- Never stored independently; recalculated on every `normalizeCharacter` call
+- Characters with no ledger entries have `credits: 0` and `creditLedger: []`
 
 ## Event: `celestial-body-upsert-request`
 

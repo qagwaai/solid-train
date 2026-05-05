@@ -123,7 +123,9 @@ test('LoginMessageHandler hydrates player from database when memory is empty', a
       characterName: 'RangerOne',
       createdAt: '2026-04-20T00:00:00.000Z',
       ships: [],
-      missions: []
+      missions: [],
+      creditLedger: [],
+      credits: 0
     }
   ]);
 });
@@ -184,7 +186,9 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
           damageProfile: null
         }
       ],
-      missions: []
+      missions: [],
+      creditLedger: [],
+      credits: 0
     }
   ]);
 });

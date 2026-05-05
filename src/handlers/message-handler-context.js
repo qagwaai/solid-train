@@ -182,6 +182,18 @@ class MessageHandlerContext {
     };
   }
 
+  normalizeCreditLedgerEntry(entry) {
+    const source = this.toPlainObject(entry) || {};
+
+    return {
+      type: this.toNonEmptyString(source.type),
+      amount: typeof source.amount === 'number' ? source.amount : 0,
+      description: this.toNonEmptyString(source.description),
+      timestamp: this.toNonEmptyString(source.timestamp),
+      referenceId: this.toNonEmptyString(source.referenceId) || null
+    };
+  }
+
   normalizeCharacter(character) {
     const source = this.toPlainObject(character) || {};
     const characterName =
@@ -192,12 +204,20 @@ class MessageHandlerContext {
     const missions = Array.isArray(source.missions)
       ? source.missions.map((mission) => this.normalizeMission(mission))
       : [];
+    const creditLedger = Array.isArray(source.creditLedger)
+      ? source.creditLedger.map((entry) => this.normalizeCreditLedgerEntry(entry))
+      : [];
+    const credits = creditLedger.reduce((total, entry) => {
+      return entry.type === 'put' ? total + entry.amount : total - entry.amount;
+    }, 0);
 
     return {
       ...source,
       characterName: characterName || source.characterName || source.name || '',
       ships,
-      missions
+      missions,
+      creditLedger,
+      credits
     };
   }
 
@@ -950,7 +970,7 @@ class MessageHandlerContext {
     // Also update in-memory
     const normalizedPlayerName = this.normalizePlayerName(playerName);
     const characters = this.getCharacters(normalizedPlayerName);
-    characters.push(characterData);
+    characters.push(this.normalizeCharacter(characterData));
     this.setCharacters(normalizedPlayerName, characters);
   }
 

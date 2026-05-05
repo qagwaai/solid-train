@@ -120,6 +120,15 @@ class CharacterAddMessageHandler {
               status: DEFAULT_MISSION_STATUS,
               updatedAt: createdAt
             }
+          ],
+          creditLedger: [
+            {
+              type: 'put',
+              amount: 425,
+              description: 'Starting credits',
+              timestamp: createdAt,
+              referenceId: null
+            }
           ]
         };
         await this.context.addCharacterAsync(payload?.playerName, characterData);

@@ -516,6 +516,30 @@ celestialBodySchema.index({
 /**
  * Character schema - embedded within Player
  */
+const creditLedgerEntrySchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['put', 'take'],
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  timestamp: {
+    type: String,
+    required: true
+  },
+  referenceId: {
+    type: String,
+    default: null
+  }
+}, { _id: false });
+
 const characterSchema = new mongoose.Schema({
   id: {
     type: String,
@@ -530,7 +554,8 @@ const characterSchema = new mongoose.Schema({
     required: true
   },
   ships: [shipSchema],
-  missions: [missionSchema]
+  missions: [missionSchema],
+  creditLedger: [creditLedgerEntrySchema]
 }, { _id: false });
 
 /**
@@ -615,6 +640,7 @@ module.exports = {
   Player,
   playerSchema,
   characterSchema,
+  creditLedgerEntrySchema,
   shipSchema,
   shipKinematicsSchema,
   missionSchema
