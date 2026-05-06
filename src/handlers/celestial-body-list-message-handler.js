@@ -67,15 +67,6 @@ class CelestialBodyListMessageHandler {
     return normalized;
   }
 
-  withBodyArrayAliases(celestialBodies) {
-    const normalizedBodies = Array.isArray(celestialBodies) ? celestialBodies : [];
-
-    return {
-      celestialBodies: normalizedBodies,
-      bodies: normalizedBodies
-    };
-  }
-
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
@@ -98,7 +89,7 @@ class CelestialBodyListMessageHandler {
         message: 'playerName, solarSystemId, positionKm, and distanceKm are required',
         playerName,
         solarSystemId,
-        ...this.withBodyArrayAliases([])
+        celestialBodies: []
       };
     }
 
@@ -108,7 +99,7 @@ class CelestialBodyListMessageHandler {
         message: 'limit must be a positive integer when provided',
         playerName,
         solarSystemId,
-        ...this.withBodyArrayAliases([])
+        celestialBodies: []
       };
     }
 
@@ -118,7 +109,7 @@ class CelestialBodyListMessageHandler {
         message: `states must be an array with values from: ${CELESTIAL_BODY_STATE_VALUES.join(', ')}`,
         playerName,
         solarSystemId,
-        ...this.withBodyArrayAliases([])
+        celestialBodies: []
       };
     }
 
@@ -129,7 +120,7 @@ class CelestialBodyListMessageHandler {
         message: 'Player is not registered',
         playerName,
         solarSystemId,
-        ...this.withBodyArrayAliases([])
+        celestialBodies: []
       };
     }
 
@@ -151,7 +142,7 @@ class CelestialBodyListMessageHandler {
         solarSystemId,
         positionKm,
         distanceKm,
-        ...this.withBodyArrayAliases([])
+        celestialBodies: []
       };
     }
 
@@ -167,7 +158,7 @@ class CelestialBodyListMessageHandler {
       solarSystemId,
       positionKm,
       distanceKm,
-      ...this.withBodyArrayAliases(celestialBodies)
+      celestialBodies
     };
   }
 

@@ -13,6 +13,23 @@ class MarketListMessageHandler {
     this.context = context;
   }
 
+  isValidSpatial(spatial) {
+    return Boolean(spatial)
+      && this.context.toNonEmptyString(spatial.solarSystemId)
+      && spatial.frame === 'barycentric'
+      && this.context.isTriple(spatial.positionKm)
+      && this.context.isFiniteNumber(spatial.epochMs);
+  }
+
+  isValidTrajectory(trajectory) {
+    if (trajectory == null) {
+      return true;
+    }
+
+    const kind = this.context.toNonEmptyString(trajectory.kind);
+    return kind === 'static' || kind === 'orbital-elements';
+  }
+
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
@@ -38,24 +55,40 @@ class MarketListMessageHandler {
 
     const markets = await this.context.getMarketsAsync({ solarSystemId });
 
+    const projectedMarkets = markets.map((market) => ({
+      marketId: market.marketId,
+      solarSystemId: market.solarSystemId,
+      marketName: market.marketName,
+      siteType: market.siteType,
+      siteName: market.siteName,
+      isStarterMarket: Boolean(market.isStarterMarket),
+      spatial: market.spatial || null,
+      trajectory: market.trajectory || null,
+      priceMultiplier: market.priceMultiplier,
+      driftPercentPerHour: market.driftPercentPerHour,
+      restockIntervalMinutes: market.restockIntervalMinutes
+    }));
+
+    const invalidMarket = projectedMarkets.find((market) => {
+      return !this.isValidSpatial(market.spatial) || !this.isValidTrajectory(market.trajectory);
+    });
+
+    if (invalidMarket) {
+      return {
+        success: false,
+        message: `MarketList: market '${invalidMarket.marketId}' has invalid canonical spatial/trajectory fields`,
+        playerName: player.playerName,
+        solarSystemId: solarSystemId || null,
+        markets: []
+      };
+    }
+
     return {
       success: true,
       message: 'Market list retrieved successfully',
       playerName: player.playerName,
       solarSystemId: solarSystemId || null,
-      markets: markets.map((market) => ({
-        marketId: market.marketId,
-        solarSystemId: market.solarSystemId,
-        marketName: market.marketName,
-        siteType: market.siteType,
-        siteName: market.siteName,
-        isStarterMarket: Boolean(market.isStarterMarket),
-        spatial: market.spatial || null,
-        trajectory: market.trajectory || null,
-        priceMultiplier: market.priceMultiplier,
-        driftPercentPerHour: market.driftPercentPerHour,
-        restockIntervalMinutes: market.restockIntervalMinutes
-      }))
+      markets: projectedMarkets
     };
   }
 

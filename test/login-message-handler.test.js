@@ -177,7 +177,7 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
       ships: [
         {
           id: 'd-1',
-          shipName: 'Legacy Ship',
+          name: 'Legacy Ship',
           model: 'Scavenger Pod',
           tier: 1,
           inventory: [],

@@ -13,6 +13,23 @@ class MarketListByLocationMessageHandler {
     this.context = context;
   }
 
+  isValidSpatial(spatial) {
+    return Boolean(spatial)
+      && this.context.toNonEmptyString(spatial.solarSystemId)
+      && spatial.frame === 'barycentric'
+      && this.context.isTriple(spatial.positionKm)
+      && this.context.isFiniteNumber(spatial.epochMs);
+  }
+
+  isValidTrajectory(trajectory) {
+    if (trajectory == null) {
+      return true;
+    }
+
+    const kind = this.context.toNonEmptyString(trajectory.kind);
+    return kind === 'static' || kind === 'orbital-elements';
+  }
+
   isTriple(value) {
     return this.context.isTriple(value);
   }
@@ -148,6 +165,41 @@ class MarketListByLocationMessageHandler {
       };
     }
 
+    const projectedMarkets = nearbyMarkets.map((market) => ({
+      marketId: market.marketId,
+      solarSystemId: market.solarSystemId,
+      marketName: market.marketName,
+      siteType: market.siteType,
+      siteName: market.siteName,
+      isStarterMarket: Boolean(market.isStarterMarket),
+      spatial: market.spatial || null,
+      trajectory: market.trajectory || null,
+      distanceKm: market.distanceKm,
+      isDocked: Boolean(docking.perMarketDocked.get(market.marketId)),
+      priceMultiplier: market.priceMultiplier,
+      driftPercentPerHour: market.driftPercentPerHour,
+      restockIntervalMinutes: market.restockIntervalMinutes
+    }));
+
+    const invalidMarket = projectedMarkets.find((market) => {
+      return !this.isValidSpatial(market.spatial) || !this.isValidTrajectory(market.trajectory);
+    });
+
+    if (invalidMarket) {
+      return {
+        success: false,
+        message: `MarketListByLocation: market '${invalidMarket.marketId}' has invalid canonical spatial/trajectory fields`,
+        playerName: player.playerName,
+        solarSystemId,
+        positionKm,
+        distanceKm,
+        locationTypes,
+        markets: [],
+        isDocked: false,
+        dockedMarketId: null
+      };
+    }
+
     return {
       success: true,
       message: 'Local market list retrieved successfully',
@@ -158,21 +210,7 @@ class MarketListByLocationMessageHandler {
       locationTypes,
       isDocked: docking.isDocked,
       dockedMarketId: docking.dockedMarketId,
-      markets: nearbyMarkets.map((market) => ({
-        marketId: market.marketId,
-        solarSystemId: market.solarSystemId,
-        marketName: market.marketName,
-        siteType: market.siteType,
-        siteName: market.siteName,
-        isStarterMarket: Boolean(market.isStarterMarket),
-        spatial: market.spatial || null,
-        trajectory: market.trajectory || null,
-        distanceKm: market.distanceKm,
-        isDocked: Boolean(docking.perMarketDocked.get(market.marketId)),
-        priceMultiplier: market.priceMultiplier,
-        driftPercentPerHour: market.driftPercentPerHour,
-        restockIntervalMinutes: market.restockIntervalMinutes
-      }))
+      markets: projectedMarkets
     };
   }
 

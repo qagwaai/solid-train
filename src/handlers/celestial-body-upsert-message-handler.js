@@ -138,8 +138,33 @@ class CelestialBodyUpsertMessageHandler {
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const celestialBody = this.normalizeCelestialBody(payload?.celestialBody);
+    const sourceCelestialBody = payload?.celestialBody || {};
     const requiresComposition = celestialBody.state !== 'unscanned';
     const hasValidState = Boolean(celestialBody.state);
+
+    if (sourceCelestialBody.location !== undefined) {
+      return {
+        success: false,
+        message: "CelestialBodyUpsert: legacy field 'location' is not supported. Use 'spatial' instead.",
+        playerName
+      };
+    }
+
+    if (sourceCelestialBody.kinematics !== undefined) {
+      return {
+        success: false,
+        message: "CelestialBodyUpsert: legacy field 'kinematics' is not supported. Use 'motion' and/or 'physical' instead.",
+        playerName
+      };
+    }
+
+    if (sourceCelestialBody.solarSystemId !== undefined) {
+      return {
+        success: false,
+        message: "CelestialBodyUpsert: legacy field 'solarSystemId' is not supported. Use 'spatial.solarSystemId' instead.",
+        playerName
+      };
+    }
 
     if (
       !playerName
@@ -157,7 +182,7 @@ class CelestialBodyUpsertMessageHandler {
     ) {
       return {
         success: false,
-        message: 'playerName and a complete celestialBody payload are required',
+        message: 'playerName and a complete canonical celestialBody payload are required',
         playerName
       };
     }

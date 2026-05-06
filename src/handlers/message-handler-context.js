@@ -134,10 +134,11 @@ class MessageHandlerContext {
   normalizeSpatialState(value) {
     const source = this.toPlainObject(value) || {};
     const solarSystemId = this.toNonEmptyString(source.solarSystemId);
+    const frame = this.toNonEmptyString(source.frame) || 'barycentric';
     const positionKm = this.normalizeTriple(source.positionKm);
     const epochMs = this.isFiniteNumber(source.epochMs) ? source.epochMs : 0;
 
-    if (!solarSystemId || !positionKm) {
+    if (!solarSystemId || frame !== 'barycentric' || !positionKm) {
       return null;
     }
 
@@ -1458,7 +1459,7 @@ class MessageHandlerContext {
 
   normalizeShip(ship) {
     const source = this.toPlainObject(ship) || {};
-    const shipName = this.toNonEmptyString(source.shipName) || this.toNonEmptyString(source.name);
+    const shipName = this.toNonEmptyString(source.name) || this.toNonEmptyString(source.shipName);
     const inventory = Array.isArray(source.inventory)
       ? source.inventory
         .map((entry) => this.normalizeInventoryItemReference(entry))
@@ -1476,7 +1477,7 @@ class MessageHandlerContext {
 
     return {
       id: this.toNonEmptyString(source.id),
-      shipName: shipName || source.shipName || source.name || '',
+      name: shipName || source.name || source.shipName || '',
       status: this.toNonEmptyString(source.status) || null,
       model: this.toNonEmptyString(source.model) || 'Scavenger Pod',
       tier: Number.isInteger(source.tier) && source.tier >= 1 && source.tier <= 10

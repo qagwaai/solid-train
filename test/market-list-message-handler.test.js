@@ -67,3 +67,38 @@ test('MarketListMessageHandler emits invalid session before responding', async (
     }
   ]);
 });
+
+test('MarketListMessageHandler fails when market spatial is not canonical', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
+  // Inject directly to bypass normalizeMarket's spatial synthesis
+  context.marketsByKey.set('sol:broken-market', {
+    marketId: 'broken-market',
+    solarSystemId: 'sol',
+    marketName: 'Broken Market',
+    siteType: 'station',
+    siteName: 'Broken Site',
+    isStarterMarket: false,
+    inventory: [],
+    ledger: [],
+    spatial: null
+  });
+  seedPlayer(context, {
+    playerName: 'MarketPilot',
+    sessionKey: 'session-1'
+  });
+
+  const handler = new MarketListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'marketpilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol'
+  });
+
+  assert.equal(response.success, false);
+  assert.ok(response.message.includes('invalid canonical spatial/trajectory fields'));
+  assert.deepEqual(response.markets, []);
+  assert.equal(socket.events[0].eventName, MARKET_LIST_RESPONSE_EVENT);
+});

@@ -181,7 +181,7 @@ class ShipUpsertMessageHandler {
     if ((hasSpatial && !spatial) || (hasMotion && !motion)) {
       return {
         success: false,
-        message: 'ship location/kinematics payload is invalid',
+        message: 'ship spatial/motion payload is invalid',
         playerName,
         characterId
       };

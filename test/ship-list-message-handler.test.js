@@ -91,7 +91,6 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
     {
       id: 'ship-1',
       name: 'Scout Ship',
-      shipName: 'Scout Ship',
       status: 'active',
       model: 'scout-mk2',
       tier: 1,
@@ -256,6 +255,8 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
   });
 
   assert.equal(response.success, true);
+  assert.equal(typeof response.ships[0].name, 'string');
+  assert.equal('shipName' in response.ships[0], false);
   assert.equal(response.ships.length, 2);
   assert.deepEqual(response.ships[0].inventory, [
     {

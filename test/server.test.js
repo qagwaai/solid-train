@@ -796,7 +796,7 @@ test('character add adds character and is returned by character list', async () 
   assert.equal(Array.isArray(listResponse.characters[0].ships), true);
   assert.equal(listResponse.characters[0].ships.length >= 1, true);
   assert.equal(typeof listResponse.characters[0].ships[0].id, 'string');
-  assert.equal(typeof listResponse.characters[0].ships[0].shipName, 'string');
+  assert.equal(typeof listResponse.characters[0].ships[0].name, 'string');
 
   await closeClient(client);
   io.close();
@@ -841,7 +841,7 @@ test('ship list returns ships for a character', async () => {
   assert.equal(Array.isArray(shipListResponse.ships), true);
   assert.equal(shipListResponse.ships.length >= 1, true);
   assert.equal(typeof shipListResponse.ships[0].id, 'string');
-  assert.equal(typeof shipListResponse.ships[0].shipName, 'string');
+  assert.equal(typeof shipListResponse.ships[0].name, 'string');
   assert.deepEqual(shipListResponse.ships[0].inventory, [
     {
       id: `${addResponse.characterId}-ship-1-item-1`,
@@ -1627,8 +1627,7 @@ test('celestial body upsert stores a scanned celestial body and returns the wrap
     playerName: 'ScannerPilot',
     sessionKey: loginResponse.sessionKey,
     celestialBody: createCelestialBody({
-      createdByCharacterId: characterAddResponse.characterId,
-      solarSystemId: 'not-sol'
+      createdByCharacterId: characterAddResponse.characterId
     })
   });
 

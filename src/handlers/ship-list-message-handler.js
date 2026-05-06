@@ -54,24 +54,13 @@ class ShipListMessageHandler {
     const ships = Array.isArray(character.ships)
       ? await this.context.hydrateShipsAsync(character.ships)
       : [];
-    const shipsWithDisplayNameAliases = ships.map((ship) => {
-      const canonicalName = this.context.toNonEmptyString(ship?.name)
-        || this.context.toNonEmptyString(ship?.shipName)
-        || '';
-
-      return {
-        ...ship,
-        name: canonicalName,
-        shipName: this.context.toNonEmptyString(ship?.shipName) || canonicalName
-      };
-    });
 
     return {
       success: true,
       message: 'Ship list retrieved successfully',
       playerName: player.playerName,
       characterId,
-      ships: shipsWithDisplayNameAliases
+      ships
     };
   }
 

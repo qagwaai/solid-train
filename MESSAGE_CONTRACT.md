@@ -26,14 +26,53 @@ including required fields, response payloads, and edge-case behavior.
 - For valid character-operation messages, the server refreshes
   `lastMessageReceivedAt` for matching joined character entries.
 
-## Spatial Cutover Policy
+## Final State
 
-- Transition compatibility in this document is temporary and exists only to support frontend cutover.
-- Hard removal date for legacy aliases and fallback readers: `2026-06-30T00:00:00Z`.
-- Final state after sunset is strict hard cutover:
-  - No legacy request aliases (`location`, `kinematics`) accepted.
-  - No legacy response aliases (`shipName`, `bodies`) emitted.
-  - Canonical spatial model only: `spatial` and `motion`.
+- Canonical spatial contract is hard-cut and stable:
+  - Every in-world ship, celestial body, and market response includes `spatial`.
+  - `spatial` requires: `solarSystemId`, `frame: "barycentric"`, `positionKm.{x,y,z}`, `epochMs` (number).
+  - `motion` is optional and never carries position.
+  - When `motion` is present, `velocityKmPerSec.{x,y,z}` is required.
+- Canonical response keys:
+  - Ship display field is `name`.
+  - Celestial body list array is `celestialBodies`.
+  - Market site fields are `siteType` and `siteName`.
+  - Market position is under `spatial.positionKm`.
+  - Market orbit payload is under `trajectory.orbit`.
+  - `trajectory.kind` (when present) is `static` or `orbital-elements`.
+- Legacy fields are not canonical and are rejected at request boundaries where applicable:
+  - `location`, `kinematics`, root `solarSystemId` on celestial body payloads.
+
+## Transition Plan
+
+- No dual-key response transition is active.
+- Duplicated response keys:
+  - none
+- Transition start date:
+  - n/a
+- Hard sunset date:
+  - n/a
+- Removal release version:
+  - `v2.0.0` (already canonical-only for response keys)
+- Internal legacy normalization readers (non-contract behavior) are temporary and scheduled for removal:
+  - start date: `2026-05-05`
+  - hard sunset date: `2026-06-30T00:00:00Z`
+  - removal release version: `v2.1.0`
+
+## Acceptance Test Matrix
+
+- Ship list contract key name:
+  - positive: `ship-list-response` includes `ships[].name`
+  - negative: `ship-list-response` does not include `ships[].shipName`
+- Celestial body list array key:
+  - positive: `celestial-body-list-response` includes `celestialBodies`
+  - negative: `celestial-body-list-response` does not include `bodies`
+- Canonical spatial shape:
+  - positive: ship/celestial/market responses include valid `spatial`
+  - negative: market responses fail when canonical `spatial`/`trajectory` shape is invalid
+- Legacy field rejection:
+  - positive: canonical `ship-upsert` and `celestial-body-upsert` payloads succeed
+  - negative: legacy `location`/`kinematics`/root celestial `solarSystemId` payload fields are rejected with explicit replacement messages
 
 ## Event: `register`
 
@@ -816,18 +855,22 @@ Possible `reason` values:
 - `celestialBody` (required object)
   - `id` (optional, stable unique identifier)
   - `catalogId` (required)
-  - `solarSystemId` (accepted but currently forced to `sol` by the server)
   - `sourceScanId` (required)
   - `createdByCharacterId` (required and must match a character belonging to the player)
   - `missionId` (optional string; recommended for mission-scoped asteroid fields)
   - `missionInstanceId` (optional string)
   - `createdAt` (required ISO timestamp)
   - `updatedAt` (required ISO timestamp)
-  - `location.positionKm.x|y|z` (required numbers)
-  - `kinematics.velocityKmPerSec.x|y|z` (required numbers)
-  - `kinematics.angularVelocityRadPerSec.x|y|z` (required numbers)
-  - `kinematics.estimatedMassKg` (required number)
-  - `kinematics.estimatedDiameterM` (required number)
+  - `spatial.solarSystemId` (required)
+  - `spatial.frame` (required; must be `barycentric`)
+  - `spatial.positionKm.x|y|z` (required numbers)
+  - `spatial.epochMs` (required number)
+  - `motion.velocityKmPerSec.x|y|z` (optional numbers)
+  - `motion.angularVelocityRadPerSec.x|y|z` (optional numbers)
+  - `physical.estimatedMassKg` (optional number)
+  - `physical.estimatedDiameterM` (optional number)
+  - `observability.visibility` (required; one of `visible`, `not-visible`, `cloaked`)
+  - `observability.scanState` (required; one of `unscanned`, `scanned`)
   - `composition` (required for `state=active|destroyed`; optional for `state=unscanned`)
     - `rarity` (one of `Common`, `Uncommon`, `Rare`, `Exotic`)
     - `material` (string)
@@ -844,21 +887,29 @@ Possible `reason` values:
   "celestialBody": {
     "id": "<celestial body id>",
     "catalogId": "<catalog id>",
-    "solarSystemId": "sol",
     "sourceScanId": "<scan id>",
     "createdByCharacterId": "<character id>",
     "missionId": "first-target",
     "missionInstanceId": null,
     "createdAt": "<iso timestamp>",
     "updatedAt": "<iso timestamp>",
-    "location": {
-      "positionKm": { "x": 1, "y": 2, "z": 3 }
+    "spatial": {
+      "solarSystemId": "sol",
+      "frame": "barycentric",
+      "positionKm": { "x": 1, "y": 2, "z": 3 },
+      "epochMs": 1776384000000
     },
-    "kinematics": {
+    "motion": {
       "velocityKmPerSec": { "x": 1, "y": 2, "z": 3 },
-      "angularVelocityRadPerSec": { "x": 0.1, "y": 0.2, "z": 0.3 },
+      "angularVelocityRadPerSec": { "x": 0.1, "y": 0.2, "z": 0.3 }
+    },
+    "physical": {
       "estimatedMassKg": 42000000000,
       "estimatedDiameterM": 320
+    },
+    "observability": {
+      "visibility": "visible",
+      "scanState": "scanned"
     },
     "composition": {
       "rarity": "Rare",
@@ -899,8 +950,38 @@ Possible `reason` values:
 ```json
 {
   "success": false,
-  "message": "playerName and a complete celestialBody payload are required",
+  "message": "playerName and a complete canonical celestialBody payload are required",
   "playerName": "<provided playerName or empty string>"
+}
+```
+
+- Legacy field rejection (`location`):
+
+```json
+{
+  "success": false,
+  "message": "CelestialBodyUpsert: legacy field 'location' is not supported. Use 'spatial' instead.",
+  "playerName": "<provided playerName>"
+}
+```
+
+- Legacy field rejection (`kinematics`):
+
+```json
+{
+  "success": false,
+  "message": "CelestialBodyUpsert: legacy field 'kinematics' is not supported. Use 'motion' and/or 'physical' instead.",
+  "playerName": "<provided playerName>"
+}
+```
+
+- Legacy field rejection (root `solarSystemId`):
+
+```json
+{
+  "success": false,
+  "message": "CelestialBodyUpsert: legacy field 'solarSystemId' is not supported. Use 'spatial.solarSystemId' instead.",
+  "playerName": "<provided playerName>"
 }
 ```
 
@@ -1003,46 +1084,6 @@ Possible `reason` values:
       "debris": [],
       "distanceKm": 3.74
     }
-  ],
-  "bodies": [
-    {
-      "id": "<celestial body id>",
-      "catalogId": "<catalog id>",
-      "sourceScanId": "<scan id>",
-      "createdByCharacterId": "<character id>",
-      "missionId": "first-target",
-      "missionInstanceId": null,
-      "createdAt": "<iso timestamp>",
-      "updatedAt": "<iso timestamp>",
-      "spatial": {
-        "solarSystemId": "sol",
-        "frame": "barycentric",
-        "positionKm": { "x": 1, "y": 2, "z": 3 },
-        "epochMs": 1776384000000
-      },
-      "motion": {
-        "velocityKmPerSec": { "x": 1, "y": 2, "z": 3 }
-      },
-      "physical": {
-        "estimatedMassKg": 42000000000,
-        "estimatedDiameterM": 320
-      },
-      "observability": {
-        "visibility": "visible",
-        "scanState": "scanned"
-      },
-      "composition": {
-        "rarity": "Rare",
-        "material": "Nickel-Iron",
-        "textureColor": "#8df7b2"
-      },
-      "state": "active",
-      "destroyedAt": null,
-      "destroyedReason": null,
-      "debrisSeed": null,
-      "debris": [],
-      "distanceKm": 3.74
-    }
   ]
 }
 ```
@@ -1060,10 +1101,6 @@ Possible `reason` values:
   "celestialBodies": [
     { "id": "cb-1", "state": "unscanned", "sourceScanId": "sample-a1", "spatial": { "solarSystemId": "sol", "frame": "barycentric", "positionKm": { "x": 1, "y": 0, "z": 0 }, "epochMs": 1776384000000 } },
     { "id": "cb-2", "state": "active", "sourceScanId": "sample-a2", "spatial": { "solarSystemId": "sol", "frame": "barycentric", "positionKm": { "x": 2, "y": 0, "z": 0 }, "epochMs": 1776384000000 } }
-  ],
-  "bodies": [
-    { "id": "cb-1", "state": "unscanned", "sourceScanId": "sample-a1", "spatial": { "solarSystemId": "sol", "frame": "barycentric", "positionKm": { "x": 1, "y": 0, "z": 0 }, "epochMs": 1776384000000 } },
-    { "id": "cb-2", "state": "active", "sourceScanId": "sample-a2", "spatial": { "solarSystemId": "sol", "frame": "barycentric", "positionKm": { "x": 2, "y": 0, "z": 0 }, "epochMs": 1776384000000 } }
   ]
 }
 ```
@@ -1078,8 +1115,7 @@ Possible `reason` values:
   "solarSystemId": "sol",
   "positionKm": { "x": 0, "y": 0, "z": 0 },
   "distanceKm": 100,
-  "celestialBodies": [],
-  "bodies": []
+  "celestialBodies": []
 }
 ```
 
@@ -1094,8 +1130,7 @@ Possible `reason` values:
   "message": "playerName, solarSystemId, positionKm, and distanceKm are required",
   "playerName": "<provided playerName or empty string>",
   "solarSystemId": "<provided solarSystemId or empty string>",
-  "celestialBodies": [],
-  "bodies": []
+  "celestialBodies": []
 }
 ```
 
@@ -1107,8 +1142,7 @@ Possible `reason` values:
   "message": "limit must be a positive integer when provided",
   "playerName": "<provided playerName or empty string>",
   "solarSystemId": "<provided solarSystemId or empty string>",
-  "celestialBodies": [],
-  "bodies": []
+  "celestialBodies": []
 }
 ```
 
@@ -1120,8 +1154,7 @@ Possible `reason` values:
   "message": "states must be an array with values from: unscanned, active, destroyed",
   "playerName": "<provided playerName or empty string>",
   "solarSystemId": "<provided solarSystemId or empty string>",
-  "celestialBodies": [],
-  "bodies": []
+  "celestialBodies": []
 }
 ```
 
@@ -1133,8 +1166,7 @@ Possible `reason` values:
   "message": "Player is not registered",
   "playerName": "<provided playerName>",
   "solarSystemId": "<provided solarSystemId>",
-  "celestialBodies": [],
-  "bodies": []
+  "celestialBodies": []
 }
 ```
 
@@ -1146,7 +1178,6 @@ Possible `reason` values:
 - `limit` is applied after filtering and sorting.
 - By default, list includes all lifecycle states (`unscanned`, `active`, `destroyed`) unless `states` filter is provided.
 - `createdByCharacterId` and `missionId` can be used together to scope a mission-specific asteroid field.
-- Transition alias: `bodies` mirrors `celestialBodies` until `2026-06-30T00:00:00Z`; removed after sunset.
 
 ### Success Response
 
@@ -1405,7 +1436,6 @@ Prerequisite graph:
     {
       "id": "<ship id>",
       "name": "<ship name>",
-      "shipName": "<ship name>",
       "status": "<status string or null>",
       "model": "<ship model, e.g. Scavenger Pod>",
       "tier": 1,
@@ -1499,7 +1529,6 @@ Prerequisite graph:
 - Invalid session emits `invalid-session`.
 - Ships are scoped per character.
 - Returned `ships` list is a defensive copy of server state.
-- Transition alias: ship responses include both `name` (canonical) and `shipName` until `2026-06-30T00:00:00Z`; `shipName` is removed after sunset.
 
 ## Event: `ship-upsert-request`
 
@@ -1542,7 +1571,7 @@ Prerequisite graph:
   "characterId": "<character id>",
   "ship": {
     "id": "<ship id>",
-    "shipName": "<ship name>",
+    "name": "<ship name>",
     "status": "<status string or null>",
     "model": "<ship model>",
     "tier": 1,
@@ -1621,7 +1650,7 @@ Prerequisite graph:
 ```json
 {
   "success": false,
-  "message": "ship location/kinematics payload is invalid",
+  "message": "ship spatial/motion payload is invalid",
   "playerName": "<canonical player name>",
   "characterId": "<character id>"
 }
@@ -1713,6 +1742,148 @@ Prerequisite graph:
 - `status` and `damageProfile` use patch semantics: omitting a field preserves the stored value; sending `damageProfile: null` explicitly clears it.
 - Ships without a stored `damageProfile` return `damageProfile: null`.
 - At least one of `spatial`, `motion`, `model`, `tier`, `status`, or `damageProfile` must be present in the update payload.
+
+## Canonical Detail Payload Examples
+
+The following examples define canonical entity payloads used by list/detail/upsert responses.
+
+### `ship-details-response` Example
+
+```json
+{
+  "success": true,
+  "message": "Ship details retrieved successfully",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>",
+  "ship": {
+    "id": "<ship id>",
+    "name": "<ship name>",
+    "status": "active",
+    "model": "Scavenger Pod",
+    "tier": 1,
+    "inventory": [],
+    "spatial": {
+      "solarSystemId": "sol",
+      "frame": "barycentric",
+      "positionKm": { "x": 0, "y": 0, "z": 0 },
+      "epochMs": 1776384000000
+    },
+    "motion": {
+      "velocityKmPerSec": { "x": 0, "y": 0, "z": 0 }
+    },
+    "launchable": true,
+    "damageProfile": null
+  }
+}
+```
+
+### `celestial-body-details-response` Example
+
+```json
+{
+  "success": true,
+  "message": "Celestial body details retrieved successfully",
+  "celestialBody": {
+    "id": "<celestial body id>",
+    "catalogId": "<catalog id>",
+    "sourceScanId": "<scan id>",
+    "createdByCharacterId": "<character id>",
+    "missionId": null,
+    "missionInstanceId": null,
+    "createdAt": "<iso timestamp>",
+    "updatedAt": "<iso timestamp>",
+    "spatial": {
+      "solarSystemId": "sol",
+      "frame": "barycentric",
+      "positionKm": { "x": 10, "y": 20, "z": 30 },
+      "epochMs": 1776384000000
+    },
+    "motion": {
+      "velocityKmPerSec": { "x": 1, "y": 2, "z": 3 }
+    },
+    "physical": {
+      "estimatedMassKg": 42000000000,
+      "estimatedDiameterM": 320
+    },
+    "observability": {
+      "visibility": "visible",
+      "scanState": "scanned"
+    },
+    "composition": {
+      "rarity": "Rare",
+      "material": "Nickel-Iron",
+      "textureColor": "#8df7b2"
+    },
+    "state": "active",
+    "destroyedAt": null,
+    "destroyedReason": null
+  }
+}
+```
+
+### `market-details-response` Example
+
+```json
+{
+  "success": true,
+  "message": "Market details retrieved successfully",
+  "market": {
+    "marketId": "sol-ceres-exchange",
+    "solarSystemId": "sol",
+    "marketName": "Ceres Exchange",
+    "siteType": "station",
+    "siteName": "Ceres Belt Trade Ring",
+    "isStarterMarket": true,
+    "spatial": {
+      "solarSystemId": "sol",
+      "frame": "barycentric",
+      "positionKm": { "x": 123.45, "y": -22.1, "z": 0.9 },
+      "epochMs": 1776384000000
+    },
+    "trajectory": {
+      "kind": "orbital-elements",
+      "orbit": {
+        "anchorBodyId": "ceres",
+        "semiMajorAxisKm": 480,
+        "eccentricity": 0.006,
+        "inclinationDeg": 2.1,
+        "longitudeOfAscendingNodeDeg": 95,
+        "argumentOfPeriapsisDeg": 12,
+        "meanAnomalyAtEpochDeg": 8,
+        "orbitalPeriodSec": 21600,
+        "epoch": "<iso timestamp>"
+      }
+    },
+    "priceMultiplier": 1,
+    "driftPercentPerHour": 6,
+    "restockIntervalMinutes": 60
+  }
+}
+```
+
+### `character-list-response` Ship Object Shape
+
+```json
+{
+  "id": "<ship id>",
+  "name": "<ship name>",
+  "status": "active",
+  "model": "Scavenger Pod",
+  "tier": 1,
+  "inventory": [],
+  "spatial": {
+    "solarSystemId": "sol",
+    "frame": "barycentric",
+    "positionKm": { "x": 0, "y": 0, "z": 0 },
+    "epochMs": 1776384000000
+  },
+  "motion": {
+    "velocityKmPerSec": { "x": 0, "y": 0, "z": 0 }
+  },
+  "launchable": true,
+  "damageProfile": null
+}
+```
 
 ## Event: `character-delete-request`
 
