@@ -24,5 +24,6 @@
             "approve": true,
             "matchCommandLine": true
         }
-    }
+    },
+    "specstory.cloudSync.enabled": "never"
 }

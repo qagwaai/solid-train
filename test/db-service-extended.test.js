@@ -118,6 +118,32 @@ test('DatabaseService updateCharacter covers no-player, no-character, and succes
   }
 });
 
+test('DatabaseService updateCharacter maps canonical ship name to shipName before save', async () => {
+  const service = new DatabaseService();
+  const originalFindOne = Player.findOne;
+
+  const player = {
+    characters: [{ id: 'c-1', characterName: 'Pilot', ships: [] }],
+    async save() {},
+    toObject() {
+      return { characters: this.characters };
+    }
+  };
+
+  Player.findOne = async () => player;
+
+  try {
+    const updated = await service.updateCharacter('pilot', 'c-1', {
+      ships: [{ id: 's-1', name: 'Scout Ship' }]
+    });
+
+    assert.equal(updated.characters[0].ships[0].name, 'Scout Ship');
+    assert.equal(updated.characters[0].ships[0].shipName, 'Scout Ship');
+  } finally {
+    Player.findOne = originalFindOne;
+  }
+});
+
 test('DatabaseService addShip initializes ship list and appends data', async () => {
   const service = new DatabaseService();
   const originalFindOne = Player.findOne;

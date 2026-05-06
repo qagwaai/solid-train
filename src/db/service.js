@@ -53,6 +53,37 @@ class DatabaseService {
       && this.isFiniteNumber(value.z);
   }
 
+  normalizeCharacterShipForPersistence(ship) {
+    if (!ship || typeof ship !== 'object') {
+      return ship;
+    }
+
+    const shipName = this.toNonEmptyString(ship.shipName) || this.toNonEmptyString(ship.name);
+    if (!shipName) {
+      return { ...ship };
+    }
+
+    return {
+      ...ship,
+      shipName
+    };
+  }
+
+  normalizeCharacterUpdatesForPersistence(updates) {
+    if (!updates || typeof updates !== 'object') {
+      return updates;
+    }
+
+    if (!Array.isArray(updates.ships)) {
+      return updates;
+    }
+
+    return {
+      ...updates,
+      ships: updates.ships.map((ship) => this.normalizeCharacterShipForPersistence(ship))
+    };
+  }
+
   calculateDistanceKm(fromPositionKm, toPositionKm) {
     const dx = toPositionKm.x - fromPositionKm.x;
     const dy = toPositionKm.y - fromPositionKm.y;
@@ -270,7 +301,7 @@ class DatabaseService {
         return null;
       }
 
-      Object.assign(character, updates);
+      Object.assign(character, this.normalizeCharacterUpdatesForPersistence(updates));
       player.updatedAt = new Date();
       await player.save();
       return player.toObject();
