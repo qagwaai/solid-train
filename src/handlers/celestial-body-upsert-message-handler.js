@@ -27,16 +27,20 @@ class CelestialBodyUpsertMessageHandler {
       && this.isFiniteNumber(value.z);
   }
 
-  hasValidLocation(location) {
-    return Boolean(location) && this.isTriple(location.positionKm);
+  hasValidSpatial(spatial) {
+    return Boolean(spatial)
+      && Boolean(this.context.toNonEmptyString(spatial.solarSystemId))
+      && spatial.frame === 'barycentric'
+      && this.isTriple(spatial.positionKm)
+      && this.isFiniteNumber(spatial.epochMs);
   }
 
-  hasValidKinematics(kinematics) {
-    return Boolean(kinematics)
-      && this.isTriple(kinematics.velocityKmPerSec)
-      && this.isTriple(kinematics.angularVelocityRadPerSec)
-      && this.isFiniteNumber(kinematics.estimatedMassKg)
-      && this.isFiniteNumber(kinematics.estimatedDiameterM);
+  hasValidObservability(observability) {
+    const validVisibility = ['visible', 'not-visible', 'cloaked'];
+    const validScanState = ['unscanned', 'scanned'];
+    return Boolean(observability)
+      && validVisibility.includes(observability.visibility)
+      && validScanState.includes(observability.scanState);
   }
 
   hasValidComposition(composition) {
@@ -85,25 +89,43 @@ class CelestialBodyUpsertMessageHandler {
 
   normalizeCelestialBody(celestialBody) {
     const normalizedId = this.context.toNonEmptyString(celestialBody?.id);
+    const rawSpatial = celestialBody?.spatial;
+    const spatial = rawSpatial ? {
+      solarSystemId: DEFAULT_SOLAR_SYSTEM_ID,
+      frame: 'barycentric',
+      positionKm: rawSpatial.positionKm ? { ...rawSpatial.positionKm } : null,
+      epochMs: rawSpatial.epochMs
+    } : null;
+    const rawMotion = celestialBody?.motion;
+    const motion = rawMotion ? {
+      velocityKmPerSec: rawMotion.velocityKmPerSec ? { ...rawMotion.velocityKmPerSec } : null,
+      angularVelocityRadPerSec: rawMotion.angularVelocityRadPerSec
+        ? { ...rawMotion.angularVelocityRadPerSec } : null
+    } : null;
+    const rawPhysical = celestialBody?.physical;
+    const physical = rawPhysical ? {
+      estimatedMassKg: rawPhysical.estimatedMassKg ?? null,
+      estimatedDiameterM: rawPhysical.estimatedDiameterM ?? null
+    } : null;
+    const rawObservability = celestialBody?.observability;
+    const observability = rawObservability ? {
+      visibility: rawObservability.visibility,
+      scanState: rawObservability.scanState
+    } : { visibility: 'visible', scanState: 'scanned' };
+
     return {
       id: normalizedId || this.createDeterministicCelestialBodyId(celestialBody),
       catalogId: this.context.toNonEmptyString(celestialBody?.catalogId),
-      solarSystemId: DEFAULT_SOLAR_SYSTEM_ID,
       sourceScanId: this.context.toNonEmptyString(celestialBody?.sourceScanId),
       createdByCharacterId: this.context.toNonEmptyString(celestialBody?.createdByCharacterId),
       missionId: this.context.toNonEmptyString(celestialBody?.missionId) || null,
       missionInstanceId: this.context.toNonEmptyString(celestialBody?.missionInstanceId) || null,
       createdAt: this.context.toNonEmptyString(celestialBody?.createdAt),
       updatedAt: this.context.toNonEmptyString(celestialBody?.updatedAt),
-      location: celestialBody?.location ? {
-        positionKm: { ...celestialBody.location.positionKm }
-      } : null,
-      kinematics: celestialBody?.kinematics ? {
-        velocityKmPerSec: { ...celestialBody.kinematics.velocityKmPerSec },
-        angularVelocityRadPerSec: { ...celestialBody.kinematics.angularVelocityRadPerSec },
-        estimatedMassKg: celestialBody.kinematics.estimatedMassKg,
-        estimatedDiameterM: celestialBody.kinematics.estimatedDiameterM
-      } : null,
+      spatial,
+      motion,
+      physical,
+      observability,
       composition: celestialBody?.composition ? {
         rarity: this.context.toNonEmptyString(celestialBody.composition.rarity),
         material: this.context.toNonEmptyString(celestialBody.composition.material),
@@ -127,8 +149,8 @@ class CelestialBodyUpsertMessageHandler {
       || !celestialBody.createdByCharacterId
       || !celestialBody.createdAt
       || !celestialBody.updatedAt
-      || !this.hasValidLocation(celestialBody.location)
-      || !this.hasValidKinematics(celestialBody.kinematics)
+      || !this.hasValidSpatial(celestialBody.spatial)
+      || !this.hasValidObservability(celestialBody.observability)
       || !hasValidState
       || (requiresComposition && !this.hasValidComposition(celestialBody.composition))
       || (celestialBody.composition && !this.hasValidComposition(celestialBody.composition))

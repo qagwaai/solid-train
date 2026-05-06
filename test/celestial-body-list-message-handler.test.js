@@ -22,25 +22,38 @@ function createCelestialBody(overrides = {}) {
   return {
     id: 'cb-1',
     catalogId: 'CAT-001',
-    solarSystemId: 'sol',
     sourceScanId: 'scan-1',
     createdByCharacterId: 'character-1',
+    missionId: null,
+    missionInstanceId: null,
     createdAt: '2026-04-17T00:00:00.000Z',
     updatedAt: '2026-04-17T00:00:00.000Z',
-    location: {
-      positionKm: { x: 0, y: 0, z: 0 }
+    spatial: {
+      solarSystemId: 'sol',
+      frame: 'barycentric',
+      positionKm: { x: 0, y: 0, z: 0 },
+      epochMs: 1713360000000
     },
-    kinematics: {
+    motion: {
       velocityKmPerSec: { x: 1, y: 2, z: 3 },
-      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 },
+      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 }
+    },
+    physical: {
       estimatedMassKg: 42000000000,
       estimatedDiameterM: 320
+    },
+    observability: {
+      visibility: 'visible',
+      scanState: 'scanned'
     },
     composition: {
       rarity: 'Rare',
       material: 'Nickel-Iron',
       textureColor: '#8df7b2'
     },
+    state: 'active',
+    destroyedAt: null,
+    destroyedReason: null,
     ...overrides
   };
 }
@@ -55,15 +68,15 @@ test('CelestialBodyListMessageHandler returns nearest-first celestial bodies wit
 
   await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
     id: 'cb-near',
-    location: { positionKm: { x: 3, y: 4, z: 0 } }
+    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 3, y: 4, z: 0 }, epochMs: 1713360000000 }
   }));
   await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
     id: 'cb-mid',
-    location: { positionKm: { x: 0, y: 6, z: 8 } }
+    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 6, z: 8 }, epochMs: 1713360000000 }
   }));
   await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
     id: 'cb-far',
-    location: { positionKm: { x: 100, y: 0, z: 0 } }
+    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 100, y: 0, z: 0 }, epochMs: 1713360000000 }
   }));
 
   const handler = new CelestialBodyListMessageHandler(context);
@@ -98,7 +111,7 @@ test('CelestialBodyListMessageHandler returns empty list when no bodies match', 
 
   await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
     id: 'cb-other-system',
-    solarSystemId: 'alt'
+    spatial: { solarSystemId: 'alt', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 1713360000000 }
   }));
 
   const handler = new CelestialBodyListMessageHandler(context);
@@ -177,7 +190,7 @@ test('CelestialBodyListMessageHandler merges cache results when DB query returns
 
   await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
     id: 'cb-cache-only',
-    location: { positionKm: { x: 3, y: 4, z: 0 } }
+    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 3, y: 4, z: 0 }, epochMs: 1713360000000 }
   }));
 
   context.databaseService = {
@@ -220,21 +233,21 @@ test('CelestialBodyListMessageHandler filters by states, createdByCharacterId, a
     state: 'unscanned',
     missionId: 'first-target',
     createdByCharacterId: 'character-1',
-    location: { positionKm: { x: 1, y: 0, z: 0 } }
+    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 1, y: 0, z: 0 }, epochMs: 1713360000000 }
   }));
   await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
     id: 'cb-active',
     state: 'active',
     missionId: 'first-target',
     createdByCharacterId: 'character-1',
-    location: { positionKm: { x: 2, y: 0, z: 0 } }
+    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 2, y: 0, z: 0 }, epochMs: 1713360000000 }
   }));
   await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
     id: 'cb-destroyed',
     state: 'destroyed',
     missionId: 'first-target',
     createdByCharacterId: 'character-1',
-    location: { positionKm: { x: 3, y: 0, z: 0 } }
+    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 3, y: 0, z: 0 }, epochMs: 1713360000000 }
   }));
 
   const handler = new CelestialBodyListMessageHandler(context);

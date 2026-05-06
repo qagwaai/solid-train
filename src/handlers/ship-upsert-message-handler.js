@@ -24,53 +24,29 @@ class ShipUpsertMessageHandler {
       && this.isFiniteNumber(value.z);
   }
 
-  normalizeLocation(location) {
-    if (!location || !this.isTriple(location.positionKm)) {
-      return null;
-    }
-
+  normalizeSpatial(spatial) {
+    if (!spatial) return null;
+    const solarSystemId = this.context.toNonEmptyString(spatial.solarSystemId);
+    if (!solarSystemId) return null;
+    if (spatial.frame !== 'barycentric') return null;
+    if (!this.isTriple(spatial.positionKm)) return null;
+    if (!this.isFiniteNumber(spatial.epochMs)) return null;
     return {
-      positionKm: {
-        x: location.positionKm.x,
-        y: location.positionKm.y,
-        z: location.positionKm.z
-      }
+      solarSystemId,
+      frame: 'barycentric',
+      positionKm: { x: spatial.positionKm.x, y: spatial.positionKm.y, z: spatial.positionKm.z },
+      epochMs: spatial.epochMs
     };
   }
 
-  normalizeKinematics(kinematics) {
-    if (!kinematics || !this.isTriple(kinematics.position) || !this.isTriple(kinematics.velocity)) {
-      return null;
-    }
-
-    const reference = kinematics.reference;
-    if (
-      !reference
-      || !this.context.toNonEmptyString(reference.solarSystemId)
-      || !['barycentric', 'body-centered'].includes(this.context.toNonEmptyString(reference.referenceKind))
-      || !this.isFiniteNumber(reference.epochMs)
-    ) {
-      return null;
-    }
-
+  normalizeMotion(motion) {
+    if (!motion) return null;
+    if (!this.isTriple(motion.velocityKmPerSec)) return null;
     return {
-      position: {
-        x: kinematics.position.x,
-        y: kinematics.position.y,
-        z: kinematics.position.z
-      },
-      velocity: {
-        x: kinematics.velocity.x,
-        y: kinematics.velocity.y,
-        z: kinematics.velocity.z
-      },
-      reference: {
-        solarSystemId: this.context.toNonEmptyString(reference.solarSystemId),
-        referenceKind: this.context.toNonEmptyString(reference.referenceKind),
-        referenceBodyId: this.context.toNonEmptyString(reference.referenceBodyId) || null,
-        distanceUnit: 'km',
-        velocityUnit: 'km/s',
-        epochMs: reference.epochMs
+      velocityKmPerSec: {
+        x: motion.velocityKmPerSec.x,
+        y: motion.velocityKmPerSec.y,
+        z: motion.velocityKmPerSec.z
       }
     };
   }
@@ -148,10 +124,10 @@ class ShipUpsertMessageHandler {
     const tier = (hasTier && Number.isInteger(tierPayload) && tierPayload >= 1 && tierPayload <= 10)
       ? tierPayload
       : null;
-    const hasLocation = Boolean(payload?.ship?.location);
-    const hasKinematics = Boolean(payload?.ship?.kinematics);
-    const location = this.normalizeLocation(payload?.ship?.location);
-    const kinematics = this.normalizeKinematics(payload?.ship?.kinematics);
+    const hasSpatial = Boolean(payload?.ship?.spatial);
+    const hasMotion = Boolean(payload?.ship?.motion);
+    const spatial = this.normalizeSpatial(payload?.ship?.spatial);
+    const motion = hasMotion ? this.normalizeMotion(payload?.ship?.motion) : undefined;
     const hasLaunchable = payload?.ship != null && 'launchable' in payload.ship;
     const launchable = hasLaunchable
       ? (payload.ship.launchable != null ? Boolean(payload.ship.launchable) : null)
@@ -166,10 +142,28 @@ class ShipUpsertMessageHandler {
       };
     }
 
-    if (!hasLocation && !hasKinematics && !model && !hasTier && !hasStatusKey && !hasDamageProfileKey) {
+    if (payload?.ship?.location !== undefined) {
       return {
         success: false,
-        message: 'ship.location, ship.kinematics, ship.model, and/or ship.tier is required',
+        message: "ShipUpsert: legacy field 'location' is not supported. Use 'spatial' instead.",
+        playerName,
+        characterId
+      };
+    }
+
+    if (payload?.ship?.kinematics !== undefined) {
+      return {
+        success: false,
+        message: "ShipUpsert: legacy field 'kinematics' is not supported. Use 'motion' instead.",
+        playerName,
+        characterId
+      };
+    }
+
+    if (!hasSpatial && !hasMotion && !model && !hasTier && !hasStatusKey && !hasDamageProfileKey) {
+      return {
+        success: false,
+        message: 'ship.spatial, ship.motion, ship.model, and/or ship.tier is required',
         playerName,
         characterId
       };
@@ -184,7 +178,7 @@ class ShipUpsertMessageHandler {
       };
     }
 
-    if ((hasLocation && !location) || (hasKinematics && !kinematics)) {
+    if ((hasSpatial && !spatial) || (hasMotion && !motion)) {
       return {
         success: false,
         message: 'ship location/kinematics payload is invalid',
@@ -262,13 +256,15 @@ class ShipUpsertMessageHandler {
       status: hasStatusKey ? status : (existingShip.status ?? null),
       model: model || existingShip.model,
       tier: tier !== null ? tier : existingShip.tier,
-      location: location || existingShip.location,
-      kinematics: kinematics || existingShip.kinematics,
+      spatial: spatial || existingShip.spatial,
+      motion: hasMotion ? (motion || null) : existingShip.motion,
       launchable: hasLaunchable && launchable !== null
         ? launchable
         : (existingShip.launchable != null ? existingShip.launchable : true),
       damageProfile: hasDamageProfileKey ? normalizedDamageProfile : (existingShip.damageProfile ?? null)
     };
+    delete nextShip.location;
+    delete nextShip.kinematics;
 
     return {
       success: true,

@@ -310,25 +310,38 @@ function createCelestialBody(overrides = {}) {
   return {
     id: 'cb-1',
     catalogId: 'CAT-001',
-    solarSystemId: 'andromeda',
     sourceScanId: 'scan-1',
     createdByCharacterId: 'character-1',
+    missionId: null,
+    missionInstanceId: null,
     createdAt: '2026-04-17T00:00:00.000Z',
     updatedAt: '2026-04-17T01:00:00.000Z',
-    location: {
-      positionKm: { x: 100, y: 200, z: 300 }
+    spatial: {
+      solarSystemId: 'andromeda',
+      frame: 'barycentric',
+      positionKm: { x: 100, y: 200, z: 300 },
+      epochMs: 1713360000000
     },
-    kinematics: {
+    motion: {
       velocityKmPerSec: { x: 1, y: 2, z: 3 },
-      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 },
+      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 }
+    },
+    physical: {
       estimatedMassKg: 42000000000,
       estimatedDiameterM: 320
+    },
+    observability: {
+      visibility: 'visible',
+      scanState: 'scanned'
     },
     composition: {
       rarity: 'Rare',
       material: 'Nickel-Iron',
       textureColor: '#8df7b2'
     },
+    state: 'active',
+    destroyedAt: null,
+    destroyedReason: null,
     ...overrides
   };
 }
@@ -897,18 +910,14 @@ test('ship upsert updates ship location and kinematics', async () => {
     sessionKey: loginResponse.sessionKey,
     ship: {
       id: listResponse.ships[0].id,
-      location: {
-        positionKm: { x: 100.5, y: 200.3, z: 50.1 }
+      spatial: {
+        solarSystemId: 'system-sol',
+        frame: 'barycentric',
+        positionKm: { x: 100.5, y: 200.3, z: 50.1 },
+        epochMs: 1713607200000
       },
-      kinematics: {
-        position: { x: 100.5, y: 200.3, z: 50.1 },
-        velocity: { x: 0.5, y: -0.2, z: 0.1 },
-        reference: {
-          solarSystemId: 'system-sol',
-          referenceKind: 'barycentric',
-          referenceBodyId: null,
-          epochMs: 1713607200000
-        }
+      motion: {
+        velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 }
       }
     }
   });
@@ -920,8 +929,11 @@ test('ship upsert updates ship location and kinematics', async () => {
   assert.equal(upsertResponse.characterId, addResponse.characterId);
   assert.equal(upsertResponse.ship.id, listResponse.ships[0].id);
   assert.equal(upsertResponse.ship.inventory[0].id, `${addResponse.characterId}-ship-1-item-1`);
-  assert.deepEqual(upsertResponse.ship.location, {
-    positionKm: { x: 100.5, y: 200.3, z: 50.1 }
+  assert.deepEqual(upsertResponse.ship.spatial, {
+    solarSystemId: 'system-sol',
+    frame: 'barycentric',
+    positionKm: { x: 100.5, y: 200.3, z: 50.1 },
+    epochMs: 1713607200000
   });
 
   const shipListAfterUpsertPromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
@@ -934,16 +946,14 @@ test('ship upsert updates ship location and kinematics', async () => {
 
   assert.equal(shipListAfterUpsert.success, true);
   assert.equal(shipListAfterUpsert.ships[0].inventory[0].id, `${addResponse.characterId}-ship-1-item-1`);
-  assert.deepEqual(shipListAfterUpsert.ships[0].location, {
-    positionKm: { x: 100.5, y: 200.3, z: 50.1 }
-  });
-  assert.deepEqual(shipListAfterUpsert.ships[0].kinematics.reference, {
+  assert.deepEqual(shipListAfterUpsert.ships[0].spatial, {
     solarSystemId: 'system-sol',
-    referenceKind: 'barycentric',
-    referenceBodyId: null,
-    distanceUnit: 'km',
-    velocityUnit: 'km/s',
+    frame: 'barycentric',
+    positionKm: { x: 100.5, y: 200.3, z: 50.1 },
     epochMs: 1713607200000
+  });
+  assert.deepEqual(shipListAfterUpsert.ships[0].motion, {
+    velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 }
   });
 
   await closeClient(client);
@@ -990,8 +1000,11 @@ test('ship upsert emits invalid session for wrong session key', async () => {
     sessionKey: 'wrong-session-key',
     ship: {
       id: listResponse.ships[0].id,
-      location: {
-        positionKm: { x: 10, y: 20, z: 30 }
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 10, y: 20, z: 30 },
+        epochMs: 0
       }
     }
   });
@@ -1624,7 +1637,7 @@ test('celestial body upsert stores a scanned celestial body and returns the wrap
   assert.equal(celestialBodyResponse.message, 'Celestial body recorded successfully');
   assert.equal(celestialBodyResponse.playerName, 'ScannerPilot');
   assert.equal(celestialBodyResponse.celestialBody.id, 'cb-1');
-  assert.equal(celestialBodyResponse.celestialBody.solarSystemId, 'sol');
+  assert.equal(celestialBodyResponse.celestialBody.spatial.solarSystemId, 'sol');
   assert.equal(
     celestialBodyResponse.celestialBody.createdByCharacterId,
     characterAddResponse.characterId
@@ -1706,19 +1719,19 @@ test('celestial body list returns sorted bodies filtered by spherical distance a
       id: 'cb-list-near',
       sourceScanId: 'scan-near',
       createdByCharacterId: characterAddResponse.characterId,
-      location: { positionKm: { x: 3, y: 4, z: 0 } }
+      spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 3, y: 4, z: 0 }, epochMs: 1713360000000 }
     }),
     createCelestialBody({
       id: 'cb-list-mid',
       sourceScanId: 'scan-mid',
       createdByCharacterId: characterAddResponse.characterId,
-      location: { positionKm: { x: 0, y: 6, z: 8 } }
+      spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 6, z: 8 }, epochMs: 1713360000000 }
     }),
     createCelestialBody({
       id: 'cb-list-far',
       sourceScanId: 'scan-far',
       createdByCharacterId: characterAddResponse.characterId,
-      location: { positionKm: { x: 100, y: 0, z: 0 } }
+      spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 100, y: 0, z: 0 }, epochMs: 1713360000000 }
     })
   ];
 

@@ -111,7 +111,13 @@ class CharacterAddMessageHandler {
                   itemId: starterDroneId,
                   itemType: 'expendable-dart-drone'
                 }
-              ]
+              ],
+              spatial: {
+                solarSystemId: 'sol',
+                frame: 'barycentric',
+                positionKm: { x: 0, y: 0, z: 0 },
+                epochMs: Date.parse(createdAt)
+              }
             }
           ],
           missions: [

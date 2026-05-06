@@ -1,0 +1,28 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test test/celestial-body-list-message-handler\\.test\\.js test/celestial-body-upsert-message-handler\\.test\\.js 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test 2>&1 \\| tail -80$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test 2>&1 \\| tail -20$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /c/Development/Projects/Github/solid-train && node --test 2>&1 \\| tail -25$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node --test 2>&1 \\| tail -25$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

@@ -336,8 +336,28 @@ Each character carries a `creditLedger` array and a computed `credits` summary f
       "marketId": "sol-ceres-exchange",
       "solarSystemId": "sol",
       "marketName": "Ceres Exchange",
-      "locationType": "station",
-      "locationName": "Ceres Belt Trade Ring",
+      "siteType": "station",
+      "siteName": "Ceres Belt Trade Ring",
+      "spatial": {
+        "solarSystemId": "sol",
+        "frame": "barycentric",
+        "positionKm": { "x": 123.45, "y": -22.1, "z": 0.9 },
+        "epochMs": 1776384000000
+      },
+      "trajectory": {
+        "kind": "orbital-elements",
+        "orbit": {
+          "anchorBodyId": "ceres",
+          "semiMajorAxisKm": 480,
+          "eccentricity": 0.006,
+          "inclinationDeg": 2.1,
+          "longitudeOfAscendingNodeDeg": 95,
+          "argumentOfPeriapsisDeg": 12,
+          "meanAnomalyAtEpochDeg": 8,
+          "orbitalPeriodSec": 21600,
+          "epoch": "<iso timestamp>"
+        }
+      },
       "priceMultiplier": 1,
       "driftPercentPerHour": 6,
       "restockIntervalMinutes": 60
@@ -412,21 +432,29 @@ Each character carries a `creditLedger` array and a computed `credits` summary f
       "marketId": "sol-ceres-exchange",
       "solarSystemId": "sol",
       "marketName": "Ceres Exchange",
-      "locationType": "station",
-      "locationName": "Ceres Belt Trade Ring",
+      "siteType": "station",
+      "siteName": "Ceres Belt Trade Ring",
       "isStarterMarket": true,
-      "orbit": {
-        "anchorBodyId": "ceres",
-        "semiMajorAxisKm": 480,
-        "eccentricity": 0.006,
-        "inclinationDeg": 2.1,
-        "longitudeOfAscendingNodeDeg": 95,
-        "argumentOfPeriapsisDeg": 12,
-        "meanAnomalyAtEpochDeg": 8,
-        "orbitalPeriodSec": 21600,
-        "epoch": "<iso timestamp>"
+      "spatial": {
+        "solarSystemId": "sol",
+        "frame": "barycentric",
+        "positionKm": { "x": 123.45, "y": -22.1, "z": 0.9 },
+        "epochMs": 1776384000000
       },
-      "positionKm": { "x": 123.45, "y": -22.1, "z": 0.9 },
+      "trajectory": {
+        "kind": "orbital-elements",
+        "orbit": {
+          "anchorBodyId": "ceres",
+          "semiMajorAxisKm": 480,
+          "eccentricity": 0.006,
+          "inclinationDeg": 2.1,
+          "longitudeOfAscendingNodeDeg": 95,
+          "argumentOfPeriapsisDeg": 12,
+          "meanAnomalyAtEpochDeg": 8,
+          "orbitalPeriodSec": 21600,
+          "epoch": "<iso timestamp>"
+        }
+      },
       "distanceKm": 4821.8,
       "isDocked": false,
       "priceMultiplier": 1,
@@ -501,7 +529,7 @@ When no markets are found inside radius, the response remains successful:
 ### Edge Cases
 
 - Invalid session emits `invalid-session` instead of `market-list-by-location-response`.
-- Distances are authoritative and server-computed from market orbit and request `positionKm`.
+- Distances are authoritative and server-computed from market spatial state (or trajectory-derived position) and request `positionKm`.
 - Results are sorted nearest-first before applying `limit`.
 - If `characterId` (and optional `shipId`) is supplied, response docking state indicates whether the specified ship is currently docked at one of the returned markets.
 
@@ -1424,11 +1452,11 @@ Prerequisite graph:
   - `tier` (optional integer 1–10; ship tier)
   - `status` (optional string; current ship status label, e.g. `"docked"` or `"in-flight"`; trimmed; omit to preserve stored value)
   - `inventory` is server-managed; responses return hydrated item objects and persistence stores item references
-  - `location.positionKm.x|y|z` (optional; required if `kinematics` omitted and no `model`/`tier`/`status`/`damageProfile`)
-  - `kinematics.position.x|y|z` (optional; required if `location` omitted and no `model`/`tier`/`status`/`damageProfile`)
-  - `kinematics.velocity.x|y|z` (optional; required if `location` omitted and no `model`/`tier`/`status`/`damageProfile`)
-  - `kinematics.reference.referenceBodyId` (optional with `kinematics`)
-  - `kinematics.reference.epochMs` (required number with `kinematics`)
+  - `spatial.solarSystemId` (optional; required if `motion` omitted and no `model`/`tier`/`status`/`damageProfile`)
+  - `spatial.frame` (optional string, defaults to `"barycentric"`)
+  - `spatial.positionKm.x|y|z` (optional numbers; required when `spatial` is provided)
+  - `spatial.epochMs` (optional number; required when `spatial` is provided)
+  - `motion.velocityKmPerSec.x|y|z` (optional numbers)
   - `launchable` (optional boolean; whether the ship can be launched; defaults to `true`)
   - `damageProfile` (optional object or `null`; omit to preserve stored profile; send `null` to clear it)
     - `overallStatus` (required string; one of `intact`, `damaged`, `disabled`, `destroyed`)
@@ -1469,20 +1497,14 @@ Prerequisite graph:
         "launchable": true
       }
     ],
-    "location": {
-      "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
+    "spatial": {
+      "solarSystemId": "sol",
+      "frame": "barycentric",
+      "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 },
+      "epochMs": 1713607200000
     },
-    "kinematics": {
-      "position": { "x": 100.5, "y": 200.3, "z": 50.1 },
-      "velocity": { "x": 0.5, "y": -0.2, "z": 0.1 },
-      "reference": {
-        "solarSystemId": "system-sol",
-        "referenceKind": "barycentric",
-        "referenceBodyId": null,
-        "distanceUnit": "km",
-        "velocityUnit": "km/s",
-        "epochMs": 1713607200000
-      }
+    "motion": {
+      "velocityKmPerSec": { "x": 0.5, "y": -0.2, "z": 0.1 }
     },
     "launchable": true,
     "damageProfile": {
@@ -1522,7 +1544,7 @@ Prerequisite graph:
 ```json
 {
   "success": false,
-  "message": "ship.location, ship.kinematics, ship.model, and/or ship.tier is required",
+  "message": "ship.spatial, ship.motion, ship.model, and/or ship.tier is required",
   "playerName": "<canonical player name>",
   "characterId": "<character id>"
 }
@@ -1534,6 +1556,28 @@ Prerequisite graph:
 {
   "success": false,
   "message": "ship location/kinematics payload is invalid",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>"
+}
+```
+
+- Legacy field rejection (`location`):
+
+```json
+{
+  "success": false,
+  "message": "ShipUpsert: legacy field 'location' is not supported. Use 'spatial' instead.",
+  "playerName": "<canonical player name>",
+  "characterId": "<character id>"
+}
+```
+
+- Legacy field rejection (`kinematics`):
+
+```json
+{
+  "success": false,
+  "message": "ShipUpsert: legacy field 'kinematics' is not supported. Use 'motion' instead.",
   "playerName": "<canonical player name>",
   "characterId": "<character id>"
 }
@@ -1599,10 +1643,10 @@ Prerequisite graph:
 - Invalid session emits `invalid-session`.
 - `ship-upsert` only mutates a ship already owned by the specified character.
 - Ship inventory is persisted as item references but returned as hydrated item objects in ship responses.
-- The server always emits kinematics units as `distanceUnit: "km"` and `velocityUnit: "km/s"` when kinematics are present.
+- Legacy request fields `ship.location` and `ship.kinematics` are rejected; use `ship.spatial` and `ship.motion`.
 - `status` and `damageProfile` use patch semantics: omitting a field preserves the stored value; sending `damageProfile: null` explicitly clears it.
 - Ships without a stored `damageProfile` return `damageProfile: null`.
-- At least one of `location`, `kinematics`, `model`, `tier`, `status`, or `damageProfile` must be present in the update payload.
+- At least one of `spatial`, `motion`, `model`, `tier`, `status`, or `damageProfile` must be present in the update payload.
 
 ## Event: `character-delete-request`
 

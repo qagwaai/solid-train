@@ -23,25 +23,38 @@ function createCelestialBody(overrides = {}) {
   return {
     id: 'cb-1',
     catalogId: 'CAT-001',
-    solarSystemId: 'alpha-centauri',
     sourceScanId: 'scan-1',
     createdByCharacterId: 'character-1',
+    missionId: null,
+    missionInstanceId: null,
     createdAt: '2026-04-17T00:00:00.000Z',
     updatedAt: '2026-04-17T00:00:00.000Z',
-    location: {
-      positionKm: { x: 100, y: 200, z: 300 }
+    spatial: {
+      solarSystemId: 'alpha-centauri',
+      frame: 'barycentric',
+      positionKm: { x: 100, y: 200, z: 300 },
+      epochMs: 1713360000000
     },
-    kinematics: {
+    motion: {
       velocityKmPerSec: { x: 1, y: 2, z: 3 },
-      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 },
+      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 }
+    },
+    physical: {
       estimatedMassKg: 42000000000,
       estimatedDiameterM: 320
+    },
+    observability: {
+      visibility: 'visible',
+      scanState: 'scanned'
     },
     composition: {
       rarity: 'Rare',
       material: 'Nickel-Iron',
       textureColor: '#8df7b2'
     },
+    state: 'active',
+    destroyedAt: null,
+    destroyedReason: null,
     ...overrides
   };
 }
@@ -67,8 +80,8 @@ test('CelestialBodyUpsertMessageHandler upserts a celestial body by id', async (
   assert.equal(response.message, 'Celestial body recorded successfully');
   assert.equal(response.playerName, 'ScannerOne');
   assert.equal(response.celestialBody.id, 'cb-1');
-  assert.equal(response.celestialBody.solarSystemId, DEFAULT_SOLAR_SYSTEM_ID);
-  assert.equal(context.getCelestialBody('cb-1').solarSystemId, DEFAULT_SOLAR_SYSTEM_ID);
+  assert.equal(response.celestialBody.spatial.solarSystemId, DEFAULT_SOLAR_SYSTEM_ID);
+  assert.equal(context.getCelestialBody('cb-1').spatial.solarSystemId, DEFAULT_SOLAR_SYSTEM_ID);
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
 });
 

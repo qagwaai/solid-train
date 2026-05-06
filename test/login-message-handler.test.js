@@ -152,7 +152,7 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
           id: 'legacy-char-1',
           name: 'Legacy Ranger',
           createdAt: '2026-04-20T00:00:00.000Z',
-          ships: [{ id: 'd-1', name: 'Legacy Ship', createdAt: '2026-04-20T00:00:00.000Z' }]
+          ships: [{ id: 'd-1', name: 'Legacy Ship', createdAt: '2026-04-20T00:00:00.000Z', spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 } }]
         }
       ];
     }
@@ -177,11 +177,13 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
       ships: [
         {
           id: 'd-1',
-          name: 'Legacy Ship',
           shipName: 'Legacy Ship',
+          model: 'Scavenger Pod',
+          tier: 1,
           inventory: [],
           createdAt: '2026-04-20T00:00:00.000Z',
           status: null,
+          spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 },
           launchable: true,
           damageProfile: null
         }

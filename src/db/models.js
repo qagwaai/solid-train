@@ -21,49 +21,6 @@ const tripleSchema = new mongoose.Schema({
 }, { _id: false });
 
 /**
- * SpatialReference schema for coordinate reference frames
- */
-const spatialReferenceSchema = new mongoose.Schema({
-  solarSystemId: {
-    type: String,
-    required: true
-  },
-  referenceKind: {
-    type: String,
-    enum: ['barycentric', 'body-centered'],
-    required: true
-  },
-  referenceBodyId: {
-    type: String,
-    default: null
-  },
-  distanceUnit: {
-    type: String,
-    enum: ['km'],
-    default: 'km'
-  },
-  velocityUnit: {
-    type: String,
-    enum: ['km/s'],
-    default: 'km/s'
-  },
-  epochMs: {
-    type: Number,
-    required: true
-  }
-}, { _id: false });
-
-/**
- * Ship location schema for barycentric body-relative position
- */
-const shipLocationSchema = new mongoose.Schema({
-  positionKm: {
-    type: tripleSchema,
-    required: true
-  }
-}, { _id: false });
-
-/**
  * ShipKinematics schema for position and velocity data
  */
 const shipKinematicsSchema = new mongoose.Schema({
@@ -76,8 +33,33 @@ const shipKinematicsSchema = new mongoose.Schema({
     required: true
   },
   reference: {
-    type: spatialReferenceSchema,
-    required: true
+    solarSystemId: {
+      type: String,
+      required: true
+    },
+    referenceKind: {
+      type: String,
+      enum: ['barycentric', 'body-centered'],
+      required: true
+    },
+    referenceBodyId: {
+      type: String,
+      default: null
+    },
+    distanceUnit: {
+      type: String,
+      enum: ['km'],
+      default: 'km'
+    },
+    velocityUnit: {
+      type: String,
+      enum: ['km/s'],
+      default: 'km/s'
+    },
+    epochMs: {
+      type: Number,
+      required: true
+    }
   }
 }, { _id: false });
 
@@ -252,6 +234,76 @@ const damageProfileSchema = new mongoose.Schema({
 }, { _id: false });
 
 /**
+ * Motion state schema for velocity and angular velocity
+ */
+const motionStateSchema = new mongoose.Schema({
+  velocityKmPerSec: {
+    type: tripleSchema,
+    required: true
+  },
+  angularVelocityRadPerSec: {
+    type: tripleSchema,
+    default: null
+  }
+}, { _id: false });
+
+/**
+ * Spatial state schema (required on all in-world entities)
+ */
+const spatialStateSchema = new mongoose.Schema({
+  solarSystemId: {
+    type: String,
+    required: true
+  },
+  frame: {
+    type: String,
+    enum: ['barycentric'],
+    default: 'barycentric',
+    required: true
+  },
+  positionKm: {
+    type: tripleSchema,
+    required: true
+  },
+  epochMs: {
+    type: Number,
+    required: true
+  }
+}, { _id: false });
+
+/**
+ * Physical state schema for mass and diameter
+ */
+const physicalStateSchema = new mongoose.Schema({
+  estimatedMassKg: {
+    type: Number,
+    default: null
+  },
+  estimatedDiameterM: {
+    type: Number,
+    default: null
+  }
+}, { _id: false });
+
+/**
+ * Observability state schema for visibility and scan state
+ */
+const observabilityStateSchema = new mongoose.Schema({
+  visibility: {
+    type: String,
+    enum: ['visible', 'not-visible', 'cloaked'],
+    required: true
+  },
+  scanState: {
+    type: String,
+    enum: ['unscanned', 'scanned'],
+    required: true
+  }
+}, { _id: false });
+
+
+
+/**
  * Ship schema for a character's ships
  */
 const shipSchema = new mongoose.Schema({
@@ -287,12 +339,12 @@ const shipSchema = new mongoose.Schema({
     type: [inventoryItemReferenceSchema],
     default: []
   },
-  location: {
-    type: shipLocationSchema,
-    default: null
+  spatial: {
+    type: spatialStateSchema,
+    required: true
   },
-  kinematics: {
-    type: shipKinematicsSchema,
+  motion: {
+    type: motionStateSchema,
     default: null
   },
   launchable: {
@@ -338,38 +390,6 @@ const missionSchema = new mongoose.Schema({
   },
   statusDetail: {
     type: String
-  }
-}, { _id: false });
-
-/**
- * Celestial body location schema
- */
-const celestialBodyLocationSchema = new mongoose.Schema({
-  positionKm: {
-    type: tripleSchema,
-    required: true
-  }
-}, { _id: false });
-
-/**
- * Celestial body kinematics schema
- */
-const celestialBodyKinematicsSchema = new mongoose.Schema({
-  velocityKmPerSec: {
-    type: tripleSchema,
-    required: true
-  },
-  angularVelocityRadPerSec: {
-    type: tripleSchema,
-    required: true
-  },
-  estimatedMassKg: {
-    type: Number,
-    required: true
-  },
-  estimatedDiameterM: {
-    type: Number,
-    required: true
   }
 }, { _id: false });
 
@@ -428,11 +448,6 @@ const celestialBodySchema = new mongoose.Schema({
     required: true,
     index: true
   },
-  solarSystemId: {
-    type: String,
-    required: true,
-    index: true
-  },
   sourceScanId: {
     type: String,
     required: true,
@@ -460,12 +475,20 @@ const celestialBodySchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  location: {
-    type: celestialBodyLocationSchema,
+  spatial: {
+    type: spatialStateSchema,
     required: true
   },
-  kinematics: {
-    type: celestialBodyKinematicsSchema,
+  motion: {
+    type: motionStateSchema,
+    default: null
+  },
+  physical: {
+    type: physicalStateSchema,
+    default: null
+  },
+  observability: {
+    type: observabilityStateSchema,
     required: true
   },
   composition: {
@@ -501,10 +524,10 @@ const celestialBodySchema = new mongoose.Schema({
 
 // Supports fast bounding-cube prefilter for spherical distance queries.
 celestialBodySchema.index({
-  solarSystemId: 1,
-  'location.positionKm.x': 1,
-  'location.positionKm.y': 1,
-  'location.positionKm.z': 1
+  'spatial.solarSystemId': 1,
+  'spatial.positionKm.x': 1,
+  'spatial.positionKm.y': 1,
+  'spatial.positionKm.z': 1
 });
 
 celestialBodySchema.index({
@@ -681,18 +704,30 @@ const marketSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  locationType: {
+  siteType: {
     type: String,
     enum: ['station', 'surface-settlement', 'free-floating'],
     required: true
   },
-  locationName: {
+  siteName: {
     type: String,
     required: true
   },
-  orbit: {
-    type: marketOrbitSchema,
+  spatial: {
+    type: spatialStateSchema,
     required: true
+  },
+  trajectory: {
+    kind: {
+      type: String,
+      enum: ['static', 'orbital-elements'],
+      default: null
+    },
+    orbit: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
+    _id: false
   },
   isStarterMarket: {
     type: Boolean,
@@ -877,8 +912,6 @@ module.exports = {
   CelestialBody,
   celestialBodySchema,
   asteroidMaterialProfileSchema,
-  celestialBodyKinematicsSchema,
-  celestialBodyLocationSchema,
   Item,
   itemSchema,
   itemContainerSchema,

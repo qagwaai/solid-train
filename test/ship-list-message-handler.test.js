@@ -51,7 +51,7 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
         ships: [
           {
             id: 'ship-1',
-            name: 'Scout Ship',
+            shipName: 'Scout Ship',
             status: 'active',
             model: 'scout-mk2',
             inventory: [
@@ -60,15 +60,14 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
                 itemType: 'expendable-dart-drone'
               }
             ],
-            kinematics: {
-              position: { x: 100.5, y: 200.3, z: 50.1 },
-              velocity: { x: 0.5, y: -0.2, z: 0.1 },
-              reference: {
-                solarSystemId: 'system-sol',
-                referenceKind: 'barycentric',
-                referenceBodyId: null,
-                epochMs: 1713607200000
-              }
+            spatial: {
+              solarSystemId: 'system-sol',
+              frame: 'barycentric',
+              positionKm: { x: 100.5, y: 200.3, z: 50.1 },
+              epochMs: 1713607200000
+            },
+            motion: {
+              velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 }
             }
           }
         ]
@@ -91,10 +90,11 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
   assert.deepEqual(response.ships, [
     {
       id: 'ship-1',
-      name: 'Scout Ship',
       shipName: 'Scout Ship',
       status: 'active',
       model: 'scout-mk2',
+      tier: 1,
+      createdAt: '',
       inventory: [
         {
           id: 'item-1',
@@ -117,15 +117,14 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
           quantity: 1
         }
       ],
-      kinematics: {
-        position: { x: 100.5, y: 200.3, z: 50.1 },
-        velocity: { x: 0.5, y: -0.2, z: 0.1 },
-        reference: {
-          solarSystemId: 'system-sol',
-          referenceKind: 'barycentric',
-          referenceBodyId: null,
-          epochMs: 1713607200000
-        }
+      spatial: {
+        solarSystemId: 'system-sol',
+        frame: 'barycentric',
+        positionKm: { x: 100.5, y: 200.3, z: 50.1 },
+        epochMs: 1713607200000
+      },
+      motion: {
+        velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 }
       },
       launchable: true,
       damageProfile: null
@@ -212,7 +211,7 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
         ships: [
           {
             id: 'ship-1',
-            name: 'Orbital Scout',
+            shipName: 'Orbital Scout',
             status: 'active',
             model: 'scout-mk3',
             inventory: [
@@ -221,21 +220,26 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
                 itemType: 'expendable-dart-drone'
               }
             ],
-            kinematics: {
-              position: { x: 150.0, y: 250.5, z: 75.3 },
-              velocity: { x: 1.2, y: 0.8, z: -0.5 },
-              reference: {
-                solarSystemId: 'system-sol',
-                referenceKind: 'body-centered',
-                referenceBodyId: 'earth',
-                epochMs: 1713607200000
-              }
+            spatial: {
+              solarSystemId: 'system-sol',
+              frame: 'barycentric',
+              positionKm: { x: 150.0, y: 250.5, z: 75.3 },
+              epochMs: 1713607200000
+            },
+            motion: {
+              velocityKmPerSec: { x: 1.2, y: 0.8, z: -0.5 }
             }
           },
           {
             id: 'ship-2',
-            name: 'Silent Runner',
-            status: 'idle'
+            shipName: 'Silent Runner',
+            status: 'idle',
+            spatial: {
+              solarSystemId: 'system-sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0
+            }
           }
         ]
       }
@@ -274,17 +278,16 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
       quantity: 1
     }
   ]);
-  assert.deepEqual(response.ships[0].kinematics, {
-    position: { x: 150.0, y: 250.5, z: 75.3 },
-    velocity: { x: 1.2, y: 0.8, z: -0.5 },
-    reference: {
-      solarSystemId: 'system-sol',
-      referenceKind: 'body-centered',
-      referenceBodyId: 'earth',
-      epochMs: 1713607200000
-    }
+  assert.deepEqual(response.ships[0].spatial, {
+    solarSystemId: 'system-sol',
+    frame: 'barycentric',
+    positionKm: { x: 150.0, y: 250.5, z: 75.3 },
+    epochMs: 1713607200000
   });
-  assert.equal(response.ships[1].kinematics, undefined);
+  assert.deepEqual(response.ships[0].motion, {
+    velocityKmPerSec: { x: 1.2, y: 0.8, z: -0.5 }
+  });
+  assert.ok(response.ships[1].spatial);
   assert.deepEqual(response.ships[1].inventory, []);
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
@@ -330,6 +333,12 @@ test('ShipListMessageHandler hydrates inventory from cache when DB item lookup r
           {
             id: 'ship-1',
             shipName: 'Scout Ship',
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0
+            },
             inventory: [
               {
                 itemId: 'item-cache-only',
@@ -408,6 +417,12 @@ test('ShipListMessageHandler includes ship-contained items beyond inventory refe
           {
             id: 'ship-1',
             shipName: 'Scout Ship',
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0
+            },
             inventory: [
               {
                 itemId: 'item-ref',

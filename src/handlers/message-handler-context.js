@@ -119,6 +119,228 @@ class MessageHandlerContext {
       && this.isFiniteNumber(value.z);
   }
 
+  normalizeTriple(value) {
+    if (!this.isTriple(value)) {
+      return null;
+    }
+
+    return {
+      x: value.x,
+      y: value.y,
+      z: value.z
+    };
+  }
+
+  normalizeSpatialState(value) {
+    const source = this.toPlainObject(value) || {};
+    const solarSystemId = this.toNonEmptyString(source.solarSystemId);
+    const positionKm = this.normalizeTriple(source.positionKm);
+    const epochMs = this.isFiniteNumber(source.epochMs) ? source.epochMs : 0;
+
+    if (!solarSystemId || !positionKm) {
+      return null;
+    }
+
+    return {
+      solarSystemId,
+      frame: 'barycentric',
+      positionKm,
+      epochMs
+    };
+  }
+
+  // Convert legacy location/kinematics to spatial (backward compatibility)
+  convertLegacyShipToSpatial(ship) {
+    const source = this.toPlainObject(ship) || {};
+
+    // If spatial already exists, use it
+    if (source.spatial) {
+      return source.spatial;
+    }
+
+    // Try to build from legacy kinematics
+    if (source.kinematics && source.kinematics.reference) {
+      const ref = source.kinematics.reference;
+      const position = source.kinematics.position || (source.location?.positionKm);
+
+      if (this.isTriple(position) && this.toNonEmptyString(ref.solarSystemId)) {
+        return {
+          solarSystemId: ref.solarSystemId,
+          frame: 'barycentric',
+          positionKm: position,
+          epochMs: ref.epochMs || 0
+        };
+      }
+    }
+
+    // Try legacy location
+    if (source.location && this.isTriple(source.location.positionKm)) {
+      return {
+        solarSystemId: source.solarSystemId || 'sol',
+        frame: 'barycentric',
+        positionKm: source.location.positionKm,
+        epochMs: 0
+      };
+    }
+
+    return null;
+  }
+
+  // Convert legacy kinematics to motion (backward compatibility)
+  convertLegacyShipToMotion(ship) {
+    const source = this.toPlainObject(ship) || {};
+
+    // If motion already exists, use it
+    if (source.motion) {
+      return source.motion;
+    }
+
+    // Try to build from legacy kinematics
+    if (source.kinematics && this.isTriple(source.kinematics.velocity)) {
+      return {
+        velocityKmPerSec: source.kinematics.velocity
+      };
+    }
+
+    return null;
+  }
+
+  // Convert legacy celestial body fields to spatial (backward compatibility)
+  convertLegacyCelestialBodyToSpatial(body) {
+    const source = this.toPlainObject(body) || {};
+
+    // If spatial already exists, use it
+    if (source.spatial) {
+      return source.spatial;
+    }
+
+    // Try to build from legacy location + solarSystemId
+    if (source.location && this.isTriple(source.location.positionKm)) {
+      return {
+        solarSystemId: source.solarSystemId || 'sol',
+        frame: 'barycentric',
+        positionKm: source.location.positionKm,
+        epochMs: 0
+      };
+    }
+
+    return null;
+  }
+
+  // Convert legacy kinematics to motion/physical (backward compatibility)
+  convertLegacyCelestialBodyToMotionAndPhysical(body) {
+    const source = this.toPlainObject(body) || {};
+    const motion = {};
+    const physical = {};
+    let hasMotion = false;
+    let hasPhysical = false;
+
+    if (source.kinematics) {
+      if (this.isTriple(source.kinematics.velocityKmPerSec)) {
+        motion.velocityKmPerSec = source.kinematics.velocityKmPerSec;
+        hasMotion = true;
+      }
+
+      if (this.isTriple(source.kinematics.angularVelocityRadPerSec)) {
+        motion.angularVelocityRadPerSec = source.kinematics.angularVelocityRadPerSec;
+        hasMotion = true;
+      }
+
+      if (this.isFiniteNumber(source.kinematics.estimatedMassKg)) {
+        physical.estimatedMassKg = source.kinematics.estimatedMassKg;
+        hasPhysical = true;
+      }
+
+      if (this.isFiniteNumber(source.kinematics.estimatedDiameterM)) {
+        physical.estimatedDiameterM = source.kinematics.estimatedDiameterM;
+        hasPhysical = true;
+      }
+    }
+
+    return {
+      motion: hasMotion ? motion : null,
+      physical: hasPhysical ? physical : null
+    };
+  }
+
+  normalizeMotionState(value) {
+    if (!value) {
+      return null;
+    }
+
+    const source = this.toPlainObject(value);
+    const velocityKmPerSec = this.normalizeTriple(source.velocityKmPerSec);
+    const angularVelocityRadPerSec = this.normalizeTriple(source.angularVelocityRadPerSec);
+
+    if (!velocityKmPerSec) {
+      return null;
+    }
+
+    return {
+      velocityKmPerSec,
+      ...(angularVelocityRadPerSec ? { angularVelocityRadPerSec } : {})
+    };
+  }
+
+  normalizePhysicalState(value) {
+    if (!value) {
+      return null;
+    }
+
+    const source = this.toPlainObject(value);
+    const estimatedMassKg = this.isFiniteNumber(source.estimatedMassKg)
+      ? source.estimatedMassKg
+      : undefined;
+    const estimatedDiameterM = this.isFiniteNumber(source.estimatedDiameterM)
+      ? source.estimatedDiameterM
+      : undefined;
+
+    if (estimatedMassKg === undefined && estimatedDiameterM === undefined) {
+      return null;
+    }
+
+    return {
+      ...(estimatedMassKg !== undefined ? { estimatedMassKg } : {}),
+      ...(estimatedDiameterM !== undefined ? { estimatedDiameterM } : {})
+    };
+  }
+
+  normalizeObservabilityState(value) {
+    const source = this.toPlainObject(value) || {};
+    const visibility = this.toNonEmptyString(source.visibility);
+    const scanState = this.toNonEmptyString(source.scanState);
+
+    return {
+      visibility: ['visible', 'not-visible', 'cloaked'].includes(visibility)
+        ? visibility
+        : 'not-visible',
+      scanState: ['unscanned', 'scanned'].includes(scanState) ? scanState : 'unscanned'
+    };
+  }
+
+  normalizeTrajectoryDescriptor(value) {
+    if (!value) {
+      return null;
+    }
+
+    const source = this.toPlainObject(value);
+    const kind = this.toNonEmptyString(source.kind);
+
+    if (!['static', 'orbital-elements'].includes(kind)) {
+      return null;
+    }
+
+    const trajectory = {
+      kind
+    };
+
+    if (kind === 'orbital-elements' && source.orbit) {
+      trajectory.orbit = this.normalizeMarketOrbit(source.orbit);
+    }
+
+    return trajectory;
+  }
+
   calculateDistanceKm(fromPositionKm, toPositionKm) {
     const dx = toPositionKm.x - fromPositionKm.x;
     const dy = toPositionKm.y - fromPositionKm.y;
@@ -228,6 +450,7 @@ class MessageHandlerContext {
     const source = this.toPlainObject(market) || {};
     const marketId = this.toNonEmptyString(source.marketId);
     const solarSystemId = this.toNonEmptyString(source.solarSystemId);
+    const orbit = this.normalizeMarketOrbit(source.orbit);
     const rawInventory = Array.isArray(source.inventory)
       ? source.inventory
       : MARKET_CATALOG.map((catalogEntry) => buildDefaultInventoryEntry(catalogEntry));
@@ -238,13 +461,41 @@ class MessageHandlerContext {
       ? source.ledger.map((entry) => this.normalizeMarketLedgerEntry(entry))
       : [];
 
-    return {
+    // Handle spatial: use provided spatial or compute from orbit + legacy positionKm
+    let spatial = this.normalizeSpatialState(source.spatial);
+    if (!spatial) {
+      // Backward compatibility: try to construct spatial from legacy fields
+      let positionKm = source.positionKm ? this.normalizeTriple(source.positionKm) : null;
+      if (!positionKm && orbit && this.isFiniteNumber(orbit.semiMajorAxisKm) && source.solarSystemId) {
+        // Fallback: use semi-major axis as approximate position (only for static markets)
+        positionKm = { x: orbit.semiMajorAxisKm, y: 0, z: 0 };
+      }
+
+      if (positionKm && solarSystemId) {
+        spatial = {
+          solarSystemId,
+          frame: 'barycentric',
+          positionKm,
+          epochMs: source.spatial?.epochMs || Date.parse(orbit?.epoch || new Date().toISOString())
+        };
+      }
+    }
+
+    // Handle trajectory: wrap orbit if present
+    let trajectory = null;
+    if (orbit && (orbit.anchorBodyId || Object.keys(orbit).length > 0)) {
+      trajectory = {
+        kind: 'orbital-elements',
+        orbit
+      };
+    }
+
+    const result = {
       marketId,
       solarSystemId,
       marketName: this.toNonEmptyString(source.marketName),
-      locationType: this.toNonEmptyString(source.locationType),
-      locationName: this.toNonEmptyString(source.locationName),
-      orbit: this.normalizeMarketOrbit(source.orbit),
+      siteType: this.toNonEmptyString(source.siteType) || this.toNonEmptyString(source.locationType),
+      siteName: this.toNonEmptyString(source.siteName) || this.toNonEmptyString(source.locationName),
       isStarterMarket: Boolean(source.isStarterMarket),
       priceMultiplier: this.isFiniteNumber(source.priceMultiplier) && source.priceMultiplier > 0
         ? source.priceMultiplier
@@ -260,6 +511,33 @@ class MessageHandlerContext {
       inventory,
       ledger
     };
+
+    if (spatial) {
+      result.spatial = spatial;
+    }
+
+    if (trajectory) {
+      result.trajectory = trajectory;
+    }
+
+    // Preserve legacy fields for backward compatibility during transition
+    if (source.locationType && !source.siteType) {
+      result.locationType = this.toNonEmptyString(source.locationType);
+    }
+
+    if (source.locationName && !source.siteName) {
+      result.locationName = this.toNonEmptyString(source.locationName);
+    }
+
+    if (source.positionKm && !spatial) {
+      result.positionKm = source.positionKm;
+    }
+
+    if (source.orbit && !trajectory) {
+      result.orbit = orbit;
+    }
+
+    return result;
   }
 
   async seedSolarSystemMarketsAsync(request = {}) {
@@ -517,12 +795,24 @@ class MessageHandlerContext {
   }
 
   async resolveMarketPositionKmAsync(market, timestamp) {
-    const orbit = this.normalizeMarketOrbit(market?.orbit);
+    // If spatial is available, use its position directly
+    if (this.isTriple(market?.spatial?.positionKm)) {
+      return market.spatial.positionKm;
+    }
+
+    // Fallback: compute from orbit + anchor body
+    const orbit = this.normalizeMarketOrbit(market?.orbit || market?.trajectory?.orbit);
+    if (!orbit || !orbit.anchorBodyId) {
+      return { x: 0, y: 0, z: 0 };
+    }
+
     const relative = this.computeRelativeOrbitPositionKm(orbit, timestamp || this.getCurrentTimestamp());
     const anchorBody = await this.getCelestialBodyByIdAsync(orbit.anchorBodyId);
-    const anchorPosition = this.isTriple(anchorBody?.location?.positionKm)
-      ? anchorBody.location.positionKm
-      : { x: 0, y: 0, z: 0 };
+    const anchorPosition = this.isTriple(anchorBody?.spatial?.positionKm)
+      ? anchorBody.spatial.positionKm
+      : (this.isTriple(anchorBody?.location?.positionKm)
+        ? anchorBody.location.positionKm
+        : { x: 0, y: 0, z: 0 });
 
     return {
       x: anchorPosition.x + relative.x,
@@ -532,6 +822,11 @@ class MessageHandlerContext {
   }
 
   getShipPositionKm(ship) {
+    if (this.isTriple(ship?.spatial?.positionKm)) {
+      return ship.spatial.positionKm;
+    }
+
+    // Fallback for legacy data (should be removed after migration)
     if (this.isTriple(ship?.kinematics?.position)) {
       return ship.kinematics.position;
     }
@@ -619,7 +914,7 @@ class MessageHandlerContext {
     const spatial = [];
 
     for (const market of markets) {
-      const normalizedLocationType = this.toNonEmptyString(market.locationType).toLowerCase();
+      const normalizedLocationType = this.toNonEmptyString(market.siteType || market.locationType).toLowerCase();
       if (locationTypes.length > 0 && !locationTypes.includes(normalizedLocationType)) {
         continue;
       }
@@ -1170,11 +1465,27 @@ class MessageHandlerContext {
         .filter((entry) => Boolean(entry))
       : [];
 
+    // Try to get spatial from direct field or convert from legacy
+    let spatial = this.normalizeSpatialState(source.spatial) || this.convertLegacyShipToSpatial(ship);
+    let motion = this.normalizeMotionState(source.motion) || this.convertLegacyShipToMotion(ship);
+
+    // If still no spatial, this is an error
+    if (!spatial) {
+      throw new Error('Ship: spatial state is required. Provide spatial with solarSystemId, frame:\'barycentric\', positionKm, and epochMs.');
+    }
+
     return {
-      ...source,
-      inventory,
+      id: this.toNonEmptyString(source.id),
       shipName: shipName || source.shipName || source.name || '',
       status: this.toNonEmptyString(source.status) || null,
+      model: this.toNonEmptyString(source.model) || 'Scavenger Pod',
+      tier: Number.isInteger(source.tier) && source.tier >= 1 && source.tier <= 10
+        ? source.tier
+        : 1,
+      createdAt: this.toNonEmptyString(source.createdAt),
+      inventory,
+      spatial,
+      ...(motion ? { motion } : {}),
       launchable: source.launchable != null ? Boolean(source.launchable) : true,
       damageProfile: source.damageProfile != null ? source.damageProfile : null
     };
@@ -1297,30 +1608,50 @@ class MessageHandlerContext {
   normalizeCelestialBody(celestialBody) {
     const source = this.toPlainObject(celestialBody) || {};
 
+    // Try to get spatial from direct field or convert from legacy
+    let spatial = this.normalizeSpatialState(source.spatial) || this.convertLegacyCelestialBodyToSpatial(celestialBody);
+    let motion = this.normalizeMotionState(source.motion);
+    let physical = this.normalizePhysicalState(source.physical);
+
+    if (!spatial) {
+      // Try converting legacy kinematics for motion/physical
+      const { motion: legacyMotion, physical: legacyPhysical } = this.convertLegacyCelestialBodyToMotionAndPhysical(celestialBody);
+      if (!motion) motion = legacyMotion;
+      if (!physical) physical = legacyPhysical;
+
+      throw new Error('CelestialBody: spatial state is required. Provide spatial with solarSystemId, frame:\'barycentric\', positionKm, and epochMs.');
+    }
+
+    // Convert legacy kinematics to motion/physical if not provided
+    if (!motion || !physical) {
+      const { motion: legacyMotion, physical: legacyPhysical } = this.convertLegacyCelestialBodyToMotionAndPhysical(celestialBody);
+      if (!motion) motion = legacyMotion;
+      if (!physical) physical = legacyPhysical;
+    }
+
+    // Normalize observability - provide defaults if not present
+    let observability = this.normalizeObservabilityState(source.observability);
+    if (!observability) {
+      // Fallback: try to construct from legacy scanState/visibility fields
+      observability = {
+        visibility: source.visibility || 'visible',
+        scanState: source.scanState || 'scanned'
+      };
+    }
+
     return {
-      ...source,
       id: this.toNonEmptyString(source.id),
       catalogId: this.toNonEmptyString(source.catalogId),
-      solarSystemId: this.toNonEmptyString(source.solarSystemId),
       sourceScanId: this.toNonEmptyString(source.sourceScanId),
       createdByCharacterId: this.toNonEmptyString(source.createdByCharacterId),
       missionId: this.toNonEmptyString(source.missionId) || null,
       missionInstanceId: this.toNonEmptyString(source.missionInstanceId) || null,
       createdAt: this.toNonEmptyString(source.createdAt),
       updatedAt: this.toNonEmptyString(source.updatedAt),
-      location: source.location ? {
-        positionKm: source.location.positionKm ? { ...source.location.positionKm } : null
-      } : null,
-      kinematics: source.kinematics ? {
-        velocityKmPerSec: source.kinematics.velocityKmPerSec
-          ? { ...source.kinematics.velocityKmPerSec }
-          : null,
-        angularVelocityRadPerSec: source.kinematics.angularVelocityRadPerSec
-          ? { ...source.kinematics.angularVelocityRadPerSec }
-          : null,
-        estimatedMassKg: source.kinematics.estimatedMassKg,
-        estimatedDiameterM: source.kinematics.estimatedDiameterM
-      } : null,
+      spatial,
+      ...(motion ? { motion } : {}),
+      ...(physical ? { physical } : {}),
+      observability,
       composition: source.composition ? {
         rarity: this.toNonEmptyString(source.composition.rarity),
         material: this.toNonEmptyString(source.composition.material),
@@ -1396,7 +1727,7 @@ class MessageHandlerContext {
     const cacheMatches = Array.from(this.celestialBodiesById.values())
       .map((celestialBody) => this.normalizeCelestialBody(celestialBody))
       .filter((celestialBody) => {
-        if (normalizedSolarSystemId && celestialBody.solarSystemId !== normalizedSolarSystemId) {
+        if (normalizedSolarSystemId && celestialBody.spatial?.solarSystemId !== normalizedSolarSystemId) {
           return false;
         }
 
@@ -2177,7 +2508,7 @@ class MessageHandlerContext {
     const cacheResults = Array.from(this.celestialBodiesById.values())
       .map((celestialBody) => this.normalizeCelestialBody(celestialBody))
       .filter((celestialBody) => {
-        if (celestialBody.solarSystemId !== solarSystemId) {
+        if (celestialBody.spatial?.solarSystemId !== solarSystemId) {
           return false;
         }
 
@@ -2196,7 +2527,7 @@ class MessageHandlerContext {
         return true;
       })
       .map((celestialBody) => {
-        const bodyPositionKm = celestialBody?.location?.positionKm;
+        const bodyPositionKm = celestialBody?.spatial?.positionKm || celestialBody?.location?.positionKm;
         if (!this.isTriple(bodyPositionKm)) {
           return null;
         }

@@ -25,6 +25,129 @@ function createMockSocket(id = 'socket-1') {
   };
 }
 
+function createSpatialState(overrides = {}) {
+  return {
+    solarSystemId: overrides.solarSystemId || 'sol',
+    frame: 'barycentric',
+    positionKm: overrides.positionKm || { x: 0, y: 0, z: 0 },
+    epochMs: overrides.epochMs || 1713360000000
+  };
+}
+
+function createMotionState(overrides = {}) {
+  if (overrides === null) {
+    return null;
+  }
+
+  return {
+    velocityKmPerSec: overrides.velocityKmPerSec || { x: 0, y: 0, z: 0 },
+    ...(overrides.angularVelocityRadPerSec
+      ? { angularVelocityRadPerSec: overrides.angularVelocityRadPerSec }
+      : {})
+  };
+}
+
+function createPhysicalState(overrides = {}) {
+  if (overrides === null) {
+    return null;
+  }
+
+  return {
+    ...(overrides.estimatedMassKg !== undefined
+      ? { estimatedMassKg: overrides.estimatedMassKg }
+      : { estimatedMassKg: 1e18 }),
+    ...(overrides.estimatedDiameterM !== undefined
+      ? { estimatedDiameterM: overrides.estimatedDiameterM }
+      : { estimatedDiameterM: 500 })
+  };
+}
+
+function createObservabilityState(overrides = {}) {
+  return {
+    visibility: overrides.visibility || 'visible',
+    scanState: overrides.scanState || 'scanned'
+  };
+}
+
+function createShip(overrides = {}) {
+  return {
+    id: overrides.id || 'ship-1',
+    shipName: overrides.shipName || 'Scavenger Pod',
+    status: overrides.status || null,
+    model: overrides.model || 'Scavenger Pod',
+    tier: overrides.tier || 1,
+    createdAt: overrides.createdAt || '2026-04-17T00:00:00.000Z',
+    inventory: overrides.inventory || [],
+    spatial: createSpatialState(overrides.spatial || {}),
+    ...(overrides.motion !== undefined
+      ? { motion: createMotionState(overrides.motion) }
+      : {}),
+    launchable: overrides.launchable !== undefined ? overrides.launchable : true,
+    damageProfile: overrides.damageProfile || null
+  };
+}
+
+function createCelestialBody(overrides = {}) {
+  return {
+    id: overrides.id || 'asteroid-1',
+    catalogId: overrides.catalogId || 'catalog-001',
+    sourceScanId: overrides.sourceScanId || 'scan-1',
+    createdByCharacterId: overrides.createdByCharacterId || 'char-1',
+    missionId: overrides.missionId || null,
+    missionInstanceId: overrides.missionInstanceId || null,
+    createdAt: overrides.createdAt || '2026-04-17T00:00:00.000Z',
+    updatedAt: overrides.updatedAt || '2026-04-17T00:00:00.000Z',
+    spatial: createSpatialState(overrides.spatial || {
+      positionKm: { x: 150000, y: 50000, z: 30000 }
+    }),
+    ...(overrides.motion !== undefined
+      ? { motion: createMotionState(overrides.motion) }
+      : {}),
+    ...(overrides.physical !== undefined
+      ? { physical: createPhysicalState(overrides.physical) }
+      : {}),
+    observability: createObservabilityState(overrides.observability || {}),
+    composition: overrides.composition || {
+      rarity: 'Rare',
+      material: 'Iron',
+      textureColor: '#888888'
+    },
+    state: overrides.state || 'active',
+    destroyedAt: overrides.destroyedAt || null,
+    destroyedReason: overrides.destroyedReason || null,
+    debrisSeed: overrides.debrisSeed || null,
+    debris: overrides.debris || []
+  };
+}
+
+function createMarket(overrides = {}) {
+  return {
+    marketId: overrides.marketId || 'market-1',
+    solarSystemId: overrides.solarSystemId || 'sol',
+    marketName: overrides.marketName || 'Ceres Exchange',
+    siteType: overrides.siteType || 'station',
+    siteName: overrides.siteName || 'Ceres Main',
+    spatial: createSpatialState(overrides.spatial || {
+      positionKm: { x: 413000, y: 0, z: 0 }
+    }),
+    ...(overrides.trajectory
+      ? {
+        trajectory: {
+          kind: overrides.trajectory.kind || 'orbital-elements',
+          ...(overrides.trajectory.orbit ? { orbit: overrides.trajectory.orbit } : {})
+        }
+      }
+      : {}),
+    isStarterMarket: overrides.isStarterMarket || false,
+    priceMultiplier: overrides.priceMultiplier !== undefined ? overrides.priceMultiplier : 1,
+    driftPercentPerHour: overrides.driftPercentPerHour !== undefined ? overrides.driftPercentPerHour : 0,
+    restockIntervalMinutes: overrides.restockIntervalMinutes || 60,
+    lastRestockAt: overrides.lastRestockAt || '2026-04-17T00:00:00.000Z',
+    inventory: overrides.inventory || [],
+    ledger: overrides.ledger || []
+  };
+}
+
 function seedItems(context, items = []) {
   const normalizedItems = Array.isArray(items) ? items : [];
 
@@ -64,7 +187,14 @@ function seedPlayer(context, overrides = {}) {
 }
 
 module.exports = {
+  createCelestialBody,
+  createMarket,
   createMockSocket,
+  createMotionState,
+  createObservabilityState,
+  createPhysicalState,
+  createShip,
+  createSpatialState,
   createTestContext,
   seedCelestialBodies,
   seedItems,
