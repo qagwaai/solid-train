@@ -93,7 +93,7 @@ All responses now use these canonical types:
   "ships": [
     {
       "id": "ship-1",
-      "shipName": "Explorer-1",
+      "name": "Explorer-1",
       "status": null,
       "model": "Scavenger Pod",
       "tier": 1,
@@ -133,7 +133,7 @@ All responses now use these canonical types:
   "success": true,
   "message": "Celestial body list retrieved successfully",
   "playerName": "ScannerOne",
-  "bodies": [
+  "celestialBodies": [
     {
       "id": "body-1",
       "catalogId": "asteroid-001",
