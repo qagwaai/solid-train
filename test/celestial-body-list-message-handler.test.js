@@ -95,6 +95,8 @@ test('CelestialBodyListMessageHandler returns nearest-first celestial bodies wit
   assert.equal(response.message, 'Celestial body list retrieved successfully');
   assert.equal(response.playerName, 'ScannerOne');
   assert.equal(response.celestialBodies.length, 2);
+  assert.equal(response.bodies.length, 2);
+  assert.deepEqual(response.bodies, response.celestialBodies);
   assert.equal(response.celestialBodies[0].id, 'cb-near');
   assert.equal(response.celestialBodies[0].distanceKm, 5);
   assert.equal(response.celestialBodies[1].id, 'cb-mid');
@@ -128,6 +130,7 @@ test('CelestialBodyListMessageHandler returns empty list when no bodies match', 
   assert.equal(response.success, true);
   assert.equal(response.message, 'No celestial bodies found within distance');
   assert.deepEqual(response.celestialBodies, []);
+  assert.deepEqual(response.bodies, []);
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_LIST_RESPONSE_EVENT);
 });
 
@@ -155,6 +158,7 @@ test('CelestialBodyListMessageHandler validates required search inputs', async (
     'playerName, solarSystemId, positionKm, and distanceKm are required'
   );
   assert.deepEqual(response.celestialBodies, []);
+  assert.deepEqual(response.bodies, []);
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_LIST_RESPONSE_EVENT);
 });
 

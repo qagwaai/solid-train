@@ -26,6 +26,15 @@ including required fields, response payloads, and edge-case behavior.
 - For valid character-operation messages, the server refreshes
   `lastMessageReceivedAt` for matching joined character entries.
 
+## Spatial Cutover Policy
+
+- Transition compatibility in this document is temporary and exists only to support frontend cutover.
+- Hard removal date for legacy aliases and fallback readers: `2026-06-30T00:00:00Z`.
+- Final state after sunset is strict hard cutover:
+  - No legacy request aliases (`location`, `kinematics`) accepted.
+  - No legacy response aliases (`shipName`, `bodies`) emitted.
+  - Canonical spatial model only: `spatial` and `motion`.
+
 ## Event: `register`
 
 - Request event: `register`
@@ -959,21 +968,68 @@ Possible `reason` values:
     {
       "id": "<celestial body id>",
       "catalogId": "<catalog id>",
-      "solarSystemId": "sol",
       "sourceScanId": "<scan id>",
       "createdByCharacterId": "<character id>",
       "missionId": "first-target",
       "missionInstanceId": null,
       "createdAt": "<iso timestamp>",
       "updatedAt": "<iso timestamp>",
-      "location": {
-        "positionKm": { "x": 1, "y": 2, "z": 3 }
+      "spatial": {
+        "solarSystemId": "sol",
+        "frame": "barycentric",
+        "positionKm": { "x": 1, "y": 2, "z": 3 },
+        "epochMs": 1776384000000
       },
-      "kinematics": {
-        "velocityKmPerSec": { "x": 1, "y": 2, "z": 3 },
-        "angularVelocityRadPerSec": { "x": 0.1, "y": 0.2, "z": 0.3 },
+      "motion": {
+        "velocityKmPerSec": { "x": 1, "y": 2, "z": 3 }
+      },
+      "physical": {
         "estimatedMassKg": 42000000000,
         "estimatedDiameterM": 320
+      },
+      "observability": {
+        "visibility": "visible",
+        "scanState": "scanned"
+      },
+      "composition": {
+        "rarity": "Rare",
+        "material": "Nickel-Iron",
+        "textureColor": "#8df7b2"
+      },
+      "state": "active",
+      "destroyedAt": null,
+      "destroyedReason": null,
+      "debrisSeed": null,
+      "debris": [],
+      "distanceKm": 3.74
+    }
+  ],
+  "bodies": [
+    {
+      "id": "<celestial body id>",
+      "catalogId": "<catalog id>",
+      "sourceScanId": "<scan id>",
+      "createdByCharacterId": "<character id>",
+      "missionId": "first-target",
+      "missionInstanceId": null,
+      "createdAt": "<iso timestamp>",
+      "updatedAt": "<iso timestamp>",
+      "spatial": {
+        "solarSystemId": "sol",
+        "frame": "barycentric",
+        "positionKm": { "x": 1, "y": 2, "z": 3 },
+        "epochMs": 1776384000000
+      },
+      "motion": {
+        "velocityKmPerSec": { "x": 1, "y": 2, "z": 3 }
+      },
+      "physical": {
+        "estimatedMassKg": 42000000000,
+        "estimatedDiameterM": 320
+      },
+      "observability": {
+        "visibility": "visible",
+        "scanState": "scanned"
       },
       "composition": {
         "rarity": "Rare",
@@ -997,9 +1053,17 @@ Possible `reason` values:
 {
   "success": true,
   "message": "Celestial body list retrieved successfully",
+  "playerName": "<canonical player name>",
+  "solarSystemId": "sol",
+  "positionKm": { "x": 0, "y": 0, "z": 0 },
+  "distanceKm": 100,
   "celestialBodies": [
-    { "id": "cb-1", "state": "unscanned", "sourceScanId": "sample-a1" },
-    { "id": "cb-2", "state": "active", "sourceScanId": "sample-a2" }
+    { "id": "cb-1", "state": "unscanned", "sourceScanId": "sample-a1", "spatial": { "solarSystemId": "sol", "frame": "barycentric", "positionKm": { "x": 1, "y": 0, "z": 0 }, "epochMs": 1776384000000 } },
+    { "id": "cb-2", "state": "active", "sourceScanId": "sample-a2", "spatial": { "solarSystemId": "sol", "frame": "barycentric", "positionKm": { "x": 2, "y": 0, "z": 0 }, "epochMs": 1776384000000 } }
+  ],
+  "bodies": [
+    { "id": "cb-1", "state": "unscanned", "sourceScanId": "sample-a1", "spatial": { "solarSystemId": "sol", "frame": "barycentric", "positionKm": { "x": 1, "y": 0, "z": 0 }, "epochMs": 1776384000000 } },
+    { "id": "cb-2", "state": "active", "sourceScanId": "sample-a2", "spatial": { "solarSystemId": "sol", "frame": "barycentric", "positionKm": { "x": 2, "y": 0, "z": 0 }, "epochMs": 1776384000000 } }
   ]
 }
 ```
@@ -1014,7 +1078,8 @@ Possible `reason` values:
   "solarSystemId": "sol",
   "positionKm": { "x": 0, "y": 0, "z": 0 },
   "distanceKm": 100,
-  "celestialBodies": []
+  "celestialBodies": [],
+  "bodies": []
 }
 ```
 
@@ -1029,7 +1094,8 @@ Possible `reason` values:
   "message": "playerName, solarSystemId, positionKm, and distanceKm are required",
   "playerName": "<provided playerName or empty string>",
   "solarSystemId": "<provided solarSystemId or empty string>",
-  "celestialBodies": []
+  "celestialBodies": [],
+  "bodies": []
 }
 ```
 
@@ -1041,7 +1107,8 @@ Possible `reason` values:
   "message": "limit must be a positive integer when provided",
   "playerName": "<provided playerName or empty string>",
   "solarSystemId": "<provided solarSystemId or empty string>",
-  "celestialBodies": []
+  "celestialBodies": [],
+  "bodies": []
 }
 ```
 
@@ -1053,7 +1120,8 @@ Possible `reason` values:
   "message": "states must be an array with values from: unscanned, active, destroyed",
   "playerName": "<provided playerName or empty string>",
   "solarSystemId": "<provided solarSystemId or empty string>",
-  "celestialBodies": []
+  "celestialBodies": [],
+  "bodies": []
 }
 ```
 
@@ -1065,7 +1133,8 @@ Possible `reason` values:
   "message": "Player is not registered",
   "playerName": "<provided playerName>",
   "solarSystemId": "<provided solarSystemId>",
-  "celestialBodies": []
+  "celestialBodies": [],
+  "bodies": []
 }
 ```
 
@@ -1077,6 +1146,7 @@ Possible `reason` values:
 - `limit` is applied after filtering and sorting.
 - By default, list includes all lifecycle states (`unscanned`, `active`, `destroyed`) unless `states` filter is provided.
 - `createdByCharacterId` and `missionId` can be used together to scope a mission-specific asteroid field.
+- Transition alias: `bodies` mirrors `celestialBodies` until `2026-06-30T00:00:00Z`; removed after sunset.
 
 ### Success Response
 
@@ -1335,6 +1405,7 @@ Prerequisite graph:
     {
       "id": "<ship id>",
       "name": "<ship name>",
+      "shipName": "<ship name>",
       "status": "<status string or null>",
       "model": "<ship model, e.g. Scavenger Pod>",
       "tier": 1,
@@ -1355,20 +1426,14 @@ Prerequisite graph:
           "launchable": true
         }
       ],
-      "location": {
-        "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 }
+      "spatial": {
+        "solarSystemId": "sol",
+        "frame": "barycentric",
+        "positionKm": { "x": 100.5, "y": 200.3, "z": 50.1 },
+        "epochMs": 1713607200000
       },
-      "kinematics": {
-        "position": { "x": 100.5, "y": 200.3, "z": 50.1 },
-        "velocity": { "x": 0.5, "y": -0.2, "z": 0.1 },
-        "reference": {
-          "solarSystemId": "system-sol",
-          "referenceKind": "barycentric",
-          "referenceBodyId": null,
-          "distanceUnit": "km",
-          "velocityUnit": "km/s",
-          "epochMs": 1713607200000
-        }
+      "motion": {
+        "velocityKmPerSec": { "x": 0.5, "y": -0.2, "z": 0.1 }
       },
       "launchable": true,
       "damageProfile": {
@@ -1434,6 +1499,7 @@ Prerequisite graph:
 - Invalid session emits `invalid-session`.
 - Ships are scoped per character.
 - Returned `ships` list is a defensive copy of server state.
+- Transition alias: ship responses include both `name` (canonical) and `shipName` until `2026-06-30T00:00:00Z`; `shipName` is removed after sunset.
 
 ## Event: `ship-upsert-request`
 

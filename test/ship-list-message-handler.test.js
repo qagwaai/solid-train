@@ -90,6 +90,7 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
   assert.deepEqual(response.ships, [
     {
       id: 'ship-1',
+      name: 'Scout Ship',
       shipName: 'Scout Ship',
       status: 'active',
       model: 'scout-mk2',
