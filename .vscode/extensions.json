@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "mongodb.mongodb-vscode",
+    "github.copilot",
+    "github.copilot-chat"
+  ]
+}

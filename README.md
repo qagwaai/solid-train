@@ -13,6 +13,16 @@ Simple Socket.IO server with Node.js.
 npm install
 ```
 
+## VS Code extension recommendations
+
+This repository includes workspace extension recommendations in `.vscode/extensions.json`.
+When you open the folder in VS Code, you can install all suggested extensions from the prompt.
+
+Current recommendations focus on Node.js and this project stack:
+
+- MongoDB for VS Code
+- GitHub Copilot and Copilot Chat
+
 ## Run
 
 ```bash
