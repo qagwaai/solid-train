@@ -952,6 +952,7 @@ class MessageHandlerContext {
     }
 
     const nearestDock = markets
+      .filter((market) => Boolean(market.positionKm))
       .map((market) => ({
         marketId: market.marketId,
         distanceKm: this.calculateDistanceKm(shipPositionKm, market.positionKm)
