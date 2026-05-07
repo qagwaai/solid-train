@@ -666,16 +666,16 @@ class DatabaseService {
 
     try {
       const boundsQuery = {
-        solarSystemId,
-        'location.positionKm.x': {
+        'spatial.solarSystemId': solarSystemId,
+        'spatial.positionKm.x': {
           $gte: positionKm.x - distanceKm,
           $lte: positionKm.x + distanceKm
         },
-        'location.positionKm.y': {
+        'spatial.positionKm.y': {
           $gte: positionKm.y - distanceKm,
           $lte: positionKm.y + distanceKm
         },
-        'location.positionKm.z': {
+        'spatial.positionKm.z': {
           $gte: positionKm.z - distanceKm,
           $lte: positionKm.z + distanceKm
         }
@@ -697,7 +697,7 @@ class DatabaseService {
 
       return candidates
         .map((celestialBody) => {
-          const bodyPositionKm = celestialBody?.location?.positionKm;
+          const bodyPositionKm = celestialBody?.spatial?.positionKm;
           if (!this.isTriple(bodyPositionKm)) {
             return null;
           }

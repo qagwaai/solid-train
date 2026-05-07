@@ -233,21 +233,23 @@ class MissionUpsertMessageHandler {
       return {
         id: `cb-${baseCharacterId}-${missionId}-a${sequence}`,
         catalogId: `FIRST-TARGET-A${sequence}`,
-        solarSystemId: DEFAULT_SOLAR_SYSTEM_ID,
         sourceScanId,
         createdByCharacterId: baseCharacterId,
         missionId,
         missionInstanceId: null,
         createdAt: timestamp,
         updatedAt: timestamp,
-        location: {
+        spatial: {
+          solarSystemId: DEFAULT_SOLAR_SYSTEM_ID,
+          frame: 'barycentric',
           positionKm: {
             x: Math.round(Math.cos(angle) * radiusKm),
             y: Math.round(Math.sin(angle) * radiusKm),
             z: Math.round((index - 4.5) * 12)
-          }
+          },
+          epochMs: new Date(timestamp).getTime()
         },
-        kinematics: {
+        motion: {
           velocityKmPerSec: {
             x: Number((Math.sin(angle) * 0.03).toFixed(4)),
             y: Number((Math.cos(angle) * 0.03).toFixed(4)),
@@ -257,9 +259,15 @@ class MissionUpsertMessageHandler {
             x: Number((0.0008 + (index * 0.0001)).toFixed(6)),
             y: Number((0.001 + (index * 0.00008)).toFixed(6)),
             z: Number((0.0006 + (index * 0.00009)).toFixed(6))
-          },
+          }
+        },
+        physical: {
           estimatedMassKg: 22000000000 + (index * 3500000000),
           estimatedDiameterM: 110 + (index * 12)
+        },
+        observability: {
+          visibility: 'visible',
+          scanState: 'unscanned'
         },
         composition: { ...materialProfile },
         state: STARTER_MISSION_ASTEROID_STATE

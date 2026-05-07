@@ -10,31 +10,26 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 
 ## P0 — Block before legacy-shape cutover (2026-06-30)
 
-### TQ-01 Add legacy-shape rejection tests at request boundaries
-- **Why**: [MESSAGE_CONTRACT.md](MESSAGE_CONTRACT.md) §"Acceptance Test Matrix"
-  requires negative tests that legacy `location`, `kinematics`, root
-  `solarSystemId` are rejected with explicit replacement messages. None exist.
-- **Where**: [test/celestial-body-upsert-message-handler.test.js](test/celestial-body-upsert-message-handler.test.js),
-  [test/ship-upsert-message-handler.test.js](test/ship-upsert-message-handler.test.js)
-- **Deliverable**: 1 negative test per legacy field per upsert handler
-  asserting `success: false` and the prescribed replacement message.
+### ~~TQ-01~~ ✅ Add legacy-shape rejection tests at request boundaries
+- **Completed**: 2026-05-07
+- Both upsert handlers already had full rejection test coverage:
+  - `celestial-body-upsert`: rejects `location`, `kinematics`, root `solarSystemId`
+  - `ship-upsert`: rejects `location`, `kinematics`
+- No changes required.
 
-### TQ-02 Migrate fixture leaks off the backward-compat reader
-- **Why**: After the 2026-06-30 cutover, any test still passing
-  `location`/`kinematics`/root `solarSystemId` will either silently break or
-  no longer test the actual contract.
-- **Where**: [test/launch-item-message-handler.test.js](test/launch-item-message-handler.test.js)
-  (`createSeedTarget` uses legacy shape),
-  [test/db-service-core.test.js](test/db-service-core.test.js#L172),
-  [test/celestial-body-upsert-message-handler.test.js](test/celestial-body-upsert-message-handler.test.js)
-  (lines 178/203/230 — keep one as a negative-rejection test per TQ-01,
-  convert the rest to canonical),
-  [test/market-buy-sell-message-handler.test.js](test/market-buy-sell-message-handler.test.js)
-  (ship fixtures lack `spatial`).
-- **Deliverable**: Replace inline legacy fixtures with
-  `createCelestialBody(...)` / `createShip(...)` / `createMarket(...)` from
-  [test-support/message-handler-test-helpers.js](test-support/message-handler-test-helpers.js)
-  (also closes TQ-08).
+### ~~TQ-02~~ ✅ Migrate fixture leaks off the backward-compat reader
+- **Completed**: 2026-05-07
+- **Production code migrated**:
+  - `src/handlers/mission-upsert-message-handler.js` — `createStarterMissionAsteroidField()` rewritten to canonical `spatial`/`motion`/`physical`/`observability` shape
+  - `src/handlers/launch-item-message-handler.js` — `resolveYieldQuantity()` updated to read `physical.estimatedMassKg` (was `kinematics.estimatedMassKg`)
+  - `src/db/service.js` — `findCelestialBodiesNearPosition()` MongoDB query and result mapping updated from `solarSystemId`/`location.positionKm` to `spatial.solarSystemId`/`spatial.positionKm`
+  - `src/handlers/message-handler-context.js` — Removed all 4 backward-compat converter methods (`convertLegacyShipToSpatial`, `convertLegacyShipToMotion`, `convertLegacyCelestialBodyToSpatial`, `convertLegacyCelestialBodyToMotionAndPhysical`) and their call sites in `normalizeShip` / `normalizeCelestialBody`
+- **Test fixtures migrated**:
+  - `test/launch-item-message-handler.test.js` — `createSeedTarget()` rewritten to canonical shape
+  - `test/db-service-core.test.js` — `CelestialBody.find` stub updated to canonical shape; assertion updated to `capturedFindQuery['spatial.solarSystemId']`
+  - `test/market-buy-sell-message-handler.test.js` — ship fixture replaced with `createShip()`
+  - `test/market-ledger-list-message-handler.test.js` — ship fixture replaced with `createShip()`
+  - `test/celestial-body-upsert-message-handler.test.js` — local `createCelestialBody` removed; shared helper imported (also closes TQ-08 partial — see below)
 
 ---
 
@@ -99,15 +94,17 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 
 ## P1 — Helper hygiene
 
-### TQ-08 Use canonical helpers from `test-support/`
+### TQ-08 Use canonical helpers from `test-support/` *(partial)*
 - **Why**: `createShip` / `createCelestialBody` / `createMarket` are exported
   but never imported (see [TEST_QUALITY_REVIEW.md](TEST_QUALITY_REVIEW.md) §4.1).
   Three test files re-define their own `createCelestialBody` with subtly
   different defaults; one defines a local `createMarket`.
-- **Deliverable**:
+- **Progress** (2026-05-07): Local `createCelestialBody` in
+  [test/celestial-body-upsert-message-handler.test.js](test/celestial-body-upsert-message-handler.test.js)
+  removed and replaced with shared import (done as part of TQ-02).
+- **Remaining**:
   1. Delete the local `createCelestialBody` defs in
      [test/celestial-body-list-message-handler.test.js](test/celestial-body-list-message-handler.test.js#L21),
-     [test/celestial-body-upsert-message-handler.test.js](test/celestial-body-upsert-message-handler.test.js#L22),
      [test/server.test.js](test/server.test.js#L309).
   2. Delete the local `createMarket` in
      [test/market-list-by-location-message-handler.test.js](test/market-list-by-location-message-handler.test.js#L21).

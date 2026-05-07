@@ -169,16 +169,14 @@ test('DatabaseService celestial body methods cover invalid and filtered query pa
       lean: async () => [
         {
           id: 'cb-near',
-          solarSystemId: 'sol',
-          location: { positionKm: { x: 3, y: 4, z: 0 } },
+          spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 3, y: 4, z: 0 }, epochMs: 0 },
           createdByCharacterId: 'char-1',
           missionId: 'm-1',
           state: 'active'
         },
         {
           id: 'cb-far',
-          solarSystemId: 'sol',
-          location: { positionKm: { x: 100, y: 0, z: 0 } },
+          spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 100, y: 0, z: 0 }, epochMs: 0 },
           createdByCharacterId: 'char-1',
           missionId: 'm-1',
           state: 'active'
@@ -204,7 +202,7 @@ test('DatabaseService celestial body methods cover invalid and filtered query pa
     });
     assert.equal(near.length, 1);
     assert.equal(near[0].celestialBody.id, 'cb-near');
-    assert.equal(capturedFindQuery.solarSystemId, 'sol');
+    assert.equal(capturedFindQuery['spatial.solarSystemId'], 'sol');
     assert.deepEqual(capturedFindQuery.state, { $in: ['active'] });
 
     const scoped = await service.getCelestialBodies({

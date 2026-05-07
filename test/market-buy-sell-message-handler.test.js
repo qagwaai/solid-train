@@ -18,6 +18,7 @@ const {
 } = require('../src/model/market-sell');
 const {
   createMockSocket,
+  createShip,
   createTestContext,
   seedItems,
   seedPlayer
@@ -33,7 +34,7 @@ function seedMarketCharacter(context, credits = 2000) {
         id: 'character-1',
         characterName: 'Trader',
         createdAt: '2026-05-05T00:00:00.000Z',
-        ships: [{ id: 'ship-1', shipName: 'Trader Ship 1', createdAt: '2026-05-05T00:00:00.000Z' }],
+        ships: [createShip({ id: 'ship-1', shipName: 'Trader Ship 1', createdAt: '2026-05-05T00:00:00.000Z' })],
         missions: [],
         creditLedger: [{ type: 'put', amount: credits, description: 'Seed', timestamp: '2026-05-05T00:00:00.000Z', referenceId: null }],
         credits

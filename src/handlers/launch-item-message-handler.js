@@ -37,7 +37,7 @@ class LaunchItemMessageHandler {
    * An asteroid at 250,000,000,000 kg yields the maximum of 100.
    */
   resolveYieldQuantity(targetCelestialBody) {
-    const massKg = Number(targetCelestialBody?.kinematics?.estimatedMassKg);
+    const massKg = Number(targetCelestialBody?.physical?.estimatedMassKg);
     const rarity = this.context.toNonEmptyString(targetCelestialBody?.composition?.rarity);
     const multiplier = MATERIAL_YIELD_MULTIPLIER_BY_RARITY[rarity] || 1;
     const baseFromMass = Number.isFinite(massKg)

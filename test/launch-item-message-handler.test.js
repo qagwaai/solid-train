@@ -58,19 +58,29 @@ function createSeedTarget(overrides = {}) {
   return {
     id: 'cb-1',
     catalogId: 'CAT-001',
-    solarSystemId: 'sol',
     sourceScanId: 'scan-1',
     createdByCharacterId: 'character-1',
+    missionId: null,
+    missionInstanceId: null,
     createdAt: '2026-04-17T00:00:00.000Z',
     updatedAt: '2026-04-17T00:00:00.000Z',
-    location: {
-      positionKm: { x: 100, y: 200, z: 300 }
+    spatial: {
+      solarSystemId: 'sol',
+      frame: 'barycentric',
+      positionKm: { x: 100, y: 200, z: 300 },
+      epochMs: 1713360000000
     },
-    kinematics: {
+    motion: {
       velocityKmPerSec: { x: 1, y: 1, z: 1 },
-      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 },
+      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 }
+    },
+    physical: {
       estimatedMassKg: 42000000000,
       estimatedDiameterM: 320
+    },
+    observability: {
+      visibility: 'visible',
+      scanState: 'scanned'
     },
     composition: {
       rarity: 'Rare',
@@ -78,6 +88,10 @@ function createSeedTarget(overrides = {}) {
       textureColor: '#8df7b2'
     },
     state: 'active',
+    destroyedAt: null,
+    destroyedReason: null,
+    debrisSeed: null,
+    debris: [],
     ...overrides
   };
 }

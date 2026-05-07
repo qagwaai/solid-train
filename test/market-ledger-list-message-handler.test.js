@@ -10,6 +10,7 @@ const {
 } = require('../src/model/market-ledger-list');
 const {
   createMockSocket,
+  createShip,
   createTestContext,
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
@@ -24,7 +25,7 @@ test('MarketLedgerListMessageHandler returns filtered entries', async () => {
         id: 'character-1',
         characterName: 'Trader',
         createdAt: '2026-05-05T00:00:00.000Z',
-        ships: [{ id: 'ship-1', shipName: 'Trader Ship 1', createdAt: '2026-05-05T00:00:00.000Z' }],
+        ships: [createShip({ id: 'ship-1', shipName: 'Trader Ship 1', createdAt: '2026-05-05T00:00:00.000Z' })],
         missions: [],
         creditLedger: [{ type: 'put', amount: 2000, description: 'Seed', timestamp: '2026-05-05T00:00:00.000Z', referenceId: null }],
         credits: 2000

@@ -14,50 +14,12 @@ const {
   INVALID_SESSION_MESSAGE
 } = require('../src/model/session');
 const {
+  createCelestialBody,
   createMockSocket,
   createTestContext,
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
 
-function createCelestialBody(overrides = {}) {
-  return {
-    id: 'cb-1',
-    catalogId: 'CAT-001',
-    sourceScanId: 'scan-1',
-    createdByCharacterId: 'character-1',
-    missionId: null,
-    missionInstanceId: null,
-    createdAt: '2026-04-17T00:00:00.000Z',
-    updatedAt: '2026-04-17T00:00:00.000Z',
-    spatial: {
-      solarSystemId: 'alpha-centauri',
-      frame: 'barycentric',
-      positionKm: { x: 100, y: 200, z: 300 },
-      epochMs: 1713360000000
-    },
-    motion: {
-      velocityKmPerSec: { x: 1, y: 2, z: 3 },
-      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 }
-    },
-    physical: {
-      estimatedMassKg: 42000000000,
-      estimatedDiameterM: 320
-    },
-    observability: {
-      visibility: 'visible',
-      scanState: 'scanned'
-    },
-    composition: {
-      rarity: 'Rare',
-      material: 'Nickel-Iron',
-      textureColor: '#8df7b2'
-    },
-    state: 'active',
-    destroyedAt: null,
-    destroyedReason: null,
-    ...overrides
-  };
-}
 
 test('CelestialBodyUpsertMessageHandler upserts a celestial body by id', async () => {
   const context = createTestContext();
@@ -73,7 +35,7 @@ test('CelestialBodyUpsertMessageHandler upserts a celestial body by id', async (
   const response = await handler.handle(socket, {
     playerName: 'scannerone',
     sessionKey: 'session-1',
-    celestialBody: createCelestialBody()
+    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' })
   });
 
   assert.equal(response.success, true);
@@ -99,7 +61,7 @@ test('CelestialBodyUpsertMessageHandler validates createdByCharacterId', async (
   const response = await handler.handle(socket, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    celestialBody: createCelestialBody({ createdByCharacterId: 'character-404' })
+    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-404' })
   });
 
   assert.equal(response.success, false);
@@ -122,7 +84,7 @@ test('CelestialBodyUpsertMessageHandler emits invalid session before mutation', 
   const response = await handler.handle(socket, {
     playerName: 'ScannerOne',
     sessionKey: 'wrong-session',
-    celestialBody: createCelestialBody()
+    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' })
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -144,13 +106,16 @@ test('CelestialBodyUpsertMessageHandler supports unscanned mission-seeded astero
   const response = await handler.handle(socket, {
     playerName: 'scannerone',
     sessionKey: 'session-1',
-    celestialBody: createCelestialBody({
-      id: '',
-      sourceScanId: 'sample-a3',
-      missionId: 'first-target',
-      state: 'unscanned',
-      composition: null
-    })
+    celestialBody: {
+      ...createCelestialBody({
+        sourceScanId: 'sample-a3',
+        missionId: 'first-target',
+        state: 'unscanned',
+        composition: null,
+        createdByCharacterId: 'character-1'
+      }),
+      id: ''
+    }
   });
 
   assert.equal(response.success, true);
@@ -175,7 +140,7 @@ test('CelestialBodyUpsertMessageHandler rejects legacy location field', async ()
     playerName: 'scannerone',
     sessionKey: 'session-1',
     celestialBody: {
-      ...createCelestialBody(),
+      ...createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' }),
       location: { positionKm: { x: 1, y: 2, z: 3 } }
     }
   });
@@ -200,7 +165,7 @@ test('CelestialBodyUpsertMessageHandler rejects legacy kinematics field', async 
     playerName: 'scannerone',
     sessionKey: 'session-1',
     celestialBody: {
-      ...createCelestialBody(),
+      ...createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' }),
       kinematics: {
         velocityKmPerSec: { x: 1, y: 0, z: 0 }
       }
@@ -227,7 +192,7 @@ test('CelestialBodyUpsertMessageHandler rejects root solarSystemId field', async
     playerName: 'scannerone',
     sessionKey: 'session-1',
     celestialBody: {
-      ...createCelestialBody(),
+      ...createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' }),
       solarSystemId: 'sol'
     }
   });

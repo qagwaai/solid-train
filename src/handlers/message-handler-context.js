@@ -215,120 +215,6 @@ class MessageHandlerContext {
     };
   }
 
-  // Convert legacy location/kinematics to spatial (backward compatibility)
-  convertLegacyShipToSpatial(ship) {
-    const source = this.toPlainObject(ship) || {};
-
-    // If spatial already exists, use it
-    if (source.spatial) {
-      return source.spatial;
-    }
-
-    // Try to build from legacy kinematics
-    if (source.kinematics && source.kinematics.reference) {
-      const ref = source.kinematics.reference;
-      const position = source.kinematics.position || (source.location?.positionKm);
-
-      if (this.isTriple(position) && this.toNonEmptyString(ref.solarSystemId)) {
-        return {
-          solarSystemId: ref.solarSystemId,
-          frame: 'barycentric',
-          positionKm: position,
-          epochMs: ref.epochMs || 0
-        };
-      }
-    }
-
-    // Try legacy location
-    if (source.location && this.isTriple(source.location.positionKm)) {
-      return {
-        solarSystemId: source.solarSystemId || 'sol',
-        frame: 'barycentric',
-        positionKm: source.location.positionKm,
-        epochMs: 0
-      };
-    }
-
-    return null;
-  }
-
-  // Convert legacy kinematics to motion (backward compatibility)
-  convertLegacyShipToMotion(ship) {
-    const source = this.toPlainObject(ship) || {};
-
-    // If motion already exists, use it
-    if (source.motion) {
-      return source.motion;
-    }
-
-    // Try to build from legacy kinematics
-    if (source.kinematics && this.isTriple(source.kinematics.velocity)) {
-      return {
-        velocityKmPerSec: source.kinematics.velocity
-      };
-    }
-
-    return null;
-  }
-
-  // Convert legacy celestial body fields to spatial (backward compatibility)
-  convertLegacyCelestialBodyToSpatial(body) {
-    const source = this.toPlainObject(body) || {};
-
-    // If spatial already exists, use it
-    if (source.spatial) {
-      return source.spatial;
-    }
-
-    // Try to build from legacy location + solarSystemId
-    if (source.location && this.isTriple(source.location.positionKm)) {
-      return {
-        solarSystemId: source.solarSystemId || 'sol',
-        frame: 'barycentric',
-        positionKm: source.location.positionKm,
-        epochMs: 0
-      };
-    }
-
-    return null;
-  }
-
-  // Convert legacy kinematics to motion/physical (backward compatibility)
-  convertLegacyCelestialBodyToMotionAndPhysical(body) {
-    const source = this.toPlainObject(body) || {};
-    const motion = {};
-    const physical = {};
-    let hasMotion = false;
-    let hasPhysical = false;
-
-    if (source.kinematics) {
-      if (this.isTriple(source.kinematics.velocityKmPerSec)) {
-        motion.velocityKmPerSec = source.kinematics.velocityKmPerSec;
-        hasMotion = true;
-      }
-
-      if (this.isTriple(source.kinematics.angularVelocityRadPerSec)) {
-        motion.angularVelocityRadPerSec = source.kinematics.angularVelocityRadPerSec;
-        hasMotion = true;
-      }
-
-      if (this.isFiniteNumber(source.kinematics.estimatedMassKg)) {
-        physical.estimatedMassKg = source.kinematics.estimatedMassKg;
-        hasPhysical = true;
-      }
-
-      if (this.isFiniteNumber(source.kinematics.estimatedDiameterM)) {
-        physical.estimatedDiameterM = source.kinematics.estimatedDiameterM;
-        hasPhysical = true;
-      }
-    }
-
-    return {
-      motion: hasMotion ? motion : null,
-      physical: hasPhysical ? physical : null
-    };
-  }
-
   normalizeMotionState(value) {
     if (!value) {
       return null;
@@ -1691,9 +1577,8 @@ class MessageHandlerContext {
         .filter((entry) => Boolean(entry))
       : [];
 
-    // Try to get spatial from direct field or convert from legacy
-    let spatial = this.normalizeSpatialState(source.spatial) || this.convertLegacyShipToSpatial(ship);
-    let motion = this.normalizeMotionState(source.motion) || this.convertLegacyShipToMotion(ship);
+    let spatial = this.normalizeSpatialState(source.spatial);
+    let motion = this.normalizeMotionState(source.motion);
 
     // If still no spatial, this is an error
     if (!spatial) {
@@ -1859,36 +1744,15 @@ class MessageHandlerContext {
   normalizeCelestialBody(celestialBody) {
     const source = this.toPlainObject(celestialBody) || {};
 
-    // Try to get spatial from direct field or convert from legacy
-    let spatial = this.normalizeSpatialState(source.spatial) || this.convertLegacyCelestialBodyToSpatial(celestialBody);
+    let spatial = this.normalizeSpatialState(source.spatial);
     let motion = this.normalizeMotionState(source.motion);
     let physical = this.normalizePhysicalState(source.physical);
 
     if (!spatial) {
-      // Try converting legacy kinematics for motion/physical
-      const { motion: legacyMotion, physical: legacyPhysical } = this.convertLegacyCelestialBodyToMotionAndPhysical(celestialBody);
-      if (!motion) motion = legacyMotion;
-      if (!physical) physical = legacyPhysical;
-
       throw new Error('CelestialBody: spatial state is required. Provide spatial with solarSystemId, frame:\'barycentric\', positionKm, and epochMs.');
     }
 
-    // Convert legacy kinematics to motion/physical if not provided
-    if (!motion || !physical) {
-      const { motion: legacyMotion, physical: legacyPhysical } = this.convertLegacyCelestialBodyToMotionAndPhysical(celestialBody);
-      if (!motion) motion = legacyMotion;
-      if (!physical) physical = legacyPhysical;
-    }
-
-    // Normalize observability - provide defaults if not present
-    let observability = this.normalizeObservabilityState(source.observability);
-    if (!observability) {
-      // Fallback: try to construct from legacy scanState/visibility fields
-      observability = {
-        visibility: source.visibility || 'visible',
-        scanState: source.scanState || 'scanned'
-      };
-    }
+    const observability = this.normalizeObservabilityState(source.observability);
 
     return {
       id: this.toNonEmptyString(source.id),
