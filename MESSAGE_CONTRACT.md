@@ -524,6 +524,40 @@ Each character carries a `creditLedger` array and a computed `credits` summary f
       "priceMultiplier": 1,
       "driftPercentPerHour": 6,
       "restockIntervalMinutes": 60
+    },
+    {
+      "marketId": "ac-proxima-station",
+      "solarSystemId": "alpha-centauri",
+      "marketName": "Proxima Gateway Market",
+      "siteType": "station",
+      "siteName": "Proxima Centauri Orbital Market",
+      "isStarterMarket": true,
+      "spatial": {
+        "solarSystemId": "alpha-centauri",
+        "frame": "barycentric",
+        "positionKm": { "x": 3200, "y": 0, "z": 0 },
+        "epochMs": 1776384000000
+      },
+      "trajectory": {
+        "kind": "orbital-elements",
+        "orbit": {
+          "anchorBodyId": "ac-proxima",
+          "semiMajorAxisKm": 3200,
+          "eccentricity": 0.02,
+          "inclinationDeg": 0,
+          "longitudeOfAscendingNodeDeg": 0,
+          "argumentOfPeriapsisDeg": 0,
+          "meanAnomalyAtEpochDeg": 0,
+          "orbitalPeriodSec": 95000,
+          "epoch": "<iso timestamp>"
+        }
+      },
+      "distanceAu": null,
+      "route": { "kind": "gate-route", "hops": 1 },
+      "isDocked": false,
+      "priceMultiplier": 1.12,
+      "driftPercentPerHour": 6,
+      "restockIntervalMinutes": 60
     }
   ]
 }
@@ -599,7 +633,8 @@ When no markets are found inside radius, the response remains successful:
   - `{ "kind": "in-system" }` — market is in the same solar system as the request.
   - `{ "kind": "gate-route", "hops": <N> }` — market is reachable via N jump-gate hops.
   - `{ "kind": "no-route" }` — market's solar system is not reachable from the request solar system.
-- Results are sorted nearest-first (by raw km distance) before applying `limit`.
+- Results are sorted: in-system markets first (nearest-first by km distance), then `gate-route` markets (fewest hops first), then `no-route` markets. `limit` is applied after sorting.
+- Cross-system markets (different `solarSystemId` than the request) are always included; their `distanceAu` is `null` since in-system distances are not applicable.
 - If `characterId` (and optional `shipId`) is supplied, response docking state indicates whether the specified ship is currently docked at one of the returned markets.
 
 ## Event: `market-quote-request`
@@ -1503,8 +1538,8 @@ Prerequisite graph:
         ]
       },
       "driveProfile": {
-        "id": "standard-drive-mk1",
-        "name": "Standard Drive Mk1",
+        "id": "standard-cruise",
+        "name": "Standard Cruise Drive",
         "rangeAu": 10,
         "cruiseSpeedAuPerHour": 0.5,
         "fuelCostPerAu": 2.5

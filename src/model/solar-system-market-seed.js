@@ -227,16 +227,145 @@ function buildSolSeedMarkets(asOfTimestamp) {
   return [...belt, ...planetary];
 }
 
+const ALPHA_CENTAURI_MARKETS = [
+  {
+    marketId: 'ac-proxima-station',
+    marketName: 'Proxima Gateway Market',
+    anchorBodyId: 'ac-proxima',
+    anchorBodyName: 'Proxima Centauri',
+    semiMajorAxisKm: 3200,
+    eccentricity: 0.02,
+    orbitalPeriodSec: 95000,
+    priceMultiplier: 1.12,
+    driftPercentPerHour: 6,
+    isStarterMarket: true
+  },
+  {
+    marketId: 'ac-belt-01',
+    marketName: 'Centauri Drift Depot',
+    locationName: 'Centauri Dust Belt 01',
+    semiMajorAxisKm: 5500,
+    eccentricity: 0.14,
+    orbitalPeriodSec: 130000,
+    priceMultiplier: 1.08,
+    driftPercentPerHour: 7
+  }
+];
+
+const BARNARDS_STAR_MARKETS = [
+  {
+    marketId: 'bs-main-station',
+    marketName: 'Barnard Frontier Outpost',
+    anchorBodyId: 'bs-b1',
+    anchorBodyName: "Barnard's Star B1",
+    semiMajorAxisKm: 2800,
+    eccentricity: 0.03,
+    orbitalPeriodSec: 88000,
+    priceMultiplier: 1.22,
+    driftPercentPerHour: 9,
+    isStarterMarket: true
+  }
+];
+
+function buildAlphaCentauriSeedMarkets(asOfTimestamp) {
+  const epoch = typeof asOfTimestamp === 'string' && asOfTimestamp.trim()
+    ? asOfTimestamp.trim()
+    : DEFAULT_ORBIT_EPOCH;
+
+  const stations = ALPHA_CENTAURI_MARKETS
+    .filter((entry) => entry.anchorBodyId)
+    .map((entry, index) => ({
+      marketId: entry.marketId,
+      solarSystemId: 'alpha-centauri',
+      marketName: entry.marketName,
+      locationType: 'station',
+      locationName: `${entry.anchorBodyName} Orbital Market`,
+      isStarterMarket: Boolean(entry.isStarterMarket),
+      priceMultiplier: entry.priceMultiplier,
+      driftPercentPerHour: entry.driftPercentPerHour,
+      restockIntervalMinutes: 60,
+      orbit: buildOrbit({
+        anchorBodyId: entry.anchorBodyId,
+        anchorBodyName: entry.anchorBodyName,
+        semiMajorAxisKm: entry.semiMajorAxisKm,
+        eccentricity: entry.eccentricity,
+        inclinationDeg: (index % 2) * 2.0,
+        meanAnomalyAtEpochDeg: (index * 37) % 360,
+        orbitalPeriodSec: entry.orbitalPeriodSec
+      }, epoch)
+    }));
+
+  const belt = ALPHA_CENTAURI_MARKETS
+    .filter((entry) => !entry.anchorBodyId)
+    .map((entry, index) => ({
+      marketId: entry.marketId,
+      solarSystemId: 'alpha-centauri',
+      marketName: entry.marketName,
+      locationType: 'free-floating',
+      locationName: entry.locationName,
+      priceMultiplier: entry.priceMultiplier,
+      driftPercentPerHour: entry.driftPercentPerHour,
+      restockIntervalMinutes: 60,
+      orbit: buildOrbit({
+        anchorBodyId: 'ac-dust-belt',
+        anchorBodyName: 'Centauri Dust Belt',
+        semiMajorAxisKm: entry.semiMajorAxisKm,
+        eccentricity: entry.eccentricity,
+        inclinationDeg: 4 + (index * 1.2),
+        argumentOfPeriapsisDeg: (60 + (index * 23)) % 360,
+        meanAnomalyAtEpochDeg: (index * 97) % 360,
+        orbitalPeriodSec: entry.orbitalPeriodSec
+      }, epoch)
+    }));
+
+  return [...stations, ...belt];
+}
+
+function buildBarnardsStarSeedMarkets(asOfTimestamp) {
+  const epoch = typeof asOfTimestamp === 'string' && asOfTimestamp.trim()
+    ? asOfTimestamp.trim()
+    : DEFAULT_ORBIT_EPOCH;
+
+  return BARNARDS_STAR_MARKETS.map((entry, index) => ({
+    marketId: entry.marketId,
+    solarSystemId: 'barnards-star',
+    marketName: entry.marketName,
+    locationType: 'station',
+    locationName: `${entry.anchorBodyName} Orbital Market`,
+    isStarterMarket: Boolean(entry.isStarterMarket),
+    priceMultiplier: entry.priceMultiplier,
+    driftPercentPerHour: entry.driftPercentPerHour,
+    restockIntervalMinutes: 60,
+    orbit: buildOrbit({
+      anchorBodyId: entry.anchorBodyId,
+      anchorBodyName: entry.anchorBodyName,
+      semiMajorAxisKm: entry.semiMajorAxisKm,
+      eccentricity: entry.eccentricity,
+      inclinationDeg: (index % 3) * 1.8,
+      meanAnomalyAtEpochDeg: (index * 53) % 360,
+      orbitalPeriodSec: entry.orbitalPeriodSec
+    }, epoch)
+  }));
+}
+
 function buildSeededMarketsForSolarSystem(solarSystemId, asOfTimestamp) {
   const normalizedSolarSystemId = typeof solarSystemId === 'string'
     ? solarSystemId.trim().toLowerCase()
     : '';
 
-  if (normalizedSolarSystemId !== 'sol') {
-    return [];
+  if (normalizedSolarSystemId === 'sol') {
+    return buildSolSeedMarkets(asOfTimestamp);
   }
 
-  return buildSolSeedMarkets(asOfTimestamp);
+  if (normalizedSolarSystemId === 'alpha-centauri') {
+    return buildAlphaCentauriSeedMarkets(asOfTimestamp);
+  }
+
+  if (normalizedSolarSystemId === 'barnards-star') {
+    return buildBarnardsStarSeedMarkets(asOfTimestamp);
+  }
+
+  return [];
 }
 
 module.exports = {

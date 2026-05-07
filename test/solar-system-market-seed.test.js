@@ -35,5 +35,23 @@ test('buildSeededMarketsForSolarSystem builds Sol market set with required orbit
 });
 
 test('buildSeededMarketsForSolarSystem returns empty for unsupported systems', () => {
-  assert.deepEqual(buildSeededMarketsForSolarSystem('alpha-centauri', '2026-05-05T00:00:00.000Z'), []);
+  assert.deepEqual(buildSeededMarketsForSolarSystem('proxima-centauri', '2026-05-05T00:00:00.000Z'), []);
+  assert.deepEqual(buildSeededMarketsForSolarSystem('', '2026-05-05T00:00:00.000Z'), []);
+  assert.deepEqual(buildSeededMarketsForSolarSystem(null, '2026-05-05T00:00:00.000Z'), []);
+});
+
+test('buildSeededMarketsForSolarSystem builds alpha-centauri market set', () => {
+  const seeded = buildSeededMarketsForSolarSystem('alpha-centauri', '2026-05-05T00:00:00.000Z');
+  assert.ok(seeded.length > 0);
+  assert.ok(seeded.every((market) => market.solarSystemId === 'alpha-centauri'));
+  assert.ok(seeded.every((market) => market.orbit));
+  assert.ok(seeded.some((market) => market.isStarterMarket));
+});
+
+test('buildSeededMarketsForSolarSystem builds barnards-star market set', () => {
+  const seeded = buildSeededMarketsForSolarSystem('barnards-star', '2026-05-05T00:00:00.000Z');
+  assert.ok(seeded.length > 0);
+  assert.ok(seeded.every((market) => market.solarSystemId === 'barnards-star'));
+  assert.ok(seeded.every((market) => market.orbit));
+  assert.ok(seeded.some((market) => market.isStarterMarket));
 });

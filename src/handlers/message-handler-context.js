@@ -7,6 +7,7 @@ const {
   SOLAR_SYSTEM_MARKET_SEED_VERSION,
   buildSeededMarketsForSolarSystem
 } = require('../model/solar-system-market-seed');
+const { buildSeededGateNetwork } = require('../model/solar-system-gate-seed');
 const SUPPORTED_LOCALES = new Set(['en', 'it']);
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
 const MARKET_DOCKING_DISTANCE_KM = 50;
@@ -66,10 +67,13 @@ class MessageHandlerContext {
 
   seedDefaultMarkets() {
     const now = new Date().toISOString();
-    const defaults = buildSeededMarketsForSolarSystem('sol', now);
+    const systemIds = ['sol', 'alpha-centauri', 'barnards-star'];
 
-    for (const market of defaults) {
-      this.cacheMarket(this.createSeedMarketPayload(market, now));
+    for (const systemId of systemIds) {
+      const defaults = buildSeededMarketsForSolarSystem(systemId, now);
+      for (const market of defaults) {
+        this.cacheMarket(this.createSeedMarketPayload(market, now));
+      }
     }
   }
 
@@ -363,7 +367,7 @@ class MessageHandlerContext {
 
     const gates = this.databaseService
       ? await this.databaseService.getJumpGatesAsync()
-      : [];
+      : buildSeededGateNetwork();
 
     const graph = new Map();
     for (const gate of gates) {
@@ -984,37 +988,50 @@ class MessageHandlerContext {
     }
 
     const maxDistanceKm = distanceAu * ASTRONOMICAL_UNIT_KM;
-    const markets = await this.getMarketsAsync({ solarSystemId, asOf });
-    const spatial = [];
+    const allMarkets = await this.getMarketsAsync({ asOf });
+    const results = [];
 
-    for (const market of markets) {
+    for (const market of allMarkets) {
       const normalizedLocationType = this.toNonEmptyString(market.siteType || market.locationType).toLowerCase();
       if (locationTypes.length > 0 && !locationTypes.includes(normalizedLocationType)) {
         continue;
       }
 
-      const marketPositionKm = await this.resolveMarketPositionKmAsync(market, asOf);
-      const computedDistanceKm = this.calculateDistanceKm(positionKm, marketPositionKm);
+      if (market.solarSystemId === solarSystemId) {
+        const marketPositionKm = await this.resolveMarketPositionKmAsync(market, asOf);
+        const computedDistanceKm = this.calculateDistanceKm(positionKm, marketPositionKm);
 
-      if (computedDistanceKm > maxDistanceKm) {
-        continue;
+        if (computedDistanceKm > maxDistanceKm) {
+          continue;
+        }
+
+        const computedDistanceAu = parseFloat((computedDistanceKm / ASTRONOMICAL_UNIT_KM).toFixed(3));
+        results.push({
+          ...market,
+          positionKm: marketPositionKm,
+          _sortKey: 0,
+          _sortSecondary: computedDistanceKm,
+          distanceAu: computedDistanceAu,
+          route: { kind: 'in-system' }
+        });
+      } else {
+        const route = await this.getRouteForMarketAsync(solarSystemId, market.solarSystemId);
+        results.push({
+          ...market,
+          _sortKey: route.kind === 'gate-route' ? 1 : 2,
+          _sortSecondary: route.kind === 'gate-route' ? route.hops : 0,
+          distanceAu: null,
+          route
+        });
       }
-
-      const computedDistanceAu = parseFloat((computedDistanceKm / ASTRONOMICAL_UNIT_KM).toFixed(3));
-      const route = await this.getRouteForMarketAsync(solarSystemId, market.solarSystemId);
-
-      spatial.push({
-        ...market,
-        positionKm: marketPositionKm,
-        _distanceKmRaw: computedDistanceKm,
-        distanceAu: computedDistanceAu,
-        route
-      });
     }
 
-    const sorted = spatial.sort((left, right) => left._distanceKmRaw - right._distanceKmRaw);
-    const result = limit ? sorted.slice(0, limit) : sorted;
-    return result.map(({ _distanceKmRaw: _ignored, ...rest }) => rest);
+    const sorted = results.sort((a, b) => {
+      if (a._sortKey !== b._sortKey) return a._sortKey - b._sortKey;
+      return a._sortSecondary - b._sortSecondary;
+    });
+    const limited = limit ? sorted.slice(0, limit) : sorted;
+    return limited.map(({ _sortKey: _k, _sortSecondary: _s, ...rest }) => rest);
   }
 
   async getMarketQuoteAsync(request = {}) {

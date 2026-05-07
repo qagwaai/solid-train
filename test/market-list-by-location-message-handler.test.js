@@ -256,11 +256,12 @@ test('MarketListByLocationMessageHandler emits invalid session before query', as
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
-test('MarketListByLocationMessageHandler route is always in-system because markets are scoped to the request solar system', async () => {
+test('MarketListByLocationMessageHandler cross-system markets appear with gate-route or no-route classification', async () => {
   const context = createTestContext();
   context.marketsByKey.clear();
+  context._gateGraph = null;
 
-  // Two markets in the request system
+  // Two markets in the request system (sol)
   context.cacheMarket(createMarket({
     marketId: 'market-near',
     solarSystemId: 'sol',
@@ -292,9 +293,26 @@ test('MarketListByLocationMessageHandler route is always in-system because marke
     }
   }));
 
-  // A market in a different system is filtered out before distance/route computation
+  // A market in alpha-centauri — 1 hop from sol via the seeded gate network
   context.cacheMarket(createMarket({
-    marketId: 'market-other-system',
+    marketId: 'market-alpha-centauri',
+    solarSystemId: 'alpha-centauri',
+    orbit: {
+      anchorBodyId: 'alpha-centauri',
+      semiMajorAxisKm: 100,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    }
+  }));
+
+  // A market in proxima-centauri — not in seeded gate network, so no-route
+  context.cacheMarket(createMarket({
+    marketId: 'market-proxima-centauri',
     solarSystemId: 'proxima-centauri',
     orbit: {
       anchorBodyId: 'proxima-centauri',
@@ -326,11 +344,30 @@ test('MarketListByLocationMessageHandler route is always in-system because marke
   });
 
   assert.equal(response.success, true);
-  // Only the two sol markets are returned; the proxima-centauri market is excluded
-  assert.equal(response.markets.length, 2);
-  assert.ok(response.markets.every((m) => m.solarSystemId === 'sol'));
-  // All returned markets are in-system by definition
-  assert.ok(response.markets.every((m) => m.route.kind === 'in-system'));
+  // All 4 markets appear: 2 in-system, 1 gate-route, 1 no-route
+  assert.equal(response.markets.length, 4);
+
+  const inSystem = response.markets.filter((m) => m.solarSystemId === 'sol');
+  assert.equal(inSystem.length, 2);
+  assert.ok(inSystem.every((m) => m.route.kind === 'in-system'));
+  assert.ok(inSystem.every((m) => typeof m.distanceAu === 'number'));
+
+  const gateMarket = response.markets.find((m) => m.marketId === 'market-alpha-centauri');
+  assert.ok(gateMarket, 'alpha-centauri market should appear');
+  assert.equal(gateMarket.route.kind, 'gate-route');
+  assert.equal(gateMarket.route.hops, 1);
+  assert.equal(gateMarket.distanceAu, null);
+
+  const noRouteMarket = response.markets.find((m) => m.marketId === 'market-proxima-centauri');
+  assert.ok(noRouteMarket, 'proxima-centauri market should appear');
+  assert.equal(noRouteMarket.route.kind, 'no-route');
+  assert.equal(noRouteMarket.distanceAu, null);
+
+  // Sort order: in-system first, then gate-route, then no-route
+  assert.equal(response.markets[0].solarSystemId, 'sol');
+  assert.equal(response.markets[1].solarSystemId, 'sol');
+  assert.equal(response.markets[2].marketId, 'market-alpha-centauri');
+  assert.equal(response.markets[3].marketId, 'market-proxima-centauri');
 });
 
 test('MarketListByLocationMessageHandler route is in-system when no gate network is configured', async () => {

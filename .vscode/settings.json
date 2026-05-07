@@ -35,6 +35,14 @@
         "/^cd /c/Development/Projects/Github/solid-train && node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap\\.txt; echo \"Exit: \\$\\?\"; grep -E \"\\^\\(not ok\\|# tests\\|# pass\\|# fail\\)\" /tmp/test-tap\\.txt$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /c/Development/Projects/Github/solid-train && node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap\\.txt 2>&1; grep -E \"\\^\\(# tests\\|# pass\\|# fail\\|not ok\\)\" /tmp/test-tap\\.txt \\| head -30$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /c/Development/Projects/Github/solid-train && node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap\\.txt 2>&1; grep -E \"\\^\\(# tests\\|# pass\\|# fail\\|not ok\\)\" /tmp/test-tap\\.txt$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     },
     "specstory.cloudSync.enabled": "never"
