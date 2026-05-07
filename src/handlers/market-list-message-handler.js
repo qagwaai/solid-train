@@ -59,7 +59,7 @@ class MarketListMessageHandler {
     const projectedMarkets = markets.map((market) => {
       const positionKm = market.spatial?.positionKm || BARYCENTER;
       const distanceAu = parseFloat(
-        (this.context.calculateDistanceKm(BARYCENTER, positionKm) / 149_597_870.7).toFixed(3)
+        (this.context.calculateDistanceKm(BARYCENTER, positionKm) / 149_597_870.7).toFixed(6)
       );
       return {
         marketId: market.marketId,

@@ -12,6 +12,20 @@ const SUPPORTED_LOCALES = new Set(['en', 'it']);
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
 const MARKET_DOCKING_DISTANCE_KM = 50;
 const ASTRONOMICAL_UNIT_KM = 149_597_870.7;
+const FALLBACK_ANCHOR_POSITION_KM = {
+  'sol-sun': { x: 0, y: 0, z: 0 },
+  'sol-mercury': { x: 57_909_227, y: 0, z: 0 },
+  'sol-venus': { x: 108_209_475, y: 0, z: 0 },
+  'sol-earth': { x: 149_597_870.7, y: 0, z: 0 },
+  'sol-moon': { x: 149_982_270.7, y: 0, z: 0 },
+  'sol-mars': { x: 227_943_824, y: 0, z: 0 },
+  'sol-asteroid-belt': { x: 414_012_000, y: 0, z: 0 },
+  'sol-jupiter': { x: 778_340_821, y: 0, z: 0 },
+  'sol-saturn': { x: 1_426_666_422, y: 0, z: 0 },
+  'sol-uranus': { x: 2_870_658_186, y: 0, z: 0 },
+  'sol-neptune': { x: 4_498_396_441, y: 0, z: 0 },
+  'sol-pluto': { x: 5_906_376_272, y: 0, z: 0 }
+};
 
 function buildMarketKey(marketId, solarSystemId) {
   return `${solarSystemId}:${marketId}`;
@@ -78,8 +92,32 @@ class MessageHandlerContext {
   }
 
   createSeedMarketPayload(seedMarket, timestamp) {
+    const source = this.toPlainObject(seedMarket) || {};
+    const orbit = source.orbit ? this.normalizeMarketOrbit(source.orbit) : null;
+    const siteType = this.inferMarketSiteType(source);
+    const siteName =
+      this.toNonEmptyString(source.siteName)
+      || this.toNonEmptyString(source.locationName)
+      || this.toNonEmptyString(source.marketName);
+    const positionKm = this.normalizeTriple(source.positionKm);
+    const spatial = positionKm
+      ? {
+        solarSystemId: this.toNonEmptyString(source.solarSystemId).toLowerCase(),
+        frame: 'barycentric',
+        positionKm,
+        epochMs: this.isFiniteNumber(source?.spatial?.epochMs)
+          ? source.spatial.epochMs
+          : Date.parse(orbit?.epoch || timestamp)
+      }
+      : undefined;
+
     return {
       ...seedMarket,
+      solarSystemId: this.toNonEmptyString(source.solarSystemId).toLowerCase(),
+      siteType,
+      siteName,
+      ...(spatial ? { spatial } : {}),
+      ...(orbit ? { trajectory: { kind: 'orbital-elements', orbit } } : {}),
       restockIntervalMinutes: Number.isInteger(seedMarket?.restockIntervalMinutes)
         && seedMarket.restockIntervalMinutes > 0
         ? seedMarket.restockIntervalMinutes
@@ -91,7 +129,28 @@ class MessageHandlerContext {
   }
 
   normalizeMarketOrbit(value) {
-    const source = this.toPlainObject(value) || {};
+    const source = this.toPlainObject(value);
+    if (!source || typeof source !== 'object') {
+      return null;
+    }
+
+    const hasOrbitInput = Boolean(
+      this.toNonEmptyString(source.anchorBodyId)
+      || this.toNonEmptyString(source.anchorBodyName)
+      || this.toNonEmptyString(source.orbitType)
+      || this.isFiniteNumber(source.semiMajorAxisKm)
+      || this.isFiniteNumber(source.eccentricity)
+      || this.isFiniteNumber(source.inclinationDeg)
+      || this.isFiniteNumber(source.longitudeOfAscendingNodeDeg)
+      || this.isFiniteNumber(source.argumentOfPeriapsisDeg)
+      || this.isFiniteNumber(source.meanAnomalyAtEpochDeg)
+      || this.isFiniteNumber(source.orbitalPeriodSec)
+      || this.toNonEmptyString(source.epoch)
+    );
+
+    if (!hasOrbitInput) {
+      return null;
+    }
 
     return {
       anchorBodyId: this.toNonEmptyString(source.anchorBodyId),
@@ -342,7 +401,10 @@ class MessageHandlerContext {
     };
 
     if (kind === 'orbital-elements' && source.orbit) {
-      trajectory.orbit = this.normalizeMarketOrbit(source.orbit);
+      const orbit = this.normalizeMarketOrbit(source.orbit);
+      if (orbit) {
+        trajectory.orbit = orbit;
+      }
     }
 
     return trajectory;
@@ -523,11 +585,58 @@ class MessageHandlerContext {
     };
   }
 
+  normalizeMarketSiteTypeValue(value) {
+    const normalized = this.toNonEmptyString(value).toLowerCase();
+    if (!normalized) {
+      return '';
+    }
+
+    if (normalized === 'station' || normalized === 'surface-settlement' || normalized === 'free-floating') {
+      return normalized;
+    }
+
+    if (normalized.includes('station') || normalized.includes('orbital')) {
+      return 'station';
+    }
+
+    if (normalized.includes('surface') || normalized.includes('settlement')) {
+      return 'surface-settlement';
+    }
+
+    if (normalized.includes('free') || normalized.includes('belt') || normalized.includes('drift')) {
+      return 'free-floating';
+    }
+
+    return '';
+  }
+
+  inferMarketSiteType(source) {
+    const explicit = this.normalizeMarketSiteTypeValue(source.siteType || source.locationType);
+    if (explicit) {
+      return explicit;
+    }
+
+    const marketId = this.toNonEmptyString(source.marketId).toLowerCase();
+    const marketName = this.toNonEmptyString(source.marketName).toLowerCase();
+    const siteName = this.toNonEmptyString(source.siteName || source.locationName).toLowerCase();
+
+    const combined = `${marketId} ${marketName} ${siteName}`;
+    if (combined.includes('belt') || combined.includes('drift')) {
+      return 'free-floating';
+    }
+
+    if (combined.includes('surface') || combined.includes('settlement')) {
+      return 'surface-settlement';
+    }
+
+    return 'station';
+  }
+
   normalizeMarket(market) {
     const source = this.toPlainObject(market) || {};
     const marketId = this.toNonEmptyString(source.marketId);
-    const solarSystemId = this.toNonEmptyString(source.solarSystemId);
-    const orbit = this.normalizeMarketOrbit(source.orbit);
+    const solarSystemId = this.toNonEmptyString(source.solarSystemId).toLowerCase();
+    const orbit = this.normalizeMarketOrbit(source.orbit || source.trajectory?.orbit);
     const rawInventory = Array.isArray(source.inventory)
       ? source.inventory
       : MARKET_CATALOG.map((catalogEntry) => buildDefaultInventoryEntry(catalogEntry));
@@ -543,7 +652,7 @@ class MessageHandlerContext {
     if (!spatial) {
       // Backward compatibility: try to construct spatial from legacy fields
       let positionKm = source.positionKm ? this.normalizeTriple(source.positionKm) : null;
-      if (!positionKm && orbit && this.isFiniteNumber(orbit.semiMajorAxisKm) && source.solarSystemId) {
+      if (!positionKm && orbit && orbit.semiMajorAxisKm > 0 && source.solarSystemId) {
         // Fallback: use semi-major axis as approximate position (only for static markets)
         positionKm = { x: orbit.semiMajorAxisKm, y: 0, z: 0 };
       }
@@ -558,9 +667,9 @@ class MessageHandlerContext {
       }
     }
 
-    // Handle trajectory: wrap orbit if present
-    let trajectory = null;
-    if (orbit && (orbit.anchorBodyId || Object.keys(orbit).length > 0)) {
+    // Handle trajectory: preserve canonical trajectory if present, otherwise wrap normalized orbit.
+    let trajectory = this.normalizeTrajectoryDescriptor(source.trajectory);
+    if (!trajectory && orbit) {
       trajectory = {
         kind: 'orbital-elements',
         orbit
@@ -571,8 +680,11 @@ class MessageHandlerContext {
       marketId,
       solarSystemId,
       marketName: this.toNonEmptyString(source.marketName),
-      siteType: this.toNonEmptyString(source.siteType) || this.toNonEmptyString(source.locationType),
-      siteName: this.toNonEmptyString(source.siteName) || this.toNonEmptyString(source.locationName),
+      siteType: this.inferMarketSiteType(source),
+      siteName:
+        this.toNonEmptyString(source.siteName)
+        || this.toNonEmptyString(source.locationName)
+        || this.toNonEmptyString(source.marketName),
       isStarterMarket: Boolean(source.isStarterMarket),
       priceMultiplier: this.isFiniteNumber(source.priceMultiplier) && source.priceMultiplier > 0
         ? source.priceMultiplier
@@ -742,7 +854,7 @@ class MessageHandlerContext {
 
   getMarket(marketId, solarSystemId = '') {
     const normalizedMarketId = this.toNonEmptyString(marketId);
-    const normalizedSolarSystemId = this.toNonEmptyString(solarSystemId);
+    const normalizedSolarSystemId = this.toNonEmptyString(solarSystemId).toLowerCase();
     if (!normalizedMarketId) {
       return null;
     }
@@ -785,11 +897,18 @@ class MessageHandlerContext {
   }
 
   async getMarketsAsync(query = {}) {
-    const normalizedSolarSystemId = this.toNonEmptyString(query?.solarSystemId);
+    const normalizedSolarSystemId = this.toNonEmptyString(query?.solarSystemId).toLowerCase();
     const nowTimestamp = this.toNonEmptyString(query?.asOf) || this.getCurrentTimestamp();
 
     return Array.from(this.marketsByKey.values())
-      .filter((market) => !normalizedSolarSystemId || market.solarSystemId === normalizedSolarSystemId)
+      .filter((market) => {
+        if (!normalizedSolarSystemId) {
+          return true;
+        }
+
+        const marketSolarSystemId = this.toNonEmptyString(market?.solarSystemId).toLowerCase();
+        return marketSolarSystemId === normalizedSolarSystemId;
+      })
       .map((market) => this.applyMarketRestock({ ...market }, nowTimestamp))
       .sort((left, right) => left.marketName.localeCompare(right.marketName));
   }
@@ -872,30 +991,31 @@ class MessageHandlerContext {
   }
 
   async resolveMarketPositionKmAsync(market, timestamp) {
-    // If spatial is available, use its position directly
+    // Prefer orbit + anchor-body positioning for orbital markets.
+    const orbit = this.normalizeMarketOrbit(market?.orbit || market?.trajectory?.orbit);
+    if (orbit && orbit.anchorBodyId) {
+      const relative = this.computeRelativeOrbitPositionKm(orbit, timestamp || this.getCurrentTimestamp());
+      const anchorBody = await this.getCelestialBodyByIdAsync(orbit.anchorBodyId);
+      const fallbackAnchorPosition = FALLBACK_ANCHOR_POSITION_KM[orbit.anchorBodyId] || { x: 0, y: 0, z: 0 };
+      const anchorPosition = this.isTriple(anchorBody?.spatial?.positionKm)
+        ? anchorBody.spatial.positionKm
+        : (this.isTriple(anchorBody?.location?.positionKm)
+          ? anchorBody.location.positionKm
+          : fallbackAnchorPosition);
+
+      return {
+        x: anchorPosition.x + relative.x,
+        y: anchorPosition.y + relative.y,
+        z: anchorPosition.z + relative.z
+      };
+    }
+
+    // Otherwise use explicit spatial as-is.
     if (this.isTriple(market?.spatial?.positionKm)) {
       return market.spatial.positionKm;
     }
 
-    // Fallback: compute from orbit + anchor body
-    const orbit = this.normalizeMarketOrbit(market?.orbit || market?.trajectory?.orbit);
-    if (!orbit || !orbit.anchorBodyId) {
-      return { x: 0, y: 0, z: 0 };
-    }
-
-    const relative = this.computeRelativeOrbitPositionKm(orbit, timestamp || this.getCurrentTimestamp());
-    const anchorBody = await this.getCelestialBodyByIdAsync(orbit.anchorBodyId);
-    const anchorPosition = this.isTriple(anchorBody?.spatial?.positionKm)
-      ? anchorBody.spatial.positionKm
-      : (this.isTriple(anchorBody?.location?.positionKm)
-        ? anchorBody.location.positionKm
-        : { x: 0, y: 0, z: 0 });
-
-    return {
-      x: anchorPosition.x + relative.x,
-      y: anchorPosition.y + relative.y,
-      z: anchorPosition.z + relative.z
-    };
+    return { x: 0, y: 0, z: 0 };
   }
 
   getShipPositionKm(ship) {
@@ -973,7 +1093,7 @@ class MessageHandlerContext {
   }
 
   async getMarketsByLocationAsync(query = {}) {
-    const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
+    const solarSystemId = this.toNonEmptyString(query?.solarSystemId).toLowerCase();
     const positionKm = query?.positionKm;
     const distanceAu = query?.distanceAu;
     const asOf = this.toNonEmptyString(query?.asOf) || this.getCurrentTimestamp();
@@ -989,42 +1109,50 @@ class MessageHandlerContext {
     }
 
     const maxDistanceKm = distanceAu * ASTRONOMICAL_UNIT_KM;
-    const allMarkets = await this.getMarketsAsync({ asOf });
+    let systemMarkets = await this.getMarketsAsync({ solarSystemId, asOf });
+
+    if (systemMarkets.length === 0) {
+      const seededMarkets = buildSeededMarketsForSolarSystem(solarSystemId, asOf);
+      if (seededMarkets.length > 0) {
+        for (const seededMarket of seededMarkets) {
+          this.cacheMarket(this.createSeedMarketPayload(seededMarket, asOf));
+        }
+
+        systemMarkets = await this.getMarketsAsync({ solarSystemId, asOf });
+      }
+    }
+
     const results = [];
 
-    for (const market of allMarkets) {
-      const normalizedLocationType = this.toNonEmptyString(market.siteType || market.locationType).toLowerCase();
+    for (const market of systemMarkets) {
+      const normalizedLocationType = this.inferMarketSiteType(market);
       if (locationTypes.length > 0 && !locationTypes.includes(normalizedLocationType)) {
         continue;
       }
 
-      if (market.solarSystemId === solarSystemId) {
-        const marketPositionKm = await this.resolveMarketPositionKmAsync(market, asOf);
-        const computedDistanceKm = this.calculateDistanceKm(positionKm, marketPositionKm);
+      const marketPositionKm = await this.resolveMarketPositionKmAsync(market, asOf);
+      const computedDistanceKm = this.calculateDistanceKm(positionKm, marketPositionKm);
 
-        if (computedDistanceKm > maxDistanceKm) {
-          continue;
-        }
-
-        const computedDistanceAu = parseFloat((computedDistanceKm / ASTRONOMICAL_UNIT_KM).toFixed(3));
-        results.push({
-          ...market,
-          positionKm: marketPositionKm,
-          _sortKey: 0,
-          _sortSecondary: computedDistanceKm,
-          distanceAu: computedDistanceAu,
-          route: { kind: 'in-system' }
-        });
-      } else {
-        const route = await this.getRouteForMarketAsync(solarSystemId, market.solarSystemId);
-        results.push({
-          ...market,
-          _sortKey: route.kind === 'gate-route' ? 1 : 2,
-          _sortSecondary: route.kind === 'gate-route' ? route.hops : 0,
-          distanceAu: null,
-          route
-        });
+      if (computedDistanceKm > maxDistanceKm) {
+        continue;
       }
+
+      const computedDistanceAu = parseFloat((computedDistanceKm / ASTRONOMICAL_UNIT_KM).toFixed(6));
+      const epochMs = Date.parse(asOf);
+      results.push({
+        ...market,
+        positionKm: marketPositionKm,
+        spatial: {
+          solarSystemId: market.solarSystemId,
+          frame: 'barycentric',
+          positionKm: marketPositionKm,
+          epochMs: Number.isNaN(epochMs) ? 0 : epochMs
+        },
+        _sortKey: 0,
+        _sortSecondary: computedDistanceKm,
+        distanceAu: computedDistanceAu,
+        route: { kind: 'in-system' }
+      });
     }
 
     const sorted = results.sort((a, b) => {

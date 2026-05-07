@@ -256,10 +256,9 @@ test('MarketListByLocationMessageHandler emits invalid session before query', as
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
-test('MarketListByLocationMessageHandler cross-system markets appear with gate-route or no-route classification', async () => {
+test('MarketListByLocationMessageHandler only returns markets in the requested solar system', async () => {
   const context = createTestContext();
   context.marketsByKey.clear();
-  context._gateGraph = null;
 
   // Two markets in the request system (sol)
   context.cacheMarket(createMarket({
@@ -293,7 +292,7 @@ test('MarketListByLocationMessageHandler cross-system markets appear with gate-r
     }
   }));
 
-  // A market in alpha-centauri — 1 hop from sol via the seeded gate network
+  // Markets in other solar systems — must never appear in a sol-scoped query
   context.cacheMarket(createMarket({
     marketId: 'market-alpha-centauri',
     solarSystemId: 'alpha-centauri',
@@ -309,13 +308,11 @@ test('MarketListByLocationMessageHandler cross-system markets appear with gate-r
       epoch: '2026-04-17T00:00:00.000Z'
     }
   }));
-
-  // A market in proxima-centauri — not in seeded gate network, so no-route
   context.cacheMarket(createMarket({
-    marketId: 'market-proxima-centauri',
-    solarSystemId: 'proxima-centauri',
+    marketId: 'market-barnards-star',
+    solarSystemId: 'barnards-star',
     orbit: {
-      anchorBodyId: 'proxima-centauri',
+      anchorBodyId: 'barnards-star',
       semiMajorAxisKm: 100,
       eccentricity: 0,
       inclinationDeg: 0,
@@ -328,7 +325,7 @@ test('MarketListByLocationMessageHandler cross-system markets appear with gate-r
   }));
 
   seedPlayer(context, {
-    playerName: 'GatePilot',
+    playerName: 'SolPilot',
     sessionKey: 'session-1'
   });
 
@@ -336,38 +333,102 @@ test('MarketListByLocationMessageHandler cross-system markets appear with gate-r
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
-    playerName: 'GatePilot',
+    playerName: 'SolPilot',
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceAu: 10
+    distanceAu: 1000000
   });
 
   assert.equal(response.success, true);
-  // All 4 markets appear: 2 in-system, 1 gate-route, 1 no-route
-  assert.equal(response.markets.length, 4);
+  assert.equal(response.markets.length, 2, 'only sol markets are returned');
+  assert.ok(response.markets.every((m) => m.solarSystemId === 'sol'), 'all markets are sol');
+  assert.ok(response.markets.every((m) => m.route.kind === 'in-system'), 'all routes are in-system');
+  assert.ok(response.markets.every((m) => typeof m.distanceAu === 'number'), 'all have numeric distanceAu');
+  assert.ok(
+    response.markets.every((m) => m.marketId !== 'market-alpha-centauri' && m.marketId !== 'market-barnards-star'),
+    'cross-system markets must not appear'
+  );
+});
 
-  const inSystem = response.markets.filter((m) => m.solarSystemId === 'sol');
-  assert.equal(inSystem.length, 2);
-  assert.ok(inSystem.every((m) => m.route.kind === 'in-system'));
-  assert.ok(inSystem.every((m) => typeof m.distanceAu === 'number'));
+test('MarketListByLocationMessageHandler locationTypes station filter excludes free-floating cross-system markets', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
 
-  const gateMarket = response.markets.find((m) => m.marketId === 'market-alpha-centauri');
-  assert.ok(gateMarket, 'alpha-centauri market should appear');
-  assert.equal(gateMarket.route.kind, 'gate-route');
-  assert.equal(gateMarket.route.hops, 1);
-  assert.equal(gateMarket.distanceAu, null);
+  context.cacheMarket(createMarket({
+    marketId: 'sol-station-1',
+    solarSystemId: 'sol',
+    locationType: 'station',
+    orbit: {
+      anchorBodyId: 'sol',
+      semiMajorAxisKm: 100,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    }
+  }));
+  context.cacheMarket(createMarket({
+    marketId: 'sol-belt-1',
+    solarSystemId: 'sol',
+    locationType: 'free-floating',
+    orbit: {
+      anchorBodyId: 'sol',
+      semiMajorAxisKm: 200,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    }
+  }));
 
-  const noRouteMarket = response.markets.find((m) => m.marketId === 'market-proxima-centauri');
-  assert.ok(noRouteMarket, 'proxima-centauri market should appear');
-  assert.equal(noRouteMarket.route.kind, 'no-route');
-  assert.equal(noRouteMarket.distanceAu, null);
+  // Cross-system station that must NOT leak into sol-scoped results
+  context.cacheMarket(createMarket({
+    marketId: 'ac-station-1',
+    solarSystemId: 'alpha-centauri',
+    locationType: 'station',
+    orbit: {
+      anchorBodyId: 'alpha-centauri',
+      semiMajorAxisKm: 100,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    }
+  }));
 
-  // Sort order: in-system first, then gate-route, then no-route
-  assert.equal(response.markets[0].solarSystemId, 'sol');
-  assert.equal(response.markets[1].solarSystemId, 'sol');
-  assert.equal(response.markets[2].marketId, 'market-alpha-centauri');
-  assert.equal(response.markets[3].marketId, 'market-proxima-centauri');
+  seedPlayer(context, {
+    playerName: 'SolPilot',
+    sessionKey: 'session-1'
+  });
+
+  const handler = new MarketListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'SolPilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceAu: 1000000,
+    locationTypes: ['station']
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.markets.length, 1, 'only sol station returned');
+  assert.equal(response.markets[0].marketId, 'sol-station-1');
+  assert.equal(response.markets[0].siteType, 'station');
+  assert.equal(response.markets[0].route.kind, 'in-system');
+  assert.ok(typeof response.markets[0].distanceAu === 'number');
 });
 
 test('MarketListByLocationMessageHandler route is in-system when no gate network is configured', async () => {
@@ -409,4 +470,129 @@ test('MarketListByLocationMessageHandler route is in-system when no gate network
   assert.equal(response.success, true);
   assert.equal(response.markets.length, 1);
   assert.deepEqual(response.markets[0].route, { kind: 'in-system' });
+});
+
+test('MarketListByLocationMessageHandler matches solarSystemId case-insensitively', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
+
+  context.cacheMarket(createMarket({
+    marketId: 'market-sol-mixed-case',
+    solarSystemId: 'Sol',
+    locationType: 'station',
+    orbit: {
+      anchorBodyId: 'sol',
+      semiMajorAxisKm: 100,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    }
+  }));
+
+  seedPlayer(context, {
+    playerName: 'CasePilot',
+    sessionKey: 'session-1'
+  });
+
+  const handler = new MarketListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'CasePilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceAu: 1000000,
+    locationTypes: ['station']
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.markets.length, 1);
+  assert.equal(response.markets[0].marketId, 'market-sol-mixed-case');
+  assert.equal(response.markets[0].solarSystemId, 'sol');
+  assert.equal(response.markets[0].route.kind, 'in-system');
+});
+
+test('MarketListByLocationMessageHandler auto-hydrates seeded markets when cache is empty', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
+
+  seedPlayer(context, {
+    playerName: 'HydratePilot',
+    sessionKey: 'session-1'
+  });
+
+  const handler = new MarketListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'HydratePilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 173241287, y: -897243, z: 416968312 },
+    distanceAu: 1000000,
+    limit: 50,
+    locationTypes: ['station']
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.message, 'Local market list retrieved successfully');
+  assert.equal(response.markets.length, 10);
+  assert.ok(response.markets.every((market) => market.solarSystemId === 'sol'));
+  assert.ok(response.markets.every((market) => market.siteType === 'station'));
+  assert.ok(response.markets.every((market) => market.route.kind === 'in-system'));
+});
+
+test('MarketListByLocationMessageHandler infers station type for legacy markets missing type fields', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
+
+  context.cacheMarket({
+    marketId: 'legacy-sol-orbit-1',
+    solarSystemId: 'sol',
+    marketName: 'Legacy Orbital Exchange',
+    siteType: '',
+    locationType: '',
+    siteName: '',
+    locationName: '',
+    orbit: {
+      anchorBodyId: 'sol-earth',
+      semiMajorAxisKm: 4200,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    },
+    inventory: [],
+    ledger: []
+  });
+
+  seedPlayer(context, {
+    playerName: 'LegacyPilot',
+    sessionKey: 'session-1'
+  });
+
+  const handler = new MarketListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'LegacyPilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceAu: 1000000,
+    locationTypes: ['station']
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.markets.length, 1);
+  assert.equal(response.markets[0].marketId, 'legacy-sol-orbit-1');
+  assert.equal(response.markets[0].siteType, 'station');
 });
