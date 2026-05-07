@@ -120,6 +120,23 @@ All responses now use these canonical types:
 - `motion` is **optional**; only included if ship has velocity
 - `launchable` defaults to `true`
 - `damageProfile` is `null` for undamaged ships
+- `driveProfile` is included when the ship has a configured drive; `null` or absent otherwise
+
+### driveProfile Shape (when present)
+```json
+{
+  "id": "standard-drive-mk1",
+  "name": "Standard Drive Mk1",
+  "rangeAu": 10,
+  "cruiseSpeedAuPerHour": 0.5,
+  "fuelCostPerAu": 2.5
+}
+```
+- `id`: Drive profile identifier
+- `name`: Human-readable name
+- `rangeAu`: Maximum range in astronomical units
+- `cruiseSpeedAuPerHour`: Cruise speed in AU per hour
+- `fuelCostPerAu`: Fuel consumed per AU traveled
 
 ---
 
@@ -238,7 +255,12 @@ All responses now use these canonical types:
 - `trajectory` is **optional**; only present if market has orbital data
 - `siteType` (renamed from `locationType`)
 - `siteName` (renamed from `locationName`)
-- `distanceKm` present in location-filtered responses
+- `distanceAu` present in location-filtered responses (astronomical units, rounded to 3 decimal places)
+- `distanceAu` also present in `market-list-response` — computed from the solar system barycenter `{x:0,y:0,z:0}`
+- `route` present in location-filtered responses; describes inter-system reachability:
+  - `{ "kind": "in-system" }` — market is in the same solar system as the query
+  - `{ "kind": "gate-route", "hops": N }` — reachable via N jump-gate hops
+  - `{ "kind": "no-route" }` — market's solar system is unreachable
 
 ---
 

@@ -80,16 +80,16 @@ class MarketListByLocationMessageHandler {
         z: payload.positionKm.z
       }
       : null;
-    const distanceKm = this.toPositiveNumberOrZero(payload?.distanceKm);
+    const distanceAu = this.toPositiveNumberOrZero(payload?.distanceAu);
     const limit = this.toValidLimit(payload?.limit);
     const locationTypes = this.normalizeLocationTypes(payload?.locationTypes);
     const characterId = this.context.toNonEmptyString(payload?.characterId) || null;
     const shipId = this.context.toNonEmptyString(payload?.shipId) || null;
 
-    if (!playerName || !solarSystemId || !positionKm || distanceKm === null) {
+    if (!playerName || !solarSystemId || !positionKm || distanceAu === null) {
       return {
         success: false,
-        message: 'playerName, solarSystemId, positionKm, and distanceKm are required',
+        message: 'playerName, solarSystemId, positionKm, and distanceAu are required',
         playerName,
         solarSystemId,
         markets: [],
@@ -138,7 +138,7 @@ class MarketListByLocationMessageHandler {
     const nearbyMarkets = await this.context.getMarketsByLocationAsync({
       solarSystemId,
       positionKm,
-      distanceKm,
+      distanceAu,
       limit,
       locationTypes
     });
@@ -157,7 +157,7 @@ class MarketListByLocationMessageHandler {
         playerName: player.playerName,
         solarSystemId,
         positionKm,
-        distanceKm,
+        distanceAu,
         locationTypes,
         markets: [],
         isDocked: docking.isDocked,
@@ -174,7 +174,8 @@ class MarketListByLocationMessageHandler {
       isStarterMarket: Boolean(market.isStarterMarket),
       spatial: market.spatial || null,
       trajectory: market.trajectory || null,
-      distanceKm: market.distanceKm,
+      distanceAu: market.distanceAu,
+      route: market.route || null,
       isDocked: Boolean(docking.perMarketDocked.get(market.marketId)),
       priceMultiplier: market.priceMultiplier,
       driftPercentPerHour: market.driftPercentPerHour,
@@ -192,7 +193,7 @@ class MarketListByLocationMessageHandler {
         playerName: player.playerName,
         solarSystemId,
         positionKm,
-        distanceKm,
+        distanceAu,
         locationTypes,
         markets: [],
         isDocked: false,
@@ -206,7 +207,7 @@ class MarketListByLocationMessageHandler {
       playerName: player.playerName,
       solarSystemId,
       positionKm,
-      distanceKm,
+      distanceAu,
       locationTypes,
       isDocked: docking.isDocked,
       dockedMarketId: docking.dockedMarketId,

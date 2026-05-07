@@ -26,6 +26,25 @@ and launch drone attacks against celestial bodies.
 
 Tests use the built-in `node --test` runner (no Jest, no Mocha).
 
+### Running Tests in Non-TTY Terminals (Git Bash / CI)
+
+`node --test` writes TAP output only to a TTY; piping or redirecting stdout produces no output and
+the process exits with code 1. Use the TAP reporter with an explicit destination file instead:
+
+```bash
+node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap.txt
+grep -E "^(ok|not ok|# tests|# pass|# fail)" /tmp/test-tap.txt
+```
+
+Or as a one-liner that prints only the summary:
+
+```bash
+node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap.txt && \
+  grep -E "^(# tests|# pass|# fail)" /tmp/test-tap.txt
+```
+
+Verified result (Node v24.14.1, 212 tests): `# pass 212`, `# fail 0`.
+
 ---
 
 ## Directory Structure

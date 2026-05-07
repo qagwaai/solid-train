@@ -452,3 +452,141 @@ test('ShipListMessageHandler includes ship-contained items beyond inventory refe
   assert.ok(response.ships[0].inventory.some((item) => item.id === 'item-extra'));
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
+
+test('ShipListMessageHandler includes driveProfile when ship has a valid drive profile', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'DrivePilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Navigator',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Fast Runner',
+            model: 'hauler-mk2',
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0
+            },
+            driveProfile: {
+              id: 'standard-drive-mk1',
+              name: 'Standard Drive Mk1',
+              rangeAu: 10,
+              cruiseSpeedAuPerHour: 0.5,
+              fuelCostPerAu: 2.5
+            }
+          }
+        ]
+      }
+    ]
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'DrivePilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1'
+  });
+
+  assert.equal(response.success, true);
+  assert.deepEqual(response.ships[0].driveProfile, {
+    id: 'standard-drive-mk1',
+    name: 'Standard Drive Mk1',
+    rangeAu: 10,
+    cruiseSpeedAuPerHour: 0.5,
+    fuelCostPerAu: 2.5
+  });
+  assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
+});
+
+test('ShipListMessageHandler omits driveProfile key when ship has no drive profile', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'NoDrivePilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Drifter',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'scavenger-pod',
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0
+            }
+          }
+        ]
+      }
+    ]
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'NoDrivePilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal('driveProfile' in response.ships[0], false);
+});
+
+test('ShipListMessageHandler omits driveProfile when profile fields are invalid', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'BadDrivePilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Engineer',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Broken Runner',
+            model: 'hauler-mk2',
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0
+            },
+            driveProfile: {
+              id: 'broken-drive',
+              name: 'Broken Drive',
+              rangeAu: 0,             // invalid: must be > 0
+              cruiseSpeedAuPerHour: 0.5,
+              fuelCostPerAu: 2.5
+            }
+          }
+        ]
+      }
+    ]
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'BadDrivePilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal('driveProfile' in response.ships[0], false);
+});

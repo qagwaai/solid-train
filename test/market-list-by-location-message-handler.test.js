@@ -112,7 +112,7 @@ test('MarketListByLocationMessageHandler returns nearest-first markets with dock
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 90, y: 0, z: 0 },
-    distanceKm: 200,
+    distanceAu: 0.001,
     limit: 2,
     characterId: 'character-1',
     shipId: 'ship-1'
@@ -123,7 +123,8 @@ test('MarketListByLocationMessageHandler returns nearest-first markets with dock
   assert.equal(response.playerName, 'MarketPilot');
   assert.equal(response.markets.length, 2);
   assert.equal(response.markets[0].marketId, nearMarket.marketId);
-  assert.equal(response.markets[0].distanceKm, 10);
+  assert.ok(typeof response.markets[0].distanceAu === 'number');
+  assert.ok(response.markets[0].route !== undefined);
   assert.equal(response.isDocked, true);
   assert.equal(response.dockedMarketId, nearMarket.marketId);
   assert.equal(response.markets[0].isDocked, true);
@@ -168,7 +169,7 @@ test('MarketListByLocationMessageHandler filters by locationTypes and applies no
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 300,
+    distanceAu: 0.001,
     locationTypes: ['station']
   });
 
@@ -181,7 +182,7 @@ test('MarketListByLocationMessageHandler filters by locationTypes and applies no
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 300,
+    distanceAu: 0.001,
     locationTypes: ['surface-settlement']
   });
 
@@ -205,13 +206,13 @@ test('MarketListByLocationMessageHandler validates required fields and locationT
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 1, y: 2 },
-    distanceKm: -1
+    distanceAu: -1
   });
 
   assert.equal(requiredFailure.success, false);
   assert.equal(
     requiredFailure.message,
-    'playerName, solarSystemId, positionKm, and distanceKm are required'
+    'playerName, solarSystemId, positionKm, and distanceAu are required'
   );
 
   const formatFailure = await handler.handle(socket, {
@@ -219,7 +220,7 @@ test('MarketListByLocationMessageHandler validates required fields and locationT
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 1,
+    distanceAu: 0.001,
     locationTypes: 'station'
   });
 
@@ -248,9 +249,127 @@ test('MarketListByLocationMessageHandler emits invalid session before query', as
     sessionKey: 'bad-session',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 50
+    distanceAu: 0.001
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
+});
+
+test('MarketListByLocationMessageHandler route is always in-system because markets are scoped to the request solar system', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
+
+  // Two markets in the request system
+  context.cacheMarket(createMarket({
+    marketId: 'market-near',
+    solarSystemId: 'sol',
+    orbit: {
+      anchorBodyId: 'sol',
+      semiMajorAxisKm: 100,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    }
+  }));
+  context.cacheMarket(createMarket({
+    marketId: 'market-far',
+    solarSystemId: 'sol',
+    orbit: {
+      anchorBodyId: 'sol',
+      semiMajorAxisKm: 200,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    }
+  }));
+
+  // A market in a different system is filtered out before distance/route computation
+  context.cacheMarket(createMarket({
+    marketId: 'market-other-system',
+    solarSystemId: 'proxima-centauri',
+    orbit: {
+      anchorBodyId: 'proxima-centauri',
+      semiMajorAxisKm: 100,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    }
+  }));
+
+  seedPlayer(context, {
+    playerName: 'GatePilot',
+    sessionKey: 'session-1'
+  });
+
+  const handler = new MarketListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'GatePilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceAu: 10
+  });
+
+  assert.equal(response.success, true);
+  // Only the two sol markets are returned; the proxima-centauri market is excluded
+  assert.equal(response.markets.length, 2);
+  assert.ok(response.markets.every((m) => m.solarSystemId === 'sol'));
+  // All returned markets are in-system by definition
+  assert.ok(response.markets.every((m) => m.route.kind === 'in-system'));
+});
+
+test('MarketListByLocationMessageHandler route is in-system when no gate network is configured', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
+
+  context.cacheMarket(createMarket({
+    marketId: 'market-1',
+    solarSystemId: 'sol',
+    orbit: {
+      anchorBodyId: 'sol',
+      semiMajorAxisKm: 100,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    }
+  }));
+
+  seedPlayer(context, {
+    playerName: 'MarketPilot',
+    sessionKey: 'session-1'
+  });
+
+  const handler = new MarketListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'MarketPilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceAu: 0.001
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.markets.length, 1);
+  assert.deepEqual(response.markets[0].route, { kind: 'in-system' });
 });

@@ -40,6 +40,10 @@ including required fields, response payloads, and edge-case behavior.
   - Market position is under `spatial.positionKm`.
   - Market orbit payload is under `trajectory.orbit`.
   - `trajectory.kind` (when present) is `static` or `orbital-elements`.
+  - Market distance from query position is `distanceAu` (astronomical units, not km).
+  - Location-filtered market responses include a `route` object per market (`in-system`, `gate-route`, or `no-route`).
+  - `market-list-response` includes `distanceAu` computed from the solar system barycenter `{x:0,y:0,z:0}`.
+  - Ships optionally include a `driveProfile` sub-document when the ship has a configured drive.
 - Legacy fields are not canonical and are rejected at request boundaries where applicable:
   - `location`, `kinematics`, root `solarSystemId` on celestial body payloads.
 
@@ -73,6 +77,15 @@ including required fields, response payloads, and edge-case behavior.
 - Legacy field rejection:
   - positive: canonical `ship-upsert` and `celestial-body-upsert` payloads succeed
   - negative: legacy `location`/`kinematics`/root celestial `solarSystemId` payload fields are rejected with explicit replacement messages
+- Market distance unit (AU):
+  - positive: `market-list-by-location-response` includes `markets[].distanceAu` (number)
+  - negative: `market-list-by-location-response` does not include `markets[].distanceKm`
+  - positive: `market-list-response` includes `markets[].distanceAu` (number)
+- Market route descriptor:
+  - positive: `market-list-by-location-response` includes `markets[].route` with a `kind` of `in-system`, `gate-route`, or `no-route`
+- Ship drive profile:
+  - positive: `ship-list-response` includes `ships[].driveProfile` when the ship has a configured drive
+  - positive: `ships[].driveProfile` is `null` or absent when the ship has no configured drive
 
 ## Event: `register`
 
@@ -406,6 +419,7 @@ Each character carries a `creditLedger` array and a computed `credits` summary f
           "epoch": "<iso timestamp>"
         }
       },
+      "distanceAu": 2.766,
       "priceMultiplier": 1,
       "driftPercentPerHour": 6,
       "restockIntervalMinutes": 60
@@ -443,6 +457,7 @@ Each character carries a `creditLedger` array and a computed `credits` summary f
 - Invalid session emits `invalid-session` instead of `market-list-response`.
 - Omitting `solarSystemId` returns markets across all solar systems.
 - Market stock is restocked lazily on reads based on `restockIntervalMinutes`.
+- Each market includes `distanceAu` (astronomical units, rounded to 3 decimal places) computed from the solar system barycenter `{x:0,y:0,z:0}` using the market's current `spatial.positionKm`.
 
 ## Event: `market-list-by-location-request`
 
@@ -456,7 +471,7 @@ Each character carries a `creditLedger` array and a computed `credits` summary f
 - `sessionKey` (required and must match the player)
 - `solarSystemId` (required)
 - `positionKm` (required object with numeric `x`, `y`, `z`)
-- `distanceKm` (required number, must be `>= 0`)
+- `distanceAu` (required number in astronomical units, must be `>= 0`; replaces the former `distanceKm` field)
 - `limit` (optional positive integer)
 - `locationTypes` (optional array of non-empty strings; case-insensitive match)
 - `characterId` (optional; required to compute docking state)
@@ -471,7 +486,7 @@ Each character carries a `creditLedger` array and a computed `credits` summary f
   "playerName": "<canonical player name>",
   "solarSystemId": "sol",
   "positionKm": { "x": 0, "y": 0, "z": 0 },
-  "distanceKm": 100000,
+  "distanceAu": 0.001,
   "locationTypes": ["station"],
   "isDocked": false,
   "dockedMarketId": null,
@@ -503,7 +518,8 @@ Each character carries a `creditLedger` array and a computed `credits` summary f
           "epoch": "<iso timestamp>"
         }
       },
-      "distanceKm": 4821.8,
+      "distanceAu": 0.032,
+      "route": { "kind": "in-system" },
       "isDocked": false,
       "priceMultiplier": 1,
       "driftPercentPerHour": 6,
@@ -522,7 +538,7 @@ When no markets are found inside radius, the response remains successful:
   "playerName": "<canonical player name>",
   "solarSystemId": "sol",
   "positionKm": { "x": 0, "y": 0, "z": 0 },
-  "distanceKm": 100,
+  "distanceAu": 0.001,
   "locationTypes": [],
   "isDocked": false,
   "dockedMarketId": null,
@@ -537,7 +553,7 @@ When no markets are found inside radius, the response remains successful:
 ```json
 {
   "success": false,
-  "message": "playerName, solarSystemId, positionKm, and distanceKm are required",
+  "message": "playerName, solarSystemId, positionKm, and distanceAu are required",
   "playerName": "<provided playerName>",
   "solarSystemId": "<provided solarSystemId>",
   "markets": [],
@@ -578,7 +594,12 @@ When no markets are found inside radius, the response remains successful:
 
 - Invalid session emits `invalid-session` instead of `market-list-by-location-response`.
 - Distances are authoritative and server-computed from market spatial state (or trajectory-derived position) and request `positionKm`.
-- Results are sorted nearest-first before applying `limit`.
+- Distance is expressed as `distanceAu` (astronomical units, rounded to 3 decimal places; 1 AU = 149,597,870.7 km).
+- Each market in the response includes a `route` object describing how to reach the market's solar system:
+  - `{ "kind": "in-system" }` — market is in the same solar system as the request.
+  - `{ "kind": "gate-route", "hops": <N> }` — market is reachable via N jump-gate hops.
+  - `{ "kind": "no-route" }` — market's solar system is not reachable from the request solar system.
+- Results are sorted nearest-first (by raw km distance) before applying `limit`.
 - If `characterId` (and optional `shipId`) is supplied, response docking state indicates whether the specified ship is currently docked at one of the returned markets.
 
 ## Event: `market-quote-request`
@@ -1480,6 +1501,13 @@ Prerequisite graph:
             "repairPriority": 1
           }
         ]
+      },
+      "driveProfile": {
+        "id": "standard-drive-mk1",
+        "name": "Standard Drive Mk1",
+        "rangeAu": 10,
+        "cruiseSpeedAuPerHour": 0.5,
+        "fuelCostPerAu": 2.5
       }
     }
   ]
@@ -1529,6 +1557,8 @@ Prerequisite graph:
 - Invalid session emits `invalid-session`.
 - Ships are scoped per character.
 - Returned `ships` list is a defensive copy of server state.
+- `driveProfile` is included on each ship when the ship has a configured drive; it is `null` or absent otherwise.
+- All `driveProfile` numeric fields (`rangeAu`, `cruiseSpeedAuPerHour`, `fuelCostPerAu`) must be positive and finite; invalid profiles are silently dropped (field omitted or `null`).
 
 ## Event: `ship-upsert-request`
 

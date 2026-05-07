@@ -304,6 +304,35 @@ const observabilityStateSchema = new mongoose.Schema({
 
 
 /**
+ * Drive profile schema for a ship's propulsion profile
+ */
+const driveProfileSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  rangeAu: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  cruiseSpeedAuPerHour: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  fuelCostPerAu: {
+    type: Number,
+    required: true,
+    min: 0
+  }
+}, { _id: false });
+
+/**
  * Ship schema for a character's ships
  */
 const shipSchema = new mongoose.Schema({
@@ -354,6 +383,10 @@ const shipSchema = new mongoose.Schema({
   },
   damageProfile: {
     type: damageProfileSchema,
+    default: null
+  },
+  driveProfile: {
+    type: driveProfileSchema,
     default: null
   }
 }, { _id: false });
@@ -908,6 +941,46 @@ const Item = mongoose.model('Item', itemSchema);
 const Market = mongoose.model('Market', marketSchema);
 const GameStateDocument = mongoose.model('GameStateDocument', gameStateDocumentSchema);
 
+/**
+ * Jump gate schema for inter-system routing
+ */
+const jumpGateSchema = new mongoose.Schema({
+  gateId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  sourceSystemId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  destSystemId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  traversalCostAu: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  traversalTimeHours: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  }
+}, {
+  collection: 'jump_gates'
+});
+
+const JumpGate = mongoose.model('JumpGate', jumpGateSchema);
+
 module.exports = {
   CelestialBody,
   celestialBodySchema,
@@ -916,6 +989,8 @@ module.exports = {
   itemSchema,
   itemContainerSchema,
   inventoryItemReferenceSchema,
+  JumpGate,
+  jumpGateSchema,
   Market,
   marketSchema,
   marketInventoryEntrySchema,
@@ -927,6 +1002,7 @@ module.exports = {
   playerSchema,
   characterSchema,
   creditLedgerEntrySchema,
+  driveProfileSchema,
   shipSchema,
   shipKinematicsSchema,
   missionSchema

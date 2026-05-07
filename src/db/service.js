@@ -1,6 +1,6 @@
 'use strict';
 
-const { CelestialBody, GameStateDocument, Item, Market, Player } = require('./models');
+const { CelestialBody, GameStateDocument, Item, JumpGate, Market, Player } = require('./models');
 const {
   SOLAR_SYSTEM_MARKET_SEED_STATE_KEY
 } = require('../model/solar-system-market-seed');
@@ -965,6 +965,30 @@ class DatabaseService {
     } catch (error) {
       this.log(`[db-service] Error clearing players: ${error.message}`);
       throw error;
+    }
+  }
+
+  /**
+   * Retrieve all active jump gates
+   * @returns {Promise<Array>} Array of jump gate documents
+   */
+  async getJumpGatesAsync() {
+    if (this.useInMemoryFallback) {
+      return [];
+    }
+
+    try {
+      const gates = await JumpGate.find({ isActive: true }).lean();
+      return gates.map((gate) => ({
+        gateId: gate.gateId,
+        sourceSystemId: gate.sourceSystemId,
+        destSystemId: gate.destSystemId,
+        traversalCostAu: gate.traversalCostAu,
+        traversalTimeHours: gate.traversalTimeHours
+      }));
+    } catch (error) {
+      this.log(`[db-service] Error loading jump gates: ${error.message}`);
+      return [];
     }
   }
 }

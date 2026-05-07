@@ -41,6 +41,7 @@ test('MarketListMessageHandler returns markets for a solar system', async () => 
     assert.ok(response.markets.every((market) => market.spatial?.solarSystemId === 'sol'));
     assert.ok(response.markets.every((market) => market.trajectory?.orbit));
   assert.ok(response.markets.some((market) => market.isStarterMarket));
+  assert.ok(response.markets.every((market) => typeof market.distanceAu === 'number'));
   assert.equal(socket.events[0].eventName, MARKET_LIST_RESPONSE_EVENT);
 });
 

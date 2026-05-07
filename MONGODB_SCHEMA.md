@@ -11,13 +11,16 @@ The data model is document-oriented with three active collections:
 - Embedded subdocuments:
   - Character (embedded in Player.characters)
   - Ship (embedded in Character.ships)
+  - DriveProfile (embedded in Ship.driveProfile)
   - MissionProgress (embedded in Character.missions)
 - Collection: items
 - Root model: Item
 - Collection: cb
 - Root model: CelestialBody
+- Collection: jump_gates
+- Root model: JumpGate
 
-Player-owned character and ship state remains embedded in a Player document, while globally queryable inventory items and scanned celestial bodies are stored independently in `items` and `cb`.
+Player-owned character and ship state remains embedded in a Player document, while globally queryable inventory items and scanned celestial bodies are stored independently in `items` and `cb`. Jump gate network topology is stored in `jump_gates`.
 
 ## Entity Relationship Diagram
 
@@ -30,8 +33,11 @@ erDiagram
   SHIP ||--o{ INVENTORY_ITEM_REF : contains
   INVENTORY_ITEM_REF }o--|| ITEM : references
   SHIP ||--o| SHIP_KINEMATICS : embeds
+  SHIP ||--o| DRIVE_PROFILE : embeds
   ITEM ||--o| ITEM_CONTAINER : contained-by
   ITEM ||--o| SHIP_KINEMATICS : moves-with
+  JUMP_GATE }o--|| SOLAR_SYSTEM : source
+  JUMP_GATE }o--|| SOLAR_SYSTEM : dest
 
   PLAYER {
     ObjectId _id
@@ -72,6 +78,7 @@ erDiagram
     string createdAt
     array inventory
     object kinematics
+    object driveProfile
   }
 
   INVENTORY_ITEM_REF {
@@ -228,6 +235,9 @@ Embedded under Player.characters[].ships.
 - kinematics: ShipKinematics | null (optional)
   - Contains position, velocity, and spatial reference information
   - Default: null
+- driveProfile: DriveProfile | null (optional)
+  - Contains drive/engine configuration for the ship
+  - Default: null
 
 ### ShipLocation Subdocument Fields
 
@@ -259,12 +269,72 @@ Notes:
 - Ship identifiers use the id field, not MongoDB ObjectId.
 - Kinematics data is optional and can be null when not applicable.
 
+## DriveProfile Subdocument Schema
+
+Embedded under Player.characters[].ships[].driveProfile.
+
+### Fields
+
+- id: String (required)
+  - Unique drive profile identifier.
+- name: String (required)
+  - Human-readable drive name.
+- rangeAu: Number (required)
+  - Maximum range in astronomical units. Must be > 0.
+- cruiseSpeedAuPerHour: Number (required)
+  - Cruise speed in AU per hour. Must be > 0.
+- fuelCostPerAu: Number (required)
+  - Fuel consumed per AU traveled. Must be > 0.
+
+Notes:
+- _id is disabled for DriveProfile subdocuments (_id: false).
+- All numeric fields must be positive finite numbers; invalid profiles are dropped at the normalization layer.
+
 ### InventoryItemReference Subdocument Fields
 
 - itemId: String (required)
   - References Item.id.
 - itemType: String (required)
   - Current supported value: `expendable-dart-drone`.
+
+## JumpGate Root Schema
+
+Defined in src/db/models.js and stored in the `jump_gates` collection.
+
+### Fields
+
+- _id: ObjectId
+  - MongoDB-generated primary key.
+- gateId: String (required)
+  - Unique application-level identifier for this gate.
+  - Unique index.
+- sourceSystemId: String (required)
+  - Solar system identifier of the gate's origin end.
+  - Indexed.
+- destSystemId: String (required)
+  - Solar system identifier of the gate's destination end.
+  - Indexed.
+- traversalCostAu: Number (required)
+  - Fuel/cost in AU equivalent to traverse this gate.
+  - Must be >= 0.
+- traversalTimeHours: Number (required)
+  - Time in hours to traverse this gate.
+  - Must be >= 0.
+- isActive: Boolean (required)
+  - Whether the gate is currently usable.
+  - Default: true.
+
+### Indexes and Constraints
+
+- Unique index on gateId.
+- Non-unique index on sourceSystemId.
+- Non-unique index on destSystemId.
+
+### Notes
+
+- Gates are directional records; a bidirectional connection requires two documents (one per direction).
+- The server caches the full gate network in memory on first load; the cache lives for the lifetime of the `MessageHandlerContext` instance.
+- Only gates with `isActive: true` are included in BFS routing.
 
 ## Item Root Schema
 
@@ -394,10 +464,12 @@ Planned upgrade path for true geospatial indexing:
 - One Character to many Ships: 1:N (embedded)
 - One Character to many MissionProgress entries: 1:N (embedded)
 - One Ship to many InventoryItemReference entries: 1:N (embedded references)
+- One Ship to zero or one DriveProfile: 1:0-1 (embedded optional)
 - One InventoryItemReference to one Item: N:1 (referenced)
 - One Character to many CelestialBody documents: 1:N (referenced by createdByCharacterId)
+- JumpGate has no ownership relationship; it is a standalone network-topology document keyed by gateId
 
-Player, Character, Ship, and MissionProgress remain ownership relationships contained in a single Player document. Item and CelestialBody are separate root documents referenced by ids.
+Player, Character, Ship, and MissionProgress remain ownership relationships contained in a single Player document. Item and CelestialBody are separate root documents referenced by ids. JumpGate documents define the inter-system travel graph and are independent of player ownership.
 
 ## Access Patterns
 

@@ -54,20 +54,28 @@ class MarketListMessageHandler {
     }
 
     const markets = await this.context.getMarketsAsync({ solarSystemId });
+    const BARYCENTER = { x: 0, y: 0, z: 0 };
 
-    const projectedMarkets = markets.map((market) => ({
-      marketId: market.marketId,
-      solarSystemId: market.solarSystemId,
-      marketName: market.marketName,
-      siteType: market.siteType,
-      siteName: market.siteName,
-      isStarterMarket: Boolean(market.isStarterMarket),
-      spatial: market.spatial || null,
-      trajectory: market.trajectory || null,
-      priceMultiplier: market.priceMultiplier,
-      driftPercentPerHour: market.driftPercentPerHour,
-      restockIntervalMinutes: market.restockIntervalMinutes
-    }));
+    const projectedMarkets = markets.map((market) => {
+      const positionKm = market.spatial?.positionKm || BARYCENTER;
+      const distanceAu = parseFloat(
+        (this.context.calculateDistanceKm(BARYCENTER, positionKm) / 149_597_870.7).toFixed(3)
+      );
+      return {
+        marketId: market.marketId,
+        solarSystemId: market.solarSystemId,
+        marketName: market.marketName,
+        siteType: market.siteType,
+        siteName: market.siteName,
+        isStarterMarket: Boolean(market.isStarterMarket),
+        spatial: market.spatial || null,
+        trajectory: market.trajectory || null,
+        distanceAu,
+        priceMultiplier: market.priceMultiplier,
+        driftPercentPerHour: market.driftPercentPerHour,
+        restockIntervalMinutes: market.restockIntervalMinutes
+      };
+    });
 
     const invalidMarket = projectedMarkets.find((market) => {
       return !this.isValidSpatial(market.spatial) || !this.isValidTrajectory(market.trajectory);

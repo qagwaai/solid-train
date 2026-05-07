@@ -10,6 +10,7 @@ const {
 const SUPPORTED_LOCALES = new Set(['en', 'it']);
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
 const MARKET_DOCKING_DISTANCE_KM = 50;
+const ASTRONOMICAL_UNIT_KM = 149_597_870.7;
 
 function buildMarketKey(marketId, solarSystemId) {
   return `${solarSystemId}:${marketId}`;
@@ -56,6 +57,7 @@ class MessageHandlerContext {
     });
     this.getCurrentTimestamp =
       options.getCurrentTimestamp || (() => new Date().toISOString());
+    this._gateGraph = null;
 
     if (this.marketsByKey.size === 0) {
       this.seedDefaultMarkets();
@@ -348,6 +350,76 @@ class MessageHandlerContext {
     const dz = toPositionKm.z - fromPositionKm.z;
 
     return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+  }
+
+  calculateDistanceAu(fromPositionKm, toPositionKm) {
+    return this.calculateDistanceKm(fromPositionKm, toPositionKm) / ASTRONOMICAL_UNIT_KM;
+  }
+
+  async loadGateNetworkAsync() {
+    if (this._gateGraph !== null) {
+      return this._gateGraph;
+    }
+
+    const gates = this.databaseService
+      ? await this.databaseService.getJumpGatesAsync()
+      : [];
+
+    const graph = new Map();
+    for (const gate of gates) {
+      if (!graph.has(gate.sourceSystemId)) {
+        graph.set(gate.sourceSystemId, []);
+      }
+      graph.get(gate.sourceSystemId).push(gate);
+    }
+
+    this._gateGraph = graph;
+    return graph;
+  }
+
+  async getHopPathBetweenSystems(sourceSystemId, destSystemId) {
+    if (sourceSystemId === destSystemId) {
+      return { hops: 0, path: [] };
+    }
+
+    const graph = await this.loadGateNetworkAsync();
+    const visited = new Set([sourceSystemId]);
+    const queue = [{ systemId: sourceSystemId, hops: 0, path: [] }];
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+      const outgoing = graph.get(current.systemId) || [];
+
+      for (const gate of outgoing) {
+        if (gate.destSystemId === destSystemId) {
+          return { hops: current.hops + 1, path: [...current.path, gate.gateId] };
+        }
+
+        if (!visited.has(gate.destSystemId)) {
+          visited.add(gate.destSystemId);
+          queue.push({
+            systemId: gate.destSystemId,
+            hops: current.hops + 1,
+            path: [...current.path, gate.gateId]
+          });
+        }
+      }
+    }
+
+    return null;
+  }
+
+  async getRouteForMarketAsync(requestSolarSystemId, marketSolarSystemId) {
+    if (marketSolarSystemId === requestSolarSystemId) {
+      return { kind: 'in-system' };
+    }
+
+    const hopPath = await this.getHopPathBetweenSystems(requestSolarSystemId, marketSolarSystemId);
+    if (hopPath) {
+      return { kind: 'gate-route', hops: hopPath.hops };
+    }
+
+    return { kind: 'no-route' };
   }
 
   toNonEmptyString(value) {
@@ -898,7 +970,7 @@ class MessageHandlerContext {
   async getMarketsByLocationAsync(query = {}) {
     const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
     const positionKm = query?.positionKm;
-    const distanceKm = query?.distanceKm;
+    const distanceAu = query?.distanceAu;
     const asOf = this.toNonEmptyString(query?.asOf) || this.getCurrentTimestamp();
     const limit = Number.isInteger(query?.limit) && query.limit > 0 ? query.limit : null;
     const locationTypes = Array.isArray(query?.locationTypes)
@@ -907,10 +979,11 @@ class MessageHandlerContext {
         .filter((value) => Boolean(value))
       : [];
 
-    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
+    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceAu) || distanceAu < 0) {
       return [];
     }
 
+    const maxDistanceKm = distanceAu * ASTRONOMICAL_UNIT_KM;
     const markets = await this.getMarketsAsync({ solarSystemId, asOf });
     const spatial = [];
 
@@ -923,19 +996,25 @@ class MessageHandlerContext {
       const marketPositionKm = await this.resolveMarketPositionKmAsync(market, asOf);
       const computedDistanceKm = this.calculateDistanceKm(positionKm, marketPositionKm);
 
-      if (computedDistanceKm > distanceKm) {
+      if (computedDistanceKm > maxDistanceKm) {
         continue;
       }
+
+      const computedDistanceAu = parseFloat((computedDistanceKm / ASTRONOMICAL_UNIT_KM).toFixed(3));
+      const route = await this.getRouteForMarketAsync(solarSystemId, market.solarSystemId);
 
       spatial.push({
         ...market,
         positionKm: marketPositionKm,
-        distanceKm: computedDistanceKm
+        _distanceKmRaw: computedDistanceKm,
+        distanceAu: computedDistanceAu,
+        route
       });
     }
 
-    const sorted = spatial.sort((left, right) => left.distanceKm - right.distanceKm);
-    return limit ? sorted.slice(0, limit) : sorted;
+    const sorted = spatial.sort((left, right) => left._distanceKmRaw - right._distanceKmRaw);
+    const result = limit ? sorted.slice(0, limit) : sorted;
+    return result.map(({ _distanceKmRaw: _ignored, ...rest }) => rest);
   }
 
   async getMarketQuoteAsync(request = {}) {
@@ -1488,8 +1567,33 @@ class MessageHandlerContext {
       spatial,
       ...(motion ? { motion } : {}),
       launchable: source.launchable != null ? Boolean(source.launchable) : true,
-      damageProfile: source.damageProfile != null ? source.damageProfile : null
+      damageProfile: source.damageProfile != null ? source.damageProfile : null,
+      ...(this._normalizeDriveProfile(source.driveProfile) !== null
+        ? { driveProfile: this._normalizeDriveProfile(source.driveProfile) }
+        : {})
     };
+  }
+
+  _normalizeDriveProfile(profile) {
+    if (!profile || typeof profile !== 'object') {
+      return null;
+    }
+
+    const id = this.toNonEmptyString(profile.id);
+    const name = this.toNonEmptyString(profile.name);
+    const rangeAu = profile.rangeAu;
+    const cruiseSpeedAuPerHour = profile.cruiseSpeedAuPerHour;
+    const fuelCostPerAu = profile.fuelCostPerAu;
+
+    if (!id || !name
+      || typeof rangeAu !== 'number' || !Number.isFinite(rangeAu) || rangeAu <= 0
+      || typeof cruiseSpeedAuPerHour !== 'number' || !Number.isFinite(cruiseSpeedAuPerHour) || cruiseSpeedAuPerHour <= 0
+      || typeof fuelCostPerAu !== 'number' || !Number.isFinite(fuelCostPerAu) || fuelCostPerAu <= 0) {
+      this.log('[normalizeShip] driveProfile failed validation; omitting field');
+      return null;
+    }
+
+    return { id, name, rangeAu, cruiseSpeedAuPerHour, fuelCostPerAu };
   }
 
   normalizeInventoryItemReference(reference) {

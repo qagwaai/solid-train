@@ -464,7 +464,7 @@ test('market list by location returns response for valid session', async () => {
     characterId: addCharacter.characterId,
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 1000000000,
+    distanceAu: 10,
     limit: 3
   });
   const response = await responsePromise;
@@ -472,7 +472,7 @@ test('market list by location returns response for valid session', async () => {
   assert.equal(response.success, true);
   assert.ok(Array.isArray(response.markets));
   assert.ok(response.markets.length >= 1);
-  assert.equal(typeof response.markets[0].distanceKm, 'number');
+  assert.equal(typeof response.markets[0].distanceAu, 'number');
   assert.equal(typeof response.isDocked, 'boolean');
 
   await closeClient(client);
