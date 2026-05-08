@@ -99,23 +99,15 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 
 ## P1 — Helper hygiene
 
-### TQ-08 Use canonical helpers from `test-support/` *(partial)*
-- **Why**: `createShip` / `createCelestialBody` / `createMarket` are exported
-  but never imported (see [TEST_QUALITY_REVIEW.md](TEST_QUALITY_REVIEW.md) §4.1).
-  Three test files re-define their own `createCelestialBody` with subtly
-  different defaults; one defines a local `createMarket`.
-- **Progress** (2026-05-07): Local `createCelestialBody` in
-  [test/celestial-body-upsert-message-handler.test.js](test/celestial-body-upsert-message-handler.test.js)
-  removed and replaced with shared import (done as part of TQ-02).
-- **Remaining**:
-  1. Delete the local `createCelestialBody` defs in
-     [test/celestial-body-list-message-handler.test.js](test/celestial-body-list-message-handler.test.js#L21),
-     [test/server.test.js](test/server.test.js#L309).
-  2. Delete the local `createMarket` in
-     [test/market-list-by-location-message-handler.test.js](test/market-list-by-location-message-handler.test.js#L21).
-  3. Import from `test-support/message-handler-test-helpers.js` and adjust
-     overrides as needed.
-  4. Bumps helper-file coverage from 42.57% to a meaningful number.
+### ~~TQ-08~~ ✅ Use canonical helpers from `test-support/`
+- **Completed**: 2026-05-07
+- **Removed local factories**:
+  - `createCelestialBody` from `test/celestial-body-list-message-handler.test.js`
+  - `createCelestialBody` from `test/server.test.js`
+  - `createMarket` from `test/market-list-by-location-message-handler.test.js`
+- **Replaced with shared imports** from `test-support/message-handler-test-helpers.js`.
+- **Fixture updates**: migrated market fixtures to canonical helper-compatible `siteType` + `trajectory.orbit` overrides where required.
+- **Validation**: full suite green after migration (`281` pass, `0` fail).
 
 ### TQ-09 Make `createTestContext` ID generator robust past 4 calls
 - **Where**: [test-support/message-handler-test-helpers.js:7-12](test-support/message-handler-test-helpers.js#L7-L12)

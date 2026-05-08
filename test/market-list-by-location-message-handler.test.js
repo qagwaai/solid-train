@@ -13,39 +13,11 @@ const {
   INVALID_SESSION_MESSAGE
 } = require('../src/model/session');
 const {
+  createMarket,
   createMockSocket,
   createTestContext,
   seedPlayer
 } = require('../test-support/message-handler-test-helpers');
-
-function createMarket(overrides = {}) {
-  return {
-    marketId: 'market-1',
-    solarSystemId: 'sol',
-    marketName: 'Market One',
-    locationType: 'station',
-    locationName: 'One',
-    isStarterMarket: false,
-    orbit: {
-      anchorBodyId: 'sol',
-      semiMajorAxisKm: 100,
-      eccentricity: 0,
-      inclinationDeg: 0,
-      longitudeOfAscendingNodeDeg: 0,
-      argumentOfPeriapsisDeg: 0,
-      meanAnomalyAtEpochDeg: 0,
-      orbitalPeriodSec: 86400,
-      epoch: '2026-04-17T00:00:00.000Z'
-    },
-    priceMultiplier: 1,
-    driftPercentPerHour: 0,
-    restockIntervalMinutes: 60,
-    lastRestockAt: '2026-04-17T00:00:00.000Z',
-    inventory: [],
-    ledger: [],
-    ...overrides
-  };
-}
 
 test('MarketListByLocationMessageHandler returns nearest-first markets with docking status', async () => {
   const context = createTestContext();
@@ -54,8 +26,8 @@ test('MarketListByLocationMessageHandler returns nearest-first markets with dock
   const nearMarket = context.cacheMarket(createMarket({
     marketId: 'market-near',
     marketName: 'Near Market',
-    locationType: 'station',
-    orbit: {
+    siteType: 'station',
+    trajectory: { orbit: {
       anchorBodyId: 'sol',
       semiMajorAxisKm: 100,
       eccentricity: 0,
@@ -65,14 +37,14 @@ test('MarketListByLocationMessageHandler returns nearest-first markets with dock
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
 
   context.cacheMarket(createMarket({
     marketId: 'market-mid',
     marketName: 'Mid Market',
-    locationType: 'free-floating',
-    orbit: {
+    siteType: 'free-floating',
+    trajectory: { orbit: {
       anchorBodyId: 'sol',
       semiMajorAxisKm: 200,
       eccentricity: 0,
@@ -82,7 +54,7 @@ test('MarketListByLocationMessageHandler returns nearest-first markets with dock
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
 
   seedPlayer(context, {
@@ -138,12 +110,23 @@ test('MarketListByLocationMessageHandler filters by locationTypes and applies no
 
   context.cacheMarket(createMarket({
     marketId: 'market-station',
-    locationType: 'station'
+    siteType: 'station',
+    trajectory: { orbit: {
+      anchorBodyId: 'sol',
+      semiMajorAxisKm: 100,
+      eccentricity: 0,
+      inclinationDeg: 0,
+      longitudeOfAscendingNodeDeg: 0,
+      argumentOfPeriapsisDeg: 0,
+      meanAnomalyAtEpochDeg: 0,
+      orbitalPeriodSec: 86400,
+      epoch: '2026-04-17T00:00:00.000Z'
+    } }
   }));
   context.cacheMarket(createMarket({
     marketId: 'market-floating',
-    locationType: 'free-floating',
-    orbit: {
+    siteType: 'free-floating',
+    trajectory: { orbit: {
       anchorBodyId: 'sol',
       semiMajorAxisKm: 200,
       eccentricity: 0,
@@ -153,7 +136,7 @@ test('MarketListByLocationMessageHandler filters by locationTypes and applies no
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
 
   seedPlayer(context, {
@@ -264,7 +247,7 @@ test('MarketListByLocationMessageHandler only returns markets in the requested s
   context.cacheMarket(createMarket({
     marketId: 'market-near',
     solarSystemId: 'sol',
-    orbit: {
+    trajectory: { orbit: {
       anchorBodyId: 'sol',
       semiMajorAxisKm: 100,
       eccentricity: 0,
@@ -274,12 +257,12 @@ test('MarketListByLocationMessageHandler only returns markets in the requested s
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
   context.cacheMarket(createMarket({
     marketId: 'market-far',
     solarSystemId: 'sol',
-    orbit: {
+    trajectory: { orbit: {
       anchorBodyId: 'sol',
       semiMajorAxisKm: 200,
       eccentricity: 0,
@@ -289,14 +272,14 @@ test('MarketListByLocationMessageHandler only returns markets in the requested s
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
 
   // Markets in other solar systems — must never appear in a sol-scoped query
   context.cacheMarket(createMarket({
     marketId: 'market-alpha-centauri',
     solarSystemId: 'alpha-centauri',
-    orbit: {
+    trajectory: { orbit: {
       anchorBodyId: 'alpha-centauri',
       semiMajorAxisKm: 100,
       eccentricity: 0,
@@ -306,12 +289,12 @@ test('MarketListByLocationMessageHandler only returns markets in the requested s
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
   context.cacheMarket(createMarket({
     marketId: 'market-barnards-star',
     solarSystemId: 'barnards-star',
-    orbit: {
+    trajectory: { orbit: {
       anchorBodyId: 'barnards-star',
       semiMajorAxisKm: 100,
       eccentricity: 0,
@@ -321,7 +304,7 @@ test('MarketListByLocationMessageHandler only returns markets in the requested s
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
 
   seedPlayer(context, {
@@ -358,8 +341,8 @@ test('MarketListByLocationMessageHandler locationTypes station filter excludes f
   context.cacheMarket(createMarket({
     marketId: 'sol-station-1',
     solarSystemId: 'sol',
-    locationType: 'station',
-    orbit: {
+    siteType: 'station',
+    trajectory: { orbit: {
       anchorBodyId: 'sol',
       semiMajorAxisKm: 100,
       eccentricity: 0,
@@ -369,13 +352,13 @@ test('MarketListByLocationMessageHandler locationTypes station filter excludes f
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
   context.cacheMarket(createMarket({
     marketId: 'sol-belt-1',
     solarSystemId: 'sol',
-    locationType: 'free-floating',
-    orbit: {
+    siteType: 'free-floating',
+    trajectory: { orbit: {
       anchorBodyId: 'sol',
       semiMajorAxisKm: 200,
       eccentricity: 0,
@@ -385,15 +368,15 @@ test('MarketListByLocationMessageHandler locationTypes station filter excludes f
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
 
   // Cross-system station that must NOT leak into sol-scoped results
   context.cacheMarket(createMarket({
     marketId: 'ac-station-1',
     solarSystemId: 'alpha-centauri',
-    locationType: 'station',
-    orbit: {
+    siteType: 'station',
+    trajectory: { orbit: {
       anchorBodyId: 'alpha-centauri',
       semiMajorAxisKm: 100,
       eccentricity: 0,
@@ -403,7 +386,7 @@ test('MarketListByLocationMessageHandler locationTypes station filter excludes f
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
 
   seedPlayer(context, {
@@ -438,7 +421,7 @@ test('MarketListByLocationMessageHandler route is in-system when no gate network
   context.cacheMarket(createMarket({
     marketId: 'market-1',
     solarSystemId: 'sol',
-    orbit: {
+    trajectory: { orbit: {
       anchorBodyId: 'sol',
       semiMajorAxisKm: 100,
       eccentricity: 0,
@@ -448,7 +431,7 @@ test('MarketListByLocationMessageHandler route is in-system when no gate network
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
 
   seedPlayer(context, {
@@ -479,8 +462,8 @@ test('MarketListByLocationMessageHandler matches solarSystemId case-insensitivel
   context.cacheMarket(createMarket({
     marketId: 'market-sol-mixed-case',
     solarSystemId: 'Sol',
-    locationType: 'station',
-    orbit: {
+    siteType: 'station',
+    trajectory: { orbit: {
       anchorBodyId: 'sol',
       semiMajorAxisKm: 100,
       eccentricity: 0,
@@ -490,7 +473,7 @@ test('MarketListByLocationMessageHandler matches solarSystemId case-insensitivel
       meanAnomalyAtEpochDeg: 0,
       orbitalPeriodSec: 86400,
       epoch: '2026-04-17T00:00:00.000Z'
-    }
+    } }
   }));
 
   seedPlayer(context, {

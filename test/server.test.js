@@ -12,6 +12,9 @@ const {
   registerAndLogin
 } = require('../test-support/socket-test-helpers');
 const {
+  createCelestialBody
+} = require('../test-support/message-handler-test-helpers');
+const {
   REGISTER_EVENT,
   REGISTER_RESPONSE_EVENT
 } = require('../src/model/register');
@@ -236,49 +239,6 @@ test('mission upsert alias request emits alias response event', async () => {
     server.close();
   }
 });
-
-
-
-function createCelestialBody(overrides = {}) {
-  return {
-    id: 'cb-1',
-    catalogId: 'CAT-001',
-    sourceScanId: 'scan-1',
-    createdByCharacterId: 'character-1',
-    missionId: null,
-    missionInstanceId: null,
-    createdAt: '2026-04-17T00:00:00.000Z',
-    updatedAt: '2026-04-17T01:00:00.000Z',
-    spatial: {
-      solarSystemId: 'andromeda',
-      frame: 'barycentric',
-      positionKm: { x: 100, y: 200, z: 300 },
-      epochMs: 1713360000000
-    },
-    motion: {
-      velocityKmPerSec: { x: 1, y: 2, z: 3 },
-      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 }
-    },
-    physical: {
-      estimatedMassKg: 42000000000,
-      estimatedDiameterM: 320
-    },
-    observability: {
-      visibility: 'visible',
-      scanState: 'scanned'
-    },
-    composition: {
-      rarity: 'Rare',
-      material: 'Nickel-Iron',
-      textureColor: '#8df7b2'
-    },
-    state: 'active',
-    destroyedAt: null,
-    destroyedReason: null,
-    ...overrides
-  };
-}
-
 test('register returns success and playerId for a unique playerName', async () => {
   const { server, io } = createServer({ port: '3001' });
   const port = await listen(server);
@@ -1560,6 +1520,7 @@ test('celestial body upsert stores a scanned celestial body and returns the wrap
     playerName: 'ScannerPilot',
     sessionKey: loginResponse.sessionKey,
     celestialBody: createCelestialBody({
+      id: 'cb-1',
       createdByCharacterId: characterAddResponse.characterId
     })
   });
