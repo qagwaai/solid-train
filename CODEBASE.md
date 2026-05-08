@@ -171,7 +171,7 @@ All events use Socket.IO. Request/response pairs listed below.
 | `ship-list-request` | `ship-list-response` | Yes |
 | `ship-upsert-request` | `ship-upsert-response` | Yes |
 | `game-join` | `game-join-response` | Yes |
-| `add-mission-request` | `add-mission-response` | Yes |
+| `add-mission-request` (alias: `mission-upsert-request`) | `add-mission-response` (alias: `mission-upsert-response`) | Yes |
 | `list-missions-request` | `list-missions-response` | Yes |
 | `celestial-body-upsert-request` | `celestial-body-upsert-response` | Yes |
 | `celestial-body-list-request` | `celestial-body-list-response` | Yes |

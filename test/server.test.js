@@ -43,9 +43,9 @@ const {
   GAME_JOIN_RESPONSE_EVENT
 } = require('../src/model/game-join');
 const {
-  MISSION_ADD_REQUEST_EVENT,
-  MISSION_ADD_RESPONSE_EVENT
-} = require('../src/model/mission-add');
+  MISSION_UPSERT_REQUEST_EVENT: MISSION_ADD_REQUEST_EVENT,
+  MISSION_UPSERT_RESPONSE_EVENT: MISSION_ADD_RESPONSE_EVENT
+} = require('../src/model/mission-upsert');
 const {
   MISSION_UPSERT_ALIAS_REQUEST_EVENT,
   MISSION_UPSERT_ALIAS_RESPONSE_EVENT

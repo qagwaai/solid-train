@@ -35,17 +35,15 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 
 ## P1 — Highest test-quality leverage
 
-### TQ-03 Resolve `MissionAddMessageHandler` orphan
-- **Why**: [src/handlers/mission-add-message-handler.js](src/handlers/mission-add-message-handler.js)
-  is implemented but never registered in [src/server.js](src/server.js) and
-  has no real test. README + CODEBASE.md still advertise the
-  `add-mission-request` event.
-- **Decide**: ship it or delete it.
-  - If shipping: register in `server.js`, write a real
-    `MissionAddMessageHandler` test, rename the existing
-    `mission-add-message-handler.test.js` to its actual subject.
-  - If deleting: drop the handler, the `mission-add` model file,
-    `MISSION_ADD_REQUEST_EVENT` imports in `server.test.js`, and update docs.
+### ~~TQ-03~~ ✅ Resolve `MissionAddMessageHandler` orphan
+- **Completed**: 2026-05-07 — deleted
+- **Deleted**:
+  - `src/handlers/mission-add-message-handler.js`
+  - `src/model/mission-add.js`
+  - `test/mission-add-message-handler.test.js` (was actually testing `MissionUpsertMessageHandler`; fully covered by `test/mission-upsert-message-handler.test.js`)
+- `test/server.test.js` import updated: `MISSION_ADD_REQUEST_EVENT` / `MISSION_ADD_RESPONSE_EVENT` now destructured from `mission-upsert` model constants
+- README + CODEBASE.md updated to reflect `mission-upsert-request` as canonical event name; `add-mission-request` noted as alias
+- Event `add-mission-request` itself is unchanged — still handled by `MissionUpsertMessageHandler`
 
 ### TQ-04 Cover money-flow branches (market buy / sell / quote)
 - **Why**: 36.84% / 38.89% / 47.37% branch coverage on the most consequential
@@ -154,10 +152,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 
 ### TQ-14 Rename historically-misnamed test files
 - **Why**: [TEST_QUALITY_REVIEW.md](TEST_QUALITY_REVIEW.md) §7.2.
-- **Deliverable**:
-  - Rename or remove `test/mission-add-message-handler.test.js` (currently
-    tests `MissionUpsertMessageHandler`; subsumed by
-    `mission-upsert-message-handler.test.js` once TQ-03 is decided).
+- **Remaining**:
   - Rename `test/km-to-au-migration.test.js` →
     `test/context-distance-and-routing.test.js` (or split).
   - Move the gate-routing tests out of `test/credit-ledger.test.js`.
