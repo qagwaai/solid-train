@@ -227,12 +227,15 @@ See `MESSAGE_CONTRACT.md` for full request/response schemas and edge cases.
 - Items live in `itemsById` (and `items` collection in Mongo).
 - States: `contained`, `deployed`, `destroyed`.
 - Containers: `{ containerType: "ship"|"market", containerId }`.
-- Deployed items have `kinematics: { position, velocity, reference }` in `km` / `km/s`.
+- Deployed items use canonical `spatial` and optional `motion`.
+- `spatial` shape: `{ solarSystemId, frame: "barycentric", positionKm, epochMs }`.
+- `motion` shape (optional): `{ velocityKmPerSec }`.
+- Contained items are represented with `spatial: null`.
 
 ### Celestial Bodies
 
 - Stored in `celestialBodiesById` (and `cb` collection in Mongo).
-- Have `location.positionKm` and optional `kinematics`.
+- Use canonical `spatial` and optional `motion`, plus optional `physical` and `observability`.
 - Used as targets for `launch-item-request` (expendable-dart-drone destroys them, yields raw materials).
 
 ### Missions

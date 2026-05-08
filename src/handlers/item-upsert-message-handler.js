@@ -26,45 +26,6 @@ class ItemUpsertMessageHandler {
       && this.isFiniteNumber(value.z);
   }
 
-  normalizeKinematics(kinematics) {
-    if (!kinematics || !this.isTriple(kinematics.position) || !this.isTriple(kinematics.velocity)) {
-      return null;
-    }
-
-    const reference = kinematics.reference;
-    if (
-      !reference
-      || !this.context.toNonEmptyString(reference.solarSystemId)
-      || !['barycentric', 'body-centered'].includes(
-        this.context.toNonEmptyString(reference.referenceKind)
-      )
-      || !this.isFiniteNumber(reference.epochMs)
-    ) {
-      return null;
-    }
-
-    return {
-      position: {
-        x: kinematics.position.x,
-        y: kinematics.position.y,
-        z: kinematics.position.z
-      },
-      velocity: {
-        x: kinematics.velocity.x,
-        y: kinematics.velocity.y,
-        z: kinematics.velocity.z
-      },
-      reference: {
-        solarSystemId: this.context.toNonEmptyString(reference.solarSystemId),
-        referenceKind: this.context.toNonEmptyString(reference.referenceKind),
-        referenceBodyId: this.context.toNonEmptyString(reference.referenceBodyId) || null,
-        distanceUnit: 'km',
-        velocityUnit: 'km/s',
-        epochMs: reference.epochMs
-      }
-    };
-  }
-
   normalizeContainer(container) {
     if (!container) {
       return null;
@@ -78,6 +39,50 @@ class ItemUpsertMessageHandler {
     }
 
     return { containerType, containerId };
+  }
+
+  normalizeSpatial(spatial) {
+    if (!spatial || typeof spatial !== 'object') {
+      return null;
+    }
+
+    const solarSystemId = this.context.toNonEmptyString(spatial.solarSystemId);
+    const frame = this.context.toNonEmptyString(spatial.frame);
+    const positionKm = this.isTriple(spatial.positionKm)
+      ? { x: spatial.positionKm.x, y: spatial.positionKm.y, z: spatial.positionKm.z }
+      : null;
+    const epochMs = this.isFiniteNumber(spatial.epochMs) ? spatial.epochMs : null;
+
+    if (!solarSystemId || frame !== 'barycentric' || !positionKm || epochMs === null) {
+      return null;
+    }
+
+    return {
+      solarSystemId,
+      frame: 'barycentric',
+      positionKm,
+      epochMs
+    };
+  }
+
+  normalizeMotion(motion) {
+    if (!motion || typeof motion !== 'object') {
+      return null;
+    }
+
+    const velocityKmPerSec = this.isTriple(motion.velocityKmPerSec)
+      ? {
+        x: motion.velocityKmPerSec.x,
+        y: motion.velocityKmPerSec.y,
+        z: motion.velocityKmPerSec.z
+      }
+      : null;
+
+    if (!velocityKmPerSec) {
+      return null;
+    }
+
+    return { velocityKmPerSec };
   }
 
   buildParsed(payload) {
@@ -122,13 +127,43 @@ class ItemUpsertMessageHandler {
       };
     }
 
-    const hasKinematics = Boolean(itemPayload.kinematics);
-    const kinematics = hasKinematics ? this.normalizeKinematics(itemPayload.kinematics) : null;
-    if (hasKinematics && !kinematics) {
+    if ('kinematics' in itemPayload) {
       return {
-        error: 'item.kinematics payload is invalid',
+        error: 'item.kinematics is no longer accepted; use canonical item.spatial (and optional item.motion) instead',
         playerName: player.playerName
       };
+    }
+
+    const hasSpatial = 'spatial' in itemPayload;
+    let spatial;
+    if (hasSpatial) {
+      if (itemPayload.spatial === null) {
+        spatial = null;
+      } else {
+        spatial = this.normalizeSpatial(itemPayload.spatial);
+        if (spatial === null) {
+          return {
+            error: 'item.spatial must include solarSystemId, frame:\'barycentric\', positionKm, and epochMs',
+            playerName: player.playerName
+          };
+        }
+      }
+    }
+
+    const hasMotion = 'motion' in itemPayload;
+    let motion;
+    if (hasMotion) {
+      if (itemPayload.motion === null) {
+        motion = null;
+      } else {
+        motion = this.normalizeMotion(itemPayload.motion);
+        if (motion === null) {
+          return {
+            error: 'item.motion must include velocityKmPerSec when provided',
+            playerName: player.playerName
+          };
+        }
+      }
     }
 
     const hasContainer = 'container' in itemPayload;
@@ -156,8 +191,10 @@ class ItemUpsertMessageHandler {
       displayName,
       state,
       damageStatus,
-      hasKinematics,
-      kinematics,
+      hasSpatial,
+      spatial,
+      hasMotion,
+      motion,
       hasContainer,
       container,
       owningPlayerId: this.context.toNonEmptyString(itemPayload.owningPlayerId),
@@ -196,6 +233,12 @@ class ItemUpsertMessageHandler {
         const existing = parsed.existingItem;
 
         const resolvedState = parsed.state || existing?.state || 'contained';
+        const resolvedSpatial = parsed.hasSpatial
+          ? parsed.spatial
+          : (existing?.spatial ?? null);
+        const resolvedMotion = parsed.hasMotion
+          ? parsed.motion
+          : (existing?.motion ?? null);
         const itemData = {
           id: itemId,
           itemType: parsed.itemType || existing?.itemType || '',
@@ -205,9 +248,8 @@ class ItemUpsertMessageHandler {
           container: parsed.hasContainer
             ? parsed.container
             : (existing?.container ?? null),
-          kinematics: parsed.hasKinematics
-            ? parsed.kinematics
-            : (existing?.kinematics ?? null),
+          spatial: resolvedSpatial,
+          ...(resolvedMotion ? { motion: resolvedMotion } : {}),
           owningPlayerId: parsed.owningPlayerId || existing?.owningPlayerId || '',
           owningCharacterId: parsed.owningCharacterId || existing?.owningCharacterId || '',
           destroyedAt: parsed.destroyedAt

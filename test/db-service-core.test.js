@@ -239,17 +239,17 @@ test('DatabaseService findItemsNearPosition filters candidates by exact spherica
         {
           id: 'item-near',
           itemType: 'iron',
-          kinematics: {
-            position: { x: 6, y: 8, z: 0 },
-            reference: { solarSystemId: 'sol' }
+          spatial: {
+            positionKm: { x: 6, y: 8, z: 0 },
+            solarSystemId: 'sol'
           }
         },
         {
           id: 'item-far',
           itemType: 'iron',
-          kinematics: {
-            position: { x: 40, y: 0, z: 0 },
-            reference: { solarSystemId: 'sol' }
+          spatial: {
+            positionKm: { x: 40, y: 0, z: 0 },
+            solarSystemId: 'sol'
           }
         }
       ]
@@ -269,7 +269,7 @@ test('DatabaseService findItemsNearPosition filters candidates by exact spherica
     assert.equal(results.length, 1);
     assert.equal(results[0].item.id, 'item-near');
     assert.equal(results[0].distanceKm, 10);
-    assert.equal(capturedQuery['kinematics.reference.solarSystemId'], 'sol');
+    assert.equal(capturedQuery['spatial.solarSystemId'], 'sol');
     assert.equal(capturedQuery.itemType, 'iron');
   } finally {
     Item.find = originalItemFind;

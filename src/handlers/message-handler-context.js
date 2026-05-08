@@ -885,9 +885,7 @@ class MessageHandlerContext {
       const fallbackAnchorPosition = FALLBACK_ANCHOR_POSITION_KM[orbit.anchorBodyId] || { x: 0, y: 0, z: 0 };
       const anchorPosition = this.isTriple(anchorBody?.spatial?.positionKm)
         ? anchorBody.spatial.positionKm
-        : (this.isTriple(anchorBody?.location?.positionKm)
-          ? anchorBody.location.positionKm
-          : fallbackAnchorPosition);
+        : fallbackAnchorPosition;
 
       return {
         x: anchorPosition.x + relative.x,
@@ -907,15 +905,6 @@ class MessageHandlerContext {
   getShipPositionKm(ship) {
     if (this.isTriple(ship?.spatial?.positionKm)) {
       return ship.spatial.positionKm;
-    }
-
-    // Fallback for legacy data (should be removed after migration)
-    if (this.isTriple(ship?.kinematics?.position)) {
-      return ship.kinematics.position;
-    }
-
-    if (this.isTriple(ship?.location?.positionKm)) {
-      return ship.location.positionKm;
     }
 
     return null;
@@ -1340,7 +1329,7 @@ class MessageHandlerContext {
       },
       owningPlayerId: this.toNonEmptyString(player.playerId),
       owningCharacterId: character.id,
-      kinematics: null,
+      spatial: null,
       createdAt: now,
       updatedAt: now,
       destroyedAt: null,
@@ -1642,20 +1631,62 @@ class MessageHandlerContext {
     };
   }
 
+  /**
+   * Internal converter for pre-canonical item documents that still carry
+   * `kinematics: { position, velocity, reference: { solarSystemId, epochMs, ... } }`.
+   *
+   * Maps to canonical `spatial` + optional `motion`. Returns `{ spatial, motion }`
+   * with either field potentially null when input is unusable.
+   *
+   * Body-centered references are dropped: items are barycentric-only post-cutover.
+   * TEMPORARY — scheduled for removal alongside the legacy `kinematics` schema field
+   * (per MESSAGE_CONTRACT.md sunset 2026-06-30).
+   */
+  _convertLegacyItemKinematics(kinematics) {
+    if (!kinematics || typeof kinematics !== 'object') {
+      return { spatial: null, motion: null };
+    }
+
+    const reference = kinematics.reference || {};
+    const solarSystemId = this.toNonEmptyString(reference.solarSystemId);
+    const positionKm = this.normalizeTriple(kinematics.position);
+    const epochMs = this.isFiniteNumber(reference.epochMs) ? reference.epochMs : null;
+
+    const spatial = (solarSystemId && positionKm && epochMs !== null)
+      ? {
+        solarSystemId,
+        frame: 'barycentric',
+        positionKm,
+        epochMs
+      }
+      : null;
+
+    const velocityKmPerSec = this.normalizeTriple(kinematics.velocity);
+    const motion = velocityKmPerSec ? { velocityKmPerSec } : null;
+
+    return { spatial, motion };
+  }
+
   normalizeItem(item) {
     const source = this.toPlainObject(item) || {};
-    const normalizedKinematics = source.kinematics ? {
-      position: source.kinematics.position ? { ...source.kinematics.position } : null,
-      velocity: source.kinematics.velocity ? { ...source.kinematics.velocity } : null,
-      reference: source.kinematics.reference ? { ...source.kinematics.reference } : null
-    } : null;
     const normalizedContainer = source.container ? {
       containerType: this.toNonEmptyString(source.container.containerType),
       containerId: this.toNonEmptyString(source.container.containerId)
     } : null;
 
+    let spatial = this.normalizeSpatialState(source.spatial);
+    let motion = this.normalizeMotionState(source.motion);
+
+    if (!spatial && source.kinematics) {
+      const converted = this._convertLegacyItemKinematics(source.kinematics);
+      spatial = spatial || converted.spatial;
+      motion = motion || converted.motion;
+    }
+
+    const { kinematics: _legacyKinematics, ...rest } = source;
+
     return {
-      ...source,
+      ...rest,
       id: this.toNonEmptyString(source.id),
       itemType: this.toNonEmptyString(source.itemType),
       displayName: this.toNonEmptyString(source.displayName),
@@ -1664,7 +1695,8 @@ class MessageHandlerContext {
       container: normalizedContainer,
       owningPlayerId: this.toNonEmptyString(source.owningPlayerId),
       owningCharacterId: this.toNonEmptyString(source.owningCharacterId),
-      kinematics: normalizedKinematics,
+      spatial,
+      ...(motion ? { motion } : {}),
       createdAt: this.toNonEmptyString(source.createdAt),
       updatedAt: this.toNonEmptyString(source.updatedAt),
       destroyedAt: this.toNonEmptyString(source.destroyedAt) || null,
@@ -2719,7 +2751,7 @@ class MessageHandlerContext {
     const cacheResults = Array.from(this.itemsById.values())
       .map((item) => this.normalizeItem(item))
       .filter((item) => {
-        if (item.kinematics?.reference?.solarSystemId !== solarSystemId) {
+        if (item.spatial?.solarSystemId !== solarSystemId) {
           return false;
         }
 
@@ -2730,7 +2762,7 @@ class MessageHandlerContext {
         return true;
       })
       .map((item) => {
-        const itemPositionKm = item?.kinematics?.position;
+        const itemPositionKm = item?.spatial?.positionKm;
         if (!this.isTriple(itemPositionKm)) {
           return null;
         }

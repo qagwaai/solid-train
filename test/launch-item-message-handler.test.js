@@ -44,7 +44,7 @@ function createSeedItem(overrides = {}) {
     container: { containerType: 'ship', containerId: 'ship-1' },
     owningPlayerId: 'player-seeded',
     owningCharacterId: 'character-1',
-    kinematics: null,
+    spatial: null,
     createdAt: '2026-04-17T00:00:00.000Z',
     updatedAt: '2026-04-17T00:00:00.000Z',
     destroyedAt: null,

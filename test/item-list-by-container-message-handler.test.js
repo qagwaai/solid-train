@@ -27,7 +27,7 @@ function createItem(overrides = {}) {
     state: 'contained',
     damageStatus: 'intact',
     container: { containerType: 'ship', containerId: 'ship-1' },
-    kinematics: null,
+    spatial: null,
     owningPlayerId: 'player-1',
     owningCharacterId: 'character-1',
     destroyedAt: null,

@@ -67,8 +67,11 @@ test('MarketListByLocationMessageHandler returns nearest-first markets with dock
         ships: [
           {
             id: 'ship-1',
-            kinematics: {
-              position: { x: 100, y: 0, z: 0 }
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 100, y: 0, z: 0 },
+              epochMs: 1713360000000
             }
           }
         ]

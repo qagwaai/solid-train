@@ -769,7 +769,7 @@ test('ship list returns ships for a character', async () => {
       },
       owningPlayerId: loginResponse.playerId,
       owningCharacterId: addResponse.characterId,
-      kinematics: null,
+      spatial: null,
       createdAt: shipListResponse.ships[0].inventory[0].createdAt,
       updatedAt: shipListResponse.ships[0].inventory[0].updatedAt,
       destroyedAt: null,

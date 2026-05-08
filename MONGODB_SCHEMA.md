@@ -35,7 +35,8 @@ erDiagram
   SHIP ||--o| SHIP_KINEMATICS : embeds
   SHIP ||--o| DRIVE_PROFILE : embeds
   ITEM ||--o| ITEM_CONTAINER : contained-by
-  ITEM ||--o| SHIP_KINEMATICS : moves-with
+  ITEM ||--o| SPATIAL_STATE : located-at
+  ITEM ||--o| MOTION_STATE : moves-with
   JUMP_GATE }o--|| SOLAR_SYSTEM : source
   JUMP_GATE }o--|| SOLAR_SYSTEM : dest
 
@@ -92,6 +93,18 @@ erDiagram
     object reference
   }
 
+  SPATIAL_STATE {
+    string solarSystemId
+    string frame
+    object positionKm
+    number epochMs
+  }
+
+  MOTION_STATE {
+    object velocityKmPerSec
+    object angularVelocityRadPerSec
+  }
+
   ITEM {
     ObjectId _id
     string id
@@ -106,7 +119,8 @@ erDiagram
     string destroyedAt
     string destroyedReason
     object container
-    object kinematics
+    object spatial
+    object motion
   }
 
   ITEM_CONTAINER {

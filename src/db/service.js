@@ -766,7 +766,7 @@ class DatabaseService {
 
   /**
    * Find items in a spherical radius around a position.
-   * Items are located via kinematics.position and kinematics.reference.solarSystemId.
+   * Items are located via spatial.positionKm and spatial.solarSystemId.
    * Uses a bounding-cube query first, then exact spherical distance filtering.
    * @param {Object} query
    * @param {string} query.solarSystemId
@@ -789,16 +789,16 @@ class DatabaseService {
 
     try {
       const boundsQuery = {
-        'kinematics.reference.solarSystemId': solarSystemId,
-        'kinematics.position.x': {
+        'spatial.solarSystemId': solarSystemId,
+        'spatial.positionKm.x': {
           $gte: positionKm.x - distanceKm,
           $lte: positionKm.x + distanceKm
         },
-        'kinematics.position.y': {
+        'spatial.positionKm.y': {
           $gte: positionKm.y - distanceKm,
           $lte: positionKm.y + distanceKm
         },
-        'kinematics.position.z': {
+        'spatial.positionKm.z': {
           $gte: positionKm.z - distanceKm,
           $lte: positionKm.z + distanceKm
         }
@@ -812,7 +812,7 @@ class DatabaseService {
 
       return candidates
         .map((item) => {
-          const itemPositionKm = item?.kinematics?.position;
+          const itemPositionKm = item?.spatial?.positionKm;
           if (!this.isTriple(itemPositionKm)) {
             return null;
           }

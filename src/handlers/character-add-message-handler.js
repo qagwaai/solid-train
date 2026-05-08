@@ -84,7 +84,7 @@ class CharacterAddMessageHandler {
             },
             owningPlayerId: this.context.toNonEmptyString(this.context.getPlayer(response.playerName)?.playerId),
             owningCharacterId: response.characterId,
-            kinematics: null,
+            spatial: null,
             createdAt,
             updatedAt: createdAt,
             destroyedAt: null,

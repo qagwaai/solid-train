@@ -93,6 +93,44 @@ const itemContainerSchema = new mongoose.Schema({
 }, { _id: false });
 
 /**
+ * Motion state schema for velocity and angular velocity
+ */
+const motionStateSchema = new mongoose.Schema({
+  velocityKmPerSec: {
+    type: tripleSchema,
+    required: true
+  },
+  angularVelocityRadPerSec: {
+    type: tripleSchema,
+    default: null
+  }
+}, { _id: false });
+
+/**
+ * Spatial state schema (required on all in-world entities)
+ */
+const spatialStateSchema = new mongoose.Schema({
+  solarSystemId: {
+    type: String,
+    required: true
+  },
+  frame: {
+    type: String,
+    enum: ['barycentric'],
+    default: 'barycentric',
+    required: true
+  },
+  positionKm: {
+    type: tripleSchema,
+    required: true
+  },
+  epochMs: {
+    type: Number,
+    required: true
+  }
+}, { _id: false });
+
+/**
  * Global item schema for inventory and deployed space items
  */
 const itemSchema = new mongoose.Schema({
@@ -138,6 +176,17 @@ const itemSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  spatial: {
+    type: spatialStateSchema,
+    default: null
+  },
+  motion: {
+    type: motionStateSchema,
+    default: null
+  },
+  // Legacy field retained for read-side conversion of pre-canonical documents.
+  // Canonical writes set spatial/motion and leave kinematics null.
+  // Scheduled for removal: 2026-06-30 (per MESSAGE_CONTRACT.md).
   kinematics: {
     type: shipKinematicsSchema,
     default: null
@@ -176,6 +225,13 @@ const itemSchema = new mongoose.Schema({
 itemSchema.index({
   'container.containerType': 1,
   'container.containerId': 1
+});
+
+itemSchema.index({
+  'spatial.solarSystemId': 1,
+  'spatial.positionKm.x': 1,
+  'spatial.positionKm.y': 1,
+  'spatial.positionKm.z': 1
 });
 
 /**
@@ -230,44 +286,6 @@ const damageProfileSchema = new mongoose.Schema({
   systems: {
     type: [damageSystemSchema],
     default: []
-  }
-}, { _id: false });
-
-/**
- * Motion state schema for velocity and angular velocity
- */
-const motionStateSchema = new mongoose.Schema({
-  velocityKmPerSec: {
-    type: tripleSchema,
-    required: true
-  },
-  angularVelocityRadPerSec: {
-    type: tripleSchema,
-    default: null
-  }
-}, { _id: false });
-
-/**
- * Spatial state schema (required on all in-world entities)
- */
-const spatialStateSchema = new mongoose.Schema({
-  solarSystemId: {
-    type: String,
-    required: true
-  },
-  frame: {
-    type: String,
-    enum: ['barycentric'],
-    default: 'barycentric',
-    required: true
-  },
-  positionKm: {
-    type: tripleSchema,
-    required: true
-  },
-  epochMs: {
-    type: Number,
-    required: true
   }
 }, { _id: false });
 

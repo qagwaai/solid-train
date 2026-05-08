@@ -18,18 +18,19 @@ function createItem(overrides = {}) {
     container: overrides.container || { containerType: 'ship', containerId: 'ship-1' },
     owningPlayerId: overrides.owningPlayerId || 'player-1',
     owningCharacterId: overrides.owningCharacterId || 'character-1',
-    kinematics: overrides.kinematics || {
-      position: { x: 100, y: 200, z: 300 },
-      velocity: { x: 0, y: 0, z: 0 },
-      reference: {
-        solarSystemId: 'sol',
-        referenceKind: 'barycentric',
-        referenceBodyId: null,
-        distanceUnit: 'km',
-        velocityUnit: 'km/s',
-        epochMs: 1713360000000
-      }
+    spatial: overrides.spatial || {
+      solarSystemId: 'sol',
+      frame: 'barycentric',
+      positionKm: { x: 100, y: 200, z: 300 },
+      epochMs: 1713360000000
     },
+    ...(overrides.motion !== undefined
+      ? { motion: overrides.motion }
+      : {
+          motion: {
+            velocityKmPerSec: { x: 0, y: 0, z: 0 }
+          }
+        }),
     createdAt: overrides.createdAt || '2026-05-07T00:00:00.000Z',
     updatedAt: overrides.updatedAt || '2026-05-07T00:00:00.000Z',
     destroyedAt: overrides.destroyedAt || null,
@@ -62,17 +63,14 @@ test('Items Mongo round-trip: add, read, query, update, and delete', async () =>
       id: 'item-2',
       itemType: 'copper',
       container: { containerType: 'ship', containerId: 'ship-2' },
-      kinematics: {
-        position: { x: 1000, y: 1000, z: 1000 },
-        velocity: { x: 0, y: 0, z: 0 },
-        reference: {
-          solarSystemId: 'sol',
-          referenceKind: 'barycentric',
-          referenceBodyId: null,
-          distanceUnit: 'km',
-          velocityUnit: 'km/s',
-          epochMs: 1713360000000
-        }
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 1000, y: 1000, z: 1000 },
+        epochMs: 1713360000000
+      },
+      motion: {
+        velocityKmPerSec: { x: 0, y: 0, z: 0 }
       }
     })
   ]);

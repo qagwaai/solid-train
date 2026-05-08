@@ -43,6 +43,10 @@
         "/^cd /c/Development/Projects/Github/solid-train && node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap\\.txt 2>&1; grep -E \"\\^\\(# tests\\|# pass\\|# fail\\|not ok\\)\" /tmp/test-tap\\.txt$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /c/Development/Projects/Github/solid-train && node --test$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     },
     "specstory.cloudSync.enabled": "never"

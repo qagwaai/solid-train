@@ -46,6 +46,7 @@ including required fields, response payloads, and edge-case behavior.
   - Ships optionally include a `driveProfile` sub-document when the ship has a configured drive.
 - Legacy fields are not canonical and are rejected at request boundaries where applicable:
   - `location`, `kinematics`, root `solarSystemId` on celestial body payloads.
+  - `item.kinematics` on item payloads (use `item.spatial` and optional `item.motion`).
 
 ## Transition Plan
 
@@ -77,6 +78,12 @@ including required fields, response payloads, and edge-case behavior.
 - Legacy field rejection:
   - positive: canonical `ship-upsert` and `celestial-body-upsert` payloads succeed
   - negative: legacy `location`/`kinematics`/root celestial `solarSystemId` payload fields are rejected with explicit replacement messages
+- Item canonical spatial contract:
+  - positive: `item-upsert-request` accepts canonical `item.spatial` (+ optional `item.motion`)
+  - negative: `item-upsert-request` rejects legacy `item.kinematics` with explicit replacement guidance
+- Item location query contract:
+  - positive: `item-list-by-location-response` computes distance from `items[].spatial.positionKm`
+  - negative: contained items with `spatial: null` are excluded from radius matches
 - Market distance unit (AU):
   - positive: `market-list-by-location-response` includes `markets[].distanceAu` (number)
   - negative: `market-list-by-location-response` does not include `markets[].distanceKm`
@@ -1508,7 +1515,7 @@ Prerequisite graph:
           },
           "owningPlayerId": "<player id>",
           "owningCharacterId": "<character id>",
-          "kinematics": null,
+          "spatial": null,
           "launchable": true
         }
       ],
@@ -1653,7 +1660,7 @@ Prerequisite graph:
         },
         "owningPlayerId": "<player id>",
         "owningCharacterId": "<character id>",
-        "kinematics": null,
+        "spatial": null,
         "launchable": true
       }
     ],
@@ -2164,7 +2171,13 @@ The following examples define canonical entity payloads used by list/detail/upse
   - `container` (optional; set to `null` to clear; otherwise object with `containerType` and `containerId`)
     - `containerType` (required with container; one of `ship`, `market`)
     - `containerId` (required with container; string id of the containing ship or market)
-  - `kinematics` (optional; set to update deployed position; see kinematics shape below)
+  - `spatial` (optional; set to `null` for contained items; required in deployed updates)
+    - `solarSystemId` (required with spatial)
+    - `frame` (required with spatial; must be `barycentric`)
+    - `positionKm` (required with spatial; object with finite `x`, `y`, `z`)
+    - `epochMs` (required with spatial; finite number)
+  - `motion` (optional; set to `null` to clear)
+    - `velocityKmPerSec` (required when motion is provided; object with finite `x`, `y`, `z`)
   - `owningPlayerId` (optional string)
   - `owningCharacterId` (optional string)
   - `destroyedAt` (optional ISO timestamp; auto-populated when `state` transitions to `destroyed` if not provided)
@@ -2173,20 +2186,22 @@ The following examples define canonical entity payloads used by list/detail/upse
   - `discoveredByCharacterId` (optional string)
   - `launchable` (optional boolean; whether the item can be launched; defaults to `true` when not provided)
 
-#### Kinematics Shape (item)
+#### Spatial Shape (item)
 
 ```json
 {
-  "position": { "x": 100.0, "y": 200.0, "z": 300.0 },
-  "velocity": { "x": 1.0, "y": 0.5, "z": 0.0 },
-  "reference": {
-    "solarSystemId": "sol",
-    "referenceKind": "barycentric",
-    "referenceBodyId": null,
-    "distanceUnit": "km",
-    "velocityUnit": "km/s",
-    "epochMs": 1713607200000
-  }
+  "solarSystemId": "sol",
+  "frame": "barycentric",
+  "positionKm": { "x": 100.0, "y": 200.0, "z": 300.0 },
+  "epochMs": 1713607200000
+}
+```
+
+#### Motion Shape (item, optional)
+
+```json
+{
+  "velocityKmPerSec": { "x": 1.0, "y": 0.5, "z": 0.0 }
 }
 ```
 
@@ -2207,7 +2222,7 @@ The following examples define canonical entity payloads used by list/detail/upse
       "containerType": "ship",
       "containerId": "<ship id>"
     },
-    "kinematics": null,
+    "spatial": null,
     "owningPlayerId": "<player id>",
     "owningCharacterId": "<character id>",
     "destroyedAt": null,
@@ -2257,12 +2272,32 @@ Same shape as create; `message` is `"Item updated successfully"`.
 }
 ```
 
-- Invalid kinematics:
+- Legacy kinematics is rejected:
 
 ```json
 {
   "success": false,
-  "message": "item.kinematics payload is invalid",
+  "message": "item.kinematics is no longer accepted; use canonical item.spatial (and optional item.motion) instead",
+  "playerName": "<canonical player name>"
+}
+```
+
+- Invalid `spatial` payload:
+
+```json
+{
+  "success": false,
+  "message": "item.spatial must include solarSystemId, frame:'barycentric', positionKm, and epochMs",
+  "playerName": "<canonical player name>"
+}
+```
+
+- Invalid `motion` payload:
+
+```json
+{
+  "success": false,
+  "message": "item.motion must include velocityKmPerSec when provided",
   "playerName": "<canonical player name>"
 }
 ```
@@ -2320,7 +2355,7 @@ Same shape as create; `message` is `"Item updated successfully"`.
         "containerType": "ship",
         "containerId": "<ship id>"
       },
-      "kinematics": null,
+      "spatial": null,
       "owningPlayerId": "<player id>",
       "owningCharacterId": "<character id>",
       "destroyedAt": null,
@@ -2415,17 +2450,14 @@ Same shape as create; `message` is `"Item updated successfully"`.
       "state": "deployed",
       "damageStatus": "intact",
       "container": null,
-      "kinematics": {
-        "position": { "x": 3, "y": 4, "z": 0 },
-        "velocity": { "x": 0, "y": 0, "z": 0 },
-        "reference": {
-          "solarSystemId": "sol",
-          "referenceKind": "barycentric",
-          "referenceBodyId": null,
-          "distanceUnit": "km",
-          "velocityUnit": "km/s",
-          "epochMs": 1713607200000
-        }
+      "spatial": {
+        "solarSystemId": "sol",
+        "frame": "barycentric",
+        "positionKm": { "x": 3, "y": 4, "z": 0 },
+        "epochMs": 1713607200000
+      },
+      "motion": {
+        "velocityKmPerSec": { "x": 0, "y": 0, "z": 0 }
       },
       "owningPlayerId": "<player id>",
       "owningCharacterId": "<character id>",
@@ -2499,13 +2531,13 @@ Same shape as create; `message` is `"Item updated successfully"`.
 
 - Invalid session emits `invalid-session`.
 - Match inclusion is spherical and inclusive of the boundary (`distance <= distanceKm`).
-- Distance is calculated in 3D Euclidean kilometers from `positionKm` to `item.kinematics.position`.
-- Items without `kinematics` (e.g. contained items with null kinematics) are excluded.
+- Distance is calculated in 3D Euclidean kilometers from `positionKm` to `item.spatial.positionKm`.
+- Items without canonical `spatial` (for example contained items with `spatial: null`) are excluded.
 - All item states (`contained`, `deployed`, `destroyed`) are included; callers filter by state if needed.
 - `itemType` filter is applied before distance filtering.
 - Results are sorted nearest-first by computed `distanceKm`.
 - `limit` is applied after filtering and sorting.
-- Solar system scoping is via `kinematics.reference.solarSystemId`.
+- Solar system scoping is via `spatial.solarSystemId`.
 
 ## Event: `launch-item-request`
 

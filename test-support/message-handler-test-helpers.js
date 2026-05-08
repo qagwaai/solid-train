@@ -133,6 +133,62 @@ function createCelestialBody(overrides = {}) {
   };
 }
 
+function createContainedItem(overrides = {}) {
+  return {
+    id: overrides.id || 'item-1',
+    itemType: overrides.itemType || 'expendable-dart-drone',
+    displayName: overrides.displayName || 'Expendable Dart Drone',
+    state: overrides.state || 'contained',
+    damageStatus: overrides.damageStatus || 'intact',
+    container: overrides.container !== undefined
+      ? overrides.container
+      : { containerType: 'ship', containerId: 'ship-1' },
+    owningPlayerId: overrides.owningPlayerId || 'player-1',
+    owningCharacterId: overrides.owningCharacterId || 'character-1',
+    spatial: overrides.spatial !== undefined ? overrides.spatial : null,
+    ...(overrides.motion !== undefined ? { motion: overrides.motion } : {}),
+    createdAt: overrides.createdAt || '2026-04-17T00:00:00.000Z',
+    updatedAt: overrides.updatedAt || '2026-04-17T00:00:00.000Z',
+    destroyedAt: overrides.destroyedAt || null,
+    destroyedReason: overrides.destroyedReason || null,
+    launchable: overrides.launchable !== undefined ? overrides.launchable : true,
+    quantity: overrides.quantity || 1
+  };
+}
+
+function createDeployedItem(overrides = {}) {
+  const positionKm = overrides.positionKm
+    || (overrides.spatial && overrides.spatial.positionKm)
+    || { x: 1000, y: 0, z: 0 };
+  const spatial = overrides.spatial === null
+    ? null
+    : createSpatialState({
+      ...(overrides.spatial || {}),
+      positionKm
+    });
+
+  return {
+    id: overrides.id || 'deployed-item-1',
+    itemType: overrides.itemType || 'expendable-dart-drone',
+    displayName: overrides.displayName || 'Expendable Dart Drone',
+    state: overrides.state || 'deployed',
+    damageStatus: overrides.damageStatus || 'intact',
+    container: overrides.container !== undefined ? overrides.container : null,
+    owningPlayerId: overrides.owningPlayerId || 'player-1',
+    owningCharacterId: overrides.owningCharacterId || 'character-1',
+    spatial,
+    ...(overrides.motion !== undefined
+      ? { motion: createMotionState(overrides.motion) }
+      : {}),
+    createdAt: overrides.createdAt || '2026-04-17T00:00:00.000Z',
+    updatedAt: overrides.updatedAt || '2026-04-17T00:00:00.000Z',
+    destroyedAt: overrides.destroyedAt || null,
+    destroyedReason: overrides.destroyedReason || null,
+    launchable: overrides.launchable !== undefined ? overrides.launchable : true,
+    quantity: overrides.quantity || 1
+  };
+}
+
 function createMarket(overrides = {}) {
   return {
     marketId: overrides.marketId || 'market-1',
@@ -237,6 +293,8 @@ function seedTraderCharacter(context, options = {}) {
 
 module.exports = {
   createCelestialBody,
+  createContainedItem,
+  createDeployedItem,
   createMarket,
   createMockSocket,
   createMotionState,

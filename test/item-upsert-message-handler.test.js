@@ -41,7 +41,7 @@ function createExistingItem(overrides = {}) {
     state: 'contained',
     damageStatus: 'intact',
     container: { containerType: 'ship', containerId: 'ship-1' },
-    kinematics: null,
+    spatial: null,
     owningPlayerId: 'player-1',
     owningCharacterId: 'character-1',
     destroyedAt: null,
@@ -118,14 +118,14 @@ test('ItemUpsertMessageHandler deploys an item (clears container, sets kinematic
       id: 'item-1',
       state: 'deployed',
       container: null,
-      kinematics: {
-        position: { x: 100, y: 200, z: 300 },
-        velocity: { x: 1, y: 2, z: 3 },
-        reference: {
-          solarSystemId: 'sol',
-          referenceKind: 'barycentric',
-          epochMs: 1000000
-        }
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 100, y: 200, z: 300 },
+        epochMs: 1000000
+      },
+      motion: {
+        velocityKmPerSec: { x: 1, y: 2, z: 3 }
       }
     }
   });
@@ -133,8 +133,9 @@ test('ItemUpsertMessageHandler deploys an item (clears container, sets kinematic
   assert.equal(response.success, true);
   assert.equal(response.item.state, 'deployed');
   assert.equal(response.item.container, null);
-  assert.ok(response.item.kinematics, 'kinematics should be set');
-  assert.equal(response.item.kinematics.reference.solarSystemId, 'sol');
+  assert.ok(response.item.spatial, 'spatial should be set');
+  assert.equal(response.item.spatial.solarSystemId, 'sol');
+  assert.deepEqual(response.item.motion.velocityKmPerSec, { x: 1, y: 2, z: 3 });
   assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
 });
 
@@ -240,7 +241,10 @@ test('ItemUpsertMessageHandler rejects invalid kinematics', async () => {
   });
 
   assert.equal(response.success, false);
-  assert.equal(response.message, 'item.kinematics payload is invalid');
+  assert.equal(
+    response.message,
+    'item.kinematics is no longer accepted; use canonical item.spatial (and optional item.motion) instead'
+  );
   assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
 });
 

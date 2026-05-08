@@ -104,7 +104,7 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
     },
     owningPlayerId: 'player-seeded',
     owningCharacterId: 'player-1',
-    kinematics: null,
+    spatial: null,
     createdAt: '2026-04-17T00:00:00.000Z',
     updatedAt: '2026-04-17T00:00:00.000Z',
     destroyedAt: null,

@@ -289,7 +289,7 @@ class LaunchItemMessageHandler {
         },
         owningPlayerId: parsed.player.playerId,
         owningCharacterId: parsed.characterId,
-        kinematics: null,
+        spatial: null,
         destroyedAt: null,
         destroyedReason: null,
         launchable: false,
