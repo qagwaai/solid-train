@@ -63,17 +63,13 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Skipped**: `priceMultiplier`/`driftPercentPerHour` ledger assertions (deferred per decision)
 - **Test count**: 244 → 266 (all green)
 
-### TQ-05 Add Socket.IO + Mongo round-trip smoke test
-- **Why**: 0 tests cover the production wiring (real socket layer + real DB).
-  [test-support/mongodb-test-helpers.js](test-support/mongodb-test-helpers.js)
-  is ready to be reused.
-- **Deliverable**: `test/server.mongo.integration.test.js` that:
-  1. Boots `createServer` with `mongoHarness.databaseService` injected
-  2. Registers + logs in a player
-  3. Adds a character via socket
-  4. Re-reads from Mongo (via `databaseService.getPlayerByName`) and asserts persistence
-  5. Tears down cleanly
-- **Side-effect**: closes a 50%+ chunk of the `server.js` function-coverage gap.
+### ~~TQ-05~~ ✅ Add Socket.IO + Mongo round-trip smoke test
+- **Completed**: 2026-05-07
+- **Created**: `test/server.mongo.integration.test.js` — 1 integration test
+- **Flow**: `createServer` + `databaseService` injected → register → login → add character → `getPlayerByName` assertion
+- **Asserts**: player persisted, character `id`/`characterName`/`creditLedger`/`ships` present in Mongo
+- **Also created**: `test-support/socket-test-helpers.js` — extracted `listen`, `connectClient`, `waitForEvent`, `httpGetJson`, `closeClient`, `registerAndLogin` from `test/server.test.js` so they can be shared
+- **Test count**: 266 → 267 (all green)
 
 ### TQ-06 Mongo round-trip per collection
 - **Why**: Only markets have a real-Mongo integration test. See
