@@ -1,8 +1,6 @@
 'use strict';
 
-const {
-  MessageHandlerContext
-} = require('../src/handlers/message-handler-context');
+const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
 
 function createTestContext(options = {}) {
   const defaultSeedIds = ['player-1', 'session-1', 'session-2', 'character-1'];
@@ -22,7 +20,7 @@ function createTestContext(options = {}) {
       generatedIdCounter += 1;
       return `generated-${generatedIdCounter}`;
     },
-    getCurrentTimestamp: () => '2026-04-17T00:00:00.000Z'
+    getCurrentTimestamp: () => '2026-04-17T00:00:00.000Z',
   });
 
   void context.initializeAsync({ seedDefaults: true });
@@ -37,7 +35,7 @@ function createMockSocket(id = 'socket-1') {
     events,
     emit(eventName, payload) {
       events.push({ eventName, payload });
-    }
+    },
   };
 }
 
@@ -46,7 +44,7 @@ function createSpatialState(overrides = {}) {
     solarSystemId: overrides.solarSystemId || 'sol',
     frame: 'barycentric',
     positionKm: overrides.positionKm || { x: 0, y: 0, z: 0 },
-    epochMs: overrides.epochMs || 1713360000000
+    epochMs: overrides.epochMs || 1713360000000,
   };
 }
 
@@ -59,7 +57,7 @@ function createMotionState(overrides = {}) {
     velocityKmPerSec: overrides.velocityKmPerSec || { x: 0, y: 0, z: 0 },
     ...(overrides.angularVelocityRadPerSec
       ? { angularVelocityRadPerSec: overrides.angularVelocityRadPerSec }
-      : {})
+      : {}),
   };
 }
 
@@ -74,14 +72,14 @@ function createPhysicalState(overrides = {}) {
       : { estimatedMassKg: 1e18 }),
     ...(overrides.estimatedDiameterM !== undefined
       ? { estimatedDiameterM: overrides.estimatedDiameterM }
-      : { estimatedDiameterM: 500 })
+      : { estimatedDiameterM: 500 }),
   };
 }
 
 function createObservabilityState(overrides = {}) {
   return {
     visibility: overrides.visibility || 'visible',
-    scanState: overrides.scanState || 'scanned'
+    scanState: overrides.scanState || 'scanned',
   };
 }
 
@@ -95,11 +93,9 @@ function createShip(overrides = {}) {
     createdAt: overrides.createdAt || '2026-04-17T00:00:00.000Z',
     inventory: overrides.inventory || [],
     spatial: createSpatialState(overrides.spatial || {}),
-    ...(overrides.motion !== undefined
-      ? { motion: createMotionState(overrides.motion) }
-      : {}),
+    ...(overrides.motion !== undefined ? { motion: createMotionState(overrides.motion) } : {}),
     launchable: overrides.launchable !== undefined ? overrides.launchable : true,
-    damageProfile: overrides.damageProfile || null
+    damageProfile: overrides.damageProfile || null,
   };
 }
 
@@ -113,12 +109,12 @@ function createCelestialBody(overrides = {}) {
     missionInstanceId: overrides.missionInstanceId || null,
     createdAt: overrides.createdAt || '2026-04-17T00:00:00.000Z',
     updatedAt: overrides.updatedAt || '2026-04-17T00:00:00.000Z',
-    spatial: createSpatialState(overrides.spatial || {
-      positionKm: { x: 150000, y: 50000, z: 30000 }
-    }),
-    ...(overrides.motion !== undefined
-      ? { motion: createMotionState(overrides.motion) }
-      : {}),
+    spatial: createSpatialState(
+      overrides.spatial || {
+        positionKm: { x: 150000, y: 50000, z: 30000 },
+      }
+    ),
+    ...(overrides.motion !== undefined ? { motion: createMotionState(overrides.motion) } : {}),
     ...(overrides.physical !== undefined
       ? { physical: createPhysicalState(overrides.physical) }
       : {}),
@@ -126,13 +122,13 @@ function createCelestialBody(overrides = {}) {
     composition: overrides.composition || {
       rarity: 'Rare',
       material: 'Iron',
-      textureColor: '#888888'
+      textureColor: '#888888',
     },
     state: overrides.state || 'active',
     destroyedAt: overrides.destroyedAt || null,
     destroyedReason: overrides.destroyedReason || null,
     debrisSeed: overrides.debrisSeed || null,
-    debris: overrides.debris || []
+    debris: overrides.debris || [],
   };
 }
 
@@ -143,9 +139,10 @@ function createContainedItem(overrides = {}) {
     displayName: overrides.displayName || 'Expendable Dart Drone',
     state: overrides.state || 'contained',
     damageStatus: overrides.damageStatus || 'intact',
-    container: overrides.container !== undefined
-      ? overrides.container
-      : { containerType: 'ship', containerId: 'ship-1' },
+    container:
+      overrides.container !== undefined
+        ? overrides.container
+        : { containerType: 'ship', containerId: 'ship-1' },
     owningPlayerId: overrides.owningPlayerId || 'player-1',
     owningCharacterId: overrides.owningCharacterId || 'character-1',
     spatial: overrides.spatial !== undefined ? overrides.spatial : null,
@@ -155,20 +152,20 @@ function createContainedItem(overrides = {}) {
     destroyedAt: overrides.destroyedAt || null,
     destroyedReason: overrides.destroyedReason || null,
     launchable: overrides.launchable !== undefined ? overrides.launchable : true,
-    quantity: overrides.quantity || 1
+    quantity: overrides.quantity || 1,
   };
 }
 
 function createDeployedItem(overrides = {}) {
-  const positionKm = overrides.positionKm
-    || (overrides.spatial && overrides.spatial.positionKm)
-    || { x: 1000, y: 0, z: 0 };
-  const spatial = overrides.spatial === null
-    ? null
-    : createSpatialState({
-      ...(overrides.spatial || {}),
-      positionKm
-    });
+  const positionKm = overrides.positionKm ||
+    (overrides.spatial && overrides.spatial.positionKm) || { x: 1000, y: 0, z: 0 };
+  const spatial =
+    overrides.spatial === null
+      ? null
+      : createSpatialState({
+          ...(overrides.spatial || {}),
+          positionKm,
+        });
 
   return {
     id: overrides.id || 'deployed-item-1',
@@ -180,15 +177,13 @@ function createDeployedItem(overrides = {}) {
     owningPlayerId: overrides.owningPlayerId || 'player-1',
     owningCharacterId: overrides.owningCharacterId || 'character-1',
     spatial,
-    ...(overrides.motion !== undefined
-      ? { motion: createMotionState(overrides.motion) }
-      : {}),
+    ...(overrides.motion !== undefined ? { motion: createMotionState(overrides.motion) } : {}),
     createdAt: overrides.createdAt || '2026-04-17T00:00:00.000Z',
     updatedAt: overrides.updatedAt || '2026-04-17T00:00:00.000Z',
     destroyedAt: overrides.destroyedAt || null,
     destroyedReason: overrides.destroyedReason || null,
     launchable: overrides.launchable !== undefined ? overrides.launchable : true,
-    quantity: overrides.quantity || 1
+    quantity: overrides.quantity || 1,
   };
 }
 
@@ -199,24 +194,27 @@ function createMarket(overrides = {}) {
     marketName: overrides.marketName || 'Ceres Exchange',
     siteType: overrides.siteType || 'station',
     siteName: overrides.siteName || 'Ceres Main',
-    spatial: createSpatialState(overrides.spatial || {
-      positionKm: { x: 413000, y: 0, z: 0 }
-    }),
+    spatial: createSpatialState(
+      overrides.spatial || {
+        positionKm: { x: 413000, y: 0, z: 0 },
+      }
+    ),
     ...(overrides.trajectory
       ? {
-        trajectory: {
-          kind: overrides.trajectory.kind || 'orbital-elements',
-          ...(overrides.trajectory.orbit ? { orbit: overrides.trajectory.orbit } : {})
+          trajectory: {
+            kind: overrides.trajectory.kind || 'orbital-elements',
+            ...(overrides.trajectory.orbit ? { orbit: overrides.trajectory.orbit } : {}),
+          },
         }
-      }
       : {}),
     isStarterMarket: overrides.isStarterMarket || false,
     priceMultiplier: overrides.priceMultiplier !== undefined ? overrides.priceMultiplier : 1,
-    driftPercentPerHour: overrides.driftPercentPerHour !== undefined ? overrides.driftPercentPerHour : 0,
+    driftPercentPerHour:
+      overrides.driftPercentPerHour !== undefined ? overrides.driftPercentPerHour : 0,
     restockIntervalMinutes: overrides.restockIntervalMinutes || 60,
     lastRestockAt: overrides.lastRestockAt || '2026-04-17T00:00:00.000Z',
     inventory: overrides.inventory || [],
-    ledger: overrides.ledger || []
+    ledger: overrides.ledger || [],
   };
 }
 
@@ -249,7 +247,7 @@ function seedPlayer(context, overrides = {}) {
     password: overrides.password || 'secret',
     preferredLocale: overrides.preferredLocale || 'en',
     sessionKey: overrides.sessionKey || null,
-    socketId: overrides.socketId || null
+    socketId: overrides.socketId || null,
   };
 
   context.registeredPlayers.set(normalizedPlayerName, player);
@@ -259,9 +257,7 @@ function seedPlayer(context, overrides = {}) {
 }
 
 function seedTraderCharacter(context, options = {}) {
-  const startingBalance = Number.isFinite(options.startingBalance)
-    ? options.startingBalance
-    : 2000;
+  const startingBalance = Number.isFinite(options.startingBalance) ? options.startingBalance : 2000;
   const shipOverrides = options.shipOverrides || {};
 
   seedPlayer(context, {
@@ -273,12 +269,14 @@ function seedTraderCharacter(context, options = {}) {
         id: 'character-1',
         characterName: 'Trader',
         createdAt: '2026-05-05T00:00:00.000Z',
-        ships: [createShip({
-          id: 'ship-1',
-          shipName: 'Trader Ship 1',
-          createdAt: '2026-05-05T00:00:00.000Z',
-          ...shipOverrides
-        })],
+        ships: [
+          createShip({
+            id: 'ship-1',
+            shipName: 'Trader Ship 1',
+            createdAt: '2026-05-05T00:00:00.000Z',
+            ...shipOverrides,
+          }),
+        ],
         missions: [],
         creditLedger: [
           {
@@ -286,11 +284,11 @@ function seedTraderCharacter(context, options = {}) {
             amount: startingBalance,
             description: 'Seed',
             timestamp: '2026-05-05T00:00:00.000Z',
-            referenceId: null
-          }
-        ]
-      }
-    ]
+            referenceId: null,
+          },
+        ],
+      },
+    ],
   });
 }
 
@@ -309,5 +307,5 @@ module.exports = {
   seedCelestialBodies,
   seedItems,
   seedPlayer,
-  seedTraderCharacter
+  seedTraderCharacter,
 };

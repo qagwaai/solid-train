@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  MARKET_INVENTORY_LIST_RESPONSE_EVENT
-} = require('../model/market-inventory-list');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { MARKET_INVENTORY_LIST_RESPONSE_EVENT } = require('../model/market-inventory-list');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketInventoryListMessageHandler {
   constructor(context) {
@@ -27,7 +22,7 @@ class MarketInventoryListMessageHandler {
         inventory: [],
         total: 0,
         offset,
-        limit
+        limit,
       };
     }
 
@@ -39,7 +34,7 @@ class MarketInventoryListMessageHandler {
         inventory: [],
         total: 0,
         offset,
-        limit
+        limit,
       };
     }
 
@@ -48,7 +43,7 @@ class MarketInventoryListMessageHandler {
       solarSystemId,
       offset,
       limit,
-      asOf: this.context.getCurrentTimestamp()
+      asOf: this.context.getCurrentTimestamp(),
     });
 
     if (!result.success) {
@@ -59,7 +54,7 @@ class MarketInventoryListMessageHandler {
         inventory: [],
         total: 0,
         offset,
-        limit
+        limit,
       };
     }
 
@@ -74,14 +69,14 @@ class MarketInventoryListMessageHandler {
       total: result.total,
       offset: result.offset,
       limit: result.limit,
-      asOf: result.asOf
+      asOf: result.asOf,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-inventory-list-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -97,5 +92,5 @@ class MarketInventoryListMessageHandler {
 }
 
 module.exports = {
-  MarketInventoryListMessageHandler
+  MarketInventoryListMessageHandler,
 };

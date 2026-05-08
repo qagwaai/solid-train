@@ -1162,8 +1162,28 @@ Possible `reason` values:
   "positionKm": { "x": 0, "y": 0, "z": 0 },
   "distanceKm": 100,
   "celestialBodies": [
-    { "id": "cb-1", "state": "unscanned", "sourceScanId": "sample-a1", "spatial": { "solarSystemId": "sol", "frame": "barycentric", "positionKm": { "x": 1, "y": 0, "z": 0 }, "epochMs": 1776384000000 } },
-    { "id": "cb-2", "state": "active", "sourceScanId": "sample-a2", "spatial": { "solarSystemId": "sol", "frame": "barycentric", "positionKm": { "x": 2, "y": 0, "z": 0 }, "epochMs": 1776384000000 } }
+    {
+      "id": "cb-1",
+      "state": "unscanned",
+      "sourceScanId": "sample-a1",
+      "spatial": {
+        "solarSystemId": "sol",
+        "frame": "barycentric",
+        "positionKm": { "x": 1, "y": 0, "z": 0 },
+        "epochMs": 1776384000000
+      }
+    },
+    {
+      "id": "cb-2",
+      "state": "active",
+      "sourceScanId": "sample-a2",
+      "spatial": {
+        "solarSystemId": "sol",
+        "frame": "barycentric",
+        "positionKm": { "x": 2, "y": 0, "z": 0 },
+        "epochMs": 1776384000000
+      }
+    }
   ]
 }
 ```

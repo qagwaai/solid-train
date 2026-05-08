@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  SHIP_UPSERT_RESPONSE_EVENT
-} = require('../model/ship-upsert');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { SHIP_UPSERT_RESPONSE_EVENT } = require('../model/ship-upsert');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class ShipUpsertMessageHandler {
   constructor(context) {
@@ -18,10 +13,12 @@ class ShipUpsertMessageHandler {
   }
 
   isTriple(value) {
-    return Boolean(value)
-      && this.isFiniteNumber(value.x)
-      && this.isFiniteNumber(value.y)
-      && this.isFiniteNumber(value.z);
+    return (
+      Boolean(value) &&
+      this.isFiniteNumber(value.x) &&
+      this.isFiniteNumber(value.y) &&
+      this.isFiniteNumber(value.z)
+    );
   }
 
   normalizeSpatial(spatial) {
@@ -35,7 +32,7 @@ class ShipUpsertMessageHandler {
       solarSystemId,
       frame: 'barycentric',
       positionKm: { x: spatial.positionKm.x, y: spatial.positionKm.y, z: spatial.positionKm.z },
-      epochMs: spatial.epochMs
+      epochMs: spatial.epochMs,
     };
   }
 
@@ -46,15 +43,17 @@ class ShipUpsertMessageHandler {
       velocityKmPerSec: {
         x: motion.velocityKmPerSec.x,
         y: motion.velocityKmPerSec.y,
-        z: motion.velocityKmPerSec.z
-      }
+        z: motion.velocityKmPerSec.z,
+      },
     };
   }
 
   normalizeDamageProfile(raw) {
     const overallStatus = raw?.overallStatus;
     if (!['intact', 'damaged', 'disabled', 'destroyed'].includes(overallStatus)) {
-      return { error: 'damageProfile.overallStatus must be one of: intact, damaged, disabled, destroyed' };
+      return {
+        error: 'damageProfile.overallStatus must be one of: intact, damaged, disabled, destroyed',
+      };
     }
 
     const summary = this.context.toNonEmptyString(raw.summary);
@@ -64,7 +63,9 @@ class ShipUpsertMessageHandler {
 
     const origin = raw.origin;
     if (!['cold-boot-scripted', 'combat', 'wear', 'unknown'].includes(origin)) {
-      return { error: 'damageProfile.origin must be one of: cold-boot-scripted, combat, wear, unknown' };
+      return {
+        error: 'damageProfile.origin must be one of: cold-boot-scripted, combat, wear, unknown',
+      };
     }
 
     const updatedAt = this.context.toNonEmptyString(raw.updatedAt);
@@ -102,7 +103,7 @@ class ShipUpsertMessageHandler {
         label,
         severity,
         summary: sysSummary,
-        repairPriority: sys.repairPriority
+        repairPriority: sys.repairPriority,
       });
     }
 
@@ -113,24 +114,28 @@ class ShipUpsertMessageHandler {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
     const shipId = this.context.toNonEmptyString(payload?.ship?.id);
-    const shipName = this.context.toNonEmptyString(payload?.ship?.shipName)
-      || this.context.toNonEmptyString(payload?.ship?.name);
+    const shipName =
+      this.context.toNonEmptyString(payload?.ship?.shipName) ||
+      this.context.toNonEmptyString(payload?.ship?.name);
     const statusRaw = payload?.ship?.status;
     const hasStatusKey = payload?.ship != null && 'status' in payload.ship;
     const hasDamageProfileKey = payload?.ship != null && 'damageProfile' in payload.ship;
     const model = this.context.toNonEmptyString(payload?.ship?.model);
     const tierPayload = payload?.ship?.tier;
     const hasTier = tierPayload !== undefined && tierPayload !== null;
-    const tier = (hasTier && Number.isInteger(tierPayload) && tierPayload >= 1 && tierPayload <= 10)
-      ? tierPayload
-      : null;
+    const tier =
+      hasTier && Number.isInteger(tierPayload) && tierPayload >= 1 && tierPayload <= 10
+        ? tierPayload
+        : null;
     const hasSpatial = Boolean(payload?.ship?.spatial);
     const hasMotion = Boolean(payload?.ship?.motion);
     const spatial = this.normalizeSpatial(payload?.ship?.spatial);
     const motion = hasMotion ? this.normalizeMotion(payload?.ship?.motion) : undefined;
     const hasLaunchable = payload?.ship != null && 'launchable' in payload.ship;
     const launchable = hasLaunchable
-      ? (payload.ship.launchable != null ? Boolean(payload.ship.launchable) : null)
+      ? payload.ship.launchable != null
+        ? Boolean(payload.ship.launchable)
+        : null
       : null;
 
     if (!playerName || !characterId || !shipId) {
@@ -138,7 +143,7 @@ class ShipUpsertMessageHandler {
         success: false,
         message: 'playerName, characterId, and ship.id are required',
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -147,7 +152,7 @@ class ShipUpsertMessageHandler {
         success: false,
         message: "ShipUpsert: legacy field 'location' is not supported. Use 'spatial' instead.",
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -156,7 +161,7 @@ class ShipUpsertMessageHandler {
         success: false,
         message: "ShipUpsert: legacy field 'kinematics' is not supported. Use 'motion' instead.",
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -165,7 +170,7 @@ class ShipUpsertMessageHandler {
         success: false,
         message: 'ship.spatial, ship.motion, ship.model, and/or ship.tier is required',
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -174,7 +179,7 @@ class ShipUpsertMessageHandler {
         success: false,
         message: 'ship.tier must be an integer between 1 and 10',
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -183,7 +188,7 @@ class ShipUpsertMessageHandler {
         success: false,
         message: 'ship spatial/motion payload is invalid',
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -192,11 +197,11 @@ class ShipUpsertMessageHandler {
         success: false,
         message: 'ship.status must be a string',
         playerName,
-        characterId
+        characterId,
       };
     }
 
-    const status = hasStatusKey ? (statusRaw.trim() || null) : undefined;
+    const status = hasStatusKey ? statusRaw.trim() || null : undefined;
 
     let normalizedDamageProfile;
     if (hasDamageProfileKey) {
@@ -209,7 +214,7 @@ class ShipUpsertMessageHandler {
             success: false,
             message: validation.error,
             playerName,
-            characterId
+            characterId,
           };
         }
         normalizedDamageProfile = validation;
@@ -222,7 +227,7 @@ class ShipUpsertMessageHandler {
         success: false,
         message: 'Player is not registered',
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -232,7 +237,7 @@ class ShipUpsertMessageHandler {
         success: false,
         message: 'Character is not in player list',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -245,7 +250,7 @@ class ShipUpsertMessageHandler {
         success: false,
         message: 'Ship is not in character list',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -257,11 +262,16 @@ class ShipUpsertMessageHandler {
       model: model || existingShip.model,
       tier: tier !== null ? tier : existingShip.tier,
       spatial: spatial || existingShip.spatial,
-      motion: hasMotion ? (motion || null) : existingShip.motion,
-      launchable: hasLaunchable && launchable !== null
-        ? launchable
-        : (existingShip.launchable != null ? existingShip.launchable : true),
-      damageProfile: hasDamageProfileKey ? normalizedDamageProfile : (existingShip.damageProfile ?? null)
+      motion: hasMotion ? motion || null : existingShip.motion,
+      launchable:
+        hasLaunchable && launchable !== null
+          ? launchable
+          : existingShip.launchable != null
+            ? existingShip.launchable
+            : true,
+      damageProfile: hasDamageProfileKey
+        ? normalizedDamageProfile
+        : (existingShip.damageProfile ?? null),
     };
     delete nextShip.location;
     delete nextShip.kinematics;
@@ -271,14 +281,14 @@ class ShipUpsertMessageHandler {
       message: 'Ship updated successfully',
       playerName: player.playerName,
       characterId,
-      ship: { ...nextShip }
+      ship: { ...nextShip },
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-upsert-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -296,11 +306,9 @@ class ShipUpsertMessageHandler {
           ? character.ships.map((ship) => (ship.id === response.ship.id ? response.ship : ship))
           : [];
 
-        await this.context.updateCharacterAsync(
-          response.playerName,
-          response.characterId,
-          { ships: nextShips }
-        );
+        await this.context.updateCharacterAsync(response.playerName, response.characterId, {
+          ships: nextShips,
+        });
       } catch (error) {
         this.context.log(`[ship-upsert-handler] Failed to upsert ship: ${error.message}`);
         response.success = false;
@@ -319,5 +327,5 @@ class ShipUpsertMessageHandler {
 }
 
 module.exports = {
-  ShipUpsertMessageHandler
+  ShipUpsertMessageHandler,
 };

@@ -64,5 +64,5 @@ const LAUNCH_ITEM_RESPONSE_EVENT = 'launch-item-response';
 
 module.exports = {
   LAUNCH_ITEM_REQUEST_EVENT,
-  LAUNCH_ITEM_RESPONSE_EVENT
+  LAUNCH_ITEM_RESPONSE_EVENT,
 };

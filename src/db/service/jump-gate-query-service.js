@@ -12,7 +12,7 @@ async function getJumpGatesAsync(ctx, JumpGate) {
       sourceSystemId: gate.sourceSystemId,
       destSystemId: gate.destSystemId,
       traversalCostAu: gate.traversalCostAu,
-      traversalTimeHours: gate.traversalTimeHours
+      traversalTimeHours: gate.traversalTimeHours,
     }));
   } catch (error) {
     ctx.log(`[db-service] Error loading jump gates: ${error.message}`);
@@ -21,5 +21,5 @@ async function getJumpGatesAsync(ctx, JumpGate) {
 }
 
 module.exports = {
-  getJumpGatesAsync
+  getJumpGatesAsync,
 };

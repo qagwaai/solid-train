@@ -6,7 +6,7 @@
 
 _**User (2026-04-21 23:56:39Z)**_
 
-ok - consider a new aspect of the project.  a character will progress thru a set of missions, starting with "The First Target".  this will mean that we need to status of which missions a character has completed which will be stored in the back end.  a list of missions will be stored per character and their status: available, started, in-progress, failed, completed, and any other possible mission statuses.  there will need to be a new set of request response messages including add-mission (https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/mission-add.ts) and list-missions (https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/mission-list.ts).  update mission-add functionality to include a character defined at .  Include any changes to mongodb, unit tests, and documentation
+ok - consider a new aspect of the project. a character will progress thru a set of missions, starting with "The First Target". this will mean that we need to status of which missions a character has completed which will be stored in the back end. a list of missions will be stored per character and their status: available, started, in-progress, failed, completed, and any other possible mission statuses. there will need to be a new set of request response messages including add-mission (https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/mission-add.ts) and list-missions (https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/mission-list.ts). update mission-add functionality to include a character defined at . Include any changes to mongodb, unit tests, and documentation
 
 ---
 
@@ -22,21 +22,23 @@ it seems like the add mission message is not getting stored in the dabase
 
 _**User (2026-04-22 00:46:40Z)**_
 
-when inspecting the data created by the mission service, am getting both a "The First Target" and a "first-target" in the missionId value.  only the "first-target" should be used - why is there two mission records?
+when inspecting the data created by the mission service, am getting both a "The First Target" and a "first-target" in the missionId value. only the "first-target" should be used - why is there two mission records?
 
 ---
 
 _**Agent (copilot/auto)**_
 
 <think><details><summary>Thought Process</summary>
-Let me check if there's any other initialization of missions, particularly in the login handler: 
+Let me check if there's any other initialization of missions, particularly in the login handler:
 
 Let me check the database models to see if there's any schema transformation:
+
 </details></think>
 
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="read" data-tool-name="read_file"><details>
+
 <summary>Tool use: **read_file**</summary>
 
 **Input:**
@@ -50,6 +52,7 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="read" data-tool-name="read_file"><details>
+
 <summary>Tool use: **read_file**</summary>
 
 **Input:**
@@ -63,6 +66,7 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+
 <summary>Tool use: **grep_search**</summary>
 
 **Input:**
@@ -75,6 +79,7 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+
 <summary>Tool use: **grep_search**</summary>
 
 **Input:**
@@ -87,6 +92,7 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="read" data-tool-name="read_file"><details>
+
 <summary>Tool use: **read_file**</summary>
 
 **Input:**
@@ -100,6 +106,7 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="read" data-tool-name="read_file"><details>
+
 <summary>Tool use: **read_file**</summary>
 
 **Input:**
@@ -113,6 +120,7 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+
 <summary>Tool use: **grep_search**</summary>
 
 **Input:**
@@ -128,6 +136,7 @@ _**Agent (copilot/auto)**_
 The user is reporting that there are two mission records being created - one with "The First Target" and one with "first-target". Let me check the code to understand what's happening.
 
 Let me look at:
+
 1. How the starter mission is being created in character-add-message-handler.js
 2. The mission model constants to see what DEFAULT_STARTER_MISSION_ID is
 

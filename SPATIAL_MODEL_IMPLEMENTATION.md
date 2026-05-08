@@ -7,6 +7,7 @@
 ## Overview
 
 The backend has implemented the canonical spatial model where:
+
 - Every in-world entity (Ships, CelestialBodies, Markets) has a **required `spatial` field**
 - Motion is **optional** and stored separately
 - Legacy fields (`location`, `kinematics`) are being phased out
@@ -17,6 +18,7 @@ The backend has implemented the canonical spatial model where:
 ### MongoDB Schemas (src/db/models.js)
 
 #### Ships
+
 ```javascript
 // Before
 ship = {
@@ -32,6 +34,7 @@ ship = {
 ```
 
 #### Celestial Bodies
+
 ```javascript
 // Before
 body = {
@@ -51,6 +54,7 @@ body = {
 ```
 
 #### Markets
+
 ```javascript
 // Before
 market = {
@@ -75,6 +79,7 @@ market = {
 ### Normalization Layer (src/handlers/message-handler-context.js)
 
 #### New Methods Added
+
 - `normalizeSpatialState(value)` - Validates and normalizes spatial state
 - `normalizeTriple(value)` - Validates 3D coordinate vectors
 - `normalizeMotionState(value)` - Optional velocity/angular-velocity
@@ -86,6 +91,7 @@ market = {
 - `convertLegacyCelestialBodyToMotionAndPhysical(body)` - Backward compatibility converter
 
 #### Updated Methods
+
 - `normalizeShip()` - Now requires spatial, optionally includes motion
 - `normalizeCelestialBody()` - Now requires spatial + observability, optionally includes motion/physical
 - `normalizeMarket()` - Now uses spatial, wraps orbit in trajectory descriptor
@@ -95,14 +101,15 @@ market = {
 ### Test Fixtures (test-support/message-handler-test-helpers.js)
 
 #### New Helper Functions
+
 ```javascript
-createSpatialState(overrides)          // Default: sol barycentric at origin
-createMotionState(overrides)           // Default: no motion
-createPhysicalState(overrides)         // Default: typical asteroid properties
-createObservabilityState(overrides)    // Default: visible, scanned
-createShip(overrides)                  // Creates ship with spatial
-createCelestialBody(overrides)         // Creates body with spatial + observability
-createMarket(overrides)                // Creates market with spatial
+createSpatialState(overrides); // Default: sol barycentric at origin
+createMotionState(overrides); // Default: no motion
+createPhysicalState(overrides); // Default: typical asteroid properties
+createObservabilityState(overrides); // Default: visible, scanned
+createShip(overrides); // Creates ship with spatial
+createCelestialBody(overrides); // Creates body with spatial + observability
+createMarket(overrides); // Creates market with spatial
 ```
 
 ## Implementation Status
@@ -153,6 +160,7 @@ The normalization layer includes conversion helpers that automatically convert l
 ### Conversion Rules
 
 **Ships:**
+
 ```javascript
 // Legacy location + kinematics.reference.solarSystemId → new spatial
 ship.location.positionKm        → spatial.positionKm
@@ -162,6 +170,7 @@ ship.kinematics.velocity        → motion.velocityKmPerSec
 ```
 
 **Celestial Bodies:**
+
 ```javascript
 // Legacy location + solarSystemId → new spatial
 body.location.positionKm            → spatial.positionKm
@@ -188,29 +197,39 @@ body.visibility                     → observability.visibility
 ## Testing Approach
 
 ### Option A: Update Existing Fixtures
+
 Update test files to use new factory helpers:
+
 ```javascript
-const { createShip, createCelestialBody, createMarket } = require('../test-support/message-handler-test-helpers');
+const {
+  createShip,
+  createCelestialBody,
+  createMarket,
+} = require('../test-support/message-handler-test-helpers');
 
 const ship = createShip({
   id: 'ship-1',
-  spatial: { positionKm: { x: 100, y: 200, z: 300 } }
+  spatial: { positionKm: { x: 100, y: 200, z: 300 } },
 });
 
 const body = createCelestialBody({
   id: 'asteroid-1',
-  observability: { visibility: 'visible', scanState: 'scanned' }
+  observability: { visibility: 'visible', scanState: 'scanned' },
 });
 ```
 
 ### Option B: Rely on Backward Compatibility
+
 Continue using old fixture format; conversion layer handles it automatically during normalization:
+
 ```javascript
 // Old format - still works during transition
 const body = {
   location: { positionKm: { x: 100, y: 200, z: 300 } },
   solarSystemId: 'sol',
-  kinematics: { /* ... */ }
+  kinematics: {
+    /* ... */
+  },
 };
 // Automatically converted to spatial + motion + physical during normalize
 ```

@@ -2,20 +2,13 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  MissionListMessageHandler
-} = require('../src/handlers/mission-list-message-handler');
-const {
-  MISSION_LIST_RESPONSE_EVENT
-} = require('../src/model/mission-list');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { MissionListMessageHandler } = require('../src/handlers/mission-list-message-handler');
+const { MISSION_LIST_RESPONSE_EVENT } = require('../src/model/mission-list');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 test('MissionListMessageHandler returns missions for a character', async () => {
@@ -34,16 +27,16 @@ test('MissionListMessageHandler returns missions for a character', async () => {
             statusDetail: 'Completed with clean extraction',
             startedAt: '2026-04-16T00:00:00.000Z',
             completedAt: '2026-04-17T00:00:00.000Z',
-            updatedAt: '2026-04-17T00:00:00.000Z'
+            updatedAt: '2026-04-17T00:00:00.000Z',
           },
           {
             missionId: 'm-01',
             status: 'available',
-            updatedAt: '2026-04-17T00:00:00.000Z'
-          }
-        ]
-      }
-    ]
+            updatedAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new MissionListMessageHandler(context);
@@ -53,7 +46,7 @@ test('MissionListMessageHandler returns missions for a character', async () => {
     playerName: 'missionpilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    statuses: ['completed']
+    statuses: ['completed'],
   });
 
   assert.equal(response.success, true);
@@ -81,26 +74,24 @@ test('MissionListMessageHandler returns deterministic mission ordering', async (
           { missionId: 'sq-03', status: 'available', updatedAt: '2026-04-17T00:00:00.000Z' },
           { missionId: 'm-02', status: 'locked', updatedAt: '2026-04-17T00:00:00.000Z' },
           { missionId: 'first-target', status: 'completed', updatedAt: '2026-04-17T00:00:00.000Z' },
-          { missionId: 'sq-01', status: 'locked', updatedAt: '2026-04-17T00:00:00.000Z' }
-        ]
-      }
-    ]
+          { missionId: 'sq-01', status: 'locked', updatedAt: '2026-04-17T00:00:00.000Z' },
+        ],
+      },
+    ],
   });
 
   const handler = new MissionListMessageHandler(context);
   const response = await handler.handle(createMockSocket(), {
     playerName: 'MissionPilot',
     characterId: 'character-1',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
-  assert.deepEqual(response.missions.map((mission) => mission.missionId), [
-    'first-target',
-    'm-02',
-    'sq-01',
-    'sq-03'
-  ]);
+  assert.deepEqual(
+    response.missions.map((mission) => mission.missionId),
+    ['first-target', 'm-02', 'sq-01', 'sq-03']
+  );
 });
 
 test('MissionListMessageHandler echoes requestId when present', async () => {
@@ -108,7 +99,7 @@ test('MissionListMessageHandler echoes requestId when present', async () => {
   seedPlayer(context, {
     playerName: 'MissionPilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [] }],
   });
 
   const handler = new MissionListMessageHandler(context);
@@ -116,7 +107,7 @@ test('MissionListMessageHandler echoes requestId when present', async () => {
     playerName: 'MissionPilot',
     characterId: 'character-1',
     requestId: 'req-list-123',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
@@ -133,9 +124,9 @@ test('MissionListMessageHandler emits invalid session for wrong key', async () =
       {
         id: 'character-1',
         characterName: 'RangerOne',
-        missions: [{ missionId: 'The First Target', status: 'available' }]
-      }
-    ]
+        missions: [{ missionId: 'The First Target', status: 'available' }],
+      },
+    ],
   });
 
   const handler = new MissionListMessageHandler(context);
@@ -144,7 +135,7 @@ test('MissionListMessageHandler emits invalid session for wrong key', async () =
   const response = await handler.handle(socket, {
     playerName: 'MissionPilot',
     characterId: 'character-1',
-    sessionKey: 'wrong-session'
+    sessionKey: 'wrong-session',
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });

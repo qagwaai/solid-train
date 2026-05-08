@@ -95,5 +95,5 @@ const SHIP_UPSERT_RESPONSE_EVENT = 'ship-upsert-response';
 
 module.exports = {
   SHIP_UPSERT_REQUEST_EVENT,
-  SHIP_UPSERT_RESPONSE_EVENT
+  SHIP_UPSERT_RESPONSE_EVENT,
 };

@@ -2,12 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  buildSeededGateNetwork
-} = require('../src/model/solar-system-gate-seed');
-const {
-  createTestContext
-} = require('../test-support/message-handler-test-helpers');
+const { buildSeededGateNetwork } = require('../src/model/solar-system-gate-seed');
+const { createTestContext } = require('../test-support/message-handler-test-helpers');
 
 test('buildSeededGateNetwork returns expected gate count and canonical traversal values', () => {
   const seededGates = buildSeededGateNetwork();
@@ -30,7 +26,7 @@ test('MessageHandlerContext loadGateNetworkAsync seeds graph and supports routed
   context.databaseService = {
     async getJumpGatesAsync() {
       return buildSeededGateNetwork();
-    }
+    },
   };
 
   const graph = await context.loadGateNetworkAsync();

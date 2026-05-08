@@ -4,19 +4,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const mongoose = require('mongoose');
+const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
 const {
-  MessageHandlerContext
-} = require('../src/handlers/message-handler-context');
-const {
-  MarketListByLocationMessageHandler
+  MarketListByLocationMessageHandler,
 } = require('../src/handlers/market-list-by-location-message-handler');
-const {
-  createMockSocket,
-  seedPlayer
-} = require('../test-support/message-handler-test-helpers');
-const {
-  createMongoTestHarness
-} = require('../test-support/mongodb-test-helpers');
+const { createMockSocket, seedPlayer } = require('../test-support/message-handler-test-helpers');
+const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
 
 let mongoHarness = null;
 
@@ -29,7 +22,7 @@ function buildBaseRequest(overrides = {}) {
     distanceAu: 1000000,
     limit: 50,
     locationTypes: ['station'],
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -51,7 +44,7 @@ test('Integration (Option 3): Mongo clear+seed path returns Sol station markets'
   const context = new MessageHandlerContext({
     createId: randomUUID,
     getCurrentTimestamp: () => '2026-05-07T00:00:00.000Z',
-    databaseService: mongoHarness.databaseService
+    databaseService: mongoHarness.databaseService,
   });
   const handler = new MarketListByLocationMessageHandler(context);
   const socket = createMockSocket();
@@ -64,7 +57,7 @@ test('Integration (Option 3): Mongo clear+seed path returns Sol station markets'
   const seedResult = await context.seedSolarSystemMarketsAsync({
     solarSystemId: 'sol',
     force: true,
-    asOf: '2026-05-07T00:00:00.000Z'
+    asOf: '2026-05-07T00:00:00.000Z',
   });
 
   assert.equal(seedResult.success, true);
@@ -73,11 +66,11 @@ test('Integration (Option 3): Mongo clear+seed path returns Sol station markets'
 
   seedPlayer(context, {
     playerName: 'MongoPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   const response = await handler.handle(socket, {
-    ...buildBaseRequest()
+    ...buildBaseRequest(),
   });
 
   assert.equal(response.success, true);
@@ -89,17 +82,19 @@ test('Integration (Option 3): Mongo clear+seed path returns Sol station markets'
   assert.ok(response.markets.every((market) => market.marketId.startsWith('sol-')));
 
   const uniquePositions = new Set(
-    response.markets.map((market) => (
-      `${market.spatial?.positionKm?.x}:${market.spatial?.positionKm?.y}:${market.spatial?.positionKm?.z}`
-    ))
+    response.markets.map(
+      (market) =>
+        `${market.spatial?.positionKm?.x}:${market.spatial?.positionKm?.y}:${market.spatial?.positionKm?.z}`
+    )
   );
   assert.ok(uniquePositions.size > 1, 'market spatial positions should not all be identical');
   assert.ok(
-    response.markets.some((market) => (
-      market.spatial?.positionKm?.x !== 0
-      || market.spatial?.positionKm?.y !== 0
-      || market.spatial?.positionKm?.z !== 0
-    )),
+    response.markets.some(
+      (market) =>
+        market.spatial?.positionKm?.x !== 0 ||
+        market.spatial?.positionKm?.y !== 0 ||
+        market.spatial?.positionKm?.z !== 0
+    ),
     'at least one market should have non-zero spatial coordinates'
   );
   assert.ok(
@@ -112,7 +107,7 @@ test('Integration (Option 3): Empty Mongo + empty cache still auto-hydrates seed
   const context = new MessageHandlerContext({
     createId: randomUUID,
     getCurrentTimestamp: () => '2026-05-07T00:00:00.000Z',
-    databaseService: mongoHarness.databaseService
+    databaseService: mongoHarness.databaseService,
   });
   const handler = new MarketListByLocationMessageHandler(context);
   const socket = createMockSocket();
@@ -122,11 +117,11 @@ test('Integration (Option 3): Empty Mongo + empty cache still auto-hydrates seed
 
   seedPlayer(context, {
     playerName: 'MongoPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   const response = await handler.handle(socket, {
-    ...buildBaseRequest()
+    ...buildBaseRequest(),
   });
 
   assert.equal(response.success, true);
@@ -140,7 +135,7 @@ test('Integration (Option 3): Persisted malformed siteType values are inferred f
   const context = new MessageHandlerContext({
     createId: randomUUID,
     getCurrentTimestamp: () => '2026-05-07T00:00:00.000Z',
-    databaseService: mongoHarness.databaseService
+    databaseService: mongoHarness.databaseService,
   });
   const handler = new MarketListByLocationMessageHandler(context);
   const socket = createMockSocket();
@@ -148,7 +143,7 @@ test('Integration (Option 3): Persisted malformed siteType values are inferred f
   const seedResult = await context.seedSolarSystemMarketsAsync({
     solarSystemId: 'sol',
     force: true,
-    asOf: '2026-05-07T00:00:00.000Z'
+    asOf: '2026-05-07T00:00:00.000Z',
   });
   assert.equal(seedResult.success, true);
 
@@ -156,26 +151,28 @@ test('Integration (Option 3): Persisted malformed siteType values are inferred f
   await mongoose.connection.collection('markets').updateMany(
     {
       solarSystemId: 'sol',
-      marketId: { $in: [
-        'sol-mercury-orbit',
-        'sol-venus-orbit',
-        'sol-earth-orbit',
-        'sol-moon-orbit',
-        'sol-mars-orbit',
-        'sol-jupiter-orbit',
-        'sol-saturn-orbit',
-        'sol-uranus-orbit',
-        'sol-neptune-orbit',
-        'sol-pluto-orbit'
-      ] }
+      marketId: {
+        $in: [
+          'sol-mercury-orbit',
+          'sol-venus-orbit',
+          'sol-earth-orbit',
+          'sol-moon-orbit',
+          'sol-mars-orbit',
+          'sol-jupiter-orbit',
+          'sol-saturn-orbit',
+          'sol-uranus-orbit',
+          'sol-neptune-orbit',
+          'sol-pluto-orbit',
+        ],
+      },
     },
     {
       $set: {
         siteType: 'orbital-station',
         locationType: 'orbital-station',
         siteName: '',
-        locationName: 'Legacy Orbital'
-      }
+        locationName: 'Legacy Orbital',
+      },
     }
   );
 
@@ -183,31 +180,34 @@ test('Integration (Option 3): Persisted malformed siteType values are inferred f
   const refreshResult = await context.seedSolarSystemMarketsAsync({
     solarSystemId: 'sol',
     force: false,
-    asOf: '2026-05-07T00:00:00.000Z'
+    asOf: '2026-05-07T00:00:00.000Z',
   });
   assert.equal(refreshResult.success, true);
 
   seedPlayer(context, {
     playerName: 'MongoPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   const response = await handler.handle(socket, {
-    ...buildBaseRequest()
+    ...buildBaseRequest(),
   });
 
   assert.equal(response.success, true);
   assert.equal(response.message, 'Local market list retrieved successfully');
   assert.equal(response.markets.length, 10);
   assert.ok(response.markets.every((market) => market.siteType === 'station'));
-  assert.equal(response.markets.some((market) => market.marketId === 'ac-proxima-station'), false);
+  assert.equal(
+    response.markets.some((market) => market.marketId === 'ac-proxima-station'),
+    false
+  );
 });
 
 test('Integration (Option 3): Persisted mixed-case solarSystemId does not break Sol station query', async () => {
   const context = new MessageHandlerContext({
     createId: randomUUID,
     getCurrentTimestamp: () => '2026-05-07T00:00:00.000Z',
-    databaseService: mongoHarness.databaseService
+    databaseService: mongoHarness.databaseService,
   });
   const handler = new MarketListByLocationMessageHandler(context);
   const socket = createMockSocket();
@@ -215,32 +215,34 @@ test('Integration (Option 3): Persisted mixed-case solarSystemId does not break 
   const seedResult = await context.seedSolarSystemMarketsAsync({
     solarSystemId: 'sol',
     force: true,
-    asOf: '2026-05-07T00:00:00.000Z'
+    asOf: '2026-05-07T00:00:00.000Z',
   });
   assert.equal(seedResult.success, true);
 
   // Simulate persisted docs written with mixed-case system ids.
-  await mongoose.connection.collection('markets').updateMany(
-    { solarSystemId: 'sol' },
-    { $set: { solarSystemId: 'SoL', 'spatial.solarSystemId': 'SoL' } }
-  );
+  await mongoose.connection
+    .collection('markets')
+    .updateMany(
+      { solarSystemId: 'sol' },
+      { $set: { solarSystemId: 'SoL', 'spatial.solarSystemId': 'SoL' } }
+    );
 
   // Rebuild cache from DB-backed seed flow (non-force) and ensure query still succeeds.
   context.marketsByKey.clear();
   const refreshResult = await context.seedSolarSystemMarketsAsync({
     solarSystemId: 'sol',
     force: false,
-    asOf: '2026-05-07T00:00:00.000Z'
+    asOf: '2026-05-07T00:00:00.000Z',
   });
   assert.equal(refreshResult.success, true);
 
   seedPlayer(context, {
     playerName: 'MongoPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   const response = await handler.handle(socket, {
-    ...buildBaseRequest({ solarSystemId: 'SoL' })
+    ...buildBaseRequest({ solarSystemId: 'SoL' }),
   });
 
   assert.equal(response.success, true);

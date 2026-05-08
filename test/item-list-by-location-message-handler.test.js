@@ -3,20 +3,15 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  ItemListByLocationMessageHandler
+  ItemListByLocationMessageHandler,
 } = require('../src/handlers/item-list-by-location-message-handler');
-const {
-  ITEM_LIST_BY_LOCATION_RESPONSE_EVENT
-} = require('../src/model/item-list-by-location');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { ITEM_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../src/model/item-list-by-location');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
   seedItems,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 function createDeployedItem(overrides = {}) {
@@ -36,8 +31,8 @@ function createDeployedItem(overrides = {}) {
         referenceBodyId: null,
         distanceUnit: 'km',
         velocityUnit: 'km/s',
-        epochMs: 1000000
-      }
+        epochMs: 1000000,
+      },
     },
     owningPlayerId: 'player-1',
     owningCharacterId: 'character-1',
@@ -47,7 +42,7 @@ function createDeployedItem(overrides = {}) {
     discoveredByCharacterId: null,
     createdAt: '2026-04-17T00:00:00.000Z',
     updatedAt: '2026-04-17T00:00:00.000Z',
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -56,7 +51,7 @@ test('ItemListByLocationMessageHandler returns nearest-first items with computed
   seedPlayer(context, {
     playerName: 'PilotOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
   seedItems(context, [
@@ -65,25 +60,46 @@ test('ItemListByLocationMessageHandler returns nearest-first items with computed
       kinematics: {
         position: { x: 3, y: 4, z: 0 },
         velocity: { x: 0, y: 0, z: 0 },
-        reference: { solarSystemId: 'sol', referenceKind: 'barycentric', referenceBodyId: null, distanceUnit: 'km', velocityUnit: 'km/s', epochMs: 1000000 }
-      }
+        reference: {
+          solarSystemId: 'sol',
+          referenceKind: 'barycentric',
+          referenceBodyId: null,
+          distanceUnit: 'km',
+          velocityUnit: 'km/s',
+          epochMs: 1000000,
+        },
+      },
     }),
     createDeployedItem({
       id: 'item-mid',
       kinematics: {
         position: { x: 0, y: 6, z: 8 },
         velocity: { x: 0, y: 0, z: 0 },
-        reference: { solarSystemId: 'sol', referenceKind: 'barycentric', referenceBodyId: null, distanceUnit: 'km', velocityUnit: 'km/s', epochMs: 1000000 }
-      }
+        reference: {
+          solarSystemId: 'sol',
+          referenceKind: 'barycentric',
+          referenceBodyId: null,
+          distanceUnit: 'km',
+          velocityUnit: 'km/s',
+          epochMs: 1000000,
+        },
+      },
     }),
     createDeployedItem({
       id: 'item-far',
       kinematics: {
         position: { x: 100, y: 0, z: 0 },
         velocity: { x: 0, y: 0, z: 0 },
-        reference: { solarSystemId: 'sol', referenceKind: 'barycentric', referenceBodyId: null, distanceUnit: 'km', velocityUnit: 'km/s', epochMs: 1000000 }
-      }
-    })
+        reference: {
+          solarSystemId: 'sol',
+          referenceKind: 'barycentric',
+          referenceBodyId: null,
+          distanceUnit: 'km',
+          velocityUnit: 'km/s',
+          epochMs: 1000000,
+        },
+      },
+    }),
   ]);
 
   const handler = new ItemListByLocationMessageHandler(context);
@@ -95,7 +111,7 @@ test('ItemListByLocationMessageHandler returns nearest-first items with computed
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
     distanceKm: 10,
-    limit: 2
+    limit: 2,
   });
 
   assert.equal(response.success, true);
@@ -116,13 +132,20 @@ test('ItemListByLocationMessageHandler returns all states (contained, deployed, 
   const kinematics = {
     position: { x: 1, y: 0, z: 0 },
     velocity: { x: 0, y: 0, z: 0 },
-    reference: { solarSystemId: 'sol', referenceKind: 'barycentric', referenceBodyId: null, distanceUnit: 'km', velocityUnit: 'km/s', epochMs: 1000000 }
+    reference: {
+      solarSystemId: 'sol',
+      referenceKind: 'barycentric',
+      referenceBodyId: null,
+      distanceUnit: 'km',
+      velocityUnit: 'km/s',
+      epochMs: 1000000,
+    },
   };
 
   seedItems(context, [
     createDeployedItem({ id: 'item-deployed', state: 'deployed', kinematics }),
     createDeployedItem({ id: 'item-contained', state: 'contained', kinematics }),
-    createDeployedItem({ id: 'item-destroyed', state: 'destroyed', kinematics })
+    createDeployedItem({ id: 'item-destroyed', state: 'destroyed', kinematics }),
   ]);
 
   const handler = new ItemListByLocationMessageHandler(context);
@@ -133,7 +156,7 @@ test('ItemListByLocationMessageHandler returns all states (contained, deployed, 
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 5
+    distanceKm: 5,
   });
 
   assert.equal(response.success, true);
@@ -150,12 +173,19 @@ test('ItemListByLocationMessageHandler filters by itemType when provided', async
   const kinematics = {
     position: { x: 1, y: 0, z: 0 },
     velocity: { x: 0, y: 0, z: 0 },
-    reference: { solarSystemId: 'sol', referenceKind: 'barycentric', referenceBodyId: null, distanceUnit: 'km', velocityUnit: 'km/s', epochMs: 1000000 }
+    reference: {
+      solarSystemId: 'sol',
+      referenceKind: 'barycentric',
+      referenceBodyId: null,
+      distanceUnit: 'km',
+      velocityUnit: 'km/s',
+      epochMs: 1000000,
+    },
   };
 
   seedItems(context, [
     createDeployedItem({ id: 'item-drone', itemType: 'expendable-dart-drone', kinematics }),
-    createDeployedItem({ id: 'item-shield', itemType: 'shield-module', kinematics })
+    createDeployedItem({ id: 'item-shield', itemType: 'shield-module', kinematics }),
   ]);
 
   const handler = new ItemListByLocationMessageHandler(context);
@@ -167,7 +197,7 @@ test('ItemListByLocationMessageHandler filters by itemType when provided', async
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
     distanceKm: 5,
-    itemType: 'expendable-dart-drone'
+    itemType: 'expendable-dart-drone',
   });
 
   assert.equal(response.success, true);
@@ -187,9 +217,16 @@ test('ItemListByLocationMessageHandler excludes items from other solar systems',
       kinematics: {
         position: { x: 1, y: 0, z: 0 },
         velocity: { x: 0, y: 0, z: 0 },
-        reference: { solarSystemId: 'alt-system', referenceKind: 'barycentric', referenceBodyId: null, distanceUnit: 'km', velocityUnit: 'km/s', epochMs: 1000000 }
-      }
-    })
+        reference: {
+          solarSystemId: 'alt-system',
+          referenceKind: 'barycentric',
+          referenceBodyId: null,
+          distanceUnit: 'km',
+          velocityUnit: 'km/s',
+          epochMs: 1000000,
+        },
+      },
+    }),
   ]);
 
   const handler = new ItemListByLocationMessageHandler(context);
@@ -200,7 +237,7 @@ test('ItemListByLocationMessageHandler excludes items from other solar systems',
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 100
+    distanceKm: 100,
   });
 
   assert.equal(response.success, true);
@@ -213,9 +250,7 @@ test('ItemListByLocationMessageHandler excludes items without kinematics', async
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
 
-  seedItems(context, [
-    createDeployedItem({ id: 'item-no-kinematics', kinematics: null })
-  ]);
+  seedItems(context, [createDeployedItem({ id: 'item-no-kinematics', kinematics: null })]);
 
   const handler = new ItemListByLocationMessageHandler(context);
   const socket = createMockSocket();
@@ -225,7 +260,7 @@ test('ItemListByLocationMessageHandler excludes items without kinematics', async
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 100
+    distanceKm: 100,
   });
 
   assert.equal(response.success, true);
@@ -245,7 +280,7 @@ test('ItemListByLocationMessageHandler validates required inputs', async () => {
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0 },
-    distanceKm: -1
+    distanceKm: -1,
   });
 
   assert.equal(response.success, false);
@@ -270,7 +305,7 @@ test('ItemListByLocationMessageHandler rejects invalid limit', async () => {
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
     distanceKm: 10,
-    limit: -5
+    limit: -5,
   });
 
   assert.equal(response.success, false);
@@ -291,7 +326,7 @@ test('ItemListByLocationMessageHandler emits invalid session before query', asyn
     sessionKey: 'wrong-session',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 10
+    distanceKm: 10,
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -314,16 +349,16 @@ test('ItemListByLocationMessageHandler merges cache results when DB query return
           referenceBodyId: null,
           distanceUnit: 'km',
           velocityUnit: 'km/s',
-          epochMs: 1000000
-        }
-      }
-    })
+          epochMs: 1000000,
+        },
+      },
+    }),
   ]);
 
   context.databaseService = {
     async findItemsNearPosition() {
       return [];
-    }
+    },
   };
 
   const handler = new ItemListByLocationMessageHandler(context);
@@ -334,7 +369,7 @@ test('ItemListByLocationMessageHandler merges cache results when DB query return
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 10
+    distanceKm: 10,
   });
 
   assert.equal(response.success, true);

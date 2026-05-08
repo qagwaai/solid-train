@@ -6,7 +6,7 @@
 
 _**User (2026-04-23 14:42:38Z)**_
 
-add a new request response message used in our socket service to upsert a celestial body as defined at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/celestial-body-upsert.ts and at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/celestial-body-location.ts and at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/asteroid-kinematics.ts.  A celestial body will be an object that will reside in a solar system, and have kinematics, composition (material), and have unique identifiers.  This request will be sent after a successful scan.  it will include created and updated dates as per our standard, but also a character createdBy id.  it will not be associated with a player.  A celestial body will have a Solar System reference for ease of filtering, and we will assume that the Sol solar system is the parent reference for the moment.  for the mongo implementation, do not store this under namespace players, but under namespace cb.  what other questions do you have before implementing?
+add a new request response message used in our socket service to upsert a celestial body as defined at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/celestial-body-upsert.ts and at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/celestial-body-location.ts and at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/asteroid-kinematics.ts. A celestial body will be an object that will reside in a solar system, and have kinematics, composition (material), and have unique identifiers. This request will be sent after a successful scan. it will include created and updated dates as per our standard, but also a character createdBy id. it will not be associated with a player. A celestial body will have a Solar System reference for ease of filtering, and we will assume that the Sol solar system is the parent reference for the moment. for the mongo implementation, do not store this under namespace players, but under namespace cb. what other questions do you have before implementing?
 
 ---
 
@@ -24,7 +24,7 @@ I will attempt to answer your questions with the known items that we have at the
 
 _**Agent (copilot/auto)**_
 
-Proceed with your answers in the same numbering and 
+Proceed with your answers in the same numbering and
 
 ---
 
@@ -103,13 +103,13 @@ I have enough to implement: this will be a player-scoped, session-validated `cel
 
 _**User (2026-04-23 15:40:18Z)**_
 
-update request response contract to support update drone kinematics and location that will be received from client - https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/drone-list.ts 
+update request response contract to support update drone kinematics and location that will be received from client - https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/drone-list.ts
 
 ---
 
 _**Agent (copilot/auto)**_
 
-I’m mapping the current 
+I’m mapping the current
 
 ---
 
@@ -121,4 +121,4 @@ the request response will come in from drone-upsert
 
 _**Agent (copilot/auto)**_
 
-That clarification helps: I’ll move update semantics off 
+That clarification helps: I’ll move update semantics off

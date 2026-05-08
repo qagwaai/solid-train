@@ -3,15 +3,13 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  CharacterDeleteMessageHandler
+  CharacterDeleteMessageHandler,
 } = require('../src/handlers/character-delete-message-handler');
-const {
-  CHARACTER_DELETE_RESPONSE_EVENT
-} = require('../src/model/character-delete');
+const { CHARACTER_DELETE_RESPONSE_EVENT } = require('../src/model/character-delete');
 const {
   createMockSocket,
   createTestContext,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 test('CharacterDeleteMessageHandler removes an existing character', async () => {
@@ -19,7 +17,7 @@ test('CharacterDeleteMessageHandler removes an existing character', async () => 
   seedPlayer(context, {
     playerName: 'DeletePilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'TempCharacter' }]
+    characters: [{ id: 'character-1', characterName: 'TempCharacter' }],
   });
   const handler = new CharacterDeleteMessageHandler(context);
   const socket = createMockSocket();
@@ -27,14 +25,14 @@ test('CharacterDeleteMessageHandler removes an existing character', async () => 
   const response = await handler.handle(socket, {
     playerName: 'deletepilot',
     sessionKey: 'session-1',
-    characterId: 'character-1'
+    characterId: 'character-1',
   });
 
   assert.deepEqual(response, {
     success: true,
     message: 'Character deleted successfully',
     playerName: 'DeletePilot',
-    characterId: 'character-1'
+    characterId: 'character-1',
   });
   assert.equal(socket.events[0].eventName, CHARACTER_DELETE_RESPONSE_EVENT);
   assert.deepEqual(context.getCharacters('deletepilot'), []);
@@ -45,7 +43,7 @@ test('CharacterDeleteMessageHandler preserves state when character is missing', 
   seedPlayer(context, {
     playerName: 'EdgePilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'ExistingCharacter' }]
+    characters: [{ id: 'character-1', characterName: 'ExistingCharacter' }],
   });
   const handler = new CharacterDeleteMessageHandler(context);
   const socket = createMockSocket();
@@ -53,18 +51,18 @@ test('CharacterDeleteMessageHandler preserves state when character is missing', 
   const response = await handler.handle(socket, {
     playerName: 'EdgePilot',
     sessionKey: 'session-1',
-    characterId: 'missing-character-id'
+    characterId: 'missing-character-id',
   });
 
   assert.deepEqual(response, {
     success: false,
     message: 'Character is not in player list',
     playerName: 'EdgePilot',
-    characterId: 'missing-character-id'
+    characterId: 'missing-character-id',
   });
   assert.equal(socket.events[0].eventName, CHARACTER_DELETE_RESPONSE_EVENT);
   assert.deepEqual(context.getCharacters('edgepilot'), [
-    { id: 'character-1', characterName: 'ExistingCharacter' }
+    { id: 'character-1', characterName: 'ExistingCharacter' },
   ]);
 });
 
@@ -73,7 +71,7 @@ test('CharacterDeleteMessageHandler detaches deleted character from game', async
   seedPlayer(context, {
     playerName: 'DeletePilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'TempCharacter' }]
+    characters: [{ id: 'character-1', characterName: 'TempCharacter' }],
   });
 
   const joinedCharacter = context.getCharacters('deletepilot')[0];
@@ -84,13 +82,13 @@ test('CharacterDeleteMessageHandler detaches deleted character from game', async
   const response = await handler.handle(socket, {
     playerName: 'DeletePilot',
     sessionKey: 'session-1',
-    characterId: 'character-1'
+    characterId: 'character-1',
   });
 
   assert.equal(response.success, true);
   const participant = context.game.getParticipant({
     normalizedPlayerName: 'deletepilot',
-    characterId: 'character-1'
+    characterId: 'character-1',
   });
   assert.equal(participant, null);
 });

@@ -7,10 +7,11 @@ const mongoose = require('mongoose');
  */
 class MongoConnection {
   constructor(options = {}) {
-    this.mongoUri = options.mongoUri || process.env.MONGODB_URI || 'mongodb://localhost:27017/solid-train';
+    this.mongoUri =
+      options.mongoUri || process.env.MONGODB_URI || 'mongodb://localhost:27017/solid-train';
     this.options = options.mongooseOptions || {
       connectTimeoutMS: 10000,
-      serverSelectionTimeoutMS: 5000
+      serverSelectionTimeoutMS: 5000,
     };
     this.isConnected = false;
   }
@@ -64,5 +65,5 @@ class MongoConnection {
 }
 
 module.exports = {
-  MongoConnection
+  MongoConnection,
 };

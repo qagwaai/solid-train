@@ -4,12 +4,9 @@ const {
   ASTEROID_MATERIAL_RARITY_VALUES,
   CELESTIAL_BODY_STATE_VALUES,
   CELESTIAL_BODY_UPSERT_RESPONSE_EVENT,
-  DEFAULT_SOLAR_SYSTEM_ID
+  DEFAULT_SOLAR_SYSTEM_ID,
 } = require('../model/celestial-body-upsert');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CelestialBodyUpsertMessageHandler {
   constructor(context) {
@@ -21,26 +18,32 @@ class CelestialBodyUpsertMessageHandler {
   }
 
   isTriple(value) {
-    return Boolean(value)
-      && this.isFiniteNumber(value.x)
-      && this.isFiniteNumber(value.y)
-      && this.isFiniteNumber(value.z);
+    return (
+      Boolean(value) &&
+      this.isFiniteNumber(value.x) &&
+      this.isFiniteNumber(value.y) &&
+      this.isFiniteNumber(value.z)
+    );
   }
 
   hasValidSpatial(spatial) {
-    return Boolean(spatial)
-      && Boolean(this.context.toNonEmptyString(spatial.solarSystemId))
-      && spatial.frame === 'barycentric'
-      && this.isTriple(spatial.positionKm)
-      && this.isFiniteNumber(spatial.epochMs);
+    return (
+      Boolean(spatial) &&
+      Boolean(this.context.toNonEmptyString(spatial.solarSystemId)) &&
+      spatial.frame === 'barycentric' &&
+      this.isTriple(spatial.positionKm) &&
+      this.isFiniteNumber(spatial.epochMs)
+    );
   }
 
   hasValidObservability(observability) {
     const validVisibility = ['visible', 'not-visible', 'cloaked'];
     const validScanState = ['unscanned', 'scanned'];
-    return Boolean(observability)
-      && validVisibility.includes(observability.visibility)
-      && validScanState.includes(observability.scanState);
+    return (
+      Boolean(observability) &&
+      validVisibility.includes(observability.visibility) &&
+      validScanState.includes(observability.scanState)
+    );
   }
 
   hasValidComposition(composition) {
@@ -52,16 +55,16 @@ class CelestialBodyUpsertMessageHandler {
     const material = this.context.toNonEmptyString(composition?.material);
     const textureColor = this.context.toNonEmptyString(composition?.textureColor);
 
-    return ASTEROID_MATERIAL_RARITY_VALUES.includes(rarity)
-      && Boolean(material)
-      && Boolean(textureColor);
+    return (
+      ASTEROID_MATERIAL_RARITY_VALUES.includes(rarity) && Boolean(material) && Boolean(textureColor)
+    );
   }
 
   toSafeIdPart(value) {
     return this.context
       .toNonEmptyString(value)
       .toLowerCase()
-      .replace(/[^a-z0-9\-]/g, '-');
+      .replace(/[^a-z0-9-]/g, '-');
   }
 
   createDeterministicCelestialBodyId(celestialBody) {
@@ -82,36 +85,43 @@ class CelestialBodyUpsertMessageHandler {
       return 'active';
     }
 
-    return CELESTIAL_BODY_STATE_VALUES.includes(normalizedState)
-      ? normalizedState
-      : '';
+    return CELESTIAL_BODY_STATE_VALUES.includes(normalizedState) ? normalizedState : '';
   }
 
   normalizeCelestialBody(celestialBody) {
     const normalizedId = this.context.toNonEmptyString(celestialBody?.id);
     const rawSpatial = celestialBody?.spatial;
-    const spatial = rawSpatial ? {
-      solarSystemId: DEFAULT_SOLAR_SYSTEM_ID,
-      frame: 'barycentric',
-      positionKm: rawSpatial.positionKm ? { ...rawSpatial.positionKm } : null,
-      epochMs: rawSpatial.epochMs
-    } : null;
+    const spatial = rawSpatial
+      ? {
+          solarSystemId: DEFAULT_SOLAR_SYSTEM_ID,
+          frame: 'barycentric',
+          positionKm: rawSpatial.positionKm ? { ...rawSpatial.positionKm } : null,
+          epochMs: rawSpatial.epochMs,
+        }
+      : null;
     const rawMotion = celestialBody?.motion;
-    const motion = rawMotion ? {
-      velocityKmPerSec: rawMotion.velocityKmPerSec ? { ...rawMotion.velocityKmPerSec } : null,
-      angularVelocityRadPerSec: rawMotion.angularVelocityRadPerSec
-        ? { ...rawMotion.angularVelocityRadPerSec } : null
-    } : null;
+    const motion = rawMotion
+      ? {
+          velocityKmPerSec: rawMotion.velocityKmPerSec ? { ...rawMotion.velocityKmPerSec } : null,
+          angularVelocityRadPerSec: rawMotion.angularVelocityRadPerSec
+            ? { ...rawMotion.angularVelocityRadPerSec }
+            : null,
+        }
+      : null;
     const rawPhysical = celestialBody?.physical;
-    const physical = rawPhysical ? {
-      estimatedMassKg: rawPhysical.estimatedMassKg ?? null,
-      estimatedDiameterM: rawPhysical.estimatedDiameterM ?? null
-    } : null;
+    const physical = rawPhysical
+      ? {
+          estimatedMassKg: rawPhysical.estimatedMassKg ?? null,
+          estimatedDiameterM: rawPhysical.estimatedDiameterM ?? null,
+        }
+      : null;
     const rawObservability = celestialBody?.observability;
-    const observability = rawObservability ? {
-      visibility: rawObservability.visibility,
-      scanState: rawObservability.scanState
-    } : { visibility: 'visible', scanState: 'scanned' };
+    const observability = rawObservability
+      ? {
+          visibility: rawObservability.visibility,
+          scanState: rawObservability.scanState,
+        }
+      : { visibility: 'visible', scanState: 'scanned' };
 
     return {
       id: normalizedId || this.createDeterministicCelestialBodyId(celestialBody),
@@ -126,12 +136,14 @@ class CelestialBodyUpsertMessageHandler {
       motion,
       physical,
       observability,
-      composition: celestialBody?.composition ? {
-        rarity: this.context.toNonEmptyString(celestialBody.composition.rarity),
-        material: this.context.toNonEmptyString(celestialBody.composition.material),
-        textureColor: this.context.toNonEmptyString(celestialBody.composition.textureColor)
-      } : null,
-      state: this.normalizeState(celestialBody?.state)
+      composition: celestialBody?.composition
+        ? {
+            rarity: this.context.toNonEmptyString(celestialBody.composition.rarity),
+            material: this.context.toNonEmptyString(celestialBody.composition.material),
+            textureColor: this.context.toNonEmptyString(celestialBody.composition.textureColor),
+          }
+        : null,
+      state: this.normalizeState(celestialBody?.state),
     };
   }
 
@@ -145,45 +157,48 @@ class CelestialBodyUpsertMessageHandler {
     if (sourceCelestialBody.location !== undefined) {
       return {
         success: false,
-        message: "CelestialBodyUpsert: legacy field 'location' is not supported. Use 'spatial' instead.",
-        playerName
+        message:
+          "CelestialBodyUpsert: legacy field 'location' is not supported. Use 'spatial' instead.",
+        playerName,
       };
     }
 
     if (sourceCelestialBody.kinematics !== undefined) {
       return {
         success: false,
-        message: "CelestialBodyUpsert: legacy field 'kinematics' is not supported. Use 'motion' and/or 'physical' instead.",
-        playerName
+        message:
+          "CelestialBodyUpsert: legacy field 'kinematics' is not supported. Use 'motion' and/or 'physical' instead.",
+        playerName,
       };
     }
 
     if (sourceCelestialBody.solarSystemId !== undefined) {
       return {
         success: false,
-        message: "CelestialBodyUpsert: legacy field 'solarSystemId' is not supported. Use 'spatial.solarSystemId' instead.",
-        playerName
+        message:
+          "CelestialBodyUpsert: legacy field 'solarSystemId' is not supported. Use 'spatial.solarSystemId' instead.",
+        playerName,
       };
     }
 
     if (
-      !playerName
-      || !celestialBody.id
-      || !celestialBody.catalogId
-      || !celestialBody.sourceScanId
-      || !celestialBody.createdByCharacterId
-      || !celestialBody.createdAt
-      || !celestialBody.updatedAt
-      || !this.hasValidSpatial(celestialBody.spatial)
-      || !this.hasValidObservability(celestialBody.observability)
-      || !hasValidState
-      || (requiresComposition && !this.hasValidComposition(celestialBody.composition))
-      || (celestialBody.composition && !this.hasValidComposition(celestialBody.composition))
+      !playerName ||
+      !celestialBody.id ||
+      !celestialBody.catalogId ||
+      !celestialBody.sourceScanId ||
+      !celestialBody.createdByCharacterId ||
+      !celestialBody.createdAt ||
+      !celestialBody.updatedAt ||
+      !this.hasValidSpatial(celestialBody.spatial) ||
+      !this.hasValidObservability(celestialBody.observability) ||
+      !hasValidState ||
+      (requiresComposition && !this.hasValidComposition(celestialBody.composition)) ||
+      (celestialBody.composition && !this.hasValidComposition(celestialBody.composition))
     ) {
       return {
         success: false,
         message: 'playerName and a complete canonical celestialBody payload are required',
-        playerName
+        playerName,
       };
     }
 
@@ -192,7 +207,7 @@ class CelestialBodyUpsertMessageHandler {
       return {
         success: false,
         message: 'Player is not registered',
-        playerName
+        playerName,
       };
     }
 
@@ -201,7 +216,7 @@ class CelestialBodyUpsertMessageHandler {
       return {
         success: false,
         message: 'Character is not in player list',
-        playerName: player.playerName
+        playerName: player.playerName,
       };
     }
 
@@ -209,14 +224,14 @@ class CelestialBodyUpsertMessageHandler {
       success: true,
       message: 'Celestial body recorded successfully',
       playerName: player.playerName,
-      celestialBody
+      celestialBody,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('celestial-body-upsert-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -246,5 +261,5 @@ class CelestialBodyUpsertMessageHandler {
 }
 
 module.exports = {
-  CelestialBodyUpsertMessageHandler
+  CelestialBodyUpsertMessageHandler,
 };

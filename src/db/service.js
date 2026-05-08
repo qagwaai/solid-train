@@ -43,8 +43,8 @@ class DatabaseService {
     return {
       $or: [
         { playerNameNormalized: normalized },
-        { playerName: new RegExp(`^${this.escapeRegExp(normalized)}$`, 'i') }
-      ]
+        { playerName: new RegExp(`^${this.escapeRegExp(normalized)}$`, 'i') },
+      ],
     };
   }
 
@@ -53,10 +53,12 @@ class DatabaseService {
   }
 
   isTriple(value) {
-    return Boolean(value)
-      && this.isFiniteNumber(value.x)
-      && this.isFiniteNumber(value.y)
-      && this.isFiniteNumber(value.z);
+    return (
+      Boolean(value) &&
+      this.isFiniteNumber(value.x) &&
+      this.isFiniteNumber(value.y) &&
+      this.isFiniteNumber(value.z)
+    );
   }
 
   normalizeCharacterShipForPersistence(ship) {
@@ -71,7 +73,7 @@ class DatabaseService {
 
     return {
       ...ship,
-      shipName
+      shipName,
     };
   }
 
@@ -86,7 +88,7 @@ class DatabaseService {
 
     return {
       ...updates,
-      ships: updates.ships.map((ship) => this.normalizeCharacterShipForPersistence(ship))
+      ships: updates.ships.map((ship) => this.normalizeCharacterShipForPersistence(ship)),
     };
   }
 
@@ -95,7 +97,7 @@ class DatabaseService {
     const dy = toPositionKm.y - fromPositionKm.y;
     const dz = toPositionKm.z - fromPositionKm.z;
 
-    return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+    return Math.sqrt(dx * dx + dy * dy + dz * dz);
   }
 
   /**
@@ -137,8 +139,8 @@ class DatabaseService {
 
   /**
    * Add a character to a player
-    * @param {string} playerName
-    * @param {Object} characterData - { id, characterName, createdAt, ships, missions }
+   * @param {string} playerName
+   * @param {Object} characterData - { id, characterName, createdAt, ships, missions }
    * @returns {Promise<Object|null>}
    */
   async addCharacter(playerName, characterData) {
@@ -241,7 +243,13 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async addOrUpdateMission(playerName, characterId, missionData) {
-    return playerCharacterService.addOrUpdateMission(this, Player, playerName, characterId, missionData);
+    return playerCharacterService.addOrUpdateMission(
+      this,
+      Player,
+      playerName,
+      characterId,
+      missionData
+    );
   }
 
   /**
@@ -343,7 +351,11 @@ class DatabaseService {
   }
 
   async getSolarSystemMarketSeedState(solarSystemId) {
-    return marketSeedStateService.getSolarSystemMarketSeedState(this, GameStateDocument, solarSystemId);
+    return marketSeedStateService.getSolarSystemMarketSeedState(
+      this,
+      GameStateDocument,
+      solarSystemId
+    );
   }
 
   async setSolarSystemMarketSeedState(solarSystemId, seedVersion, seededAt) {
@@ -382,5 +394,5 @@ class DatabaseService {
 }
 
 module.exports = {
-  DatabaseService
+  DatabaseService,
 };

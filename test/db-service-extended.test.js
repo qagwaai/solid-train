@@ -21,7 +21,7 @@ test('DatabaseService registerPlayer creates and returns normalized player objec
       playerName: '  OrbitFox  ',
       email: 'orbit@example.com',
       password: 'secret',
-      preferredLocale: 'de'
+      preferredLocale: 'de',
     });
 
     assert.equal(created.playerId, 'p-1');
@@ -47,7 +47,7 @@ test('DatabaseService registerPlayer rejects duplicate player', async () => {
         playerId: 'p-2',
         playerName: 'OrbitFox',
         email: 'orbit@example.com',
-        password: 'secret'
+        password: 'secret',
       }),
       /Player already exists/
     );
@@ -69,9 +69,9 @@ test('DatabaseService updateCharacter covers no-player, no-character, and succes
     toObject() {
       return {
         characters: this.characters,
-        updatedAt: this.updatedAt
+        updatedAt: this.updatedAt,
       };
-    }
+    },
   };
 
   let mode = 'missing-player';
@@ -86,7 +86,7 @@ test('DatabaseService updateCharacter covers no-player, no-character, and succes
         async save() {},
         toObject() {
           return { characters: this.characters };
-        }
+        },
       };
     }
 
@@ -127,14 +127,14 @@ test('DatabaseService updateCharacter maps canonical ship name to shipName befor
     async save() {},
     toObject() {
       return { characters: this.characters };
-    }
+    },
   };
 
   Player.findOne = async () => player;
 
   try {
     const updated = await service.updateCharacter('pilot', 'c-1', {
-      ships: [{ id: 's-1', name: 'Scout Ship' }]
+      ships: [{ id: 's-1', name: 'Scout Ship' }],
     });
 
     assert.equal(updated.characters[0].ships[0].name, 'Scout Ship');
@@ -153,7 +153,7 @@ test('DatabaseService addShip initializes ship list and appends data', async () 
     async save() {},
     toObject() {
       return { characters: this.characters };
-    }
+    },
   };
 
   Player.findOne = async () => player;
@@ -180,7 +180,7 @@ test('DatabaseService mission methods add, replace, and list missions', async ()
     async save() {},
     toObject() {
       return { characters: this.characters };
-    }
+    },
   };
 
   Player.findOne = async () => player;
@@ -189,7 +189,7 @@ test('DatabaseService mission methods add, replace, and list missions', async ()
     const added = await service.addOrUpdateMission('pilot', 'c-1', {
       missionId: 'm-1',
       status: 'available',
-      updatedAt: '2026-05-01T00:00:00.000Z'
+      updatedAt: '2026-05-01T00:00:00.000Z',
     });
     assert.equal(added.characters[0].missions.length, 1);
     assert.equal(added.characters[0].missions[0].status, 'available');
@@ -197,7 +197,7 @@ test('DatabaseService mission methods add, replace, and list missions', async ()
     const replaced = await service.addOrUpdateMission('pilot', 'c-1', {
       missionId: 'm-1',
       status: 'accepted',
-      updatedAt: '2026-05-02T00:00:00.000Z'
+      updatedAt: '2026-05-02T00:00:00.000Z',
     });
     assert.equal(replaced.characters[0].missions.length, 1);
     assert.equal(replaced.characters[0].missions[0].status, 'accepted');
@@ -235,14 +235,14 @@ test('DatabaseService celestial upsert uses id query and returns document', asyn
     return {
       toObject() {
         return { ...data, persisted: true };
-      }
+      },
     };
   };
 
   try {
     const result = await service.addOrUpdateCelestialBody({
       id: 'cb-1',
-      solarSystemId: 'sol'
+      solarSystemId: 'sol',
     });
 
     assert.deepEqual(capturedQuery, { id: 'cb-1' });

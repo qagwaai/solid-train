@@ -28,7 +28,7 @@ risks are concentrated in **five themes**:
    which [MESSAGE_CONTRACT.md](MESSAGE_CONTRACT.md) schedules for removal on
    **2026-06-30** (~7 weeks from now).
 4. **Misnamed / orphan test files** — `mission-add-message-handler.test.js`
-  actually tests `MissionUpsertMessageHandler`; `context-distance-and-routing.test.js`
+   actually tests `MissionUpsertMessageHandler`; `context-distance-and-routing.test.js`
    actually tests `calculateDistanceAu` and gate-routing BFS;
    `MissionAddMessageHandler` is **dead code** (no wiring in `src/server.js`,
    no test imports it).
@@ -46,19 +46,19 @@ all of these fixable without a re-architecture.
 
 ### Worst offenders (line %)
 
-| File | Line % | Branch % | Notes |
-|---|---|---|---|
-| [test-support/message-handler-test-helpers.js](test-support/message-handler-test-helpers.js) | **42.57** | 73.68 | Spatial factory helpers exist but tests bypass them |
-| [src/model/solar-system-gate-seed.js](src/model/solar-system-gate-seed.js) | **25.58** | 100 | Gate seed code largely untested |
-| [src/handlers/market-quote-message-handler.js](src/handlers/market-quote-message-handler.js) | 78.40 | **47.37** | Money-flow: most branches untested |
-| [src/handlers/ship-upsert-message-handler.js](src/handlers/ship-upsert-message-handler.js) | 79.88 | 73.91 | Spatial validation paths thin |
-| [src/handlers/character-list-message-handler.js](src/handlers/character-list-message-handler.js) | 80.00 | 77.78 | |
-| [src/handlers/message-handler-context.js](src/handlers/message-handler-context.js) | 81.00 | **66.98** | Central business logic, weakest branch coverage in core |
-| [src/handlers/market-buy-message-handler.js](src/handlers/market-buy-message-handler.js) | 81.65 | **36.84** | Money-flow: lowest branch coverage in repo |
-| [src/handlers/market-sell-message-handler.js](src/handlers/market-sell-message-handler.js) | 82.24 | **38.89** | Money-flow: same |
-| [src/handlers/launch-item-message-handler.js](src/handlers/launch-item-message-handler.js) | 85.50 | **54.55** | Drone launch + body destruction branches |
-| [src/db/service.js](src/db/service.js) | 84.07 | **64.67** | Mongoose error-path branches uncovered |
-| [src/server.js](src/server.js) | 88.47 | 83.33 | **funcs 52.54%** — half of socket handlers never exercised |
+| File                                                                                             | Line %    | Branch %  | Notes                                                      |
+| ------------------------------------------------------------------------------------------------ | --------- | --------- | ---------------------------------------------------------- |
+| [test-support/message-handler-test-helpers.js](test-support/message-handler-test-helpers.js)     | **42.57** | 73.68     | Spatial factory helpers exist but tests bypass them        |
+| [src/model/solar-system-gate-seed.js](src/model/solar-system-gate-seed.js)                       | **25.58** | 100       | Gate seed code largely untested                            |
+| [src/handlers/market-quote-message-handler.js](src/handlers/market-quote-message-handler.js)     | 78.40     | **47.37** | Money-flow: most branches untested                         |
+| [src/handlers/ship-upsert-message-handler.js](src/handlers/ship-upsert-message-handler.js)       | 79.88     | 73.91     | Spatial validation paths thin                              |
+| [src/handlers/character-list-message-handler.js](src/handlers/character-list-message-handler.js) | 80.00     | 77.78     |                                                            |
+| [src/handlers/message-handler-context.js](src/handlers/message-handler-context.js)               | 81.00     | **66.98** | Central business logic, weakest branch coverage in core    |
+| [src/handlers/market-buy-message-handler.js](src/handlers/market-buy-message-handler.js)         | 81.65     | **36.84** | Money-flow: lowest branch coverage in repo                 |
+| [src/handlers/market-sell-message-handler.js](src/handlers/market-sell-message-handler.js)       | 82.24     | **38.89** | Money-flow: same                                           |
+| [src/handlers/launch-item-message-handler.js](src/handlers/launch-item-message-handler.js)       | 85.50     | **54.55** | Drone launch + body destruction branches                   |
+| [src/db/service.js](src/db/service.js)                                                           | 84.07     | **64.67** | Mongoose error-path branches uncovered                     |
+| [src/server.js](src/server.js)                                                                   | 88.47     | 83.33     | **funcs 52.54%** — half of socket handlers never exercised |
 
 Models (`src/model/*.js`) are at or near 100% — they're pure constants/typedefs.
 
@@ -142,6 +142,7 @@ provides a clean `createMongoTestHarness()` (memory server + `clearDatabase()` +
 ([test/market-list-by-location.mongo.integration.test.js](test/market-list-by-location.mongo.integration.test.js)).
 
 No real-Mongo round-trip exists for:
+
 - Player register → process restart simulation → login still works
 - Character/ship/inventory persistence
 - Item upsert/launch/destroy lifecycle
@@ -169,7 +170,7 @@ self-locating.
 ### 3.2 Fixtures violate documented invariants
 
 [test/market-buy-sell-message-handler.test.js:38](test/market-buy-sell-message-handler.test.js#L38)
-seeds a character with both an explicit `creditLedger` *and* an explicit `credits`
+seeds a character with both an explicit `creditLedger` _and_ an explicit `credits`
 property. Per [CODEBASE.md](CODEBASE.md) invariant #2 and
 [MESSAGE_CONTRACT.md](MESSAGE_CONTRACT.md), `credits` must always be recomputed
 from the ledger and never stored. The test passes because `normalizeCharacter`
@@ -183,14 +184,14 @@ mislead anyone copying it.
 The negative-path tests for buy/sell omit the `requestId` from the input entirely,
 so the contract behavior of "echo requestId on failure" is uncovered.
 
-### 3.4 No assertion that legacy-shape inputs are *rejected*
+### 3.4 No assertion that legacy-shape inputs are _rejected_
 
 [MESSAGE_CONTRACT.md](MESSAGE_CONTRACT.md) §"Acceptance Test Matrix" calls for a
 **negative test** that legacy `location` / `kinematics` / root `solarSystemId`
 celestial-body payloads are rejected with explicit replacement messages. In
 [test/celestial-body-upsert-message-handler.test.js](test/celestial-body-upsert-message-handler.test.js)
 the tests at lines 178, 203, 230 (which set legacy fields) appear to verify
-*acceptance* via the backward-compat reader, not rejection. After the
+_acceptance_ via the backward-compat reader, not rejection. After the
 2026-06-30 hard-cut date these tests will need to be re-purposed as rejection tests.
 
 ### 3.5 Single-character `port` reuse risk
@@ -260,7 +261,7 @@ remove ~30 lines of duplication and centralize the credit-ledger shape.
 ### 5.2 Isolation gaps
 
 - The four IDs in the `createTestContext` queue (§4.2) couples test authors to
-  knowing the *order* in which the context will issue IDs. Tests expecting
+  knowing the _order_ in which the context will issue IDs. Tests expecting
   `character-1` will silently start expecting `generated-0` if a prior call
   drains the queue.
 - Mongo-backed test ([test/market-list-by-location.mongo.integration.test.js](test/market-list-by-location.mongo.integration.test.js))
@@ -273,14 +274,15 @@ remove ~30 lines of duplication and centralize the credit-ledger shape.
 
 ## 6. Integration vs Unit Balance
 
-| Tier | Files | Notes |
-|---|---|---|
-| Pure unit (handler + context, in-memory) | ~28 | Fast, deterministic, dominant tier |
-| Real Socket.IO end-to-end (no DB) | 1 (`server.test.js`) | Wide but covers ~half of events |
-| Real Mongo (memory-server) | 1 (`market-list-by-location.mongo.integration.test.js`) | Excellent template, only used once |
-| Real Socket.IO + real Mongo | 0 | **Gap** — the production wiring is never exercised |
+| Tier                                     | Files                                                   | Notes                                              |
+| ---------------------------------------- | ------------------------------------------------------- | -------------------------------------------------- |
+| Pure unit (handler + context, in-memory) | ~28                                                     | Fast, deterministic, dominant tier                 |
+| Real Socket.IO end-to-end (no DB)        | 1 (`server.test.js`)                                    | Wide but covers ~half of events                    |
+| Real Mongo (memory-server)               | 1 (`market-list-by-location.mongo.integration.test.js`) | Excellent template, only used once                 |
+| Real Socket.IO + real Mongo              | 0                                                       | **Gap** — the production wiring is never exercised |
 
 The cheapest high-value wins are:
+
 1. Adopt the existing `createMongoTestHarness` for at least one round-trip per
    collection (players, items, cb, jump_gates).
 2. Add a single Socket.IO + Mongo "smoke" test that registers, logs in,
@@ -296,15 +298,15 @@ The cheapest high-value wins are:
 Cross-checking [MESSAGE_CONTRACT.md](MESSAGE_CONTRACT.md) §"Acceptance Test Matrix"
 against tests:
 
-| Matrix item | Status |
-|---|---|
-| `ship-list-response` includes `ships[].name` (not `shipName`) | Covered (server.test.js + ship-list test) |
-| `celestial-body-list-response` uses `celestialBodies` (not `bodies`) | Covered |
-| Canonical `spatial` shape on responses | Partial — covered for happy paths, **negative** assertions thin |
+| Matrix item                                                               | Status                                                            |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `ship-list-response` includes `ships[].name` (not `shipName`)             | Covered (server.test.js + ship-list test)                         |
+| `celestial-body-list-response` uses `celestialBodies` (not `bodies`)      | Covered                                                           |
+| Canonical `spatial` shape on responses                                    | Partial — covered for happy paths, **negative** assertions thin   |
 | Legacy `location`/`kinematics`/root `solarSystemId` payload **rejection** | **Not covered** — current tests verify backward-compat acceptance |
-| Market distance unit `distanceAu` (not `distanceKm`) | Covered |
-| Market `route` descriptor with `kind` | Covered (integration test) |
-| Ship `driveProfile` present when configured / absent when not | Need to verify (no obvious test name match) |
+| Market distance unit `distanceAu` (not `distanceKm`)                      | Covered                                                           |
+| Market `route` descriptor with `kind`                                     | Covered (integration test)                                        |
+| Ship `driveProfile` present when configured / absent when not             | Need to verify (no obvious test name match)                       |
 
 The biggest contract gap is the **legacy-rejection** matrix item. The contract
 mandates an explicit replacement message and a rejection at the request boundary
@@ -331,7 +333,7 @@ inbound `ship-upsert-request` or `celestial-body-upsert-request` carrying a
 ## 8. Top Risks Ranked
 
 1. **Money-flow branch coverage** (market buy/sell/quote at 36–47% branch).
-   *Highest blast radius: silent regression debits the wrong amount or doesn't write the ledger.*
+   _Highest blast radius: silent regression debits the wrong amount or doesn't write the ledger._
 2. **Legacy-shape removal cliff (2026-06-30)** — many tests rely on backward-compat
    conversion that is scheduled to be removed. Without rejection tests in place,
    the cutover will silently degrade contract enforcement.

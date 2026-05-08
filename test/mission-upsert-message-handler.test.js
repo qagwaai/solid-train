@@ -2,20 +2,13 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  MissionUpsertMessageHandler
-} = require('../src/handlers/mission-upsert-message-handler');
-const {
-  MISSION_UPSERT_RESPONSE_EVENT
-} = require('../src/model/mission-upsert');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { MissionUpsertMessageHandler } = require('../src/handlers/mission-upsert-message-handler');
+const { MISSION_UPSERT_RESPONSE_EVENT } = require('../src/model/mission-upsert');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 function seedMissionPilot(context, missions = []) {
@@ -26,9 +19,9 @@ function seedMissionPilot(context, missions = []) {
       {
         id: 'character-1',
         characterName: 'RangerOne',
-        missions
-      }
-    ]
+        missions,
+      },
+    ],
   });
 }
 
@@ -44,7 +37,7 @@ test('MissionUpsertMessageHandler upserts mission progress to a character', asyn
     characterId: 'character-1',
     missionId: 'first-target',
     status: 'started',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
@@ -70,8 +63,8 @@ test('MissionUpsertMessageHandler updates existing mission (upsert)', async () =
       missionId: 'first-target',
       status: 'started',
       startedAt: '2026-04-01T00:00:00.000Z',
-      updatedAt: '2026-04-01T00:00:00.000Z'
-    }
+      updatedAt: '2026-04-01T00:00:00.000Z',
+    },
   ]);
 
   const handler = new MissionUpsertMessageHandler(context);
@@ -82,7 +75,7 @@ test('MissionUpsertMessageHandler updates existing mission (upsert)', async () =
     characterId: 'character-1',
     missionId: 'first-target',
     status: 'in-progress',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
@@ -91,9 +84,9 @@ test('MissionUpsertMessageHandler updates existing mission (upsert)', async () =
   assert.equal(response.mission.inProgressAt, '2026-04-17T00:00:00.000Z');
   assert.equal(response.mission.updatedAt, '2026-04-17T00:00:00.000Z');
 
-  const mission = context.getCharacters('missionpilot')[0].missions.find(
-    (entry) => entry.missionId === 'first-target'
-  );
+  const mission = context
+    .getCharacters('missionpilot')[0]
+    .missions.find((entry) => entry.missionId === 'first-target');
   assert.ok(mission);
   assert.equal(mission.status, 'in-progress');
   assert.equal(socket.events[0].eventName, MISSION_UPSERT_RESPONSE_EVENT);
@@ -110,7 +103,7 @@ test('MissionUpsertMessageHandler requires status field', async () => {
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'first-target',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
     // status omitted intentionally
   });
 
@@ -130,7 +123,7 @@ test('MissionUpsertMessageHandler buildResponse rejects unregistered player', ()
     characterId: 'character-1',
     missionId: 'first-target',
     status: 'available',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, false);
@@ -149,7 +142,7 @@ test('MissionUpsertMessageHandler rejects unknown character', async () => {
     characterId: 'no-such-character',
     missionId: 'first-target',
     status: 'available',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, false);
@@ -169,7 +162,7 @@ test('MissionUpsertMessageHandler emits invalid session before mutation', async 
     characterId: 'character-1',
     missionId: 'first-target',
     status: 'started',
-    sessionKey: 'wrong-session'
+    sessionKey: 'wrong-session',
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -179,8 +172,15 @@ test('MissionUpsertMessageHandler emits invalid session before mutation', async 
 
 test('MissionUpsertMessageHandler handles all canonical status values', async () => {
   const canonicalStatuses = [
-    'available', 'started', 'in-progress', 'failed',
-    'completed', 'locked', 'abandoned', 'paused', 'turned-in'
+    'available',
+    'started',
+    'in-progress',
+    'failed',
+    'completed',
+    'locked',
+    'abandoned',
+    'paused',
+    'turned-in',
   ];
 
   for (const status of canonicalStatuses) {
@@ -195,7 +195,7 @@ test('MissionUpsertMessageHandler handles all canonical status values', async ()
       characterId: 'character-1',
       missionId: 'm-01',
       status,
-      sessionKey: 'session-1'
+      sessionKey: 'session-1',
     });
 
     assert.equal(response.success, true, `Expected success for status "${status}"`);
@@ -215,7 +215,7 @@ test('MissionUpsertMessageHandler rejects unknown mission ids', async () => {
     characterId: 'character-1',
     missionId: 'not-in-catalog',
     status: 'available',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, false);
@@ -234,14 +234,14 @@ test('MissionUpsertMessageHandler seeds first-target asteroid field on mission s
     characterId: 'character-1',
     missionId: 'first-target',
     status: 'started',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
 
   const seededField = await context.getCelestialBodiesAsync({
     createdByCharacterId: 'character-1',
-    missionId: 'first-target'
+    missionId: 'first-target',
   });
 
   assert.equal(seededField.length, 10);
@@ -262,7 +262,7 @@ test('MissionUpsertMessageHandler does not duplicate first-target asteroid field
     characterId: 'character-1',
     missionId: 'first-target',
     status: 'started',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   await handler.handle(socket, {
@@ -270,12 +270,12 @@ test('MissionUpsertMessageHandler does not duplicate first-target asteroid field
     characterId: 'character-1',
     missionId: 'first-target',
     status: 'started',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   const seededField = await context.getCelestialBodiesAsync({
     createdByCharacterId: 'character-1',
-    missionId: 'first-target'
+    missionId: 'first-target',
   });
 
   assert.equal(seededField.length, 10);
@@ -292,14 +292,14 @@ test('MissionUpsertMessageHandler persists statusDetail exactly as sent', async 
     missionId: 'm-01',
     status: 'in-progress',
     statusDetail: '  Keep spacing exactly.  ',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
   assert.equal(response.mission.statusDetail, '  Keep spacing exactly.  ');
-  const mission = context.getCharacters('missionpilot')[0].missions.find(
-    (entry) => entry.missionId === 'm-01'
-  );
+  const mission = context
+    .getCharacters('missionpilot')[0]
+    .missions.find((entry) => entry.missionId === 'm-01');
   assert.equal(mission.statusDetail, '  Keep spacing exactly.  ');
 });
 
@@ -313,7 +313,7 @@ test('MissionUpsertMessageHandler completing first-target unlocks dependent miss
     characterId: 'character-1',
     missionId: 'first-target',
     status: 'completed',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   };
 
   const firstResponse = await handler.handle(createMockSocket(), payload);
@@ -348,7 +348,7 @@ test('MissionUpsertMessageHandler echoes requestId when present', async () => {
     missionId: 'm-01',
     status: 'started',
     requestId: 'req-123',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);

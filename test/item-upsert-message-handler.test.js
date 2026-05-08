@@ -2,21 +2,14 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  ItemUpsertMessageHandler
-} = require('../src/handlers/item-upsert-message-handler');
-const {
-  ITEM_UPSERT_RESPONSE_EVENT
-} = require('../src/model/item-upsert');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { ItemUpsertMessageHandler } = require('../src/handlers/item-upsert-message-handler');
+const { ITEM_UPSERT_RESPONSE_EVENT } = require('../src/model/item-upsert');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
   seedItems,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 function createItemPayload(overrides = {}) {
@@ -29,7 +22,7 @@ function createItemPayload(overrides = {}) {
     container: { containerType: 'ship', containerId: 'ship-1' },
     owningPlayerId: 'player-1',
     owningCharacterId: 'character-1',
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -50,7 +43,7 @@ function createExistingItem(overrides = {}) {
     discoveredByCharacterId: null,
     createdAt: '2026-04-17T00:00:00.000Z',
     updatedAt: '2026-04-17T00:00:00.000Z',
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -64,7 +57,7 @@ test('ItemUpsertMessageHandler creates a new item when id not in cache', async (
   const response = await handler.handle(socket, {
     playerName: 'PilotOne',
     sessionKey: 'session-1',
-    item: createItemPayload({ id: '' })
+    item: createItemPayload({ id: '' }),
   });
 
   assert.equal(response.success, true);
@@ -91,7 +84,7 @@ test('ItemUpsertMessageHandler updates an existing item', async () => {
   const response = await handler.handle(socket, {
     playerName: 'PilotOne',
     sessionKey: 'session-1',
-    item: createItemPayload({ state: 'deployed', damageStatus: 'damaged' })
+    item: createItemPayload({ state: 'deployed', damageStatus: 'damaged' }),
   });
 
   assert.equal(response.success, true);
@@ -122,12 +115,12 @@ test('ItemUpsertMessageHandler deploys an item (clears container, sets kinematic
         solarSystemId: 'sol',
         frame: 'barycentric',
         positionKm: { x: 100, y: 200, z: 300 },
-        epochMs: 1000000
+        epochMs: 1000000,
       },
       motion: {
-        velocityKmPerSec: { x: 1, y: 2, z: 3 }
-      }
-    }
+        velocityKmPerSec: { x: 1, y: 2, z: 3 },
+      },
+    },
   });
 
   assert.equal(response.success, true);
@@ -153,8 +146,8 @@ test('ItemUpsertMessageHandler destroys an item and auto-populates destroyedAt',
     item: {
       id: 'item-1',
       state: 'destroyed',
-      destroyedReason: 'hit by asteroid'
-    }
+      destroyedReason: 'hit by asteroid',
+    },
   });
 
   assert.equal(response.success, true);
@@ -174,7 +167,7 @@ test('ItemUpsertMessageHandler rejects create without itemType and displayName',
   const response = await handler.handle(socket, {
     playerName: 'PilotOne',
     sessionKey: 'session-1',
-    item: { id: '' }
+    item: { id: '' },
   });
 
   assert.equal(response.success, false);
@@ -196,7 +189,7 @@ test('ItemUpsertMessageHandler rejects invalid state', async () => {
   const response = await handler.handle(socket, {
     playerName: 'PilotOne',
     sessionKey: 'session-1',
-    item: { id: 'item-1', state: 'exploded' }
+    item: { id: 'item-1', state: 'exploded' },
   });
 
   assert.equal(response.success, false);
@@ -215,7 +208,7 @@ test('ItemUpsertMessageHandler rejects invalid damageStatus', async () => {
   const response = await handler.handle(socket, {
     playerName: 'PilotOne',
     sessionKey: 'session-1',
-    item: { id: 'item-1', damageStatus: 'fine' }
+    item: { id: 'item-1', damageStatus: 'fine' },
   });
 
   assert.equal(response.success, false);
@@ -236,8 +229,8 @@ test('ItemUpsertMessageHandler rejects invalid kinematics', async () => {
     sessionKey: 'session-1',
     item: {
       id: 'item-1',
-      kinematics: { position: { x: 1, y: 2, z: 3 } }
-    }
+      kinematics: { position: { x: 1, y: 2, z: 3 } },
+    },
   });
 
   assert.equal(response.success, false);
@@ -259,7 +252,7 @@ test('ItemUpsertMessageHandler rejects invalid container', async () => {
   const response = await handler.handle(socket, {
     playerName: 'PilotOne',
     sessionKey: 'session-1',
-    item: { id: 'item-1', container: { containerType: 'black-hole', containerId: 'x' } }
+    item: { id: 'item-1', container: { containerType: 'black-hole', containerId: 'x' } },
   });
 
   assert.equal(response.success, false);
@@ -276,7 +269,7 @@ test('ItemUpsertMessageHandler rejects unregistered player', async () => {
   const response = await handler.handle(socket, {
     playerName: 'Ghost',
     sessionKey: 'session-1',
-    item: createItemPayload()
+    item: createItemPayload(),
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -293,7 +286,7 @@ test('ItemUpsertMessageHandler emits invalid-session before mutation', async () 
   const response = await handler.handle(socket, {
     playerName: 'PilotOne',
     sessionKey: 'wrong-session',
-    item: createItemPayload({ id: '' })
+    item: createItemPayload({ id: '' }),
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -314,11 +307,11 @@ test('ItemUpsertMessageHandler adds created ship-contained items to ship invento
             id: 'ship-1',
             shipName: 'Scout Ship',
             inventory: [],
-            createdAt: '2026-04-17T00:00:00.000Z'
-          }
-        ]
-      }
-    ]
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ItemUpsertMessageHandler(context);
@@ -327,7 +320,7 @@ test('ItemUpsertMessageHandler adds created ship-contained items to ship invento
   const response = await handler.handle(socket, {
     playerName: 'PilotOne',
     sessionKey: 'session-1',
-    item: createItemPayload({ id: '' })
+    item: createItemPayload({ id: '' }),
   });
 
   assert.equal(response.success, true);

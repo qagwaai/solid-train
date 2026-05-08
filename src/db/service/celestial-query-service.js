@@ -15,24 +15,24 @@ async function getCelestialBodyById(ctx, CelestialBody, celestialBodyId) {
 }
 
 async function findCelestialBodiesNearPosition(ctx, CelestialBody, query) {
-  const solarSystemId = typeof query?.solarSystemId === 'string'
-    ? query.solarSystemId.trim()
-    : '';
+  const solarSystemId = typeof query?.solarSystemId === 'string' ? query.solarSystemId.trim() : '';
   const positionKm = query?.positionKm;
   const distanceKm = query?.distanceKm;
-  const createdByCharacterId = typeof query?.createdByCharacterId === 'string'
-    ? query.createdByCharacterId.trim()
-    : '';
-  const missionId = typeof query?.missionId === 'string'
-    ? query.missionId.trim()
-    : '';
+  const createdByCharacterId =
+    typeof query?.createdByCharacterId === 'string' ? query.createdByCharacterId.trim() : '';
+  const missionId = typeof query?.missionId === 'string' ? query.missionId.trim() : '';
   const stateValues = Array.isArray(query?.stateValues)
     ? query.stateValues
-      .map((stateValue) => (typeof stateValue === 'string' ? stateValue.trim() : ''))
-      .filter((stateValue) => Boolean(stateValue))
+        .map((stateValue) => (typeof stateValue === 'string' ? stateValue.trim() : ''))
+        .filter((stateValue) => Boolean(stateValue))
     : [];
 
-  if (!solarSystemId || !ctx.isTriple(positionKm) || !ctx.isFiniteNumber(distanceKm) || distanceKm < 0) {
+  if (
+    !solarSystemId ||
+    !ctx.isTriple(positionKm) ||
+    !ctx.isFiniteNumber(distanceKm) ||
+    distanceKm < 0
+  ) {
     return [];
   }
 
@@ -41,16 +41,16 @@ async function findCelestialBodiesNearPosition(ctx, CelestialBody, query) {
       'spatial.solarSystemId': solarSystemId,
       'spatial.positionKm.x': {
         $gte: positionKm.x - distanceKm,
-        $lte: positionKm.x + distanceKm
+        $lte: positionKm.x + distanceKm,
       },
       'spatial.positionKm.y': {
         $gte: positionKm.y - distanceKm,
-        $lte: positionKm.y + distanceKm
+        $lte: positionKm.y + distanceKm,
       },
       'spatial.positionKm.z': {
         $gte: positionKm.z - distanceKm,
-        $lte: positionKm.z + distanceKm
-      }
+        $lte: positionKm.z + distanceKm,
+      },
     };
 
     if (createdByCharacterId) {
@@ -81,7 +81,7 @@ async function findCelestialBodiesNearPosition(ctx, CelestialBody, query) {
 
         return {
           celestialBody,
-          distanceKm: candidateDistanceKm
+          distanceKm: candidateDistanceKm,
         };
       })
       .filter((entry) => Boolean(entry))
@@ -100,8 +100,8 @@ async function getCelestialBodies(ctx, CelestialBody, query = {}) {
     const missionId = ctx.toNonEmptyString(query?.missionId);
     const stateValues = Array.isArray(query?.stateValues)
       ? query.stateValues
-        .map((stateValue) => ctx.toNonEmptyString(stateValue))
-        .filter((stateValue) => Boolean(stateValue))
+          .map((stateValue) => ctx.toNonEmptyString(stateValue))
+          .filter((stateValue) => Boolean(stateValue))
       : [];
 
     if (solarSystemId) {
@@ -130,5 +130,5 @@ async function getCelestialBodies(ctx, CelestialBody, query = {}) {
 module.exports = {
   getCelestialBodyById,
   findCelestialBodiesNearPosition,
-  getCelestialBodies
+  getCelestialBodies,
 };

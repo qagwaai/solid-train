@@ -2,9 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  createMongoTestHarness
-} = require('../test-support/mongodb-test-helpers');
+const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
 
 let mongoHarness = null;
 
@@ -22,21 +20,21 @@ function createItem(overrides = {}) {
       solarSystemId: 'sol',
       frame: 'barycentric',
       positionKm: { x: 100, y: 200, z: 300 },
-      epochMs: 1713360000000
+      epochMs: 1713360000000,
     },
     ...(overrides.motion !== undefined
       ? { motion: overrides.motion }
       : {
           motion: {
-            velocityKmPerSec: { x: 0, y: 0, z: 0 }
-          }
+            velocityKmPerSec: { x: 0, y: 0, z: 0 },
+          },
         }),
     createdAt: overrides.createdAt || '2026-05-07T00:00:00.000Z',
     updatedAt: overrides.updatedAt || '2026-05-07T00:00:00.000Z',
     destroyedAt: overrides.destroyedAt || null,
     destroyedReason: overrides.destroyedReason || null,
     launchable: overrides.launchable !== undefined ? overrides.launchable : false,
-    quantity: overrides.quantity !== undefined ? overrides.quantity : 2
+    quantity: overrides.quantity !== undefined ? overrides.quantity : 2,
   };
 }
 
@@ -67,12 +65,12 @@ test('Items Mongo round-trip: add, read, query, update, and delete', async () =>
         solarSystemId: 'sol',
         frame: 'barycentric',
         positionKm: { x: 1000, y: 1000, z: 1000 },
-        epochMs: 1713360000000
+        epochMs: 1713360000000,
       },
       motion: {
-        velocityKmPerSec: { x: 0, y: 0, z: 0 }
-      }
-    })
+        velocityKmPerSec: { x: 0, y: 0, z: 0 },
+      },
+    }),
   ]);
   assert.equal(inserted.length, 2);
 
@@ -86,14 +84,14 @@ test('Items Mongo round-trip: add, read, query, update, and delete', async () =>
   const near = await service.findItemsNearPosition({
     solarSystemId: 'sol',
     positionKm: { x: 100, y: 200, z: 300 },
-    distanceKm: 5
+    distanceKm: 5,
   });
   assert.equal(near.length, 1);
   assert.equal(near[0].item.id, 'item-1');
 
   const updated = await service.updateItemById('item-1', {
     quantity: 7,
-    updatedAt: '2026-05-07T00:10:00.000Z'
+    updatedAt: '2026-05-07T00:10:00.000Z',
   });
   assert.equal(updated.quantity, 7);
 
@@ -107,9 +105,12 @@ test('Items Mongo negative paths: empty IDs and invalid near query return empty'
   const service = mongoHarness.databaseService;
 
   assert.deepEqual(await service.getItemsByIds([]), []);
-  assert.deepEqual(await service.findItemsNearPosition({
-    solarSystemId: 'sol',
-    positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: -1
-  }), []);
+  assert.deepEqual(
+    await service.findItemsNearPosition({
+      solarSystemId: 'sol',
+      positionKm: { x: 0, y: 0, z: 0 },
+      distanceKm: -1,
+    }),
+    []
+  );
 });

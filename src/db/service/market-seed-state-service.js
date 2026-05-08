@@ -1,8 +1,6 @@
 'use strict';
 
-const {
-  SOLAR_SYSTEM_MARKET_SEED_STATE_KEY
-} = require('../../model/solar-system-market-seed');
+const { SOLAR_SYSTEM_MARKET_SEED_STATE_KEY } = require('../../model/solar-system-market-seed');
 
 async function getSolarSystemMarketSeedState(ctx, GameStateDocument, solarSystemId) {
   try {
@@ -12,13 +10,14 @@ async function getSolarSystemMarketSeedState(ctx, GameStateDocument, solarSystem
     }
 
     const state = await GameStateDocument.findOne({
-      key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY
+      key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY,
     }).lean();
 
     const systems = Array.isArray(state?.value?.systems) ? state.value.systems : [];
-    const match = systems.find((entry) => (
-      ctx.toNonEmptyString(entry?.solarSystemId).toLowerCase() === normalizedSolarSystemId
-    ));
+    const match = systems.find(
+      (entry) =>
+        ctx.toNonEmptyString(entry?.solarSystemId).toLowerCase() === normalizedSolarSystemId
+    );
 
     if (!match) {
       return null;
@@ -27,7 +26,7 @@ async function getSolarSystemMarketSeedState(ctx, GameStateDocument, solarSystem
     return {
       solarSystemId: normalizedSolarSystemId,
       seedVersion: ctx.toNonEmptyString(match.seedVersion),
-      seededAt: ctx.toNonEmptyString(match.seededAt)
+      seededAt: ctx.toNonEmptyString(match.seededAt),
     };
   } catch (error) {
     ctx.log(`[db-service] Error fetching market seed state: ${error.message}`);
@@ -35,7 +34,13 @@ async function getSolarSystemMarketSeedState(ctx, GameStateDocument, solarSystem
   }
 }
 
-async function setSolarSystemMarketSeedState(ctx, GameStateDocument, solarSystemId, seedVersion, seededAt) {
+async function setSolarSystemMarketSeedState(
+  ctx,
+  GameStateDocument,
+  solarSystemId,
+  seedVersion,
+  seededAt
+) {
   try {
     const normalizedSolarSystemId = ctx.toNonEmptyString(solarSystemId).toLowerCase();
     const normalizedSeedVersion = ctx.toNonEmptyString(seedVersion);
@@ -46,22 +51,22 @@ async function setSolarSystemMarketSeedState(ctx, GameStateDocument, solarSystem
     }
 
     const state = await GameStateDocument.findOne({
-      key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY
+      key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY,
     });
 
     const systems = Array.isArray(state?.value?.systems)
       ? state.value.systems.map((entry) => ({
-        solarSystemId: ctx.toNonEmptyString(entry?.solarSystemId).toLowerCase(),
-        seedVersion: ctx.toNonEmptyString(entry?.seedVersion),
-        seededAt: ctx.toNonEmptyString(entry?.seededAt)
-      }))
+          solarSystemId: ctx.toNonEmptyString(entry?.solarSystemId).toLowerCase(),
+          seedVersion: ctx.toNonEmptyString(entry?.seedVersion),
+          seededAt: ctx.toNonEmptyString(entry?.seededAt),
+        }))
       : [];
 
     const filtered = systems.filter((entry) => entry.solarSystemId !== normalizedSolarSystemId);
     filtered.push({
       solarSystemId: normalizedSolarSystemId,
       seedVersion: normalizedSeedVersion,
-      seededAt: normalizedSeededAt
+      seededAt: normalizedSeededAt,
     });
 
     const persisted = await GameStateDocument.findOneAndUpdate(
@@ -69,12 +74,12 @@ async function setSolarSystemMarketSeedState(ctx, GameStateDocument, solarSystem
       {
         key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY,
         value: { systems: filtered },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         upsert: true,
         new: true,
-        setDefaultsOnInsert: true
+        setDefaultsOnInsert: true,
       }
     ).lean();
 
@@ -87,5 +92,5 @@ async function setSolarSystemMarketSeedState(ctx, GameStateDocument, solarSystem
 
 module.exports = {
   getSolarSystemMarketSeedState,
-  setSolarSystemMarketSeedState
+  setSolarSystemMarketSeedState,
 };

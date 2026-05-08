@@ -10,107 +10,88 @@ const { createShipModelArtifacts } = require('./models/ship-model');
 const { createCelestialModelArtifacts } = require('./models/celestial-model');
 const { createJumpGateModelArtifacts } = require('./models/jump-gate-model');
 
-const {
-  tripleSchema,
-  shipKinematicsSchema,
-  motionStateSchema,
-  spatialStateSchema
-} = createSharedPrimitiveSchemas({ mongoose });
+const { tripleSchema, shipKinematicsSchema, motionStateSchema, spatialStateSchema } =
+  createSharedPrimitiveSchemas({ mongoose });
 
-const {
-  Item,
-  itemSchema,
-  itemContainerSchema,
-  inventoryItemReferenceSchema
-} = createItemModelArtifacts({
-  mongoose,
-  shipKinematicsSchema,
-  motionStateSchema,
-  spatialStateSchema
-});
+const { Item, itemSchema, itemContainerSchema, inventoryItemReferenceSchema } =
+  createItemModelArtifacts({
+    mongoose,
+    shipKinematicsSchema,
+    motionStateSchema,
+    spatialStateSchema,
+  });
 
 /**
  * Physical state schema for mass and diameter
  */
-const physicalStateSchema = new mongoose.Schema({
-  estimatedMassKg: {
-    type: Number,
-    default: null
+const physicalStateSchema = new mongoose.Schema(
+  {
+    estimatedMassKg: {
+      type: Number,
+      default: null,
+    },
+    estimatedDiameterM: {
+      type: Number,
+      default: null,
+    },
   },
-  estimatedDiameterM: {
-    type: Number,
-    default: null
-  }
-}, { _id: false });
+  { _id: false }
+);
 
 /**
  * Observability state schema for visibility and scan state
  */
-const observabilityStateSchema = new mongoose.Schema({
-  visibility: {
-    type: String,
-    enum: ['visible', 'not-visible', 'cloaked'],
-    required: true
+const observabilityStateSchema = new mongoose.Schema(
+  {
+    visibility: {
+      type: String,
+      enum: ['visible', 'not-visible', 'cloaked'],
+      required: true,
+    },
+    scanState: {
+      type: String,
+      enum: ['unscanned', 'scanned'],
+      required: true,
+    },
   },
-  scanState: {
-    type: String,
-    enum: ['unscanned', 'scanned'],
-    required: true
-  }
-}, { _id: false });
-const {
-  driveProfileSchema,
-  shipSchema,
-  missionSchema
-} = createShipModelArtifacts({
+  { _id: false }
+);
+const { driveProfileSchema, shipSchema, missionSchema } = createShipModelArtifacts({
   mongoose,
   inventoryItemReferenceSchema,
   spatialStateSchema,
-  motionStateSchema
+  motionStateSchema,
 });
 
-const {
-  CelestialBody,
-  celestialBodySchema,
-  asteroidMaterialProfileSchema
-} = createCelestialModelArtifacts({
-  mongoose,
-  spatialStateSchema,
-  motionStateSchema,
-  physicalStateSchema,
-  observabilityStateSchema
-});
+const { CelestialBody, celestialBodySchema, asteroidMaterialProfileSchema } =
+  createCelestialModelArtifacts({
+    mongoose,
+    spatialStateSchema,
+    motionStateSchema,
+    physicalStateSchema,
+    observabilityStateSchema,
+  });
 
 const {
   Market,
   marketSchema,
   marketInventoryEntrySchema,
   marketLedgerEntrySchema,
-  marketOrbitSchema
+  marketOrbitSchema,
 } = createMarketModelArtifacts({
   mongoose,
-  spatialStateSchema
+  spatialStateSchema,
 });
 
-const {
-  GameStateDocument,
-  gameStateDocumentSchema
-} = createGameStateModelArtifacts({ mongoose });
+const { GameStateDocument, gameStateDocumentSchema } = createGameStateModelArtifacts({ mongoose });
 
-const {
-  Player,
-  playerSchema,
-  characterSchema,
-  creditLedgerEntrySchema
-} = createPlayerModelArtifacts({
-  mongoose,
-  shipSchema,
-  missionSchema
-});
-const {
-  JumpGate,
-  jumpGateSchema
-} = createJumpGateModelArtifacts({ mongoose });
+const { Player, playerSchema, characterSchema, creditLedgerEntrySchema } =
+  createPlayerModelArtifacts({
+    mongoose,
+    shipSchema,
+    missionSchema,
+  });
+const { JumpGate, jumpGateSchema } = createJumpGateModelArtifacts({ mongoose });
 
 module.exports = {
   CelestialBody,
@@ -136,5 +117,5 @@ module.exports = {
   driveProfileSchema,
   shipSchema,
   shipKinematicsSchema,
-  missionSchema
+  missionSchema,
 };

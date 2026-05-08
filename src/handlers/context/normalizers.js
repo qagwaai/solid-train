@@ -15,10 +15,12 @@ function isFiniteNumber(_ctx, value) {
 }
 
 function isTriple(ctx, value) {
-  return Boolean(value)
-    && isFiniteNumber(ctx, value.x)
-    && isFiniteNumber(ctx, value.y)
-    && isFiniteNumber(ctx, value.z);
+  return (
+    Boolean(value) &&
+    isFiniteNumber(ctx, value.x) &&
+    isFiniteNumber(ctx, value.y) &&
+    isFiniteNumber(ctx, value.z)
+  );
 }
 
 function normalizeTriple(ctx, value) {
@@ -29,7 +31,7 @@ function normalizeTriple(ctx, value) {
   return {
     x: value.x,
     y: value.y,
-    z: value.z
+    z: value.z,
   };
 }
 
@@ -68,5 +70,5 @@ module.exports = {
   normalizeTriple,
   toNonEmptyString,
   normalizeLocale,
-  normalizePlayerName
+  normalizePlayerName,
 };

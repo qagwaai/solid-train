@@ -73,5 +73,5 @@ const ITEM_UPSERT_RESPONSE_EVENT = 'item-upsert-response';
 
 module.exports = {
   ITEM_UPSERT_REQUEST_EVENT,
-  ITEM_UPSERT_RESPONSE_EVENT
+  ITEM_UPSERT_RESPONSE_EVENT,
 };

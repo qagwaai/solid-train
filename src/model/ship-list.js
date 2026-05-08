@@ -95,5 +95,5 @@ const SHIP_LIST_RESPONSE_EVENT = 'ship-list-response';
 
 module.exports = {
   SHIP_LIST_REQUEST_EVENT,
-  SHIP_LIST_RESPONSE_EVENT
+  SHIP_LIST_RESPONSE_EVENT,
 };

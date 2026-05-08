@@ -9,7 +9,7 @@ const MISSION_STATUS_VALUES = [
   'locked',
   'abandoned',
   'paused',
-  'turned-in'
+  'turned-in',
 ];
 
 const DEFAULT_MISSION_STATUS = 'available';
@@ -24,7 +24,7 @@ const MISSION_CATALOG_IDS = [
   'sq-01',
   'sq-02',
   'sq-03',
-  'sq-04'
+  'sq-04',
 ];
 const MISSION_CATALOG_ID_SET = new Set(MISSION_CATALOG_IDS);
 
@@ -38,7 +38,7 @@ const MISSION_PREREQUISITES_BY_ID = {
   'sq-01': ['m-02'],
   'sq-02': ['first-target'],
   'sq-03': ['first-target'],
-  'sq-04': ['m-04']
+  'sq-04': ['m-04'],
 };
 
 const MISSION_UNLOCK_SOURCE_STATUSES = new Set(['completed', 'turned-in']);
@@ -63,5 +63,5 @@ module.exports = {
   MISSION_CATALOG_IDS,
   MISSION_CATALOG_ID_SET,
   MISSION_PREREQUISITES_BY_ID,
-  MISSION_UNLOCK_SOURCE_STATUSES
+  MISSION_UNLOCK_SOURCE_STATUSES,
 };

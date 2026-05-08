@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT
-} = require('../model/item-list-by-container');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT } = require('../model/item-list-by-container');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 const VALID_CONTAINER_TYPES = ['ship', 'market'];
 
@@ -18,7 +13,7 @@ class ItemListByContainerMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-list-by-container-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -31,7 +26,7 @@ class ItemListByContainerMessageHandler {
       const response = {
         success: false,
         message: 'Player is not registered',
-        playerName
+        playerName,
       };
       socket.emit(ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT, response);
       return response;
@@ -44,7 +39,7 @@ class ItemListByContainerMessageHandler {
       const response = {
         success: false,
         message: `containerType must be one of: ${VALID_CONTAINER_TYPES.join(', ')}`,
-        playerName: player.playerName
+        playerName: player.playerName,
       };
       socket.emit(ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT, response);
       return response;
@@ -54,7 +49,7 @@ class ItemListByContainerMessageHandler {
       const response = {
         success: false,
         message: 'containerId is required',
-        playerName: player.playerName
+        playerName: player.playerName,
       };
       socket.emit(ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT, response);
       return response;
@@ -68,7 +63,7 @@ class ItemListByContainerMessageHandler {
       const response = {
         success: false,
         message: 'Failed to fetch items: database error',
-        playerName: player.playerName
+        playerName: player.playerName,
       };
       socket.emit(ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT, response);
       return response;
@@ -80,7 +75,7 @@ class ItemListByContainerMessageHandler {
       playerName: player.playerName,
       containerType,
       containerId,
-      items
+      items,
     };
 
     socket.emit(ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT, response);
@@ -89,5 +84,5 @@ class ItemListByContainerMessageHandler {
 }
 
 module.exports = {
-  ItemListByContainerMessageHandler
+  ItemListByContainerMessageHandler,
 };

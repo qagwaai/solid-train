@@ -2,9 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  createMongoTestHarness
-} = require('../test-support/mongodb-test-helpers');
+const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
 
 let mongoHarness = null;
 
@@ -29,7 +27,7 @@ test('Players Mongo round-trip: register, read, update, character CRUD, and clea
     playerId: 'player-mongo-1',
     playerName: 'MongoPilot',
     email: 'mongo@example.com',
-    password: 'secret-1'
+    password: 'secret-1',
   });
   assert.equal(created.playerNameNormalized, 'mongopilot');
 
@@ -38,7 +36,7 @@ test('Players Mongo round-trip: register, read, update, character CRUD, and clea
 
   const updatedPlayer = await service.updatePlayer('MONGOPILOT', {
     sessionKey: 'session-1',
-    socketId: 'socket-1'
+    socketId: 'socket-1',
   });
   assert.equal(updatedPlayer.sessionKey, 'session-1');
   assert.equal(updatedPlayer.socketId, 'socket-1');
@@ -49,7 +47,7 @@ test('Players Mongo round-trip: register, read, update, character CRUD, and clea
     createdAt: '2026-05-07T00:00:00.000Z',
     ships: [],
     missions: [],
-    creditLedger: []
+    creditLedger: [],
   });
   assert.equal(withCharacter.characters.length, 1);
 
@@ -58,7 +56,7 @@ test('Players Mongo round-trip: register, read, update, character CRUD, and clea
   assert.equal(characters[0].characterName, 'Cosmonova');
 
   const renamed = await service.updateCharacter('MongoPilot', 'character-1', {
-    characterName: 'Cosmonova Prime'
+    characterName: 'Cosmonova Prime',
   });
   assert.equal(renamed.characters[0].characterName, 'Cosmonova Prime');
 

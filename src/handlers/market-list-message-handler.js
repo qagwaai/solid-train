@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  MARKET_LIST_RESPONSE_EVENT
-} = require('../model/market-list');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { MARKET_LIST_RESPONSE_EVENT } = require('../model/market-list');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketListMessageHandler {
   constructor(context) {
@@ -14,11 +9,13 @@ class MarketListMessageHandler {
   }
 
   isValidSpatial(spatial) {
-    return Boolean(spatial)
-      && this.context.toNonEmptyString(spatial.solarSystemId)
-      && spatial.frame === 'barycentric'
-      && this.context.isTriple(spatial.positionKm)
-      && this.context.isFiniteNumber(spatial.epochMs);
+    return (
+      Boolean(spatial) &&
+      this.context.toNonEmptyString(spatial.solarSystemId) &&
+      spatial.frame === 'barycentric' &&
+      this.context.isTriple(spatial.positionKm) &&
+      this.context.isFiniteNumber(spatial.epochMs)
+    );
   }
 
   isValidTrajectory(trajectory) {
@@ -39,7 +36,7 @@ class MarketListMessageHandler {
         success: false,
         message: 'playerName is required',
         playerName,
-        markets: []
+        markets: [],
       };
     }
 
@@ -49,7 +46,7 @@ class MarketListMessageHandler {
         success: false,
         message: 'Player is not registered',
         playerName,
-        markets: []
+        markets: [],
       };
     }
 
@@ -73,7 +70,7 @@ class MarketListMessageHandler {
         distanceAu,
         priceMultiplier: market.priceMultiplier,
         driftPercentPerHour: market.driftPercentPerHour,
-        restockIntervalMinutes: market.restockIntervalMinutes
+        restockIntervalMinutes: market.restockIntervalMinutes,
       };
     });
 
@@ -87,7 +84,7 @@ class MarketListMessageHandler {
         message: `MarketList: market '${invalidMarket.marketId}' has invalid canonical spatial/trajectory fields`,
         playerName: player.playerName,
         solarSystemId: solarSystemId || null,
-        markets: []
+        markets: [],
       };
     }
 
@@ -96,14 +93,14 @@ class MarketListMessageHandler {
       message: 'Market list retrieved successfully',
       playerName: player.playerName,
       solarSystemId: solarSystemId || null,
-      markets: projectedMarkets
+      markets: projectedMarkets,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-list-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -119,5 +116,5 @@ class MarketListMessageHandler {
 }
 
 module.exports = {
-  MarketListMessageHandler
+  MarketListMessageHandler,
 };

@@ -6,7 +6,7 @@
 
 _**User (2026-04-17 15:10:41Z)**_
 
-modify the existing server.js by creating message specific handler classes, each in their own file.  build a set of unit tests for each message handler
+modify the existing server.js by creating message specific handler classes, each in their own file. build a set of unit tests for each message handler
 
 ---
 
@@ -30,7 +30,7 @@ I’m splitting the aggregate handler test file into one file per message handle
 
 _**User (2026-04-17 15:37:43Z)**_
 
-add the ability to handle the character edit request and response with a data model defined at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/character-edit.ts. the server should handle standard scenarios as modifying the character in the player list, but also stranger scenarios where the character is not in the list of characters for that player.  add tests for all new and modified functionality 
+add the ability to handle the character edit request and response with a data model defined at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/character-edit.ts. the server should handle standard scenarios as modifying the character in the player list, but also stranger scenarios where the character is not in the list of characters for that player. add tests for all new and modified functionality
 
 _**User (2026-04-17 15:43:24Z)**_
 
@@ -38,7 +38,7 @@ create a documentation page about the messages that are handled by this server. 
 
 _**User (2026-04-17 16:03:46Z)**_
 
-add the ability to handle the game join request and response with a data model defined at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/game-join.ts. the server should handle standard scenarios as modifying the character in the player list, but also stranger scenarios where the character is not in the list of characters for that player.  add tests for all new and modified functionality.  add the new server model called a game.  It should include all characters that have joined and when the joined.  the game model should support the longer term goals of detaching from a game and automatically getting detached from the game if there has been no messages in the last 30 minutes.  this means that we need to update the last message received value per character that has joined for each message.
+add the ability to handle the game join request and response with a data model defined at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/game-join.ts. the server should handle standard scenarios as modifying the character in the player list, but also stranger scenarios where the character is not in the list of characters for that player. add tests for all new and modified functionality. add the new server model called a game. It should include all characters that have joined and when the joined. the game model should support the longer term goals of detaching from a game and automatically getting detached from the game if there has been no messages in the last 30 minutes. this means that we need to update the last message received value per character that has joined for each message.
 
 _**User (2026-04-17 17:35:49Z)**_
 
@@ -54,7 +54,7 @@ I’m adding a shared logging helper in the handler context and then calling it 
 
 _**User (2026-04-17 17:52:33Z)**_
 
-add the ability to handle the drone list request and response with a data model defined at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/drone-list.ts. the list of drones will be per character.  change the new character behavior to include at least one drone, with the ability to add remove in the future.  the server should handle standard scenarios as getting the drones in the character list.  add tests for all new and modified functionality. update contract documentation
+add the ability to handle the drone list request and response with a data model defined at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/drone-list.ts. the list of drones will be per character. change the new character behavior to include at least one drone, with the ability to add remove in the future. the server should handle standard scenarios as getting the drones in the character list. add tests for all new and modified functionality. update contract documentation
 
 ---
 

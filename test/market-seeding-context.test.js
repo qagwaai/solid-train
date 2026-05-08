@@ -2,12 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  MessageHandlerContext
-} = require('../src/handlers/message-handler-context');
-const {
-  SOLAR_SYSTEM_MARKET_SEED_VERSION
-} = require('../src/model/solar-system-market-seed');
+const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
+const { SOLAR_SYSTEM_MARKET_SEED_VERSION } = require('../src/model/solar-system-market-seed');
 
 function createContextWithDb(db) {
   let nextId = 0;
@@ -15,7 +11,7 @@ function createContextWithDb(db) {
     databaseService: db,
     log: () => {},
     createId: () => `id-${++nextId}`,
-    getCurrentTimestamp: () => '2026-05-05T00:00:00.000Z'
+    getCurrentTimestamp: () => '2026-05-05T00:00:00.000Z',
   });
 }
 
@@ -36,7 +32,7 @@ test('seedSolarSystemMarketsAsync upserts seeded markets and writes seed-state m
     },
     async getMarkets() {
       return upserts;
-    }
+    },
   };
 
   const context = createContextWithDb(db);
@@ -77,13 +73,13 @@ test('seedSolarSystemMarketsAsync uses cached database markets when seed version
         argumentOfPeriapsisDeg: 0,
         meanAnomalyAtEpochDeg: 0,
         orbitalPeriodSec: 140000,
-        epoch: '2026-05-05T00:00:00.000Z'
+        epoch: '2026-05-05T00:00:00.000Z',
       },
       restockIntervalMinutes: 60,
       lastRestockAt: '2026-05-05T00:00:00.000Z',
       inventory: [],
-      ledger: []
-    }
+      ledger: [],
+    },
   ];
 
   let upsertCalls = 0;
@@ -92,7 +88,7 @@ test('seedSolarSystemMarketsAsync uses cached database markets when seed version
       return {
         solarSystemId: 'sol',
         seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
-        seededAt: '2026-05-05T00:00:00.000Z'
+        seededAt: '2026-05-05T00:00:00.000Z',
       };
     },
     async upsertMarket() {
@@ -104,7 +100,7 @@ test('seedSolarSystemMarketsAsync uses cached database markets when seed version
     },
     async getMarkets() {
       return persistedMarkets;
-    }
+    },
   };
 
   const context = createContextWithDb(db);

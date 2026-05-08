@@ -8,15 +8,11 @@ async function upsertMarket(ctx, Market, marketData) {
       return null;
     }
 
-    const persisted = await Market.findOneAndUpdate(
-      { marketId, solarSystemId },
-      marketData,
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true
-      }
-    );
+    const persisted = await Market.findOneAndUpdate({ marketId, solarSystemId }, marketData, {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    });
 
     return persisted ? persisted.toObject() : null;
   } catch (error) {
@@ -26,5 +22,5 @@ async function upsertMarket(ctx, Market, marketData) {
 }
 
 module.exports = {
-  upsertMarket
+  upsertMarket,
 };

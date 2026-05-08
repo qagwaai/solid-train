@@ -149,7 +149,7 @@ Defined in src/db/models.js.
 
 ### Fields
 
-- _id: ObjectId
+- \_id: ObjectId
   - MongoDB-generated primary key.
 - playerId: String
   - Required.
@@ -199,7 +199,8 @@ Embedded under Player.characters.
 - missions: MissionProgress[]
 
 Notes:
-- _id is disabled for Character subdocuments (_id: false).
+
+- \_id is disabled for Character subdocuments (\_id: false).
 - Character identifiers use the id field, not MongoDB ObjectId.
 
 ## MissionProgress Subdocument Schema
@@ -219,7 +220,8 @@ Embedded under Player.characters[].missions.
 - statusDetail: String (optional)
 
 Notes:
-- _id is disabled for MissionProgress subdocuments (_id: false).
+
+- \_id is disabled for MissionProgress subdocuments (\_id: false).
 - Canonical statuses include:
   `available`, `started`, `in-progress`, `failed`, `completed`, `locked`,
   `abandoned`, `paused`, `turned-in`.
@@ -279,7 +281,8 @@ Embedded under Player.characters[].ships.
   - epochMs: Number - Epoch timestamp in milliseconds
 
 Notes:
-- _id is disabled for Ship subdocuments (_id: false).
+
+- \_id is disabled for Ship subdocuments (\_id: false).
 - Ship identifiers use the id field, not MongoDB ObjectId.
 - Kinematics data is optional and can be null when not applicable.
 
@@ -301,7 +304,8 @@ Embedded under Player.characters[].ships[].driveProfile.
   - Fuel consumed per AU traveled. Must be > 0.
 
 Notes:
-- _id is disabled for DriveProfile subdocuments (_id: false).
+
+- \_id is disabled for DriveProfile subdocuments (\_id: false).
 - All numeric fields must be positive finite numbers; invalid profiles are dropped at the normalization layer.
 
 ### InventoryItemReference Subdocument Fields
@@ -317,7 +321,7 @@ Defined in src/db/models.js and stored in the `jump_gates` collection.
 
 ### Fields
 
-- _id: ObjectId
+- \_id: ObjectId
   - MongoDB-generated primary key.
 - gateId: String (required)
   - Unique application-level identifier for this gate.
@@ -356,7 +360,7 @@ Defined in src/db/models.js and stored in the `items` collection.
 
 ### Fields
 
-- _id: ObjectId
+- \_id: ObjectId
   - MongoDB-generated primary key.
 - id: String
   - Required.
@@ -417,7 +421,7 @@ Defined in src/db/models.js and stored in the `cb` collection.
 
 ### Fields
 
-- _id: ObjectId
+- \_id: ObjectId
   - MongoDB-generated primary key.
 - id: String
   - Required.

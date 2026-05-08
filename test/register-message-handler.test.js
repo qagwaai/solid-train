@@ -2,16 +2,12 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  RegisterMessageHandler
-} = require('../src/handlers/register-message-handler');
-const {
-  REGISTER_RESPONSE_EVENT
-} = require('../src/model/register');
+const { RegisterMessageHandler } = require('../src/handlers/register-message-handler');
+const { REGISTER_RESPONSE_EVENT } = require('../src/model/register');
 const {
   createMockSocket,
   createTestContext,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 test('RegisterMessageHandler registers a unique player and emits response', async () => {
@@ -22,19 +18,19 @@ test('RegisterMessageHandler registers a unique player and emits response', asyn
   const response = await handler.handle(socket, {
     playerName: 'CaptainPixel',
     email: 'captain@example.com',
-    password: 'super-secret'
+    password: 'super-secret',
   });
 
   assert.deepEqual(response, {
     success: true,
     message: 'Registration successful',
-    playerId: 'player-1'
+    playerId: 'player-1',
   });
   assert.deepEqual(socket.events, [
     {
       eventName: REGISTER_RESPONSE_EVENT,
-      payload: response
-    }
+      payload: response,
+    },
   ]);
 
   const player = context.getPlayer('CaptainPixel');
@@ -53,12 +49,12 @@ test('RegisterMessageHandler rejects duplicate player names', async () => {
   const response = await handler.handle(socket, {
     playerName: ' captainpixel ',
     email: 'other@example.com',
-    password: 'another-secret'
+    password: 'another-secret',
   });
 
   assert.deepEqual(response, {
     success: false,
-    message: 'playerName already exists'
+    message: 'playerName already exists',
   });
   assert.equal(socket.events[0].eventName, REGISTER_RESPONSE_EVENT);
 });
@@ -72,7 +68,7 @@ test('RegisterMessageHandler persists locale from request', async () => {
     playerName: 'LocalePilot',
     email: 'locale@example.com',
     password: 'super-secret',
-    locale: 'it-IT'
+    locale: 'it-IT',
   });
 
   assert.equal(response.success, true);
@@ -90,7 +86,7 @@ test('RegisterMessageHandler falls back unknown locale to en', async () => {
     playerName: 'UnknownLocalePilot',
     email: 'unknown-locale@example.com',
     password: 'super-secret',
-    locale: 'fr-CA'
+    locale: 'fr-CA',
   });
 
   const player = context.getPlayer('UnknownLocalePilot');

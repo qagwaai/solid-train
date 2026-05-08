@@ -20,5 +20,5 @@ const REGISTER_RESPONSE_EVENT = 'register-response';
 
 module.exports = {
   REGISTER_EVENT,
-  REGISTER_RESPONSE_EVENT
+  REGISTER_RESPONSE_EVENT,
 };

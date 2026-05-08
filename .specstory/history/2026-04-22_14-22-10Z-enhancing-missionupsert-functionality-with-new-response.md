@@ -6,7 +6,7 @@
 
 _**User (2026-04-22 15:15:14Z)**_
 
-update mission-upsert functionality to include new request response defined at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/mission-upsert.model.ts.  Include any changes to mongodb, unit tests, and documentation
+update mission-upsert functionality to include new request response defined at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/mission-upsert.model.ts. Include any changes to mongodb, unit tests, and documentation
 
 ---
 

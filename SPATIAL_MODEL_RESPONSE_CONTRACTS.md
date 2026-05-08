@@ -12,6 +12,7 @@ This document defines the canonical response shapes for all entity types (Ships,
 All responses now use these canonical types:
 
 ### SpatialState (Required on all in-world entities)
+
 ```json
 {
   "solarSystemId": "sol",
@@ -20,42 +21,50 @@ All responses now use these canonical types:
   "epochMs": 1713360000000
 }
 ```
+
 - `solarSystemId`: Solar system identifier
 - `frame`: Always `'barycentric'` (hardcoded)
 - `positionKm`: 3D position in kilometers
 - `epochMs`: Unix timestamp in milliseconds (epoch of position)
 
 ### MotionState (Optional)
+
 ```json
 {
   "velocityKmPerSec": { "x": 1.5, "y": 0, "z": -0.5 },
   "angularVelocityRadPerSec": { "x": 0.001, "y": 0.002, "z": 0 }
 }
 ```
+
 - `velocityKmPerSec`: Linear velocity vector (required if motion present)
 - `angularVelocityRadPerSec`: Angular velocity in radians/second (optional, for celestial bodies)
 
 ### PhysicalState (Optional, Celestial Bodies Only)
+
 ```json
 {
   "estimatedMassKg": 1e18,
   "estimatedDiameterM": 500
 }
 ```
+
 - `estimatedMassKg`: Mass in kilograms (optional)
 - `estimatedDiameterM`: Diameter in meters (optional)
 
 ### ObservabilityState (Required on Celestial Bodies)
+
 ```json
 {
   "visibility": "visible",
   "scanState": "scanned"
 }
 ```
+
 - `visibility`: One of `'visible'`, `'not-visible'`, `'cloaked'`
 - `scanState`: One of `'unscanned'`, `'scanned'`
 
 ### TrajectoryDescriptor (Optional, Markets Only)
+
 ```json
 {
   "kind": "orbital-elements",
@@ -74,6 +83,7 @@ All responses now use these canonical types:
   }
 }
 ```
+
 - `kind`: `'static'` or `'orbital-elements'`
 - `orbit`: Present only when `kind === 'orbital-elements'`
 
@@ -84,6 +94,7 @@ All responses now use these canonical types:
 **Event**: `ship-list-response`
 
 ### Success Response
+
 ```json
 {
   "success": true,
@@ -116,6 +127,7 @@ All responses now use these canonical types:
 ```
 
 ### Key Notes
+
 - `spatial` is **always present** and required
 - `motion` is **optional**; only included if ship has velocity
 - `launchable` defaults to `true`
@@ -123,6 +135,7 @@ All responses now use these canonical types:
 - `driveProfile` is included when the ship has a configured drive; `null` or absent otherwise
 
 ### driveProfile Shape (when present)
+
 ```json
 {
   "id": "standard-drive-mk1",
@@ -132,6 +145,7 @@ All responses now use these canonical types:
   "fuelCostPerAu": 2.5
 }
 ```
+
 - `id`: Drive profile identifier
 - `name`: Human-readable name
 - `rangeAu`: Maximum range in astronomical units
@@ -145,6 +159,7 @@ All responses now use these canonical types:
 **Event**: `celestial-body-list-response`
 
 ### Success Response
+
 ```json
 {
   "success": true,
@@ -193,6 +208,7 @@ All responses now use these canonical types:
 ```
 
 ### Key Notes
+
 - `spatial` is **always present** and required
 - `observability` is **always present** and required
 - `motion` is **optional**; only included if body has velocity/angular-velocity
@@ -206,6 +222,7 @@ All responses now use these canonical types:
 **Event**: `market-list-response`
 
 ### Success Response
+
 ```json
 {
   "success": true,
@@ -251,6 +268,7 @@ All responses now use these canonical types:
 ```
 
 ### Key Notes
+
 - `spatial` is **always present** and required
 - `trajectory` is **optional**; only present if market has orbital data
 - `siteType` (renamed from `locationType`)
@@ -269,6 +287,7 @@ All responses now use these canonical types:
 **Event**: `character-list-response` (includes ships array)
 
 ### Ship Object in Character Context
+
 ```json
 {
   "id": "ship-1",
@@ -305,6 +324,7 @@ During the transition period, the server's normalization layer automatically con
 ## Validation Rules
 
 ### Ships
+
 - `spatial` is **required**
   - Must have: `solarSystemId`, `frame: 'barycentric'`, `positionKm` (valid Triple), `epochMs` (number)
 - `motion` is optional
@@ -312,6 +332,7 @@ During the transition period, the server's normalization layer automatically con
 - No legacy fields (`location`, `kinematics`)
 
 ### Celestial Bodies
+
 - `spatial` is **required**
 - `observability` is **required**
   - Must have: `visibility` (one of valid values), `scanState` (one of valid values)
@@ -320,6 +341,7 @@ During the transition period, the server's normalization layer automatically con
 - No legacy fields (`location`, `solarSystemId` as root, `kinematics`)
 
 ### Markets
+
 - `spatial` is **required**
 - `siteType` and `siteName` are **required** (renamed from location fields)
 - `trajectory` is optional
@@ -334,6 +356,7 @@ During the transition period, the server's normalization layer automatically con
 To update existing code to the new spatial model:
 
 **Before:**
+
 ```javascript
 const ship = {
   location: { positionKm: { x: 100, y: 200, z: 300 } },
@@ -343,24 +366,25 @@ const ship = {
     reference: {
       solarSystemId: 'sol',
       epochMs: 1714896000000,
-      referenceKind: 'barycentric'
-    }
-  }
+      referenceKind: 'barycentric',
+    },
+  },
 };
 ```
 
 **After:**
+
 ```javascript
 const ship = {
   spatial: {
     solarSystemId: 'sol',
     frame: 'barycentric',
     positionKm: { x: 100, y: 200, z: 300 },
-    epochMs: 1714896000000
+    epochMs: 1714896000000,
   },
   motion: {
-    velocityKmPerSec: { x: 1, y: 0, z: 0 }
-  }
+    velocityKmPerSec: { x: 1, y: 0, z: 0 },
+  },
 };
 ```
 

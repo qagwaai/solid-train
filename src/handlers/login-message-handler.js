@@ -1,9 +1,6 @@
 'use strict';
 
-const {
-  LOGIN_FAILURE_REASONS,
-  LOGIN_RESPONSE_EVENT
-} = require('../model/login');
+const { LOGIN_FAILURE_REASONS, LOGIN_RESPONSE_EVENT } = require('../model/login');
 
 class LoginMessageHandler {
   constructor(context) {
@@ -18,7 +15,7 @@ class LoginMessageHandler {
       return {
         success: false,
         message: 'playerName and password are required',
-        reason: LOGIN_FAILURE_REASONS.UNKNOWN
+        reason: LOGIN_FAILURE_REASONS.UNKNOWN,
       };
     }
 
@@ -29,7 +26,7 @@ class LoginMessageHandler {
     return {
       success: false,
       message: 'Player is not registered',
-      reason: LOGIN_FAILURE_REASONS.PLAYER_NOT_REGISTERED
+      reason: LOGIN_FAILURE_REASONS.PLAYER_NOT_REGISTERED,
     };
   }
 
@@ -37,7 +34,7 @@ class LoginMessageHandler {
     return {
       success: false,
       message: 'Password does not match',
-      reason: LOGIN_FAILURE_REASONS.PASSWORD_MISMATCH
+      reason: LOGIN_FAILURE_REASONS.PASSWORD_MISMATCH,
     };
   }
 
@@ -67,6 +64,7 @@ class LoginMessageHandler {
       return response;
     }
 
+    /** @type {any} */
     let response;
     if (player.password !== password) {
       response = this.buildPasswordMismatchResponse();
@@ -77,7 +75,7 @@ class LoginMessageHandler {
         success: true,
         message: 'Login successful',
         playerId: player.playerId,
-        sessionKey
+        sessionKey,
       };
     }
 
@@ -86,14 +84,14 @@ class LoginMessageHandler {
         player.socketId = socket.id;
         const updates = {
           sessionKey: response.sessionKey,
-          socketId: socket.id
+          socketId: socket.id,
         };
         if (hasLocale) {
           updates.preferredLocale = preferredLocale;
         }
 
         await this.context.updatePlayerAsync(playerName, {
-          ...updates
+          ...updates,
         });
 
         // Refresh character cache from persistence so character flows work after restarts.
@@ -114,5 +112,5 @@ class LoginMessageHandler {
 }
 
 module.exports = {
-  LoginMessageHandler
+  LoginMessageHandler,
 };

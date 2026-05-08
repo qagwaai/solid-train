@@ -3,26 +3,21 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  MarketInventoryListMessageHandler
+  MarketInventoryListMessageHandler,
 } = require('../src/handlers/market-inventory-list-message-handler');
-const {
-  MARKET_INVENTORY_LIST_RESPONSE_EVENT
-} = require('../src/model/market-inventory-list');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { MARKET_INVENTORY_LIST_RESPONSE_EVENT } = require('../src/model/market-inventory-list');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 test('MarketInventoryListMessageHandler returns paged inventory', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MarketPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new MarketInventoryListMessageHandler(context);
   const socket = createMockSocket();
@@ -33,7 +28,7 @@ test('MarketInventoryListMessageHandler returns paged inventory', async () => {
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     offset: 0,
-    limit: 5
+    limit: 5,
   });
 
   assert.equal(response.success, true);
@@ -48,7 +43,7 @@ test('MarketInventoryListMessageHandler emits invalid session before list', asyn
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MarketPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new MarketInventoryListMessageHandler(context);
   const socket = createMockSocket();
@@ -57,15 +52,15 @@ test('MarketInventoryListMessageHandler emits invalid session before list', asyn
     playerName: 'MarketPilot',
     sessionKey: 'bad-session',
     marketId: 'sol-ceres-exchange',
-    solarSystemId: 'sol'
+    solarSystemId: 'sol',
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.deepEqual(socket.events, [
     {
       eventName: INVALID_SESSION_EVENT,
-      payload: { message: INVALID_SESSION_MESSAGE }
-    }
+      payload: { message: INVALID_SESSION_MESSAGE },
+    },
   ]);
 });
 
@@ -73,7 +68,7 @@ test('MarketInventoryListMessageHandler rejects missing required fields', async 
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MarketPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new MarketInventoryListMessageHandler(context);
   const socket = createMockSocket();
@@ -81,7 +76,7 @@ test('MarketInventoryListMessageHandler rejects missing required fields', async 
   const response = await handler.handle(socket, {
     playerName: 'MarketPilot',
     sessionKey: 'session-1',
-    marketId: 'sol-ceres-exchange'
+    marketId: 'sol-ceres-exchange',
   });
 
   assert.equal(response.success, false);
@@ -100,7 +95,7 @@ test('MarketInventoryListMessageHandler rejects unregistered player', async () =
     playerName: 'GhostPilot',
     sessionKey: 'session-1',
     marketId: 'sol-ceres-exchange',
-    solarSystemId: 'sol'
+    solarSystemId: 'sol',
   });
 
   assert.equal(response.success, false);
@@ -112,7 +107,7 @@ test('MarketInventoryListMessageHandler returns market-not-found reason', async 
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MarketPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new MarketInventoryListMessageHandler(context);
   const socket = createMockSocket();
@@ -121,7 +116,7 @@ test('MarketInventoryListMessageHandler returns market-not-found reason', async 
     playerName: 'MarketPilot',
     sessionKey: 'session-1',
     marketId: 'unknown-market',
-    solarSystemId: 'sol'
+    solarSystemId: 'sol',
   });
 
   assert.equal(response.success, false);

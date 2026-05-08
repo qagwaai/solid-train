@@ -17,7 +17,7 @@ async function getItemsByContainer(ctx, Item, containerType, containerId) {
   try {
     return await Item.find({
       'container.containerType': containerType,
-      'container.containerId': containerId
+      'container.containerId': containerId,
     }).lean();
   } catch (error) {
     ctx.log(`[db-service] Error fetching items by container: ${error.message}`);
@@ -26,14 +26,17 @@ async function getItemsByContainer(ctx, Item, containerType, containerId) {
 }
 
 async function findItemsNearPosition(ctx, Item, query) {
-  const solarSystemId = typeof query?.solarSystemId === 'string'
-    ? query.solarSystemId.trim()
-    : '';
+  const solarSystemId = typeof query?.solarSystemId === 'string' ? query.solarSystemId.trim() : '';
   const positionKm = query?.positionKm;
   const distanceKm = query?.distanceKm;
   const itemType = typeof query?.itemType === 'string' ? query.itemType.trim() : '';
 
-  if (!solarSystemId || !ctx.isTriple(positionKm) || !ctx.isFiniteNumber(distanceKm) || distanceKm < 0) {
+  if (
+    !solarSystemId ||
+    !ctx.isTriple(positionKm) ||
+    !ctx.isFiniteNumber(distanceKm) ||
+    distanceKm < 0
+  ) {
     return [];
   }
 
@@ -42,16 +45,16 @@ async function findItemsNearPosition(ctx, Item, query) {
       'spatial.solarSystemId': solarSystemId,
       'spatial.positionKm.x': {
         $gte: positionKm.x - distanceKm,
-        $lte: positionKm.x + distanceKm
+        $lte: positionKm.x + distanceKm,
       },
       'spatial.positionKm.y': {
         $gte: positionKm.y - distanceKm,
-        $lte: positionKm.y + distanceKm
+        $lte: positionKm.y + distanceKm,
       },
       'spatial.positionKm.z': {
         $gte: positionKm.z - distanceKm,
-        $lte: positionKm.z + distanceKm
-      }
+        $lte: positionKm.z + distanceKm,
+      },
     };
 
     if (itemType) {
@@ -74,7 +77,7 @@ async function findItemsNearPosition(ctx, Item, query) {
 
         return {
           item,
-          distanceKm: candidateDistanceKm
+          distanceKm: candidateDistanceKm,
         };
       })
       .filter((entry) => Boolean(entry))
@@ -88,5 +91,5 @@ async function findItemsNearPosition(ctx, Item, query) {
 module.exports = {
   getItemsByIds,
   getItemsByContainer,
-  findItemsNearPosition
+  findItemsNearPosition,
 };

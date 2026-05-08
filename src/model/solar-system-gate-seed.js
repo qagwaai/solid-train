@@ -14,29 +14,29 @@ function buildSeededGateNetwork() {
       sourceSystemId: 'sol',
       destSystemId: 'alpha-centauri',
       traversalCostAu: 5,
-      traversalTimeHours: 48
+      traversalTimeHours: 48,
     },
     {
       gateId: 'ac-sol-g1',
       sourceSystemId: 'alpha-centauri',
       destSystemId: 'sol',
       traversalCostAu: 5,
-      traversalTimeHours: 48
+      traversalTimeHours: 48,
     },
     {
       gateId: 'ac-bs-g1',
       sourceSystemId: 'alpha-centauri',
       destSystemId: 'barnards-star',
       traversalCostAu: 7,
-      traversalTimeHours: 72
+      traversalTimeHours: 72,
     },
     {
       gateId: 'bs-ac-g1',
       sourceSystemId: 'barnards-star',
       destSystemId: 'alpha-centauri',
       traversalCostAu: 7,
-      traversalTimeHours: 72
-    }
+      traversalTimeHours: 72,
+    },
   ];
 }
 

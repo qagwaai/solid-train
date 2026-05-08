@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  CHARACTER_DELETE_RESPONSE_EVENT
-} = require('../model/character-delete');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { CHARACTER_DELETE_RESPONSE_EVENT } = require('../model/character-delete');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CharacterDeleteMessageHandler {
   constructor(context) {
@@ -21,7 +16,7 @@ class CharacterDeleteMessageHandler {
       return {
         success: false,
         message: 'playerName and characterId are required',
-        playerName
+        playerName,
       };
     }
 
@@ -31,7 +26,7 @@ class CharacterDeleteMessageHandler {
       return {
         success: false,
         message: 'Player is not registered',
-        playerName
+        playerName,
       };
     }
 
@@ -42,7 +37,7 @@ class CharacterDeleteMessageHandler {
         success: false,
         message: 'Character is not in player list',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -50,14 +45,14 @@ class CharacterDeleteMessageHandler {
       success: true,
       message: 'Character deleted successfully',
       playerName: player.playerName,
-      characterId
+      characterId,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-delete-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -85,5 +80,5 @@ class CharacterDeleteMessageHandler {
 }
 
 module.exports = {
-  CharacterDeleteMessageHandler
+  CharacterDeleteMessageHandler,
 };

@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  CHARACTER_LIST_RESPONSE_EVENT
-} = require('../model/character-list');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { CHARACTER_LIST_RESPONSE_EVENT } = require('../model/character-list');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CharacterListMessageHandler {
   constructor(context) {
@@ -21,7 +16,7 @@ class CharacterListMessageHandler {
         success: false,
         message: 'playerName is required',
         playerName: '',
-        characters: []
+        characters: [],
       };
     }
 
@@ -33,7 +28,7 @@ class CharacterListMessageHandler {
         success: false,
         message: 'Player is not registered',
         playerName,
-        characters: []
+        characters: [],
       };
     }
 
@@ -43,14 +38,14 @@ class CharacterListMessageHandler {
       success: true,
       message: 'Character list retrieved successfully',
       playerName: player.playerName,
-      characters: characters.map((character) => ({ ...character }))
+      characters: characters.map((character) => ({ ...character })),
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-list-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -66,5 +61,5 @@ class CharacterListMessageHandler {
 }
 
 module.exports = {
-  CharacterListMessageHandler
+  CharacterListMessageHandler,
 };

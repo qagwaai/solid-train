@@ -4,7 +4,7 @@ const { MARKET_CATALOG, MARKET_CATALOG_BY_ID } = require('../../model/market-cat
 const { computeMidpointPrice } = require('../../model/market-pricing');
 const {
   SOLAR_SYSTEM_MARKET_SEED_VERSION,
-  buildSeededMarketsForSolarSystem
+  buildSeededMarketsForSolarSystem,
 } = require('../../model/solar-system-market-seed');
 
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
@@ -12,14 +12,14 @@ const ASTRONOMICAL_UNIT_KM = 149_597_870.7;
 
 function getDefaultStockByRarity(rarity) {
   switch (rarity) {
-  case 'Exotic':
-    return 80;
-  case 'Rare':
-    return 260;
-  case 'Uncommon':
-    return 640;
-  default:
-    return 1200;
+    case 'Exotic':
+      return 80;
+    case 'Rare':
+      return 260;
+    case 'Uncommon':
+      return 640;
+    default:
+      return 1200;
   }
 }
 
@@ -32,7 +32,7 @@ function buildDefaultInventoryEntry(catalogEntry) {
     maxStock,
     restockPerInterval: Math.max(1, Math.round(maxStock * 0.08)),
     marketCanBuy: Boolean(catalogEntry.marketCanBuy),
-    marketCanSell: Boolean(catalogEntry.marketCanSell)
+    marketCanSell: Boolean(catalogEntry.marketCanSell),
   };
 }
 
@@ -47,7 +47,7 @@ async function seedSolarSystemMarketsAsync(ctx, request = {}) {
       success: false,
       reason: 'UNSUPPORTED_SOLAR_SYSTEM',
       solarSystemId,
-      marketCount: 0
+      marketCount: 0,
     };
   }
 
@@ -63,14 +63,15 @@ async function seedSolarSystemMarketsAsync(ctx, request = {}) {
       solarSystemId,
       seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
       marketCount: payloads.length,
-      source: 'in-memory'
+      source: 'in-memory',
     };
   }
 
   try {
-    const existingSeedState = await ctx.databaseService.getSolarSystemMarketSeedState(solarSystemId);
-    const isCurrentVersion = existingSeedState
-      && existingSeedState.seedVersion === SOLAR_SYSTEM_MARKET_SEED_VERSION;
+    const existingSeedState =
+      await ctx.databaseService.getSolarSystemMarketSeedState(solarSystemId);
+    const isCurrentVersion =
+      existingSeedState && existingSeedState.seedVersion === SOLAR_SYSTEM_MARKET_SEED_VERSION;
 
     if (!force && isCurrentVersion) {
       const persistedMarkets = await ctx.databaseService.getMarkets({ solarSystemId });
@@ -84,7 +85,7 @@ async function seedSolarSystemMarketsAsync(ctx, request = {}) {
           solarSystemId,
           seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
           marketCount: persistedMarkets.length,
-          source: 'database-cache'
+          source: 'database-cache',
         };
       }
     }
@@ -110,7 +111,7 @@ async function seedSolarSystemMarketsAsync(ctx, request = {}) {
       solarSystemId,
       seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
       marketCount: marketsToCache.length,
-      source: 'database-upsert'
+      source: 'database-upsert',
     };
   } catch (error) {
     ctx.log(`[context] Error seeding solar system markets: ${error.message}`);
@@ -124,7 +125,7 @@ async function seedSolarSystemMarketsAsync(ctx, request = {}) {
       solarSystemId,
       seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
       marketCount: payloads.length,
-      source: 'in-memory-fallback'
+      source: 'in-memory-fallback',
     };
   }
 }
@@ -146,13 +147,10 @@ function applyMarketRestock(ctx, market, nowTimestamp) {
 
   market.inventory = market.inventory.map((entry) => ({
     ...entry,
-    stock: Math.min(
-      entry.maxStock,
-      entry.stock + (entry.restockPerInterval * intervals)
-    )
+    stock: Math.min(entry.maxStock, entry.stock + entry.restockPerInterval * intervals),
   }));
 
-  const advancedAt = new Date(lastRestock.getTime() + (intervals * intervalMinutes * 60 * 1000));
+  const advancedAt = new Date(lastRestock.getTime() + intervals * intervalMinutes * 60 * 1000);
   market.lastRestockAt = advancedAt.toISOString();
   ctx.cacheMarket(market);
   return market;
@@ -183,11 +181,16 @@ async function getMarketsByLocationAsync(ctx, query = {}) {
   const limit = Number.isInteger(query?.limit) && query.limit > 0 ? query.limit : null;
   const locationTypes = Array.isArray(query?.locationTypes)
     ? query.locationTypes
-      .map((value) => ctx.toNonEmptyString(value).toLowerCase())
-      .filter((value) => Boolean(value))
+        .map((value) => ctx.toNonEmptyString(value).toLowerCase())
+        .filter((value) => Boolean(value))
     : [];
 
-  if (!solarSystemId || !ctx.isTriple(positionKm) || !ctx.isFiniteNumber(distanceAu) || distanceAu < 0) {
+  if (
+    !solarSystemId ||
+    !ctx.isTriple(positionKm) ||
+    !ctx.isFiniteNumber(distanceAu) ||
+    distanceAu < 0
+  ) {
     return [];
   }
 
@@ -229,12 +232,12 @@ async function getMarketsByLocationAsync(ctx, query = {}) {
         solarSystemId: market.solarSystemId,
         frame: 'barycentric',
         positionKm: marketPositionKm,
-        epochMs: Number.isNaN(epochMs) ? 0 : epochMs
+        epochMs: Number.isNaN(epochMs) ? 0 : epochMs,
       },
       _sortKey: 0,
       _sortSecondary: computedDistanceKm,
       distanceAu: computedDistanceAu,
-      route: { kind: 'in-system' }
+      route: { kind: 'in-system' },
     });
   }
 
@@ -288,7 +291,7 @@ async function getMarketQuoteAsync(ctx, request = {}) {
     marketId: hydratedMarket.marketId,
     itemId,
     timestamp: asOf,
-    driftPercentPerHour: hydratedMarket.driftPercentPerHour
+    driftPercentPerHour: hydratedMarket.driftPercentPerHour,
   });
 
   return {
@@ -309,8 +312,8 @@ async function getMarketQuoteAsync(ctx, request = {}) {
       marketCanSell: inventoryEntry.marketCanSell,
       marketMultiplier: hydratedMarket.priceMultiplier,
       driftMultiplier: pricing.driftMultiplier,
-      quotedAt: asOf
-    }
+      quotedAt: asOf,
+    },
   };
 }
 
@@ -329,7 +332,7 @@ async function getMarketInventoryAsync(ctx, query = {}) {
       inventory: [],
       total: 0,
       offset,
-      limit
+      limit,
     };
   }
 
@@ -350,7 +353,7 @@ async function getMarketInventoryAsync(ctx, query = {}) {
         maxStock: entry.maxStock,
         restockPerInterval: entry.restockPerInterval,
         marketCanBuy: entry.marketCanBuy,
-        marketCanSell: entry.marketCanSell
+        marketCanSell: entry.marketCanSell,
       };
     })
     .filter((entry) => Boolean(entry))
@@ -365,7 +368,7 @@ async function getMarketInventoryAsync(ctx, query = {}) {
     total: inventory.length,
     offset,
     limit,
-    asOf
+    asOf,
   };
 }
 
@@ -388,7 +391,7 @@ async function getMarketLedgerAsync(ctx, query = {}) {
       entries: [],
       total: 0,
       offset,
-      limit
+      limit,
     };
   }
 
@@ -425,7 +428,7 @@ async function getMarketLedgerAsync(ctx, query = {}) {
     entries: filtered.slice(offset, offset + limit),
     total: filtered.length,
     offset,
-    limit
+    limit,
   };
 }
 
@@ -443,11 +446,12 @@ async function getCharacterTradeItemsAsync(ctx, playerName, characterId, itemId)
   return containers
     .flat()
     .map((item) => ctx.normalizeItem(item))
-    .filter((item) => (
-      item.owningCharacterId === characterId
-      && item.state === 'contained'
-      && item.itemType === itemId
-    ));
+    .filter(
+      (item) =>
+        item.owningCharacterId === characterId &&
+        item.state === 'contained' &&
+        item.itemType === itemId
+    );
 }
 
 async function applyMarketStockDeltaAsync(ctx, marketId, solarSystemId, itemId, delta) {
@@ -465,7 +469,7 @@ async function applyMarketStockDeltaAsync(ctx, marketId, solarSystemId, itemId, 
     const nextStock = Math.max(0, Math.min(entry.maxStock, entry.stock + delta));
     return {
       ...entry,
-      stock: nextStock
+      stock: nextStock,
     };
   });
 
@@ -483,7 +487,7 @@ async function appendCharacterLedgerEntryAsync(ctx, playerName, characterId, ent
   creditLedger.push(ctx.normalizeCreditLedgerEntry(entry));
   await ctx.updateCharacterAsync(playerName, characterId, {
     creditLedger,
-    credits: ctx.calculateCharacterCredits({ creditLedger })
+    credits: ctx.calculateCharacterCredits({ creditLedger }),
   });
   return true;
 }
@@ -514,7 +518,7 @@ async function addTradeItemToCharacterAsync(ctx, player, character, itemId, quan
     const target = tradeItems[0];
     await ctx.updateItemAsync(target.id, {
       quantity: target.quantity + quantity,
-      updatedAt: now
+      updatedAt: now,
     });
     return true;
   }
@@ -534,7 +538,7 @@ async function addTradeItemToCharacterAsync(ctx, player, character, itemId, quan
     damageStatus: 'intact',
     container: {
       containerType: 'ship',
-      containerId: targetShipId
+      containerId: targetShipId,
     },
     owningPlayerId: ctx.toNonEmptyString(player.playerId),
     owningCharacterId: character.id,
@@ -544,7 +548,7 @@ async function addTradeItemToCharacterAsync(ctx, player, character, itemId, quan
     destroyedAt: null,
     destroyedReason: null,
     launchable: false,
-    quantity
+    quantity,
   };
 
   await ctx.addItemsAsync([newItem]);
@@ -564,7 +568,7 @@ async function removeTradeItemFromCharacterAsync(ctx, playerName, characterId, i
     if (item.quantity > remaining) {
       await ctx.updateItemAsync(item.id, {
         quantity: item.quantity - remaining,
-        updatedAt: ctx.getCurrentTimestamp()
+        updatedAt: ctx.getCurrentTimestamp(),
       });
       remaining = 0;
       break;
@@ -573,7 +577,7 @@ async function removeTradeItemFromCharacterAsync(ctx, playerName, characterId, i
     remaining -= item.quantity;
     await ctx.syncShipInventoryReferenceForItemAsync(playerName, item, {
       ...item,
-      container: null
+      container: null,
     });
     await ctx.deleteItemsAsync([item.id]);
   }
@@ -607,7 +611,7 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
     itemId,
     direction,
     quantity,
-    asOf: ctx.getCurrentTimestamp()
+    asOf: ctx.getCurrentTimestamp(),
   });
   if (!quoteResult.success) {
     return quoteResult;
@@ -622,9 +626,10 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
     return { success: false, reason: 'INSUFFICIENT_CREDITS' };
   }
 
-  const ownedItems = direction === 'sell'
-    ? await getCharacterTradeItemsAsync(ctx, player.playerName, character.id, itemId)
-    : [];
+  const ownedItems =
+    direction === 'sell'
+      ? await getCharacterTradeItemsAsync(ctx, player.playerName, character.id, itemId)
+      : [];
   const ownedQuantity = ownedItems.reduce((total, item) => total + item.quantity, 0);
   if (direction === 'sell' && ownedQuantity < quantity) {
     return { success: false, reason: 'INSUFFICIENT_ITEM_QUANTITY' };
@@ -644,7 +649,7 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
     amount: quote.totalPrice,
     description: `Market ${direction}: ${quote.displayName} x${quantity}`,
     timestamp,
-    referenceId: transactionId
+    referenceId: transactionId,
   };
   const marketLedgerEntry = {
     transactionId,
@@ -656,7 +661,7 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
     unitPrice: quote.unitPrice,
     totalPrice: quote.totalPrice,
     timestamp,
-    reversalOfTransactionId: null
+    reversalOfTransactionId: null,
   };
 
   let stockApplied = false;
@@ -690,7 +695,12 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
       throw new Error('Item mutation failed');
     }
 
-    await appendCharacterLedgerEntryAsync(ctx, player.playerName, character.id, characterLedgerEntry);
+    await appendCharacterLedgerEntryAsync(
+      ctx,
+      player.playerName,
+      character.id,
+      characterLedgerEntry
+    );
     characterLedgerApplied = true;
 
     await appendMarketLedgerEntryAsync(ctx, marketId, solarSystemId, marketLedgerEntry);
@@ -698,7 +708,8 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
 
     const updatedCharacter = ctx.findCharacter(player.playerName, character.id);
     const updatedMarket = ctx.getMarket(marketId, solarSystemId);
-    const inventoryEntry = updatedMarket?.inventory?.find((entry) => entry.itemId === itemId) || null;
+    const inventoryEntry =
+      updatedMarket?.inventory?.find((entry) => entry.itemId === itemId) || null;
 
     return {
       success: true,
@@ -714,11 +725,9 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
         unitPrice: quote.unitPrice,
         totalPrice: quote.totalPrice,
         timestamp,
-        characterCredits: updatedCharacter
-          ? ctx.calculateCharacterCredits(updatedCharacter)
-          : null,
-        marketStock: inventoryEntry?.stock ?? null
-      }
+        characterCredits: updatedCharacter ? ctx.calculateCharacterCredits(updatedCharacter) : null,
+        marketStock: inventoryEntry?.stock ?? null,
+      },
     };
   } catch (error) {
     if (stockApplied) {
@@ -737,7 +746,7 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
         amount: quote.totalPrice,
         description: `Reversal for transaction ${transactionId}`,
         timestamp: ctx.getCurrentTimestamp(),
-        referenceId: transactionId
+        referenceId: transactionId,
       });
     }
 
@@ -747,16 +756,17 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
         transactionId: ctx.createId(),
         direction: 'reversal',
         reversalOfTransactionId: transactionId,
-        timestamp: ctx.getCurrentTimestamp()
+        timestamp: ctx.getCurrentTimestamp(),
       });
     }
 
     ctx.log(`[context] Market transaction failed: ${error.message}`);
     return {
       success: false,
-      reason: characterLedgerApplied || marketLedgerApplied
-        ? 'PARTIAL_WRITE_REVERSED'
-        : 'TRANSACTION_FAILED'
+      reason:
+        characterLedgerApplied || marketLedgerApplied
+          ? 'PARTIAL_WRITE_REVERSED'
+          : 'TRANSACTION_FAILED',
     };
   }
 }
@@ -777,5 +787,5 @@ module.exports = {
   removeTradeItemFromCharacterAsync,
   executeMarketTransactionAsync,
   buildDefaultInventoryEntry,
-  DEFAULT_RESTOCK_INTERVAL_MINUTES
+  DEFAULT_RESTOCK_INTERVAL_MINUTES,
 };

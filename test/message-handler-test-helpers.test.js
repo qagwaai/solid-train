@@ -2,9 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  createTestContext
-} = require('../test-support/message-handler-test-helpers');
+const { createTestContext } = require('../test-support/message-handler-test-helpers');
 
 test('createTestContext emits default seed IDs, then monotonic generated IDs', () => {
   const context = createTestContext();
@@ -20,7 +18,7 @@ test('createTestContext emits default seed IDs, then monotonic generated IDs', (
 
 test('createTestContext accepts custom seedIds and still falls back monotonically', () => {
   const context = createTestContext({
-    seedIds: ['custom-a', ' custom-b ', '', '   ', null]
+    seedIds: ['custom-a', ' custom-b ', '', '   ', null],
   });
 
   assert.equal(context.createId(), 'custom-a');

@@ -2,20 +2,13 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  CharacterEditMessageHandler
-} = require('../src/handlers/character-edit-message-handler');
-const {
-  CHARACTER_EDIT_RESPONSE_EVENT
-} = require('../src/model/character-edit');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { CharacterEditMessageHandler } = require('../src/handlers/character-edit-message-handler');
+const { CHARACTER_EDIT_RESPONSE_EVENT } = require('../src/model/character-edit');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 test('CharacterEditMessageHandler modifies an existing character', async () => {
@@ -23,7 +16,7 @@ test('CharacterEditMessageHandler modifies an existing character', async () => {
   seedPlayer(context, {
     playerName: 'EditPilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'OldName' }]
+    characters: [{ id: 'character-1', characterName: 'OldName' }],
   });
   const handler = new CharacterEditMessageHandler(context);
   const socket = createMockSocket();
@@ -32,7 +25,7 @@ test('CharacterEditMessageHandler modifies an existing character', async () => {
     playerName: 'editpilot',
     sessionKey: 'session-1',
     characterId: 'character-1',
-    characterName: 'NewName'
+    characterName: 'NewName',
   });
 
   assert.deepEqual(response, {
@@ -40,7 +33,7 @@ test('CharacterEditMessageHandler modifies an existing character', async () => {
     message: 'Character edited successfully',
     playerName: 'EditPilot',
     characterId: 'character-1',
-    characterName: 'NewName'
+    characterName: 'NewName',
   });
   assert.equal(socket.events[0].eventName, CHARACTER_EDIT_RESPONSE_EVENT);
   assert.equal(context.getCharacters('editpilot')[0].characterName, 'NewName');
@@ -51,7 +44,7 @@ test('CharacterEditMessageHandler handles missing character in player list', asy
   seedPlayer(context, {
     playerName: 'EdgePilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'ExistingCharacter' }]
+    characters: [{ id: 'character-1', characterName: 'ExistingCharacter' }],
   });
   const handler = new CharacterEditMessageHandler(context);
   const socket = createMockSocket();
@@ -60,18 +53,18 @@ test('CharacterEditMessageHandler handles missing character in player list', asy
     playerName: 'EdgePilot',
     sessionKey: 'session-1',
     characterId: 'missing-character-id',
-    characterName: 'GhostName'
+    characterName: 'GhostName',
   });
 
   assert.deepEqual(response, {
     success: false,
     message: 'Character is not in player list',
     playerName: 'EdgePilot',
-    characterId: 'missing-character-id'
+    characterId: 'missing-character-id',
   });
   assert.equal(socket.events[0].eventName, CHARACTER_EDIT_RESPONSE_EVENT);
   assert.deepEqual(context.getCharacters('edgepilot'), [
-    { id: 'character-1', characterName: 'ExistingCharacter' }
+    { id: 'character-1', characterName: 'ExistingCharacter' },
   ]);
 });
 
@@ -80,7 +73,7 @@ test('CharacterEditMessageHandler rejects invalid sessions before state changes'
   seedPlayer(context, {
     playerName: 'SessionPilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'OriginalName' }]
+    characters: [{ id: 'character-1', characterName: 'OriginalName' }],
   });
   const handler = new CharacterEditMessageHandler(context);
   const socket = createMockSocket();
@@ -89,7 +82,7 @@ test('CharacterEditMessageHandler rejects invalid sessions before state changes'
     playerName: 'SessionPilot',
     sessionKey: 'wrong-session',
     characterId: 'character-1',
-    characterName: 'UpdatedName'
+    characterName: 'UpdatedName',
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -102,7 +95,7 @@ test('CharacterEditMessageHandler updates joined game participant name', async (
   seedPlayer(context, {
     playerName: 'EditPilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'OldName' }]
+    characters: [{ id: 'character-1', characterName: 'OldName' }],
   });
 
   const joinedCharacter = context.getCharacters('editpilot')[0];
@@ -114,13 +107,13 @@ test('CharacterEditMessageHandler updates joined game participant name', async (
     playerName: 'EditPilot',
     sessionKey: 'session-1',
     characterId: 'character-1',
-    characterName: 'RenamedInGame'
+    characterName: 'RenamedInGame',
   });
 
   assert.equal(response.success, true);
   const participant = context.game.getParticipant({
     normalizedPlayerName: 'editpilot',
-    characterId: 'character-1'
+    characterId: 'character-1',
   });
   assert.equal(participant.characterName, 'RenamedInGame');
 });

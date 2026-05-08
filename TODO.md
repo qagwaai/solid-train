@@ -11,6 +11,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 ## P0 — Block before legacy-shape cutover (2026-06-30)
 
 ### ~~TQ-01~~ ✅ Add legacy-shape rejection tests at request boundaries
+
 - **Completed**: 2026-05-07
 - Both upsert handlers already had full rejection test coverage:
   - `celestial-body-upsert`: rejects `location`, `kinematics`, root `solarSystemId`
@@ -18,6 +19,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - No changes required.
 
 ### ~~TQ-02~~ ✅ Migrate fixture leaks off the backward-compat reader
+
 - **Completed**: 2026-05-07
 - **Production code migrated**:
   - `src/handlers/mission-upsert-message-handler.js` — `createStarterMissionAsteroidField()` rewritten to canonical `spatial`/`motion`/`physical`/`observability` shape
@@ -36,6 +38,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 ## P1 — Highest test-quality leverage
 
 ### ~~TQ-03~~ ✅ Resolve `MissionAddMessageHandler` orphan
+
 - **Completed**: 2026-05-07 — deleted
 - **Deleted**:
   - `src/handlers/mission-add-message-handler.js`
@@ -46,6 +49,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - Event `add-mission-request` itself is unchanged — still handled by `MissionUpsertMessageHandler`
 
 ### ~~TQ-04~~ ✅ Cover money-flow branches (market buy / sell / quote)
+
 - **Completed**: 2026-05-07
 - **Added 22 new tests** across `test/market-buy-sell-message-handler.test.js` (+16) and `test/market-quote-message-handler.test.js` (+6)
 - **Covered**:
@@ -64,6 +68,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Test count**: 244 → 266 (all green)
 
 ### ~~TQ-05~~ ✅ Add Socket.IO + Mongo round-trip smoke test
+
 - **Completed**: 2026-05-07
 - **Created**: `test/server.mongo.integration.test.js` — 1 integration test
 - **Flow**: `createServer` + `databaseService` injected → register → login → add character → `getPlayerByName` assertion
@@ -72,6 +77,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Test count**: 266 → 267 (all green)
 
 ### ~~TQ-06~~ ✅ Mongo round-trip per collection
+
 - **Completed**: 2026-05-07 (with approved scope decision)
 - **Added**:
   - `test/db-players.mongo.integration.test.js`
@@ -84,6 +90,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Deferred by decision**: `jump_gates` round-trip coverage moved to TQ-07 scope discussion.
 
 ### ~~TQ-07~~ ✅ Lift `db/service.js` branch coverage
+
 - **Completed**: 2026-05-07
 - **Result**: `src/db/service.js` branch coverage is now **80.00%**
   (line: 90.38%, funcs: 95.08%).
@@ -100,6 +107,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 ## P1 — Helper hygiene
 
 ### ~~TQ-08~~ ✅ Use canonical helpers from `test-support/`
+
 - **Completed**: 2026-05-07
 - **Removed local factories**:
   - `createCelestialBody` from `test/celestial-body-list-message-handler.test.js`
@@ -110,6 +118,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Validation**: full suite green after migration (`281` pass, `0` fail).
 
 ### ~~TQ-09~~ ✅ Make `createTestContext` ID generator robust past 4 calls
+
 - **Completed**: 2026-05-07
 - **Implemented** in `test-support/message-handler-test-helpers.js`:
   - `createTestContext({ seedIds })` optional API
@@ -123,6 +132,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Validation**: full suite green (`284` pass, `0` fail)
 
 ### ~~TQ-10~~ ✅ Extract a shared trader-character seeder
+
 - **Completed**: 2026-05-07
 - **Added helper** in `test-support/message-handler-test-helpers.js`:
   - `seedTraderCharacter(context, { credits, shipOverrides })`
@@ -135,6 +145,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Validation**: full suite green (`284` pass, `0` fail)
 
 ### ~~TQ-11~~ ✅ Remove explicit `credits` from character fixtures
+
 - **Completed**: 2026-05-07
 - **Fixture/API cleanup**:
   - Removed explicit `credits:` fields from character fixture objects in tests.
@@ -154,6 +165,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 ## P2 — Test design polish
 
 ### ~~TQ-12~~ ✅ One assertion per test name (where reasonable)
+
 - **Completed**: 2026-05-07
 - **Implementation**:
   - Split broad market tests into narrower sibling tests in
@@ -165,6 +177,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Validation**: targeted suite green (`106` pass, `0` fail).
 
 ### ~~TQ-13~~ ✅ Free-port server tests
+
 - **Completed**: 2026-05-07
 - **Implementation**:
   - Replaced fixed 30xx `createServer(...)` call sites in `test/server.test.js`
@@ -176,6 +189,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Validation**: `test/server.test.js` passing in targeted suite.
 
 ### ~~TQ-14~~ ✅ Rename historically-misnamed test files
+
 - **Completed**: 2026-05-07
 - **Implementation**:
   - Renamed `test/km-to-au-migration.test.js` to
@@ -186,6 +200,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Validation**: renamed test file passes in targeted suite.
 
 ### ~~TQ-15~~ ✅ Echo `requestId` consistently in market-test assertions
+
 - **Completed**: 2026-05-07
 - **Implementation**:
   - Added/standardized `requestId` payloads and echo assertions across:
@@ -197,6 +212,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Validation**: all targeted market handler tests passing.
 
 ### ~~TQ-16~~ ✅ Cover `solar-system-gate-seed.js`
+
 - **Completed**: 2026-05-07
 - **Implementation**:
   - Added `test/solar-system-gate-seed.test.js` with:
@@ -206,6 +222,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Validation**: new gate-seed test file passing.
 
 ### ~~TQ-17~~ ✅ Verify ship `driveProfile` matrix items
+
 - **Completed**: 2026-05-07
 - **Implementation**:
   - Confirmed and retained the positive branch test where driveProfile is

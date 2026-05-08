@@ -45,5 +45,5 @@ async function updateItemById(ctx, Item, itemId, updates) {
 module.exports = {
   addItems,
   deleteItemsByIds,
-  updateItemById
+  updateItemById,
 };

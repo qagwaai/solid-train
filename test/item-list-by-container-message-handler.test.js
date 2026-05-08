@@ -3,20 +3,15 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  ItemListByContainerMessageHandler
+  ItemListByContainerMessageHandler,
 } = require('../src/handlers/item-list-by-container-message-handler');
-const {
-  ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT
-} = require('../src/model/item-list-by-container');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT } = require('../src/model/item-list-by-container');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
   seedItems,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 function createItem(overrides = {}) {
@@ -36,7 +31,7 @@ function createItem(overrides = {}) {
     discoveredByCharacterId: null,
     createdAt: '2026-04-17T00:00:00.000Z',
     updatedAt: '2026-04-17T00:00:00.000Z',
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -46,7 +41,7 @@ test('ItemListByContainerMessageHandler returns items for a ship container', asy
   seedItems(context, [
     createItem({ id: 'item-1', container: { containerType: 'ship', containerId: 'ship-1' } }),
     createItem({ id: 'item-2', container: { containerType: 'ship', containerId: 'ship-1' } }),
-    createItem({ id: 'item-3', container: { containerType: 'ship', containerId: 'ship-2' } })
+    createItem({ id: 'item-3', container: { containerType: 'ship', containerId: 'ship-2' } }),
   ]);
 
   const handler = new ItemListByContainerMessageHandler(context);
@@ -56,7 +51,7 @@ test('ItemListByContainerMessageHandler returns items for a ship container', asy
     playerName: 'PilotOne',
     sessionKey: 'session-1',
     containerType: 'ship',
-    containerId: 'ship-1'
+    containerId: 'ship-1',
   });
 
   assert.equal(response.success, true);
@@ -80,7 +75,7 @@ test('ItemListByContainerMessageHandler returns empty array when no items match'
     playerName: 'PilotOne',
     sessionKey: 'session-1',
     containerType: 'ship',
-    containerId: 'ship-99'
+    containerId: 'ship-99',
   });
 
   assert.equal(response.success, true);
@@ -93,7 +88,7 @@ test('ItemListByContainerMessageHandler returns items for a market container', a
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
   seedItems(context, [
     createItem({ id: 'item-1', container: { containerType: 'market', containerId: 'market-1' } }),
-    createItem({ id: 'item-2', container: { containerType: 'market', containerId: 'market-1' } })
+    createItem({ id: 'item-2', container: { containerType: 'market', containerId: 'market-1' } }),
   ]);
 
   const handler = new ItemListByContainerMessageHandler(context);
@@ -103,7 +98,7 @@ test('ItemListByContainerMessageHandler returns items for a market container', a
     playerName: 'PilotOne',
     sessionKey: 'session-1',
     containerType: 'market',
-    containerId: 'market-1'
+    containerId: 'market-1',
   });
 
   assert.equal(response.success, true);
@@ -122,7 +117,7 @@ test('ItemListByContainerMessageHandler rejects invalid containerType', async ()
     playerName: 'PilotOne',
     sessionKey: 'session-1',
     containerType: 'black-hole',
-    containerId: 'bh-1'
+    containerId: 'bh-1',
   });
 
   assert.equal(response.success, false);
@@ -140,7 +135,7 @@ test('ItemListByContainerMessageHandler rejects missing containerId', async () =
   const response = await handler.handle(socket, {
     playerName: 'PilotOne',
     sessionKey: 'session-1',
-    containerType: 'ship'
+    containerType: 'ship',
   });
 
   assert.equal(response.success, false);
@@ -158,7 +153,7 @@ test('ItemListByContainerMessageHandler rejects unregistered player', async () =
     playerName: 'Ghost',
     sessionKey: 'session-1',
     containerType: 'ship',
-    containerId: 'ship-1'
+    containerId: 'ship-1',
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -176,7 +171,7 @@ test('ItemListByContainerMessageHandler emits invalid-session before query', asy
     playerName: 'PilotOne',
     sessionKey: 'wrong-session',
     containerType: 'ship',
-    containerId: 'ship-1'
+    containerId: 'ship-1',
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -189,7 +184,7 @@ test('ItemListByContainerMessageHandler merges cache and DB matches for a ship c
 
   const cachedItem = createItem({
     id: 'item-cache-only',
-    container: { containerType: 'ship', containerId: 'ship-1' }
+    container: { containerType: 'ship', containerId: 'ship-1' },
   });
   seedItems(context, [cachedItem]);
 
@@ -198,10 +193,10 @@ test('ItemListByContainerMessageHandler merges cache and DB matches for a ship c
       return [
         createItem({
           id: 'item-db-only',
-          container: { containerType: 'ship', containerId: 'ship-1' }
-        })
+          container: { containerType: 'ship', containerId: 'ship-1' },
+        }),
       ];
-    }
+    },
   };
 
   const handler = new ItemListByContainerMessageHandler(context);
@@ -211,7 +206,7 @@ test('ItemListByContainerMessageHandler merges cache and DB matches for a ship c
     playerName: 'PilotOne',
     sessionKey: 'session-1',
     containerType: 'ship',
-    containerId: 'ship-1'
+    containerId: 'ship-1',
   });
 
   assert.equal(response.success, true);

@@ -26,9 +26,9 @@ test('DatabaseService.getPlayerByName finds legacy player documents missing norm
         return {
           playerId: this.playerId,
           playerName: this.playerName,
-          playerNameNormalized: this.playerNameNormalized
+          playerNameNormalized: this.playerNameNormalized,
         };
-      }
+      },
     };
   };
 
@@ -61,16 +61,16 @@ test('DatabaseService.updatePlayer uses case-insensitive playerName query', asyn
         return {
           playerName: 'OrbitFox',
           sessionKey: updates.sessionKey || null,
-          socketId: updates.socketId || null
+          socketId: updates.socketId || null,
         };
-      }
+      },
     };
   };
 
   try {
     const updated = await service.updatePlayer('ORBITFOX', {
       sessionKey: 'session-1',
-      socketId: 'socket-1'
+      socketId: 'socket-1',
     });
 
     assert.equal(capturedQuery.$or[0].playerNameNormalized, 'orbitfox');

@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   SOLAR_SYSTEM_MARKET_SEED_VERSION,
-  buildSeededMarketsForSolarSystem
+  buildSeededMarketsForSolarSystem,
 } = require('../src/model/solar-system-market-seed');
 
 test('buildSeededMarketsForSolarSystem builds Sol market set with required orbit metadata', () => {
@@ -35,7 +35,10 @@ test('buildSeededMarketsForSolarSystem builds Sol market set with required orbit
 });
 
 test('buildSeededMarketsForSolarSystem returns empty for unsupported systems', () => {
-  assert.deepEqual(buildSeededMarketsForSolarSystem('proxima-centauri', '2026-05-05T00:00:00.000Z'), []);
+  assert.deepEqual(
+    buildSeededMarketsForSolarSystem('proxima-centauri', '2026-05-05T00:00:00.000Z'),
+    []
+  );
   assert.deepEqual(buildSeededMarketsForSolarSystem('', '2026-05-05T00:00:00.000Z'), []);
   assert.deepEqual(buildSeededMarketsForSolarSystem(null, '2026-05-05T00:00:00.000Z'), []);
 });

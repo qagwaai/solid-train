@@ -2,22 +2,15 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  LaunchItemMessageHandler
-} = require('../src/handlers/launch-item-message-handler');
-const {
-  LAUNCH_ITEM_RESPONSE_EVENT
-} = require('../src/model/launch-item');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { LaunchItemMessageHandler } = require('../src/handlers/launch-item-message-handler');
+const { LAUNCH_ITEM_RESPONSE_EVENT } = require('../src/model/launch-item');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
   seedCelestialBodies,
   seedItems,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 function createLaunchPayload(overrides = {}) {
@@ -30,7 +23,7 @@ function createLaunchPayload(overrides = {}) {
     hotkey: 3,
     itemId: 'item-1',
     itemType: 'expendable-dart-drone',
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -50,7 +43,7 @@ function createSeedItem(overrides = {}) {
     destroyedAt: null,
     destroyedReason: null,
     launchable: true,
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -68,31 +61,31 @@ function createSeedTarget(overrides = {}) {
       solarSystemId: 'sol',
       frame: 'barycentric',
       positionKm: { x: 100, y: 200, z: 300 },
-      epochMs: 1713360000000
+      epochMs: 1713360000000,
     },
     motion: {
       velocityKmPerSec: { x: 1, y: 1, z: 1 },
-      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 }
+      angularVelocityRadPerSec: { x: 0.1, y: 0.2, z: 0.3 },
     },
     physical: {
       estimatedMassKg: 42000000000,
-      estimatedDiameterM: 320
+      estimatedDiameterM: 320,
     },
     observability: {
       visibility: 'visible',
-      scanState: 'scanned'
+      scanState: 'scanned',
     },
     composition: {
       rarity: 'Rare',
       material: 'Nickel-Iron',
-      textureColor: '#8df7b2'
+      textureColor: '#8df7b2',
     },
     state: 'active',
     destroyedAt: null,
     destroyedReason: null,
     debrisSeed: null,
     debris: [],
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -111,14 +104,14 @@ function seedLaunchScenario(context) {
             inventory: [
               {
                 itemId: 'item-1',
-                itemType: 'expendable-dart-drone'
-              }
+                itemType: 'expendable-dart-drone',
+              },
             ],
-            createdAt: '2026-04-17T00:00:00.000Z'
-          }
-        ]
-      }
-    ]
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
   });
   seedItems(context, [createSeedItem()]);
   seedCelestialBodies(context, [createSeedTarget()]);
@@ -181,27 +174,37 @@ test('LaunchItemMessageHandler returns success no-effect for unsupported launch 
   const context = createTestContext();
   seedLaunchScenario(context);
   seedItems(context, [
-    createSeedItem({ id: 'item-2', itemType: 'basic-mining-laser', displayName: 'Basic Mining Laser' })
+    createSeedItem({
+      id: 'item-2',
+      itemType: 'basic-mining-laser',
+      displayName: 'Basic Mining Laser',
+    }),
   ]);
 
   const character = context.findCharacter('PilotOne', 'character-1');
   character.ships[0].inventory = [
     {
       itemId: 'item-2',
-      itemType: 'basic-mining-laser'
-    }
+      itemType: 'basic-mining-laser',
+    },
   ];
 
   const handler = new LaunchItemMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = await handler.handle(socket, createLaunchPayload({
-    itemId: 'item-2',
-    itemType: 'basic-mining-laser'
-  }));
+  const response = await handler.handle(
+    socket,
+    createLaunchPayload({
+      itemId: 'item-2',
+      itemType: 'basic-mining-laser',
+    })
+  );
 
   assert.equal(response.success, true);
-  assert.equal(response.message, 'Launch completed with no effect for itemType: basic-mining-laser');
+  assert.equal(
+    response.message,
+    'Launch completed with no effect for itemType: basic-mining-laser'
+  );
   assert.equal(response.resolution.outcome, 'no-effect');
   assert.equal(response.resolution.targetDestroyed, false);
   assert.equal(response.resolution.yieldedMaterials.length, 0);
@@ -225,9 +228,12 @@ test('LaunchItemMessageHandler rejects missing target celestial body', async () 
   const handler = new LaunchItemMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = await handler.handle(socket, createLaunchPayload({
-    targetCelestialBodyId: 'cb-missing'
-  }));
+  const response = await handler.handle(
+    socket,
+    createLaunchPayload({
+      targetCelestialBodyId: 'cb-missing',
+    })
+  );
 
   assert.equal(response.success, false);
   assert.equal(response.message, 'Target celestial body does not exist');
@@ -241,9 +247,12 @@ test('LaunchItemMessageHandler emits invalid session before processing', async (
   const handler = new LaunchItemMessageHandler(context);
   const socket = createMockSocket();
 
-  const response = await handler.handle(socket, createLaunchPayload({
-    sessionKey: 'wrong-session'
-  }));
+  const response = await handler.handle(
+    socket,
+    createLaunchPayload({
+      sessionKey: 'wrong-session',
+    })
+  );
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);

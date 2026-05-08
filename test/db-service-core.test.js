@@ -11,7 +11,10 @@ test('DatabaseService simple helpers normalize values and geometry', () => {
   assert.equal(service.toNonEmptyString('  hello  '), 'hello');
   assert.equal(service.toNonEmptyString(123), '');
   assert.equal(service.escapeRegExp('a+b?c'), 'a\\+b\\?c');
-  assert.equal(service.buildPlayerNameQuery('  OrbitFox  ').$or[0].playerNameNormalized, 'orbitfox');
+  assert.equal(
+    service.buildPlayerNameQuery('  OrbitFox  ').$or[0].playerNameNormalized,
+    'orbitfox'
+  );
   assert.equal(service.buildPlayerNameQuery('   '), null);
   assert.equal(service.isFiniteNumber(12.3), true);
   assert.equal(service.isFiniteNumber(Number.NaN), false);
@@ -34,7 +37,7 @@ test('DatabaseService getPlayerById forwards query and returns object or null', 
     return {
       toObject() {
         return { playerId: query.playerId, playerName: 'OrbitFox' };
-      }
+      },
     };
   };
 
@@ -103,14 +106,14 @@ test('DatabaseService item methods handle empty inputs and basic queries', async
     findCalls += 1;
     findQuery = query;
     return {
-      lean: async () => [{ id: 'i-1' }]
+      lean: async () => [{ id: 'i-1' }],
     };
   };
   Item.findOneAndUpdate = (query, payload) => {
     updateQuery = query;
     updatePayload = payload;
     return {
-      lean: async () => ({ id: 'i-1', quantity: 2 })
+      lean: async () => ({ id: 'i-1', quantity: 2 }),
     };
   };
 
@@ -140,7 +143,7 @@ test('DatabaseService item methods handle empty inputs and basic queries', async
     assert.equal(findCalls, 2);
     assert.deepEqual(findQuery, {
       'container.containerType': 'ship',
-      'container.containerId': 'ship-1'
+      'container.containerId': 'ship-1',
     });
     assert.deepEqual(byContainer, [{ id: 'i-1' }]);
 
@@ -169,23 +172,33 @@ test('DatabaseService celestial body methods cover invalid and filtered query pa
       lean: async () => [
         {
           id: 'cb-near',
-          spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 3, y: 4, z: 0 }, epochMs: 0 },
+          spatial: {
+            solarSystemId: 'sol',
+            frame: 'barycentric',
+            positionKm: { x: 3, y: 4, z: 0 },
+            epochMs: 0,
+          },
           createdByCharacterId: 'char-1',
           missionId: 'm-1',
-          state: 'active'
+          state: 'active',
         },
         {
           id: 'cb-far',
-          spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 100, y: 0, z: 0 }, epochMs: 0 },
+          spatial: {
+            solarSystemId: 'sol',
+            frame: 'barycentric',
+            positionKm: { x: 100, y: 0, z: 0 },
+            epochMs: 0,
+          },
           createdByCharacterId: 'char-1',
           missionId: 'm-1',
-          state: 'active'
-        }
-      ]
+          state: 'active',
+        },
+      ],
     };
   };
   CelestialBody.findOne = (query) => ({
-    lean: async () => (query.id === 'cb-1' ? { id: 'cb-1' } : null)
+    lean: async () => (query.id === 'cb-1' ? { id: 'cb-1' } : null),
   });
   CelestialBody.deleteOne = async (query) => ({ deletedCount: query.id === 'cb-1' ? 1 : 0 });
 
@@ -198,7 +211,7 @@ test('DatabaseService celestial body methods cover invalid and filtered query pa
       distanceKm: 10,
       createdByCharacterId: 'char-1',
       missionId: 'm-1',
-      stateValues: ['active']
+      stateValues: ['active'],
     });
     assert.equal(near.length, 1);
     assert.equal(near[0].celestialBody.id, 'cb-near');
@@ -209,7 +222,7 @@ test('DatabaseService celestial body methods cover invalid and filtered query pa
       solarSystemId: 'sol',
       createdByCharacterId: 'char-1',
       missionId: 'm-1',
-      stateValues: ['active']
+      stateValues: ['active'],
     });
     assert.equal(scoped.length, 2);
 
@@ -241,18 +254,18 @@ test('DatabaseService findItemsNearPosition filters candidates by exact spherica
           itemType: 'iron',
           spatial: {
             positionKm: { x: 6, y: 8, z: 0 },
-            solarSystemId: 'sol'
-          }
+            solarSystemId: 'sol',
+          },
         },
         {
           id: 'item-far',
           itemType: 'iron',
           spatial: {
             positionKm: { x: 40, y: 0, z: 0 },
-            solarSystemId: 'sol'
-          }
-        }
-      ]
+            solarSystemId: 'sol',
+          },
+        },
+      ],
     };
   };
 
@@ -263,7 +276,7 @@ test('DatabaseService findItemsNearPosition filters candidates by exact spherica
       solarSystemId: 'sol',
       positionKm: { x: 0, y: 0, z: 0 },
       distanceKm: 10,
-      itemType: 'iron'
+      itemType: 'iron',
     });
 
     assert.equal(results.length, 1);

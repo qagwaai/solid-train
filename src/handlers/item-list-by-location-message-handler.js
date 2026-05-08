@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  ITEM_LIST_BY_LOCATION_RESPONSE_EVENT
-} = require('../model/item-list-by-location');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { ITEM_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../model/item-list-by-location');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class ItemListByLocationMessageHandler {
   constructor(context) {
@@ -18,10 +13,12 @@ class ItemListByLocationMessageHandler {
   }
 
   isTriple(value) {
-    return Boolean(value)
-      && this.isFiniteNumber(value.x)
-      && this.isFiniteNumber(value.y)
-      && this.isFiniteNumber(value.z);
+    return (
+      Boolean(value) &&
+      this.isFiniteNumber(value.x) &&
+      this.isFiniteNumber(value.y) &&
+      this.isFiniteNumber(value.z)
+    );
   }
 
   toPositiveNumberOrZero(value) {
@@ -47,13 +44,14 @@ class ItemListByLocationMessageHandler {
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
-    const positionKm = payload?.positionKm && this.isTriple(payload.positionKm)
-      ? {
-        x: payload.positionKm.x,
-        y: payload.positionKm.y,
-        z: payload.positionKm.z
-      }
-      : null;
+    const positionKm =
+      payload?.positionKm && this.isTriple(payload.positionKm)
+        ? {
+            x: payload.positionKm.x,
+            y: payload.positionKm.y,
+            z: payload.positionKm.z,
+          }
+        : null;
     const distanceKm = this.toPositiveNumberOrZero(payload?.distanceKm);
     const limit = this.toValidLimit(payload?.limit);
     const itemType = this.context.toNonEmptyString(payload?.itemType) || null;
@@ -64,7 +62,7 @@ class ItemListByLocationMessageHandler {
         message: 'playerName, solarSystemId, positionKm, and distanceKm are required',
         playerName,
         solarSystemId,
-        items: []
+        items: [],
       };
     }
 
@@ -74,7 +72,7 @@ class ItemListByLocationMessageHandler {
         message: 'limit must be a positive integer when provided',
         playerName,
         solarSystemId,
-        items: []
+        items: [],
       };
     }
 
@@ -85,7 +83,7 @@ class ItemListByLocationMessageHandler {
         message: 'Player is not registered',
         playerName,
         solarSystemId,
-        items: []
+        items: [],
       };
     }
 
@@ -94,7 +92,7 @@ class ItemListByLocationMessageHandler {
       positionKm,
       distanceKm,
       itemType,
-      limit
+      limit,
     });
 
     if (!searchResult.length) {
@@ -106,7 +104,7 @@ class ItemListByLocationMessageHandler {
         positionKm,
         distanceKm,
         itemType,
-        items: []
+        items: [],
       };
     }
 
@@ -120,15 +118,15 @@ class ItemListByLocationMessageHandler {
       itemType,
       items: searchResult.map((entry) => ({
         ...entry.item,
-        distanceKm: entry.distanceKm
-      }))
+        distanceKm: entry.distanceKm,
+      })),
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-list-by-location-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -144,5 +142,5 @@ class ItemListByLocationMessageHandler {
 }
 
 module.exports = {
-  ItemListByLocationMessageHandler
+  ItemListByLocationMessageHandler,
 };

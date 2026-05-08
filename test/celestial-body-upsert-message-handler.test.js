@@ -3,30 +3,26 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  CelestialBodyUpsertMessageHandler
+  CelestialBodyUpsertMessageHandler,
 } = require('../src/handlers/celestial-body-upsert-message-handler');
 const {
   CELESTIAL_BODY_UPSERT_RESPONSE_EVENT,
-  DEFAULT_SOLAR_SYSTEM_ID
+  DEFAULT_SOLAR_SYSTEM_ID,
 } = require('../src/model/celestial-body-upsert');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createCelestialBody,
   createMockSocket,
   createTestContext,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
-
 
 test('CelestialBodyUpsertMessageHandler upserts a celestial body by id', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
   const handler = new CelestialBodyUpsertMessageHandler(context);
@@ -35,7 +31,7 @@ test('CelestialBodyUpsertMessageHandler upserts a celestial body by id', async (
   const response = await handler.handle(socket, {
     playerName: 'scannerone',
     sessionKey: 'session-1',
-    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' })
+    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' }),
   });
 
   assert.equal(response.success, true);
@@ -52,7 +48,7 @@ test('CelestialBodyUpsertMessageHandler validates createdByCharacterId', async (
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
   const handler = new CelestialBodyUpsertMessageHandler(context);
@@ -61,7 +57,7 @@ test('CelestialBodyUpsertMessageHandler validates createdByCharacterId', async (
   const response = await handler.handle(socket, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-404' })
+    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-404' }),
   });
 
   assert.equal(response.success, false);
@@ -75,7 +71,7 @@ test('CelestialBodyUpsertMessageHandler emits invalid session before mutation', 
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
   const handler = new CelestialBodyUpsertMessageHandler(context);
@@ -84,7 +80,7 @@ test('CelestialBodyUpsertMessageHandler emits invalid session before mutation', 
   const response = await handler.handle(socket, {
     playerName: 'ScannerOne',
     sessionKey: 'wrong-session',
-    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' })
+    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' }),
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -97,7 +93,7 @@ test('CelestialBodyUpsertMessageHandler supports unscanned mission-seeded astero
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
   const handler = new CelestialBodyUpsertMessageHandler(context);
@@ -112,10 +108,10 @@ test('CelestialBodyUpsertMessageHandler supports unscanned mission-seeded astero
         missionId: 'first-target',
         state: 'unscanned',
         composition: null,
-        createdByCharacterId: 'character-1'
+        createdByCharacterId: 'character-1',
       }),
-      id: ''
-    }
+      id: '',
+    },
   });
 
   assert.equal(response.success, true);
@@ -130,7 +126,7 @@ test('CelestialBodyUpsertMessageHandler rejects legacy location field', async ()
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
   const handler = new CelestialBodyUpsertMessageHandler(context);
@@ -141,12 +137,15 @@ test('CelestialBodyUpsertMessageHandler rejects legacy location field', async ()
     sessionKey: 'session-1',
     celestialBody: {
       ...createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' }),
-      location: { positionKm: { x: 1, y: 2, z: 3 } }
-    }
+      location: { positionKm: { x: 1, y: 2, z: 3 } },
+    },
   });
 
   assert.equal(response.success, false);
-  assert.equal(response.message, "CelestialBodyUpsert: legacy field 'location' is not supported. Use 'spatial' instead.");
+  assert.equal(
+    response.message,
+    "CelestialBodyUpsert: legacy field 'location' is not supported. Use 'spatial' instead."
+  );
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
 });
 
@@ -155,7 +154,7 @@ test('CelestialBodyUpsertMessageHandler rejects legacy kinematics field', async 
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
   const handler = new CelestialBodyUpsertMessageHandler(context);
@@ -167,13 +166,16 @@ test('CelestialBodyUpsertMessageHandler rejects legacy kinematics field', async 
     celestialBody: {
       ...createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' }),
       kinematics: {
-        velocityKmPerSec: { x: 1, y: 0, z: 0 }
-      }
-    }
+        velocityKmPerSec: { x: 1, y: 0, z: 0 },
+      },
+    },
   });
 
   assert.equal(response.success, false);
-  assert.equal(response.message, "CelestialBodyUpsert: legacy field 'kinematics' is not supported. Use 'motion' and/or 'physical' instead.");
+  assert.equal(
+    response.message,
+    "CelestialBodyUpsert: legacy field 'kinematics' is not supported. Use 'motion' and/or 'physical' instead."
+  );
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
 });
 
@@ -182,7 +184,7 @@ test('CelestialBodyUpsertMessageHandler rejects root solarSystemId field', async
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
   const handler = new CelestialBodyUpsertMessageHandler(context);
@@ -193,11 +195,14 @@ test('CelestialBodyUpsertMessageHandler rejects root solarSystemId field', async
     sessionKey: 'session-1',
     celestialBody: {
       ...createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' }),
-      solarSystemId: 'sol'
-    }
+      solarSystemId: 'sol',
+    },
   });
 
   assert.equal(response.success, false);
-  assert.equal(response.message, "CelestialBodyUpsert: legacy field 'solarSystemId' is not supported. Use 'spatial.solarSystemId' instead.");
+  assert.equal(
+    response.message,
+    "CelestialBodyUpsert: legacy field 'solarSystemId' is not supported. Use 'spatial.solarSystemId' instead."
+  );
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
 });

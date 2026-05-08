@@ -11,8 +11,8 @@ async function createMongoTestHarness() {
     mongoUri: mongoServer.getUri(),
     mongooseOptions: {
       connectTimeoutMS: 10000,
-      serverSelectionTimeoutMS: 10000
-    }
+      serverSelectionTimeoutMS: 10000,
+    },
   });
 
   await mongoConnection.connect();
@@ -28,10 +28,10 @@ async function createMongoTestHarness() {
     async teardown() {
       await mongoConnection.disconnect();
       await mongoServer.stop();
-    }
+    },
   };
 }
 
 module.exports = {
-  createMongoTestHarness
+  createMongoTestHarness,
 };

@@ -5,30 +5,28 @@ async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData) {
     const upsertQuery = ctx.toNonEmptyString(celestialBodyData?.id)
       ? { id: ctx.toNonEmptyString(celestialBodyData.id) }
       : {
-        sourceScanId: ctx.toNonEmptyString(celestialBodyData?.sourceScanId),
-        createdByCharacterId: ctx.toNonEmptyString(celestialBodyData?.createdByCharacterId),
-        missionId: ctx.toNonEmptyString(celestialBodyData?.missionId)
-      };
+          sourceScanId: ctx.toNonEmptyString(celestialBodyData?.sourceScanId),
+          createdByCharacterId: ctx.toNonEmptyString(celestialBodyData?.createdByCharacterId),
+          missionId: ctx.toNonEmptyString(celestialBodyData?.missionId),
+        };
 
     if (!upsertQuery.id) {
       if (
-        !upsertQuery.sourceScanId
-        || !upsertQuery.createdByCharacterId
-        || !upsertQuery.missionId
+        !upsertQuery.sourceScanId ||
+        !upsertQuery.createdByCharacterId ||
+        !upsertQuery.missionId
       ) {
-        throw new Error('Celestial body upsert requires id or sourceScanId+createdByCharacterId+missionId');
+        throw new Error(
+          'Celestial body upsert requires id or sourceScanId+createdByCharacterId+missionId'
+        );
       }
     }
 
-    const celestialBody = await CelestialBody.findOneAndUpdate(
-      upsertQuery,
-      celestialBodyData,
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true
-      }
-    );
+    const celestialBody = await CelestialBody.findOneAndUpdate(upsertQuery, celestialBodyData, {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    });
     return celestialBody ? celestialBody.toObject() : null;
   } catch (error) {
     ctx.log(`[db-service] Error adding/updating celestial body: ${error.message}`);
@@ -52,5 +50,5 @@ async function deleteCelestialBodyById(ctx, CelestialBody, celestialBodyId) {
 
 module.exports = {
   addOrUpdateCelestialBody,
-  deleteCelestialBodyById
+  deleteCelestialBodyById,
 };

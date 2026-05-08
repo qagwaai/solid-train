@@ -13,6 +13,7 @@ This file documents why the db service tests are split across two files.
     including negative paths and persistence interaction sequencing.
 
 Rationale:
+
 - Keeps fast micro-behavior checks isolated from larger scenario tests.
 - Makes failures easier to triage by intent: helper logic vs workflow behavior.
 - Reduces fixture/setup churn for targeted maintenance.

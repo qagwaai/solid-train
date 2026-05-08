@@ -6,7 +6,7 @@
 
 _**User (2026-04-28 12:57:49Z)**_
 
-on restart of the full stack, am getting that a player is unregistered, even tho i can see the record in the mongodb and the handler message showing that the request came to the backend handler.  would think this would have to do with some in memory scenario - what do you think?
+on restart of the full stack, am getting that a player is unregistered, even tho i can see the record in the mongodb and the handler message showing that the request came to the backend handler. would think this would have to do with some in memory scenario - what do you think?
 
 ---
 
@@ -30,7 +30,7 @@ I’m going to scan all handler files for direct player-cache checks versus DB-a
 
 _**User (2026-04-28 13:16:48Z)**_
 
-add a new message handler to support a launch-item request and response (described at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/item-view-specs.ts).  in this request, we will get information about what is getting launched (usually an item), and what the target is (usually a cb).  we will need to validate that both of these items exist.  Further, we are going to be in charge of determining the result.  we might need to add more to the response.  For instance, when we are launching a expendable dart drone at an asteroid, the expected result will be that the asteroid will get destroyed, but yield raw materials.  the amount of raw materials and composition, will be based on the asteroid makeup. what questions do you have?
+add a new message handler to support a launch-item request and response (described at https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/item-view-specs.ts). in this request, we will get information about what is getting launched (usually an item), and what the target is (usually a cb). we will need to validate that both of these items exist. Further, we are going to be in charge of determining the result. we might need to add more to the response. For instance, when we are launching a expendable dart drone at an asteroid, the expected result will be that the asteroid will get destroyed, but yield raw materials. the amount of raw materials and composition, will be based on the asteroid makeup. what questions do you have?
 
 ---
 
@@ -42,7 +42,7 @@ I’ll implement this end-to-end by first reading the external item-view-specs c
 
 _**User (2026-04-28 13:26:50Z)**_
 
-1. success with no-effect, 2. always, 3. soft state, destroyed plus debris, 4. in the response, and as new items.  expect that these will go into the ship inventory for now, 5. raw material items that come from the asteroid materials - see here https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/asteroid-materials.ts, 6. not at this time, 7. yes
+1. success with no-effect, 2. always, 3. soft state, destroyed plus debris, 4. in the response, and as new items. expect that these will go into the ship inventory for now, 5. raw material items that come from the asteroid materials - see here https://github.com/qagwaai/laughing-octo-journey/blob/main/src/app/model/asteroid-materials.ts, 6. not at this time, 7. yes
 
 ---
 
@@ -58,7 +58,7 @@ _**User (2026-04-28 13:48:16Z)**_
 Terminal output:
 
 d4girap@susd4hcm-105342 MINGW64 /d/at-template/solid-train (main)
-$  node --test test/server.test.js --test-name-pattern "ship list returns ships for a character"
+$ node --test test/server.test.js --test-name-pattern "ship list returns ships for a character"
 ✔ resolvePort returns default port when not set (1.1133ms)
 ✔ resolvePort throws for invalid port (0.3482ms)
 ✔ createServer returns server and io instances (2.406ms)
@@ -212,44 +212,45 @@ $  node --test test/server.test.js --test-name-pattern "ship list returns ships 
 
 test at test\server.test.js:516:1
 ✖ ship list returns ships for a character (13.1089ms)
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
-  + actual - expected
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+
+- actual - expected
   ... Skipped lines
-  
-    [
-      {
-        container: {
-          containerId: '7358a170-2f25-425a-b075-571d67375b0b-ship-1',
-          containerType: 'ship'
+
+  [
+  {
+  container: {
+  containerId: '7358a170-2f25-425a-b075-571d67375b0b-ship-1',
+  containerType: 'ship'
   ...
-        owningPlayerId: '40f17840-515f-45cc-a4a2-1fe83669352f',
-  +     quantity: 1,
+  owningPlayerId: '40f17840-515f-45cc-a4a2-1fe83669352f',
+
+-     quantity: 1,
         state: 'contained',
         updatedAt: '2026-04-28T13:38:08.496Z'
       }
-    ]
-  
+
+  ]
+
       at TestContext.<anonymous> (D:\at-template\solid-train\test\server.test.js:555:10)
       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
       at async Test.run (node:internal/test_runner/test:1125:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
-    generatedMessage: true,
-    code: 'ERR_ASSERTION',
-    actual: [ { id: '7358a170-2f25-425a-b075-571d67375b0b-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '40f17840-515f-45cc-a4a2-1fe83669352f', owningCharacterId: '7358a170-2f25-425a-b075-571d67375b0b', kinematics: null, createdAt: '2026-04-28T13:38:08.496Z', updatedAt: '2026-04-28T13:38:08.496Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
-    expected: [ { id: '7358a170-2f25-425a-b075-571d67375b0b-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '40f17840-515f-45cc-a4a2-1fe83669352f', owningCharacterId: '7358a170-2f25-425a-b075-571d67375b0b', kinematics: null, createdAt: '2026-04-28T13:38:08.496Z', updatedAt: '2026-04-28T13:38:08.496Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
-    operator: 'deepStrictEqual',
-    diff: 'simple'
+
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ { id: '7358a170-2f25-425a-b075-571d67375b0b-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '40f17840-515f-45cc-a4a2-1fe83669352f', owningCharacterId: '7358a170-2f25-425a-b075-571d67375b0b', kinematics: null, createdAt: '2026-04-28T13:38:08.496Z', updatedAt: '2026-04-28T13:38:08.496Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
+  expected: [ { id: '7358a170-2f25-425a-b075-571d67375b0b-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '40f17840-515f-45cc-a4a2-1fe83669352f', owningCharacterId: '7358a170-2f25-425a-b075-571d67375b0b', kinematics: null, createdAt: '2026-04-28T13:38:08.496Z', updatedAt: '2026-04-28T13:38:08.496Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
   }
 
 test at test\server.test.js:1:1
 ✖ test\server.test.js (581090.8057ms)
-  'Promise resolution is still pending but the event loop has already resolved'
-
-
+'Promise resolution is still pending but the event loop has already resolved'
 
 [Terminal 9a24fb6d-1bf4-487f-9815-fd40e807cf6c notification: command completed with exit code 130. Use send_to_terminal to send another command or kill_terminal to stop it.]
 Terminal output:
-
 
 [... PREVIOUS OUTPUT TRUNCATED ...]
 
@@ -410,46 +411,48 @@ d (10.0639ms)
 
 test at test\server.test.js:516:1
 ✖ ship list returns ships for a character (17.2689ms)
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
-  + actual - expected
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+
+- actual - expected
   ... Skipped lines
-  
-    [
-      {
-        container: {
-          containerId: '20bb24b9-3fc4-4b6e-9d13-6d3eb8650de6-ship-1',
-          containerType: 'ship'
+
+  [
+  {
+  container: {
+  containerId: '20bb24b9-3fc4-4b6e-9d13-6d3eb8650de6-ship-1',
+  containerType: 'ship'
   ...
-        owningPlayerId: '610d1474-5163-4fed-9c79-580971c6a0ed',
-  -     quantity: 1,
+  owningPlayerId: '610d1474-5163-4fed-9c79-580971c6a0ed',
+
+*     quantity: 1,
         state: 'contained',
         updatedAt: '2026-04-28T13:43:05.088Z'
       }
-    ]
-  
+
+  ]
+
       at TestContext.<anonymous> (D:\at-template\solid-train\test\server.test.js:555:10)
       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
       at async Test.run (node:internal/test_runner/test:1125:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
-    generatedMessage: true,
-    code: 'ERR_ASSERTION',
-    actual: [ { id: '20bb24b9-3fc4-4b6e-9d13-6d3eb8650de6-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '610d1474-5163-4fed-9c79-580971c6a0ed', owningCharacterId: '20bb24b9-3fc4-4b6e-9d13-6d3eb8650de6', kinematics: null, createdAt: '2026-04-28T13:43:05.088Z', updatedAt: '2026-04-28T13:43:05.088Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
-    expected: [ { id: '20bb24b9-3fc4-4b6e-9d13-6d3eb8650de6-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '610d1474-5163-4fed-9c79-580971c6a0ed', owningCharacterId: '20bb24b9-3fc4-4b6e-9d13-6d3eb8650de6', kinematics: null, createdAt: '2026-04-28T13:43:05.088Z', updatedAt: '2026-04-28T13:43:05.088Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
-    operator: 'deepStrictEqual',
-    diff: 'simple'
+
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ { id: '20bb24b9-3fc4-4b6e-9d13-6d3eb8650de6-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '610d1474-5163-4fed-9c79-580971c6a0ed', owningCharacterId: '20bb24b9-3fc4-4b6e-9d13-6d3eb8650de6', kinematics: null, createdAt: '2026-04-28T13:43:05.088Z', updatedAt: '2026-04-28T13:43:05.088Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
+  expected: [ { id: '20bb24b9-3fc4-4b6e-9d13-6d3eb8650de6-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '610d1474-5163-4fed-9c79-580971c6a0ed', owningCharacterId: '20bb24b9-3fc4-4b6e-9d13-6d3eb8650de6', kinematics: null, createdAt: '2026-04-28T13:43:05.088Z', updatedAt: '2026-04-28T13:43:05.088Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
   }
 
 test at test\server.test.js:1:1
 ✖ test\server.test.js (296298.3628ms)
-  'Promise resolution is still pending but the event loop has already resolved'
-
-
+'Promise resolution is still pending but the event loop has already resolved'
 
 [Terminal b981254e-8806-46db-a5d8-68ffdd41402e notification: command completed with exit code 130. Use send_to_terminal to send another command or kill_terminal to stop it.]
 Terminal output:
 
 d4girap@susd4hcm-105342 MINGW64 /d/at-template/solid-train (main)
-$  node --test test/server.test.js
+$ node --test test/server.test.js
 ✔ resolvePort returns default port when not set (1.2266ms)
 ✔ resolvePort throws for invalid port (0.3667ms)
 ✔ createServer returns server and io instances (3.0104ms)
@@ -603,44 +606,45 @@ $  node --test test/server.test.js
 
 test at test\server.test.js:516:1
 ✖ ship list returns ships for a character (10.4301ms)
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
-  + actual - expected
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+
+- actual - expected
   ... Skipped lines
-  
-    [
-      {
-        container: {
-          containerId: '761273a2-6079-4b92-8f6b-493edb9f545c-ship-1',
-          containerType: 'ship'
+
+  [
+  {
+  container: {
+  containerId: '761273a2-6079-4b92-8f6b-493edb9f545c-ship-1',
+  containerType: 'ship'
   ...
-        owningPlayerId: '76a08a39-9246-4047-a714-af9fb71a13d7',
-  +     quantity: 1,
+  owningPlayerId: '76a08a39-9246-4047-a714-af9fb71a13d7',
+
+-     quantity: 1,
         state: 'contained',
         updatedAt: '2026-04-28T13:33:00.822Z'
       }
-    ]
-  
+
+  ]
+
       at TestContext.<anonymous> (D:\at-template\solid-train\test\server.test.js:555:10)
       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
       at async Test.run (node:internal/test_runner/test:1125:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
-    generatedMessage: true,
-    code: 'ERR_ASSERTION',
-    actual: [ { id: '761273a2-6079-4b92-8f6b-493edb9f545c-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '76a08a39-9246-4047-a714-af9fb71a13d7', owningCharacterId: '761273a2-6079-4b92-8f6b-493edb9f545c', kinematics: null, createdAt: '2026-04-28T13:33:00.822Z', updatedAt: '2026-04-28T13:33:00.822Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
-    expected: [ { id: '761273a2-6079-4b92-8f6b-493edb9f545c-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '76a08a39-9246-4047-a714-af9fb71a13d7', owningCharacterId: '761273a2-6079-4b92-8f6b-493edb9f545c', kinematics: null, createdAt: '2026-04-28T13:33:00.822Z', updatedAt: '2026-04-28T13:33:00.822Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
-    operator: 'deepStrictEqual',
-    diff: 'simple'
+
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ { id: '761273a2-6079-4b92-8f6b-493edb9f545c-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '76a08a39-9246-4047-a714-af9fb71a13d7', owningCharacterId: '761273a2-6079-4b92-8f6b-493edb9f545c', kinematics: null, createdAt: '2026-04-28T13:33:00.822Z', updatedAt: '2026-04-28T13:33:00.822Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
+  expected: [ { id: '761273a2-6079-4b92-8f6b-493edb9f545c-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '76a08a39-9246-4047-a714-af9fb71a13d7', owningCharacterId: '761273a2-6079-4b92-8f6b-493edb9f545c', kinematics: null, createdAt: '2026-04-28T13:33:00.822Z', updatedAt: '2026-04-28T13:33:00.822Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
   }
 
 test at test\server.test.js:1:1
 ✖ test\server.test.js (905854.8843ms)
-  'Promise resolution is still pending but the event loop has already resolved'
-
-
+'Promise resolution is still pending but the event loop has already resolved'
 
 [Terminal 0097898f-b281-42a8-9a71-f39b2bb85f51 notification: command completed with exit code 130. Use send_to_terminal to send another command or kill_terminal to stop it.]
 Terminal output:
-
 
 [... PREVIOUS OUTPUT TRUNCATED ...]
 
@@ -727,179 +731,198 @@ rejects request for unregistered player (7.1982ms)
 
 test at test\character-add-message-handler.test.js:21:1
 ✖ CharacterAddMessageHandler adds a character and emits response (7.0837ms)
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
-  + actual - expected
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+
+- actual - expected
   ... Skipped lines
-  
-    {
-      container: {
-        containerId: 'player-1-ship-1',
-        containerType: 'ship'
-      },
+
+  {
+  container: {
+  containerId: 'player-1-ship-1',
+  containerType: 'ship'
+  },
   ...
-      owningPlayerId: 'player-seeded',
-  +   quantity: 1,
-      state: 'contained',
-      updatedAt: '2026-04-17T00:00:00.000Z'
-    }
-  
+  owningPlayerId: 'player-seeded',
+
+- quantity: 1,
+  state: 'contained',
+  updatedAt: '2026-04-17T00:00:00.000Z'
+  }
+
       at TestContext.<anonymous> (D:\at-template\solid-train\test\character-add-message-handler.test.js:73:10)
       at async Test.run (node:internal/test_runner/test:1125:7)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
-    generatedMessage: true,
-    code: 'ERR_ASSERTION',
-    actual: { id: 'player-1-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: { containerType: 'ship', containerId: 'player-1-ship-1' }, owningPlayerId: 'player-seeded', owningCharacterId: 'player-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 },
-    expected: { id: 'player-1-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: { containerType: 'ship', containerId: 'player-1-ship-1' }, owningPlayerId: 'player-seeded', owningCharacterId: 'player-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true },
-    operator: 'deepStrictEqual',
-    diff: 'simple'
+
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: { id: 'player-1-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: { containerType: 'ship', containerId: 'player-1-ship-1' }, owningPlayerId: 'player-seeded', owningCharacterId: 'player-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 },
+  expected: { id: 'player-1-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: { containerType: 'ship', containerId: 'player-1-ship-1' }, owningPlayerId: 'player-seeded', owningCharacterId: 'player-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
   }
 
 test at test\launch-item-message-handler.test.js:163:1
 ✖ LaunchItemMessageHandler returns success no-effect for unsupported launch item types (1.9497ms)
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  + actual - expected
-  
-  + undefined
-  - 'active'
-  
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+- actual - expected
+
+- undefined
+
+* 'active'
+
       at TestContext.<anonymous> (D:\at-template\solid-train\test\launch-item-message-handler.test.js:200:10)
       at async Test.run (node:internal/test_runner/test:1125:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
-    generatedMessage: true,
-    code: 'ERR_ASSERTION',
-    actual: undefined,
-    expected: 'active',
-    operator: 'strictEqual',
-    diff: 'simple'
+
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: 'active',
+  operator: 'strictEqual',
+  diff: 'simple'
   }
 
 test at test\server.test.js:516:1
 ✖ ship list returns ships for a character (9.2434ms)
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
-  + actual - expected
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+
+- actual - expected
   ... Skipped lines
-  
-    [
-      {
-        container: {
-          containerId: '3c350ab8-e017-479b-8a82-11a5fb593428-ship-1',
-          containerType: 'ship'
+
+  [
+  {
+  container: {
+  containerId: '3c350ab8-e017-479b-8a82-11a5fb593428-ship-1',
+  containerType: 'ship'
   ...
-        owningPlayerId: '8ac214ee-52c7-4d3e-b481-dd6f80270f88',
-  +     quantity: 1,
+  owningPlayerId: '8ac214ee-52c7-4d3e-b481-dd6f80270f88',
+
+-     quantity: 1,
         state: 'contained',
         updatedAt: '2026-04-28T13:29:39.635Z'
       }
-    ]
-  
+
+  ]
+
       at TestContext.<anonymous> (D:\at-template\solid-train\test\server.test.js:555:10)
       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
       at async Test.run (node:internal/test_runner/test:1125:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
-    generatedMessage: true,
-    code: 'ERR_ASSERTION',
-    actual: [ { id: '3c350ab8-e017-479b-8a82-11a5fb593428-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '8ac214ee-52c7-4d3e-b481-dd6f80270f88', owningCharacterId: '3c350ab8-e017-479b-8a82-11a5fb593428', kinematics: null, createdAt: '2026-04-28T13:29:39.635Z', updatedAt: '2026-04-28T13:29:39.635Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
-    expected: [ { id: '3c350ab8-e017-479b-8a82-11a5fb593428-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '8ac214ee-52c7-4d3e-b481-dd6f80270f88', owningCharacterId: '3c350ab8-e017-479b-8a82-11a5fb593428', kinematics: null, createdAt: '2026-04-28T13:29:39.635Z', updatedAt: '2026-04-28T13:29:39.635Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
-    operator: 'deepStrictEqual',
-    diff: 'simple'
+
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ { id: '3c350ab8-e017-479b-8a82-11a5fb593428-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '8ac214ee-52c7-4d3e-b481-dd6f80270f88', owningCharacterId: '3c350ab8-e017-479b-8a82-11a5fb593428', kinematics: null, createdAt: '2026-04-28T13:29:39.635Z', updatedAt: '2026-04-28T13:29:39.635Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
+  expected: [ { id: '3c350ab8-e017-479b-8a82-11a5fb593428-ship-1-item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: '8ac214ee-52c7-4d3e-b481-dd6f80270f88', owningCharacterId: '3c350ab8-e017-479b-8a82-11a5fb593428', kinematics: null, createdAt: '2026-04-28T13:29:39.635Z', updatedAt: '2026-04-28T13:29:39.635Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
   }
 
 test at test\server.test.js:1:1
 ✖ test\server.test.js (1110669.8108ms)
-  'Promise resolution is still pending but the event loop has already resolved'
+'Promise resolution is still pending but the event loop has already resolved'
 
 test at test\ship-list-message-handler.test.js:22:1
 ✖ ShipListMessageHandler returns ships for a player character (7.4367ms)
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
-  + actual - expected
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+
+- actual - expected
   ... Skipped lines
-  
-    [
-      {
-        id: 'ship-1',
-        inventory: [
-          {
+
+  [
+  {
+  id: 'ship-1',
+  inventory: [
+  {
   ...
-            owningPlayerId: 'player-seeded',
-  +         quantity: 1,
+  owningPlayerId: 'player-seeded',
+
+-         quantity: 1,
             state: 'contained',
             updatedAt: '2026-04-17T00:00:00.000Z'
           }
         ],
         kinematics: {
-  
+
       at TestContext.<anonymous> (D:\at-template\solid-train\test\ship-list-message-handler.test.js:91:10)
       at async Test.run (node:internal/test_runner/test:1125:7)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
-    generatedMessage: true,
-    code: 'ERR_ASSERTION',
-    actual: [ { id: 'ship-1', name: 'Scout Ship', status: 'active', model: 'scout-mk2', inventory: [Array], kinematics: [Object], shipName: 'Scout Ship', launchable: true } ],
-    expected: [ { id: 'ship-1', name: 'Scout Ship', shipName: 'Scout Ship', status: 'active', model: 'scout-mk2', inventory: [Array], kinematics: [Object], launchable: true } ],
-    operator: 'deepStrictEqual',
-    diff: 'simple'
+
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ { id: 'ship-1', name: 'Scout Ship', status: 'active', model: 'scout-mk2', inventory: [Array], kinematics: [Object], shipName: 'Scout Ship', launchable: true } ],
+  expected: [ { id: 'ship-1', name: 'Scout Ship', shipName: 'Scout Ship', status: 'active', model: 'scout-mk2', inventory: [Array], kinematics: [Object], launchable: true } ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
   }
 
 test at test\ship-list-message-handler.test.js:181:1
 ✖ ShipListMessageHandler returns ships with kinematics data (0.9093ms)
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
-  + actual - expected
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+
+- actual - expected
   ... Skipped lines
-  
-    [
-      {
-        container: {
-          containerId: 'ship-1',
-          containerType: 'ship'
+
+  [
+  {
+  container: {
+  containerId: 'ship-1',
+  containerType: 'ship'
   ...
-        owningPlayerId: 'player-seeded',
-  +     quantity: 1,
+  owningPlayerId: 'player-seeded',
+
+-     quantity: 1,
         state: 'contained',
         updatedAt: '2026-04-17T00:00:00.000Z'
       }
-    ]
-  
+
+  ]
+
       at TestContext.<anonymous> (D:\at-template\solid-train\test\ship-list-message-handler.test.js:253:10)
       at async Test.run (node:internal/test_runner/test:1125:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
-    generatedMessage: true,
-    code: 'ERR_ASSERTION',
-    actual: [ { id: 'item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: 'player-seeded', owningCharacterId: 'character-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
-    expected: [ { id: 'item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: 'player-seeded', owningCharacterId: 'character-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
-    operator: 'deepStrictEqual',
-    diff: 'simple'
+
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ { id: 'item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: 'player-seeded', owningCharacterId: 'character-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
+  expected: [ { id: 'item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: 'player-seeded', owningCharacterId: 'character-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
   }
 
 test at test\ship-upsert-message-handler.test.js:42:1
 ✖ ShipUpsertMessageHandler updates ship location and kinematics (7.2566ms)
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
-  + actual - expected
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+
+- actual - expected
   ... Skipped lines
-  
-    [
-      {
-        container: {
-          containerId: 'ship-1',
-          containerType: 'ship'
+
+  [
+  {
+  container: {
+  containerId: 'ship-1',
+  containerType: 'ship'
   ...
-        owningPlayerId: 'player-seeded',
-  +     quantity: 1,
+  owningPlayerId: 'player-seeded',
+
+-     quantity: 1,
         state: 'contained',
         updatedAt: '2026-04-17T00:00:00.000Z'
       }
-    ]
-  
+
+  ]
+
       at TestContext.<anonymous> (D:\at-template\solid-train\test\ship-upsert-message-handler.test.js:106:10)
       at async Test.run (node:internal/test_runner/test:1125:7)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
-    generatedMessage: true,
-    code: 'ERR_ASSERTION',
-    actual: [ { id: 'item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: 'player-seeded', owningCharacterId: 'character-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
-    expected: [ { id: 'item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: 'player-seeded', owningCharacterId: 'character-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
-    operator: 'deepStrictEqual',
-    diff: 'simple'
+
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ { id: 'item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: 'player-seeded', owningCharacterId: 'character-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true, quantity: 1 } ],
+  expected: [ { id: 'item-1', itemType: 'expendable-dart-drone', displayName: 'Expendable Dart Drone', state: 'contained', damageStatus: 'intact', container: [Object], owningPlayerId: 'player-seeded', owningCharacterId: 'character-1', kinematics: null, createdAt: '2026-04-17T00:00:00.000Z', updatedAt: '2026-04-17T00:00:00.000Z', destroyedAt: null, destroyedReason: null, launchable: true } ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
   }
-
-
 
 _**User (2026-04-28 13:50:57Z)**_
 
@@ -915,7 +938,7 @@ I’m going to inspect the current contract doc and the new launch-item behavior
 
 _**User (2026-04-28 15:31:21Z)**_
 
-looks like we have a bit of a caching issue with ship-list and specifically the inventory.  the front end is sending item-upsert, and am seeing the record getting created in mongo, but the next call to item-list-by-container (which is a ship) does not include the newly added item.  can you look into it?
+looks like we have a bit of a caching issue with ship-list and specifically the inventory. the front end is sending item-upsert, and am seeing the record getting created in mongo, but the next call to item-list-by-container (which is a ship) does not include the newly added item. can you look into it?
 
 ---
 
@@ -939,7 +962,7 @@ I’m going to do a quick code sweep for the same cache-vs-DB read pattern acros
 
 _**User (2026-04-28 15:43:02Z)**_
 
-still something not quite right - getting a response from the ship inventory that shows a single drone, where the database has 10 records, 9 in contained status and 1 in destroyed status.  is there something limiting the number of records per type returned?
+still something not quite right - getting a response from the ship inventory that shows a single drone, where the database has 10 records, 9 in contained status and 1 in destroyed status. is there something limiting the number of records per type returned?
 
 ---
 
@@ -951,7 +974,7 @@ I’m going to trace exactly how ship inventory responses are built versus how i
 
 _**User (2026-04-28 18:57:37Z)**_
 
-currently, when a launch-item request comes in, it generates some number celestial-body records.  first, confirm that the pattern seesm to be a record for each single item that is generated.  if this is the case, looking to change the contract so that we are able to have a quantity field instead of individual records.  that is, store a single record with the quantity generated instead of the existing pattern. 
+currently, when a launch-item request comes in, it generates some number celestial-body records. first, confirm that the pattern seesm to be a record for each single item that is generated. if this is the case, looking to change the contract so that we are able to have a quantity field instead of individual records. that is, store a single record with the quantity generated instead of the existing pattern.
 
 ---
 
@@ -1175,11 +1198,13 @@ _**Agent (copilot/auto)**_
 
 <think><details><summary>Thought Process</summary>
 All 137 tests pass (129 prior + 8 new).
+
 </details></think>
 
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+
 <summary>Tool use: **run_in_terminal**</summary>
 
 **Input:**
@@ -1195,6 +1220,7 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+
 <summary>Tool use: **manage_todo_list**</summary>
 
 **Input:**
@@ -1204,7 +1230,6 @@ _**Agent (copilot/auto)**_
 </details></tool-use>
 
 _**Agent (copilot/auto)**_
-
 
 ```
 
@@ -1541,7 +1566,7 @@ continue with follow-up pass
 
 _**Agent (copilot/auto)**_
 
-I’ll proceed with a focused second pass on the two remaining weak spots, 
+I’ll proceed with a focused second pass on the two remaining weak spots,
 
 ---
 
@@ -1615,3 +1640,4 @@ I’ll implement this end-to-end now: add the new by-location market event/handl
 _**User (2026-05-05 21:50:24Z)**_
 
 add a file that can be used by the AI in markdown format that describes the codebase, various commands to execute tests and builds, and other relevant information that an AI would find useful
+```

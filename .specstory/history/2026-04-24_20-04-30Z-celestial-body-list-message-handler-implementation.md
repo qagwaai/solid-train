@@ -6,7 +6,7 @@
 
 _**User (2026-04-24 20:35:55Z)**_
 
-add a new message handler to support a celestial body list request and response.  in this request, we will get a position that will include x,y,z that will need to search the cb entries to match.  We will also get a distance parameter which will be used to search based off of a spherical calculation distance.  what questions do you have?
+add a new message handler to support a celestial body list request and response. in this request, we will get a position that will include x,y,z that will need to search the cb entries to match. We will also get a distance parameter which will be used to search based off of a spherical calculation distance. what questions do you have?
 
 ---
 
@@ -50,7 +50,7 @@ _**User (2026-04-24 23:11:18Z)**_
 
 _**Agent (copilot/auto)**_
 
-Good. Now update MESSAGE_CONTRACT.md. Let me read the full drone sections:    
+Good. Now update MESSAGE_CONTRACT.md. Let me read the full drone sections:
 
 ---
 
@@ -65,6 +65,7 @@ _**Agent (copilot/auto)**_
 Let me look at the pre-existing test failures to understand what needs to be fixed.
 
 From the test output:
+
 1. `character-add-message-handler.test.js` - `missionId: 'The First Target'` vs actual `'first-target'`
 2. `login-message-handler.test.js` - failing for an unrelated reason
 
@@ -74,13 +75,14 @@ Let me read these test files and the corresponding handlers to understand what's
 
 _**User (2026-04-24 23:51:57Z)**_
 
-add the concept of a model and tier to ship.  this will be a required field and will default to "Scavenger Pod" for a ship model and defaults to tier 1.  There will be a list of models that will be forth coming. what other questions do you have?
+add the concept of a model and tier to ship. this will be a required field and will default to "Scavenger Pod" for a ship model and defaults to tier 1. There will be a list of models that will be forth coming. what other questions do you have?
 
 ---
 
 _**Agent (copilot/auto)**_
 
 The user wants to add `model` and `tier` fields to the ship concept. They've said:
+
 - `model` is required, defaults to "Scavenger Pod"
 - `tier` is required, defaults to 1
 - There will be a list of models forthcoming

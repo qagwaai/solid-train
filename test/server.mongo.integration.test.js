@@ -8,15 +8,13 @@ const {
   connectClient,
   waitForEvent,
   closeClient,
-  registerAndLogin
+  registerAndLogin,
 } = require('../test-support/socket-test-helpers');
 const {
   CHARACTER_ADD_REQUEST_EVENT,
-  CHARACTER_ADD_RESPONSE_EVENT
+  CHARACTER_ADD_RESPONSE_EVENT,
 } = require('../src/model/character-add');
-const {
-  createMongoTestHarness
-} = require('../test-support/mongodb-test-helpers');
+const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
 
 let mongoHarness = null;
 let server = null;
@@ -28,7 +26,7 @@ test.before(async () => {
 
   const created = createServer({
     port: '4600',
-    databaseService: mongoHarness.databaseService
+    databaseService: mongoHarness.databaseService,
   });
 
   server = created.server;
@@ -73,7 +71,7 @@ test('Socket.IO + Mongo smoke: register → login → add character → persiste
     client.emit(CHARACTER_ADD_REQUEST_EVENT, {
       playerName: 'MongoPilot',
       sessionKey,
-      characterName: 'Cosmonova'
+      characterName: 'Cosmonova',
     });
     const addResponse = await addResponsePromise;
 

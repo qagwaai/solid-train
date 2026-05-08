@@ -6,7 +6,7 @@
 
 _**User (2026-04-20 23:41:06Z)**_
 
-ok - strange behavior - just restarted the backend nodejs server - expect that there is not a session id.  tried to login with a previously registered user, and getting a playerName not registered.  go to the registered page and tried to register again and am getting a playername already exists
+ok - strange behavior - just restarted the backend nodejs server - expect that there is not a session id. tried to login with a previously registered user, and getting a playerName not registered. go to the registered page and tried to register again and am getting a playername already exists
 
 ---
 
@@ -24,7 +24,7 @@ same behavior seems to be happening on restart that previously created character
 
 _**Agent (copilot/auto)**_
 
-I’m going to trace the character-list/add/delete/edit flows after restart and patch the same memory-vs-DB gap so persisted characters are hydrated when a player logs back in or requests their list. I’ll first inspect the character handlers and async context methods before applying a focused 
+I’m going to trace the character-list/add/delete/edit flows after restart and patch the same memory-vs-DB gap so persisted characters are hydrated when a player logs back in or requests their list. I’ll first inspect the character handlers and async context methods before applying a focused
 
 ---
 

@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  CHARACTER_EDIT_RESPONSE_EVENT
-} = require('../model/character-edit');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { CHARACTER_EDIT_RESPONSE_EVENT } = require('../model/character-edit');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CharacterEditMessageHandler {
   constructor(context) {
@@ -23,7 +18,7 @@ class CharacterEditMessageHandler {
         success: false,
         message: 'playerName, characterId, and characterName are required',
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -34,7 +29,7 @@ class CharacterEditMessageHandler {
         success: false,
         message: 'Player is not registered',
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -45,7 +40,7 @@ class CharacterEditMessageHandler {
         success: false,
         message: 'Character is not in player list',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -54,14 +49,14 @@ class CharacterEditMessageHandler {
       message: 'Character edited successfully',
       playerName: player.playerName,
       characterId,
-      characterName
+      characterName,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-edit', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -74,11 +69,9 @@ class CharacterEditMessageHandler {
 
     if (response.success) {
       try {
-        await this.context.updateCharacterAsync(
-          payload?.playerName,
-          payload?.characterId,
-          { characterName: payload?.characterName }
-        );
+        await this.context.updateCharacterAsync(payload?.playerName, payload?.characterId, {
+          characterName: payload?.characterName,
+        });
         this.context.renameJoinedCharacter(
           payload?.playerName,
           payload?.characterId,
@@ -97,5 +90,5 @@ class CharacterEditMessageHandler {
 }
 
 module.exports = {
-  CharacterEditMessageHandler
+  CharacterEditMessageHandler,
 };

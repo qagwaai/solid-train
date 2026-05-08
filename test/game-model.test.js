@@ -2,10 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  GameState,
-  GAME_IDLE_TIMEOUT_MS
-} = require('../src/model/game');
+const { GameState, GAME_IDLE_TIMEOUT_MS } = require('../src/model/game');
 
 test('GameState tracks joinedAt and lastMessageReceivedAt when joining', () => {
   const game = new GameState();
@@ -15,7 +12,7 @@ test('GameState tracks joinedAt and lastMessageReceivedAt when joining', () => {
     normalizedPlayerName: 'pilotone',
     characterId: 'character-1',
     characterName: 'RangerOne',
-    timestamp: '2026-04-17T00:00:00.000Z'
+    timestamp: '2026-04-17T00:00:00.000Z',
   });
 
   assert.equal(participant.joinedAt, '2026-04-17T00:00:00.000Z');
@@ -30,13 +27,13 @@ test('GameState touchParticipants refreshes heartbeat timestamp', () => {
     normalizedPlayerName: 'pilotone',
     characterId: 'character-1',
     characterName: 'RangerOne',
-    timestamp: '2026-04-17T00:00:00.000Z'
+    timestamp: '2026-04-17T00:00:00.000Z',
   });
 
   const touched = game.touchParticipants({
     normalizedPlayerName: 'pilotone',
     characterId: 'character-1',
-    timestamp: '2026-04-17T00:10:00.000Z'
+    timestamp: '2026-04-17T00:10:00.000Z',
   });
 
   assert.equal(touched.length, 1);
@@ -50,7 +47,7 @@ test('GameState detaches idle characters after inactivity timeout', () => {
     normalizedPlayerName: 'pilotone',
     characterId: 'character-1',
     characterName: 'RangerOne',
-    timestamp: '2026-04-17T00:00:00.000Z'
+    timestamp: '2026-04-17T00:00:00.000Z',
   });
 
   const detached = game.detachIdleCharacters('2026-04-17T00:30:00.001Z');

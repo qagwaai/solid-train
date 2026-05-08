@@ -1,97 +1,103 @@
 'use strict';
 
 function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
-  const creditLedgerEntrySchema = new mongoose.Schema({
-    type: {
-      type: String,
-      enum: ['put', 'take'],
-      required: true
+  const creditLedgerEntrySchema = new mongoose.Schema(
+    {
+      type: {
+        type: String,
+        enum: ['put', 'take'],
+        required: true,
+      },
+      amount: {
+        type: Number,
+        required: true,
+      },
+      description: {
+        type: String,
+        required: true,
+      },
+      timestamp: {
+        type: String,
+        required: true,
+      },
+      referenceId: {
+        type: String,
+        default: null,
+      },
     },
-    amount: {
-      type: Number,
-      required: true
-    },
-    description: {
-      type: String,
-      required: true
-    },
-    timestamp: {
-      type: String,
-      required: true
-    },
-    referenceId: {
-      type: String,
-      default: null
-    }
-  }, { _id: false });
+    { _id: false }
+  );
 
-  const characterSchema = new mongoose.Schema({
-    id: {
-      type: String,
-      required: true
+  const characterSchema = new mongoose.Schema(
+    {
+      id: {
+        type: String,
+        required: true,
+      },
+      characterName: {
+        type: String,
+        required: true,
+      },
+      createdAt: {
+        type: String,
+        required: true,
+      },
+      ships: [shipSchema],
+      missions: [missionSchema],
+      creditLedger: [creditLedgerEntrySchema],
     },
-    characterName: {
-      type: String,
-      required: true
-    },
-    createdAt: {
-      type: String,
-      required: true
-    },
-    ships: [shipSchema],
-    missions: [missionSchema],
-    creditLedger: [creditLedgerEntrySchema]
-  }, { _id: false });
+    { _id: false }
+  );
 
   const playerSchema = new mongoose.Schema({
     playerId: {
       type: String,
       required: true,
       unique: true,
-      index: true
+      index: true,
     },
     playerName: {
       type: String,
-      required: true
+      required: true,
     },
     playerNameNormalized: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
-      index: true
+      index: true,
     },
     email: {
       type: String,
-      required: true
+      required: true,
     },
     password: {
       type: String,
-      required: true
+      required: true,
     },
     preferredLocale: {
       type: String,
       enum: ['en', 'it'],
       required: true,
-      default: 'en'
+      default: 'en',
     },
     sessionKey: {
       type: String,
-      default: null
+      default: null,
     },
     socketId: {
       type: String,
-      default: null
+      default: null,
     },
     characters: [characterSchema],
     createdAt: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
     updatedAt: {
       type: Date,
-      default: Date.now
-    }
+      default: Date.now,
+    },
   });
 
   playerSchema.pre('save', function (next) {
@@ -105,10 +111,10 @@ function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
     Player,
     playerSchema,
     characterSchema,
-    creditLedgerEntrySchema
+    creditLedgerEntrySchema,
   };
 }
 
 module.exports = {
-  createPlayerModelArtifacts
+  createPlayerModelArtifacts,
 };

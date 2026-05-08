@@ -7,14 +7,14 @@ Author: AI-assisted review. Findings ranked by leverage × risk.
 
 ## Codebase snapshot
 
-| Area | Size | Notes |
-|---|---|---|
-| `src/handlers/message-handler-context.js` | **2,794 LOC** | Single god-class; ~80 methods |
-| `src/db/service.js` | 998 LOC | Persistence + query + normalization mixed |
-| `src/db/models.js` | 1,009 LOC | All Mongoose schemas in one file |
-| `src/server.js` | 529 LOC | Mostly boilerplate import + `socket.on` wiring |
-| Handlers (25 files) | 84–407 LOC each | Largest: `launch-item` 407, `mission-upsert` 367, `ship-upsert` 323 |
-| Markdown specs | 8 files | High overlap risk (spatial model docs, schema docs, contracts) |
+| Area                                      | Size            | Notes                                                               |
+| ----------------------------------------- | --------------- | ------------------------------------------------------------------- |
+| `src/handlers/message-handler-context.js` | **2,794 LOC**   | Single god-class; ~80 methods                                       |
+| `src/db/service.js`                       | 998 LOC         | Persistence + query + normalization mixed                           |
+| `src/db/models.js`                        | 1,009 LOC       | All Mongoose schemas in one file                                    |
+| `src/server.js`                           | 529 LOC         | Mostly boilerplate import + `socket.on` wiring                      |
+| Handlers (25 files)                       | 84–407 LOC each | Largest: `launch-item` 407, `mission-upsert` 367, `ship-upsert` 323 |
+| Markdown specs                            | 8 files         | High overlap risk (spatial model docs, schema docs, contracts)      |
 
 ---
 
@@ -25,6 +25,7 @@ Status: Completed on 2026-05-08.
 `src/handlers/message-handler-context.js` is a 2.8k-line god object that owns: in-memory caches, normalization for every domain entity, market pricing/orbit math, gate routing, docking, ledger arithmetic, Kepler solver, and the DB fall-through layer for every collection. Every handler depends on the whole surface, so any change ripples broadly and tests are forced to mock through the same seam.
 
 Suggested split:
+
 - `context/normalizers.js` — `normalizeShip`, `normalizeCharacter`, `normalizeItem`, `normalizeMarket`, `normalizeCelestialBody`, `normalizeSpatialState`, `normalizeMotionState`, … (pure functions; many already are).
 - `context/orbital-math.js` — `solveEccentricAnomaly`, `rotatePerifocalVector`, `computeRelativeOrbitPositionKm`, `resolveMarketPositionKmAsync`, `calculateDistanceKm/Au` (already mostly pure).
 - `context/market-service.js` — seeding, restock, quote, transaction, ledger.
@@ -35,6 +36,7 @@ Suggested split:
 Keep `MessageHandlerContext` as a thin façade so handler call sites are unchanged. Each module becomes independently testable and reviewable.
 
 Implemented extraction:
+
 - `src/handlers/context/normalizers.js`
 - `src/handlers/context/orbital-math.js`
 - `src/handlers/context/market-service.js`
@@ -55,6 +57,7 @@ In `src/server.js` (~lines 150–420) the same 4-line `socket.on(EVENT, p => han
 Suggested: a `[ { event, handlerKey, aliasResponse? } ]` table + a single `wireHandler(io, socket, table, handlers)` function. Reduces ~250 LOC to ~30, removes inconsistent log strings, and makes adding a handler one entry.
 
 Implemented extraction:
+
 - `src/handlers/socket-handler-registry.js` now owns the core event-to-handler registration table.
 - `src/server.js` now wires core handlers through `registerSocketHandlers(socket, handlersByKey)`.
 - The mission upsert alias path remains explicit to preserve alias-specific response emission behavior.
@@ -74,6 +77,7 @@ Implemented extraction:
 Status: Completed on 2026-05-08.
 
 Per `MESSAGE_CONTRACT.md` the internal legacy `location` / `kinematics` readers have a hard sunset of **2026-06-30 / v2.1.0**. Today, residue still exists in:
+
 - `src/handlers/message-handler-context.js` lines ~889, ~913–918, ~1648
 - `src/handlers/item-upsert-message-handler.js` — items still use `kinematics.position` rather than canonical `spatial`/`motion`.
 - `src/db/service.js` lines ~793–801 — `findItemsNearPosition` queries `kinematics.position.{x,y,z}`.
@@ -87,15 +91,18 @@ Items were migrated to canonical `spatial`/`motion`, legacy ship/celestial fallb
 Status: Completed on 2026-05-08 (slice 1-4).
 
 `src/db/models.js` defines every Mongoose schema in 1k LOC; `src/db/service.js` mixes player CRUD, item CRUD, celestial-body CRUD, market CRUD, jump-gate CRUD, and seed-state CRUD. Suggested:
+
 - `db/models/player.js`, `db/models/item.js`, `db/models/celestial-body.js`, `db/models/market.js`, `db/models/jump-gate.js`, `db/models/game-state.js`, plus shared sub-schemas (`spatial`, `motion`, `physical`, `observability`) factored once.
 - `db/services/players.js`, `db/services/items.js`, … with a thin `DatabaseService` aggregator. The integration test files already split this way (`db-players.mongo.integration.test.js`, etc.) — production layout has just not caught up.
 
 Implemented (slice 1, players + characters):
+
 - Added `src/db/models/player-model.js` and moved `Player`, `playerSchema`, `characterSchema`, and `creditLedgerEntrySchema` there.
 - Added `src/db/service/player-character-service.js` and moved player/character methods there (`registerPlayer`, `getPlayerByName`, `getPlayerById`, `updatePlayer`, character/ship/mission methods).
 - `src/db/models.js` and `src/db/service.js` remain stable facades with backward-compatible exports and method signatures.
 
 Implemented (slice 2, items + shared primitives):
+
 - Added `src/db/models/shared-primitives.js` and moved shared schemas (`tripleSchema`, `shipKinematicsSchema`, `motionStateSchema`, `spatialStateSchema`) there.
 - Added `src/db/models/item-model.js` and moved `Item`, `itemSchema`, `itemContainerSchema`, and `inventoryItemReferenceSchema` there.
 - Added fine-grained item services:
@@ -104,6 +111,7 @@ Implemented (slice 2, items + shared primitives):
 - `src/db/models.js` and `src/db/service.js` continue as stable facades with existing exports and method signatures unchanged.
 
 Implemented (slice 3, markets + seed-state):
+
 - Added `src/db/models/market-model.js` and moved `Market`, `marketSchema`, `marketInventoryEntrySchema`, `marketLedgerEntrySchema`, and `marketOrbitSchema` there.
 - Added `src/db/models/game-state-model.js` and moved `GameStateDocument` + `gameStateDocumentSchema` there.
 - Added fine-grained market services:
@@ -113,6 +121,7 @@ Implemented (slice 3, markets + seed-state):
 - `src/db/models.js` and `src/db/service.js` remain stable facades with backward-compatible exports and method signatures.
 
 Implemented (slice 4, celestial + gates + ship/missions model extraction):
+
 - Added `src/db/models/celestial-model.js` and moved `CelestialBody`, `celestialBodySchema`, and `asteroidMaterialProfileSchema` there.
 - Added `src/db/models/jump-gate-model.js` and moved `JumpGate` + `jumpGateSchema` there.
 - Added `src/db/models/ship-model.js` and moved `driveProfileSchema`, `shipSchema`, and `missionSchema` there.
@@ -131,6 +140,7 @@ Status: Completed on 2026-05-08.
 `MessageHandlerContext` constructor calls `seedDefaultMarkets()` (line ~77), which uses `new Date().toISOString()` directly (bypassing the injected `getCurrentTimestamp`) and silently mutates state. This makes `new MessageHandlerContext({})` non-deterministic and surprising for tests/SSR. Move to an explicit `await context.initializeAsync()` step (server already calls `seedSolarSystemMarketsAsync` after construction).
 
 Implemented:
+
 - `MessageHandlerContext` now exposes `initializeAsync({ seedDefaults })` and no longer seeds default markets in the constructor.
 - Default market seeding now consistently uses injected `getCurrentTimestamp` instead of `new Date().toISOString()`.
 - Server lifecycle now explicitly initializes context via `initializeAsync({ seedDefaults: true })` before startup seeding.
@@ -156,6 +166,7 @@ async fooAsync(...) {
 Extract `withDb(operationName, fn)` and `withDbOrNull(operationName, fn)` helpers; remove ~200 LOC of repetition; centralizes error/log policy (and lets you add metrics/correlation IDs later).
 
 Implemented:
+
 - Added `withDb(operationName, fn)` and `withDbOrNull(operationName, fn)` to `src/handlers/message-handler-context.js`.
 - Replaced repeated DB fallback blocks in `MessageHandlerContext` (celestial/item CRUD + near-position query paths) with helper calls while preserving existing throw/null/fallback behavior.
 - Refactored `src/handlers/context/persistence-bridge.js` to use context helpers for DB-backed player/character/mission operations, preserving in-memory fallback semantics.
@@ -164,10 +175,25 @@ Implemented:
 
 ## M-08 — Toolchain gaps
 
+Status: Completed on 2026-05-08.
+
 - **No ESLint / Prettier**. Add `eslint:recommended` + a small house ruleset (no-unused-vars, prefer-const, consistent-return). Codebase already follows a consistent style — codify it.
 - **No CI config in tree** (no `.github/workflows/`). Add a minimal CI workflow that runs `npm test` on PR.
 - **No `lint`, `format`, or `typecheck` npm scripts** in `package.json`. Add `npm run lint`, `npm run lint:fix`, `npm run format`.
 - **JSDoc usage is thin**. Lightweight `@typedef` adoption (or `// @ts-check` on critical files + a single `tsconfig.json` for checking) buys safety with no build step.
+
+Implemented (core toolchain pass):
+
+- Added dev dependencies: `eslint`, `prettier`, `typescript`.
+- Added npm scripts in `package.json`: `lint`, `lint:fix`, `format`, `format:check`, `typecheck`.
+- Added ESLint config in `.eslintrc.cjs` with `eslint:recommended` and the selected baseline rules (`no-unused-vars`, `prefer-const`, `consistent-return`).
+- Added Prettier config in `.prettierrc.json`.
+- Added lightweight JS typecheck config in `tsconfig.checkjs.json` and validated with `npm run typecheck`.
+- Ran repository formatting via `npm run format` and verified with `npm run format:check`.
+
+Remaining for full M-08 completion:
+
+- Added CI workflow in `.github/workflows/ci.yml` to run `npm ci`, `npm run lint`, `npm run format:check`, `npm run typecheck`, and `npm test` on push and pull requests.
 
 ---
 
@@ -176,6 +202,7 @@ Implemented:
 Living root-level docs: `CODEBASE.md`, `MESSAGE_CONTRACT.md`, `MONGODB_SCHEMA.md`, `MONGODB_SCHEMA_SPATIAL_MODEL.md`, `SPATIAL_MODEL_IMPLEMENTATION.md`, `SPATIAL_MODEL_RESPONSE_CONTRACTS.md`, `TEST_QUALITY_REVIEW.md`, `TODO.md`, `README.md`.
 
 Several are point-in-time progress reports (e.g. `SPATIAL_MODEL_IMPLEMENTATION.md` dated May 5 2026 still shows "Tests require fixture updates" though that's now done). Recommend:
+
 - Move time-stamped status docs into `docs/history/` (or rely on git history).
 - Merge the two spatial-model docs.
 - Add a "doc owner / last-verified date" header to each living doc.
@@ -194,18 +221,18 @@ Several are point-in-time progress reports (e.g. `SPATIAL_MODEL_IMPLEMENTATION.m
 
 ## Suggested target slate
 
-| ID | Item | Risk if deferred | Effort |
-|---|---|---|---|
-| **M-04** | Finish spatial-model cutover (items + remove legacy readers) — **Completed 2026-05-08** | Hard 2026-06-30 sunset addressed ahead of sunset | M |
-| **M-03** | Hash passwords | Security + blocks auth refactors | S |
-| **M-01** | Split `MessageHandlerContext` — **Completed 2026-05-08** | Compounding complexity reduced via façade + extracted modules | L |
-| **M-02** | Table-driven socket wiring — **Completed 2026-05-08** | Boilerplate growth reduced with shared registry wiring | S |
-| **M-08** | Add ESLint + CI workflow + npm scripts | Style/correctness drift | S |
-| **M-05** | Split `db/models.js` and `db/service.js` — **Completed 2026-05-08** | Domain modules extracted (players, items, markets/seed-state, celestial/gates, ship/missions) behind stable facades | M |
-| **M-07** | Extract `withDb` helper — **Completed 2026-05-08** | Repeated DB fallback try/log blocks centralized via `withDb` + `withDbOrNull` | S |
-| **M-06** | Move seeding out of constructor — **Completed 2026-05-08** | Constructor side-effects removed; explicit initialization and timestamp consistency implemented | S |
-| **M-09** | Consolidate markdown docs | Drift; onboarding cost | S |
-| **M-10** | Constants + naming + small extractions | Quality-of-life | S |
+| ID       | Item                                                                                    | Risk if deferred                                                                                                    | Effort |
+| -------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------ |
+| **M-04** | Finish spatial-model cutover (items + remove legacy readers) — **Completed 2026-05-08** | Hard 2026-06-30 sunset addressed ahead of sunset                                                                    | M      |
+| **M-03** | Hash passwords                                                                          | Security + blocks auth refactors                                                                                    | S      |
+| **M-01** | Split `MessageHandlerContext` — **Completed 2026-05-08**                                | Compounding complexity reduced via façade + extracted modules                                                       | L      |
+| **M-02** | Table-driven socket wiring — **Completed 2026-05-08**                                   | Boilerplate growth reduced with shared registry wiring                                                              | S      |
+| **M-08** | Add ESLint + CI workflow + npm scripts — **Completed 2026-05-08**                       | Toolchain baseline and CI enforcement are in place                                                                  | S      |
+| **M-05** | Split `db/models.js` and `db/service.js` — **Completed 2026-05-08**                     | Domain modules extracted (players, items, markets/seed-state, celestial/gates, ship/missions) behind stable facades | M      |
+| **M-07** | Extract `withDb` helper — **Completed 2026-05-08**                                      | Repeated DB fallback try/log blocks centralized via `withDb` + `withDbOrNull`                                       | S      |
+| **M-06** | Move seeding out of constructor — **Completed 2026-05-08**                              | Constructor side-effects removed; explicit initialization and timestamp consistency implemented                     | S      |
+| **M-09** | Consolidate markdown docs                                                               | Drift; onboarding cost                                                                                              | S      |
+| **M-10** | Constants + naming + small extractions                                                  | Quality-of-life                                                                                                     | S      |
 
 ---
 

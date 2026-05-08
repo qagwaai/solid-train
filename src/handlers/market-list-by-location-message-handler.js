@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  MARKET_LIST_BY_LOCATION_RESPONSE_EVENT
-} = require('../model/market-list-by-location');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { MARKET_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../model/market-list-by-location');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketListByLocationMessageHandler {
   constructor(context) {
@@ -14,11 +9,13 @@ class MarketListByLocationMessageHandler {
   }
 
   isValidSpatial(spatial) {
-    return Boolean(spatial)
-      && this.context.toNonEmptyString(spatial.solarSystemId)
-      && spatial.frame === 'barycentric'
-      && this.context.isTriple(spatial.positionKm)
-      && this.context.isFiniteNumber(spatial.epochMs);
+    return (
+      Boolean(spatial) &&
+      this.context.toNonEmptyString(spatial.solarSystemId) &&
+      spatial.frame === 'barycentric' &&
+      this.context.isTriple(spatial.positionKm) &&
+      this.context.isFiniteNumber(spatial.epochMs)
+    );
   }
 
   isValidTrajectory(trajectory) {
@@ -75,10 +72,10 @@ class MarketListByLocationMessageHandler {
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
     const positionKm = this.isTriple(payload?.positionKm)
       ? {
-        x: payload.positionKm.x,
-        y: payload.positionKm.y,
-        z: payload.positionKm.z
-      }
+          x: payload.positionKm.x,
+          y: payload.positionKm.y,
+          z: payload.positionKm.z,
+        }
       : null;
     const distanceAu = this.toPositiveNumberOrZero(payload?.distanceAu);
     const limit = this.toValidLimit(payload?.limit);
@@ -94,7 +91,7 @@ class MarketListByLocationMessageHandler {
         solarSystemId,
         markets: [],
         isDocked: false,
-        dockedMarketId: null
+        dockedMarketId: null,
       };
     }
 
@@ -106,7 +103,7 @@ class MarketListByLocationMessageHandler {
         solarSystemId,
         markets: [],
         isDocked: false,
-        dockedMarketId: null
+        dockedMarketId: null,
       };
     }
 
@@ -118,7 +115,7 @@ class MarketListByLocationMessageHandler {
         solarSystemId,
         markets: [],
         isDocked: false,
-        dockedMarketId: null
+        dockedMarketId: null,
       };
     }
 
@@ -131,7 +128,7 @@ class MarketListByLocationMessageHandler {
         solarSystemId,
         markets: [],
         isDocked: false,
-        dockedMarketId: null
+        dockedMarketId: null,
       };
     }
 
@@ -140,14 +137,14 @@ class MarketListByLocationMessageHandler {
       positionKm,
       distanceAu,
       limit,
-      locationTypes
+      locationTypes,
     });
 
     const docking = await this.context.resolveDockingStateAsync({
       playerName: player.playerName,
       characterId,
       shipId,
-      markets: nearbyMarkets
+      markets: nearbyMarkets,
     });
 
     if (!nearbyMarkets.length) {
@@ -161,7 +158,7 @@ class MarketListByLocationMessageHandler {
         locationTypes,
         markets: [],
         isDocked: docking.isDocked,
-        dockedMarketId: docking.dockedMarketId
+        dockedMarketId: docking.dockedMarketId,
       };
     }
 
@@ -179,7 +176,7 @@ class MarketListByLocationMessageHandler {
       isDocked: Boolean(docking.perMarketDocked.get(market.marketId)),
       priceMultiplier: market.priceMultiplier,
       driftPercentPerHour: market.driftPercentPerHour,
-      restockIntervalMinutes: market.restockIntervalMinutes
+      restockIntervalMinutes: market.restockIntervalMinutes,
     }));
 
     const invalidMarket = projectedMarkets.find((market) => {
@@ -197,7 +194,7 @@ class MarketListByLocationMessageHandler {
         locationTypes,
         markets: [],
         isDocked: false,
-        dockedMarketId: null
+        dockedMarketId: null,
       };
     }
 
@@ -211,14 +208,14 @@ class MarketListByLocationMessageHandler {
       locationTypes,
       isDocked: docking.isDocked,
       dockedMarketId: docking.dockedMarketId,
-      markets: projectedMarkets
+      markets: projectedMarkets,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-list-by-location-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -234,5 +231,5 @@ class MarketListByLocationMessageHandler {
 }
 
 module.exports = {
-  MarketListByLocationMessageHandler
+  MarketListByLocationMessageHandler,
 };

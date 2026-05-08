@@ -13,13 +13,7 @@ class GameState {
     return `${normalizedPlayerName}:${characterId}`;
   }
 
-  joinCharacter({
-    playerName,
-    normalizedPlayerName,
-    characterId,
-    characterName,
-    timestamp
-  }) {
+  joinCharacter({ playerName, normalizedPlayerName, characterId, characterName, timestamp }) {
     const key = GameState.buildParticipantKey(normalizedPlayerName, characterId);
     const existing = this.participants.get(key);
     const joinedAt = existing ? existing.joinedAt : timestamp;
@@ -30,7 +24,7 @@ class GameState {
       characterId,
       characterName,
       joinedAt,
-      lastMessageReceivedAt: timestamp
+      lastMessageReceivedAt: timestamp,
     };
 
     this.participants.set(key, participant);
@@ -114,12 +108,12 @@ class GameState {
 
   getAllParticipants() {
     return Array.from(this.participants.values(), (participant) => ({
-      ...participant
+      ...participant,
     }));
   }
 }
 
 module.exports = {
   GAME_IDLE_TIMEOUT_MS,
-  GameState
+  GameState,
 };

@@ -1,10 +1,7 @@
 'use strict';
 
 const { ITEM_UPSERT_RESPONSE_EVENT } = require('../model/item-upsert');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 const VALID_STATES = ['contained', 'deployed', 'destroyed'];
 const VALID_DAMAGE_STATUSES = ['intact', 'damaged', 'disabled', 'destroyed'];
@@ -20,10 +17,12 @@ class ItemUpsertMessageHandler {
   }
 
   isTriple(value) {
-    return Boolean(value)
-      && this.isFiniteNumber(value.x)
-      && this.isFiniteNumber(value.y)
-      && this.isFiniteNumber(value.z);
+    return (
+      Boolean(value) &&
+      this.isFiniteNumber(value.x) &&
+      this.isFiniteNumber(value.y) &&
+      this.isFiniteNumber(value.z)
+    );
   }
 
   normalizeContainer(container) {
@@ -61,7 +60,7 @@ class ItemUpsertMessageHandler {
       solarSystemId,
       frame: 'barycentric',
       positionKm,
-      epochMs
+      epochMs,
     };
   }
 
@@ -72,10 +71,10 @@ class ItemUpsertMessageHandler {
 
     const velocityKmPerSec = this.isTriple(motion.velocityKmPerSec)
       ? {
-        x: motion.velocityKmPerSec.x,
-        y: motion.velocityKmPerSec.y,
-        z: motion.velocityKmPerSec.z
-      }
+          x: motion.velocityKmPerSec.x,
+          y: motion.velocityKmPerSec.y,
+          z: motion.velocityKmPerSec.z,
+        }
       : null;
 
     if (!velocityKmPerSec) {
@@ -107,7 +106,7 @@ class ItemUpsertMessageHandler {
     if (isCreating && (!itemType || !displayName)) {
       return {
         error: 'item.itemType and item.displayName are required to create an item',
-        playerName: player.playerName
+        playerName: player.playerName,
       };
     }
 
@@ -115,7 +114,7 @@ class ItemUpsertMessageHandler {
     if (state && !VALID_STATES.includes(state)) {
       return {
         error: `item.state must be one of: ${VALID_STATES.join(', ')}`,
-        playerName: player.playerName
+        playerName: player.playerName,
       };
     }
 
@@ -123,14 +122,15 @@ class ItemUpsertMessageHandler {
     if (damageStatus && !VALID_DAMAGE_STATUSES.includes(damageStatus)) {
       return {
         error: `item.damageStatus must be one of: ${VALID_DAMAGE_STATUSES.join(', ')}`,
-        playerName: player.playerName
+        playerName: player.playerName,
       };
     }
 
     if ('kinematics' in itemPayload) {
       return {
-        error: 'item.kinematics is no longer accepted; use canonical item.spatial (and optional item.motion) instead',
-        playerName: player.playerName
+        error:
+          'item.kinematics is no longer accepted; use canonical item.spatial (and optional item.motion) instead',
+        playerName: player.playerName,
       };
     }
 
@@ -143,8 +143,9 @@ class ItemUpsertMessageHandler {
         spatial = this.normalizeSpatial(itemPayload.spatial);
         if (spatial === null) {
           return {
-            error: 'item.spatial must include solarSystemId, frame:\'barycentric\', positionKm, and epochMs',
-            playerName: player.playerName
+            error:
+              "item.spatial must include solarSystemId, frame:'barycentric', positionKm, and epochMs",
+            playerName: player.playerName,
           };
         }
       }
@@ -160,7 +161,7 @@ class ItemUpsertMessageHandler {
         if (motion === null) {
           return {
             error: 'item.motion must include velocityKmPerSec when provided',
-            playerName: player.playerName
+            playerName: player.playerName,
           };
         }
       }
@@ -175,8 +176,9 @@ class ItemUpsertMessageHandler {
         container = this.normalizeContainer(itemPayload.container);
         if (container === null) {
           return {
-            error: 'item.container must include a valid containerType (ship or market) and containerId',
-            playerName: player.playerName
+            error:
+              'item.container must include a valid containerType (ship or market) and containerId',
+            playerName: player.playerName,
           };
         }
       }
@@ -205,14 +207,14 @@ class ItemUpsertMessageHandler {
       discoveredByCharacterId:
         this.context.toNonEmptyString(itemPayload.discoveredByCharacterId) || null,
       hasLaunchable: 'launchable' in itemPayload,
-      launchable: itemPayload.launchable != null ? Boolean(itemPayload.launchable) : null
+      launchable: itemPayload.launchable != null ? Boolean(itemPayload.launchable) : null,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-upsert-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -221,9 +223,10 @@ class ItemUpsertMessageHandler {
     const parsed = this.buildParsed(payload);
     const response = {
       success: !parsed.error,
-      message: parsed.error ||
+      message:
+        parsed.error ||
         (parsed.isCreating ? 'Item created successfully' : 'Item updated successfully'),
-      playerName: parsed.playerName
+      playerName: parsed.playerName,
     };
 
     if (response.success) {
@@ -233,45 +236,42 @@ class ItemUpsertMessageHandler {
         const existing = parsed.existingItem;
 
         const resolvedState = parsed.state || existing?.state || 'contained';
-        const resolvedSpatial = parsed.hasSpatial
-          ? parsed.spatial
-          : (existing?.spatial ?? null);
-        const resolvedMotion = parsed.hasMotion
-          ? parsed.motion
-          : (existing?.motion ?? null);
+        const resolvedSpatial = parsed.hasSpatial ? parsed.spatial : (existing?.spatial ?? null);
+        const resolvedMotion = parsed.hasMotion ? parsed.motion : (existing?.motion ?? null);
         const itemData = {
           id: itemId,
           itemType: parsed.itemType || existing?.itemType || '',
           displayName: parsed.displayName || existing?.displayName || '',
           state: resolvedState,
           damageStatus: parsed.damageStatus || existing?.damageStatus || 'intact',
-          container: parsed.hasContainer
-            ? parsed.container
-            : (existing?.container ?? null),
+          container: parsed.hasContainer ? parsed.container : (existing?.container ?? null),
           spatial: resolvedSpatial,
           ...(resolvedMotion ? { motion: resolvedMotion } : {}),
           owningPlayerId: parsed.owningPlayerId || existing?.owningPlayerId || '',
           owningCharacterId: parsed.owningCharacterId || existing?.owningCharacterId || '',
-          destroyedAt: parsed.destroyedAt
-            || (resolvedState === 'destroyed' && !existing?.destroyedAt ? now : null)
-            || existing?.destroyedAt
-            || null,
+          destroyedAt:
+            parsed.destroyedAt ||
+            (resolvedState === 'destroyed' && !existing?.destroyedAt ? now : null) ||
+            existing?.destroyedAt ||
+            null,
           destroyedReason: parsed.destroyedReason || existing?.destroyedReason || null,
           discoveredAt: parsed.discoveredAt || existing?.discoveredAt || null,
           discoveredByCharacterId:
             parsed.discoveredByCharacterId || existing?.discoveredByCharacterId || null,
           launchable: parsed.hasLaunchable
             ? parsed.launchable
-            : (existing?.launchable != null ? existing.launchable : true),
+            : existing?.launchable != null
+              ? existing.launchable
+              : true,
           createdAt: existing?.createdAt || now,
-          updatedAt: now
+          updatedAt: now,
         };
 
         if (parsed.isCreating) {
           const items = await this.context.addItemsAsync([itemData]);
           response.item = items[0] || itemData;
         } else {
-          response.item = await this.context.updateItemAsync(itemId, itemData) || itemData;
+          response.item = (await this.context.updateItemAsync(itemId, itemData)) || itemData;
         }
 
         await this.context.syncShipInventoryReferenceForItemAsync(
@@ -293,5 +293,5 @@ class ItemUpsertMessageHandler {
 }
 
 module.exports = {
-  ItemUpsertMessageHandler
+  ItemUpsertMessageHandler,
 };

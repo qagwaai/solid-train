@@ -12,5 +12,5 @@ async function getMarkets(ctx, Market, query = {}) {
 }
 
 module.exports = {
-  getMarkets
+  getMarkets,
 };

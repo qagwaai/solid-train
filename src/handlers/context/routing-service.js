@@ -46,7 +46,7 @@ async function getHopPathBetweenSystems(ctx, sourceSystemId, destSystemId) {
         queue.push({
           systemId: gate.destSystemId,
           hops: current.hops + 1,
-          path: [...current.path, gate.gateId]
+          path: [...current.path, gate.gateId],
         });
       }
     }
@@ -71,5 +71,5 @@ async function getRouteForMarketAsync(ctx, requestSolarSystemId, marketSolarSyst
 module.exports = {
   loadGateNetworkAsync,
   getHopPathBetweenSystems,
-  getRouteForMarketAsync
+  getRouteForMarketAsync,
 };

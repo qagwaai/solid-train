@@ -16,13 +16,13 @@ and launch drone attacks against celestial bodies.
 
 ## Commands
 
-| Purpose | Command |
-|---|---|
-| Run all tests | `npm test` |
-| Run tests with coverage | `npm test -- --experimental-test-coverage` |
-| Run tests matching a pattern | `npm test -- --test-name-pattern="<pattern>"` |
-| Start server (MongoDB) | `npm start` |
-| Start server (watch mode, no DB) | `npm run dev` |
+| Purpose                          | Command                                       |
+| -------------------------------- | --------------------------------------------- |
+| Run all tests                    | `npm test`                                    |
+| Run tests with coverage          | `npm test -- --experimental-test-coverage`    |
+| Run tests matching a pattern     | `npm test -- --test-name-pattern="<pattern>"` |
+| Start server (MongoDB)           | `npm start`                                   |
+| Start server (watch mode, no DB) | `npm run dev`                                 |
 
 Tests use the built-in `node --test` runner (no Jest, no Mocha).
 
@@ -85,10 +85,14 @@ All handlers follow the same shape:
 
 ```js
 class FooMessageHandler {
-  constructor(context) { this.context = context; }
-  async buildResponse(payload) { /* validation + business logic */ }
+  constructor(context) {
+    this.context = context;
+  }
+  async buildResponse(payload) {
+    /* validation + business logic */
+  }
   async handle(socket, payload) {
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       socket.emit(INVALID_SESSION_EVENT, { message: INVALID_SESSION_MESSAGE });
       return { message: INVALID_SESSION_MESSAGE };
     }
@@ -108,13 +112,13 @@ It holds all in-memory state and all business logic. Handlers are thin wrappers 
 
 Key state maps (all `Map` instances):
 
-| Property | Key | Value |
-|---|---|---|
-| `registeredPlayers` | `playerName.toLowerCase()` | player object |
-| `charactersByPlayer` | `playerName.toLowerCase()` | character array |
-| `celestialBodiesById` | `body.id` | celestial body |
-| `itemsById` | `item.id` | item |
-| `marketsByKey` | `"solarSystemId:marketId"` | market |
+| Property              | Key                        | Value           |
+| --------------------- | -------------------------- | --------------- |
+| `registeredPlayers`   | `playerName.toLowerCase()` | player object   |
+| `charactersByPlayer`  | `playerName.toLowerCase()` | character array |
+| `celestialBodiesById` | `body.id`                  | celestial body  |
+| `itemsById`           | `item.id`                  | item            |
+| `marketsByKey`        | `"solarSystemId:marketId"` | market          |
 
 Key methods:
 
@@ -138,14 +142,14 @@ Key methods:
 Pure constants and typedefs — no constructors, no side effects.
 Each file exports event name constants and optionally JSDoc typedefs.
 
-| File | What it exports |
-|---|---|
-| `session.js` | `INVALID_SESSION_EVENT`, `INVALID_SESSION_MESSAGE` |
-| `market-catalog.js` | `MARKET_CATALOG`, `MARKET_CATALOG_BY_ID` (21 raw-material items) |
-| `market-pricing.js` | `computeMidpointPrice` |
-| `solar-system-market-seed.js` | `buildSeededMarketsForSolarSystem`, seed version constant |
-| `game.js` | `GameState` class (joined character tracking, idle detection) |
-| `*.js` | `FOO_REQUEST_EVENT`, `FOO_RESPONSE_EVENT` pairs |
+| File                          | What it exports                                                  |
+| ----------------------------- | ---------------------------------------------------------------- |
+| `session.js`                  | `INVALID_SESSION_EVENT`, `INVALID_SESSION_MESSAGE`               |
+| `market-catalog.js`           | `MARKET_CATALOG`, `MARKET_CATALOG_BY_ID` (21 raw-material items) |
+| `market-pricing.js`           | `computeMidpointPrice`                                           |
+| `solar-system-market-seed.js` | `buildSeededMarketsForSolarSystem`, seed version constant        |
+| `game.js`                     | `GameState` class (joined character tracking, idle detection)    |
+| `*.js`                        | `FOO_REQUEST_EVENT`, `FOO_RESPONSE_EVENT` pairs                  |
 
 ### Database Layer (`src/db/`)
 
@@ -160,33 +164,33 @@ Each file exports event name constants and optionally JSDoc typedefs.
 
 All events use Socket.IO. Request/response pairs listed below.
 
-| Request Event | Response Event | Session Required |
-|---|---|---|
-| `register` | `register-response` | No |
-| `login` | `login-response` | No |
-| `character-list-request` | `character-list-response` | Yes |
-| `character-add-request` | `character-add-response` | Yes |
-| `character-delete-request` | `character-delete-response` | Yes |
-| `character-edit` | `character-edit-response` | Yes |
-| `ship-list-request` | `ship-list-response` | Yes |
-| `ship-upsert-request` | `ship-upsert-response` | Yes |
-| `game-join` | `game-join-response` | Yes |
-| `add-mission-request` (alias: `mission-upsert-request`) | `add-mission-response` (alias: `mission-upsert-response`) | Yes |
-| `list-missions-request` | `list-missions-response` | Yes |
-| `celestial-body-upsert-request` | `celestial-body-upsert-response` | Yes |
-| `celestial-body-list-request` | `celestial-body-list-response` | Yes |
-| `item-upsert-request` | `item-upsert-response` | Yes |
-| `item-list-by-container-request` | `item-list-by-container-response` | Yes |
-| `item-list-by-location-request` | `item-list-by-location-response` | Yes |
-| `launch-item-request` | `launch-item-response` | Yes |
-| `market-list-request` | `market-list-response` | Yes |
-| `market-list-by-location-request` | `market-list-by-location-response` | Yes |
-| `market-quote-request` | `market-quote-response` | Yes |
-| `market-inventory-list-request` | `market-inventory-list-response` | Yes |
-| `market-buy-request` | `market-buy-response` | Yes |
-| `market-sell-request` | `market-sell-response` | Yes |
-| `market-ledger-list-request` | `market-ledger-list-response` | Yes |
-| `mission-upsert-alias-request` | `mission-upsert-alias-response` | Yes |
+| Request Event                                           | Response Event                                            | Session Required |
+| ------------------------------------------------------- | --------------------------------------------------------- | ---------------- |
+| `register`                                              | `register-response`                                       | No               |
+| `login`                                                 | `login-response`                                          | No               |
+| `character-list-request`                                | `character-list-response`                                 | Yes              |
+| `character-add-request`                                 | `character-add-response`                                  | Yes              |
+| `character-delete-request`                              | `character-delete-response`                               | Yes              |
+| `character-edit`                                        | `character-edit-response`                                 | Yes              |
+| `ship-list-request`                                     | `ship-list-response`                                      | Yes              |
+| `ship-upsert-request`                                   | `ship-upsert-response`                                    | Yes              |
+| `game-join`                                             | `game-join-response`                                      | Yes              |
+| `add-mission-request` (alias: `mission-upsert-request`) | `add-mission-response` (alias: `mission-upsert-response`) | Yes              |
+| `list-missions-request`                                 | `list-missions-response`                                  | Yes              |
+| `celestial-body-upsert-request`                         | `celestial-body-upsert-response`                          | Yes              |
+| `celestial-body-list-request`                           | `celestial-body-list-response`                            | Yes              |
+| `item-upsert-request`                                   | `item-upsert-response`                                    | Yes              |
+| `item-list-by-container-request`                        | `item-list-by-container-response`                         | Yes              |
+| `item-list-by-location-request`                         | `item-list-by-location-response`                          | Yes              |
+| `launch-item-request`                                   | `launch-item-response`                                    | Yes              |
+| `market-list-request`                                   | `market-list-response`                                    | Yes              |
+| `market-list-by-location-request`                       | `market-list-by-location-response`                        | Yes              |
+| `market-quote-request`                                  | `market-quote-response`                                   | Yes              |
+| `market-inventory-list-request`                         | `market-inventory-list-response`                          | Yes              |
+| `market-buy-request`                                    | `market-buy-response`                                     | Yes              |
+| `market-sell-request`                                   | `market-sell-response`                                    | Yes              |
+| `market-ledger-list-request`                            | `market-ledger-list-response`                             | Yes              |
+| `mission-upsert-alias-request`                          | `mission-upsert-alias-response`                           | Yes              |
 
 Invalid session always emits `invalid-session` with `{ message: "Invalid session" }` before the normal response event.
 
@@ -263,6 +267,7 @@ seedCelestialBodies(context, [...])  // Add bodies to celestialBodiesById
 ```
 
 `createTestContext` uses:
+
 - `createId`: draws from `['player-1', 'session-1', 'session-2', 'character-1']` sequentially
 - `getCurrentTimestamp`: always returns `'2026-04-17T00:00:00.000Z'`
 
@@ -285,11 +290,11 @@ npm test -- --experimental-test-coverage
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | `3000` | Server listen port |
-| `MONGODB_URI` | (none) | If set, enables MongoDB persistence |
-| `CORS_ORIGIN` | `*` | Socket.IO CORS origin |
+| Variable      | Default | Description                         |
+| ------------- | ------- | ----------------------------------- |
+| `PORT`        | `3000`  | Server listen port                  |
+| `MONGODB_URI` | (none)  | If set, enables MongoDB persistence |
+| `CORS_ORIGIN` | `*`     | Socket.IO CORS origin               |
 
 Without `MONGODB_URI`, all state is in-memory and lost on restart.
 

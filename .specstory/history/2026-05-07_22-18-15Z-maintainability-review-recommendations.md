@@ -6,7 +6,7 @@
 
 _**User (2026-05-07 22:29:04Z)**_
 
-good afternoon - am looking to an maintainability review on the current codebase.  can you recommend agent level changes to support such an activity, such as, should i select Claude Opus 4.7, or other changes, in order to get the most informed result.
+good afternoon - am looking to an maintainability review on the current codebase. can you recommend agent level changes to support such an activity, such as, should i select Claude Opus 4.7, or other changes, in order to get the most informed result.
 
 ---
 
@@ -24,18 +24,17 @@ Let me check what models are available and give practical advice.
 
 The user mentions "Claude Opus 4.7" - I should note I'm running as Claude Sonnet 4.6. Claude Opus models are generally more capable for complex reasoning tasks like code reviews.
 
-
 For a maintainability review, I'd recommend using a higher-capacity model like Opus for more sophisticated analysis, starting with key architecture files to establish context, then systematically evaluating different maintainability dimensions across the codebase.
 
 ---
 
 _**User (2026-05-07 22:34:11Z)**_
 
-am looking to an maintainability review on the current codebase. preload the markdown documents in this #codebase and run a full set of tests to get a picture to reference.  Scope the review to Test coverage and quality.  use a selectable form to ask questions before implementing
+am looking to an maintainability review on the current codebase. preload the markdown documents in this #codebase and run a full set of tests to get a picture to reference. Scope the review to Test coverage and quality. use a selectable form to ask questions before implementing
 
 _**User (2026-05-07 22:55:00Z)**_
 
-am interested in addressing the findings in the test quality related to P0 - identified in TODO.  use a selectable form to ask questions before implementing
+am interested in addressing the findings in the test quality related to P0 - identified in TODO. use a selectable form to ask questions before implementing
 
 ---
 
@@ -44,6 +43,7 @@ _**Agent (copilot/auto)**_
 The user wants to address the P0 items from TODO.md. Let me review what the P0 items are before asking questions:
 
 **P0 items:**
+
 1. **TQ-01**: Add legacy-shape rejection tests at request boundaries
    - Where: `test/celestial-body-upsert-message-handler.test.js`, `test/ship-upsert-message-handler.test.js`
    - Deliverable: 1 negative test per legacy field per upsert handler asserting `success: false` and the prescribed replacement message.
@@ -74,7 +74,7 @@ Let me gather a bit more context on the specific areas before asking questions.
 
 _**User (2026-05-07 23:04:00Z)**_
 
-continue with addressing the findings in the test quality related to P0 - identified in TODO.  use a selectable form to ask questions before implementing
+continue with addressing the findings in the test quality related to P0 - identified in TODO. use a selectable form to ask questions before implementing
 
 ---
 
@@ -116,7 +116,6 @@ The user wants to delete the MissionAddMessageHandler orphan. Let me gather the 
 4. `test/server.test.js` - remove the `MISSION_ADD_REQUEST_EVENT` / `MISSION_ADD_RESPONSE_EVENT` imports and the test that uses them
 5. Docs: README, CODEBASE.md - remove references to `add-mission-request`
 
-
 6. In `server.test.js`, I need to remove the imports from `mission-add` at lines 46-47 and the socket test at lines 1043-1044 that references those events, plus the mission add test that's using the old event name instead of the upsert one. So when I remove `mission-add.js`, I'll need to update the server test imports to reference `MISSION_UPSERT_REQUEST_EVENT` and `MISSION_UPSERT_RESPONSE_EVENT` from `mission-upsert.js` instead, since both files were using the same event string anyway. Let me check the documentation to see if there's anything else I need to update.
 
 ---
@@ -157,7 +156,7 @@ interested in addressing items in todo call P1 TQ-07 - use a selectable form to 
 
 _**Agent (copilot/auto)**_
 
-I’ll quickly inspect current 
+I’ll quickly inspect current
 
 ---
 
@@ -185,7 +184,7 @@ interested in addressing items in todo call P1 TQ-11 - use a selectable form to 
 
 _**Agent (copilot/auto)**_
 
-I’ll locate all explicit character 
+I’ll locate all explicit character
 
 ---
 

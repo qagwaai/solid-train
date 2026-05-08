@@ -2,21 +2,14 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  ShipListMessageHandler
-} = require('../src/handlers/ship-list-message-handler');
-const {
-  SHIP_LIST_RESPONSE_EVENT
-} = require('../src/model/ship-list');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { ShipListMessageHandler } = require('../src/handlers/ship-list-message-handler');
+const { SHIP_LIST_RESPONSE_EVENT } = require('../src/model/ship-list');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
   seedItems,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 test('ShipListMessageHandler returns ships for a player character', async () => {
@@ -30,7 +23,7 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
       damageStatus: 'intact',
       container: {
         containerType: 'ship',
-        containerId: 'ship-1'
+        containerId: 'ship-1',
       },
       owningPlayerId: 'player-seeded',
       owningCharacterId: 'character-1',
@@ -38,8 +31,8 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
       createdAt: '2026-04-17T00:00:00.000Z',
       updatedAt: '2026-04-17T00:00:00.000Z',
       destroyedAt: null,
-      destroyedReason: null
-    }
+      destroyedReason: null,
+    },
   ]);
   seedPlayer(context, {
     playerName: 'ShipPilot',
@@ -57,22 +50,22 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
             inventory: [
               {
                 itemId: 'item-1',
-                itemType: 'expendable-dart-drone'
-              }
+                itemType: 'expendable-dart-drone',
+              },
             ],
             spatial: {
               solarSystemId: 'system-sol',
               frame: 'barycentric',
               positionKm: { x: 100.5, y: 200.3, z: 50.1 },
-              epochMs: 1713607200000
+              epochMs: 1713607200000,
             },
             motion: {
-              velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 }
-            }
-          }
-        ]
-      }
-    ]
+              velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 },
+            },
+          },
+        ],
+      },
+    ],
   });
   const handler = new ShipListMessageHandler(context);
   const socket = createMockSocket();
@@ -80,7 +73,7 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
   const response = await handler.handle(socket, {
     playerName: 'shippilot',
     characterId: 'character-1',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
@@ -104,7 +97,7 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
           damageStatus: 'intact',
           container: {
             containerType: 'ship',
-            containerId: 'ship-1'
+            containerId: 'ship-1',
           },
           owningPlayerId: 'player-seeded',
           owningCharacterId: 'character-1',
@@ -114,21 +107,21 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
           destroyedAt: null,
           destroyedReason: null,
           launchable: true,
-          quantity: 1
-        }
+          quantity: 1,
+        },
       ],
       spatial: {
         solarSystemId: 'system-sol',
         frame: 'barycentric',
         positionKm: { x: 100.5, y: 200.3, z: 50.1 },
-        epochMs: 1713607200000
+        epochMs: 1713607200000,
       },
       motion: {
-        velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 }
+        velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 },
       },
       launchable: true,
-      damageProfile: null
-    }
+      damageProfile: null,
+    },
   ]);
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
@@ -138,7 +131,7 @@ test('ShipListMessageHandler handles missing character in player list', async ()
   seedPlayer(context, {
     playerName: 'EdgePilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'ExistingCharacter' }]
+    characters: [{ id: 'character-1', characterName: 'ExistingCharacter' }],
   });
   const handler = new ShipListMessageHandler(context);
   const socket = createMockSocket();
@@ -146,7 +139,7 @@ test('ShipListMessageHandler handles missing character in player list', async ()
   const response = await handler.handle(socket, {
     playerName: 'EdgePilot',
     characterId: 'missing-character-id',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.deepEqual(response, {
@@ -154,7 +147,7 @@ test('ShipListMessageHandler handles missing character in player list', async ()
     message: 'Character is not in player list',
     playerName: 'EdgePilot',
     characterId: 'missing-character-id',
-    ships: []
+    ships: [],
   });
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
@@ -164,7 +157,7 @@ test('ShipListMessageHandler emits invalid session when session is not valid', a
   seedPlayer(context, {
     playerName: 'SessionPilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
   const handler = new ShipListMessageHandler(context);
   const socket = createMockSocket();
@@ -172,7 +165,7 @@ test('ShipListMessageHandler emits invalid session when session is not valid', a
   const response = await handler.handle(socket, {
     playerName: 'SessionPilot',
     characterId: 'character-1',
-    sessionKey: 'wrong-session'
+    sessionKey: 'wrong-session',
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -190,7 +183,7 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
       damageStatus: 'intact',
       container: {
         containerType: 'ship',
-        containerId: 'ship-1'
+        containerId: 'ship-1',
       },
       owningPlayerId: 'player-seeded',
       owningCharacterId: 'character-1',
@@ -198,8 +191,8 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
       createdAt: '2026-04-17T00:00:00.000Z',
       updatedAt: '2026-04-17T00:00:00.000Z',
       destroyedAt: null,
-      destroyedReason: null
-    }
+      destroyedReason: null,
+    },
   ]);
   seedPlayer(context, {
     playerName: 'KinematicsPilot',
@@ -217,18 +210,18 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
             inventory: [
               {
                 itemId: 'item-1',
-                itemType: 'expendable-dart-drone'
-              }
+                itemType: 'expendable-dart-drone',
+              },
             ],
             spatial: {
               solarSystemId: 'system-sol',
               frame: 'barycentric',
               positionKm: { x: 150.0, y: 250.5, z: 75.3 },
-              epochMs: 1713607200000
+              epochMs: 1713607200000,
             },
             motion: {
-              velocityKmPerSec: { x: 1.2, y: 0.8, z: -0.5 }
-            }
+              velocityKmPerSec: { x: 1.2, y: 0.8, z: -0.5 },
+            },
           },
           {
             id: 'ship-2',
@@ -238,12 +231,12 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
               solarSystemId: 'system-sol',
               frame: 'barycentric',
               positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0
-            }
-          }
-        ]
-      }
-    ]
+              epochMs: 0,
+            },
+          },
+        ],
+      },
+    ],
   });
   const handler = new ShipListMessageHandler(context);
   const socket = createMockSocket();
@@ -251,7 +244,7 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
   const response = await handler.handle(socket, {
     playerName: 'KinematicsPilot',
     characterId: 'character-1',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
@@ -267,7 +260,7 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
       damageStatus: 'intact',
       container: {
         containerType: 'ship',
-        containerId: 'ship-1'
+        containerId: 'ship-1',
       },
       owningPlayerId: 'player-seeded',
       owningCharacterId: 'character-1',
@@ -277,17 +270,17 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
       destroyedAt: null,
       destroyedReason: null,
       launchable: true,
-      quantity: 1
-    }
+      quantity: 1,
+    },
   ]);
   assert.deepEqual(response.ships[0].spatial, {
     solarSystemId: 'system-sol',
     frame: 'barycentric',
     positionKm: { x: 150.0, y: 250.5, z: 75.3 },
-    epochMs: 1713607200000
+    epochMs: 1713607200000,
   });
   assert.deepEqual(response.ships[0].motion, {
-    velocityKmPerSec: { x: 1.2, y: 0.8, z: -0.5 }
+    velocityKmPerSec: { x: 1.2, y: 0.8, z: -0.5 },
   });
   assert.ok(response.ships[1].spatial);
   assert.deepEqual(response.ships[1].inventory, []);
@@ -305,7 +298,7 @@ test('ShipListMessageHandler hydrates inventory from cache when DB item lookup r
       damageStatus: 'intact',
       container: {
         containerType: 'ship',
-        containerId: 'ship-1'
+        containerId: 'ship-1',
       },
       owningPlayerId: 'player-seeded',
       owningCharacterId: 'character-1',
@@ -313,8 +306,8 @@ test('ShipListMessageHandler hydrates inventory from cache when DB item lookup r
       createdAt: '2026-04-17T00:00:00.000Z',
       updatedAt: '2026-04-17T00:00:00.000Z',
       destroyedAt: null,
-      destroyedReason: null
-    }
+      destroyedReason: null,
+    },
   ]);
   context.databaseService = {
     async getItemsByIds() {
@@ -322,7 +315,7 @@ test('ShipListMessageHandler hydrates inventory from cache when DB item lookup r
     },
     async getItemsByContainer() {
       return [];
-    }
+    },
   };
   seedPlayer(context, {
     playerName: 'ShipPilot',
@@ -339,18 +332,18 @@ test('ShipListMessageHandler hydrates inventory from cache when DB item lookup r
               solarSystemId: 'sol',
               frame: 'barycentric',
               positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0
+              epochMs: 0,
             },
             inventory: [
               {
                 itemId: 'item-cache-only',
-                itemType: 'expendable-dart-drone'
-              }
-            ]
-          }
-        ]
-      }
-    ]
+                itemType: 'expendable-dart-drone',
+              },
+            ],
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipListMessageHandler(context);
@@ -359,7 +352,7 @@ test('ShipListMessageHandler hydrates inventory from cache when DB item lookup r
   const response = await handler.handle(socket, {
     playerName: 'ShipPilot',
     characterId: 'character-1',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
@@ -379,7 +372,7 @@ test('ShipListMessageHandler includes ship-contained items beyond inventory refe
       damageStatus: 'intact',
       container: {
         containerType: 'ship',
-        containerId: 'ship-1'
+        containerId: 'ship-1',
       },
       owningPlayerId: 'player-seeded',
       owningCharacterId: 'character-1',
@@ -387,7 +380,7 @@ test('ShipListMessageHandler includes ship-contained items beyond inventory refe
       createdAt: '2026-04-17T00:00:00.000Z',
       updatedAt: '2026-04-17T00:00:00.000Z',
       destroyedAt: null,
-      destroyedReason: null
+      destroyedReason: null,
     },
     {
       id: 'item-extra',
@@ -397,7 +390,7 @@ test('ShipListMessageHandler includes ship-contained items beyond inventory refe
       damageStatus: 'intact',
       container: {
         containerType: 'ship',
-        containerId: 'ship-1'
+        containerId: 'ship-1',
       },
       owningPlayerId: 'player-seeded',
       owningCharacterId: 'character-1',
@@ -405,8 +398,8 @@ test('ShipListMessageHandler includes ship-contained items beyond inventory refe
       createdAt: '2026-04-17T00:00:00.000Z',
       updatedAt: '2026-04-17T00:00:00.000Z',
       destroyedAt: null,
-      destroyedReason: null
-    }
+      destroyedReason: null,
+    },
   ]);
   seedPlayer(context, {
     playerName: 'ShipPilot',
@@ -423,18 +416,18 @@ test('ShipListMessageHandler includes ship-contained items beyond inventory refe
               solarSystemId: 'sol',
               frame: 'barycentric',
               positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0
+              epochMs: 0,
             },
             inventory: [
               {
                 itemId: 'item-ref',
-                itemType: 'expendable-dart-drone'
-              }
-            ]
-          }
-        ]
-      }
-    ]
+                itemType: 'expendable-dart-drone',
+              },
+            ],
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipListMessageHandler(context);
@@ -443,7 +436,7 @@ test('ShipListMessageHandler includes ship-contained items beyond inventory refe
   const response = await handler.handle(socket, {
     playerName: 'ShipPilot',
     characterId: 'character-1',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
@@ -471,19 +464,19 @@ test('ShipListMessageHandler includes driveProfile when ship has a valid drive p
               solarSystemId: 'sol',
               frame: 'barycentric',
               positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0
+              epochMs: 0,
             },
             driveProfile: {
               id: 'standard-drive-mk1',
               name: 'Standard Drive Mk1',
               rangeAu: 10,
               cruiseSpeedAuPerHour: 0.5,
-              fuelCostPerAu: 2.5
-            }
-          }
-        ]
-      }
-    ]
+              fuelCostPerAu: 2.5,
+            },
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipListMessageHandler(context);
@@ -492,7 +485,7 @@ test('ShipListMessageHandler includes driveProfile when ship has a valid drive p
   const response = await handler.handle(socket, {
     playerName: 'DrivePilot',
     characterId: 'character-1',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
@@ -501,7 +494,7 @@ test('ShipListMessageHandler includes driveProfile when ship has a valid drive p
     name: 'Standard Drive Mk1',
     rangeAu: 10,
     cruiseSpeedAuPerHour: 0.5,
-    fuelCostPerAu: 2.5
+    fuelCostPerAu: 2.5,
   });
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
@@ -524,12 +517,12 @@ test('ShipListMessageHandler omits driveProfile key when ship has no drive profi
               solarSystemId: 'sol',
               frame: 'barycentric',
               positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0
-            }
-          }
-        ]
-      }
-    ]
+              epochMs: 0,
+            },
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipListMessageHandler(context);
@@ -538,7 +531,7 @@ test('ShipListMessageHandler omits driveProfile key when ship has no drive profi
   const response = await handler.handle(socket, {
     playerName: 'NoDrivePilot',
     characterId: 'character-1',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
@@ -563,13 +556,13 @@ test('ShipListMessageHandler omits driveProfile key when driveProfile is null', 
               solarSystemId: 'sol',
               frame: 'barycentric',
               positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0
+              epochMs: 0,
             },
-            driveProfile: null
-          }
-        ]
-      }
-    ]
+            driveProfile: null,
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipListMessageHandler(context);
@@ -578,7 +571,7 @@ test('ShipListMessageHandler omits driveProfile key when driveProfile is null', 
   const response = await handler.handle(socket, {
     playerName: 'NullDrivePilot',
     characterId: 'character-1',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
@@ -603,19 +596,19 @@ test('ShipListMessageHandler omits driveProfile when profile fields are invalid'
               solarSystemId: 'sol',
               frame: 'barycentric',
               positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0
+              epochMs: 0,
             },
             driveProfile: {
               id: 'broken-drive',
               name: 'Broken Drive',
-              rangeAu: 0,             // invalid: must be > 0
+              rangeAu: 0, // invalid: must be > 0
               cruiseSpeedAuPerHour: 0.5,
-              fuelCostPerAu: 2.5
-            }
-          }
-        ]
-      }
-    ]
+              fuelCostPerAu: 2.5,
+            },
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipListMessageHandler(context);
@@ -624,7 +617,7 @@ test('ShipListMessageHandler omits driveProfile when profile fields are invalid'
   const response = await handler.handle(socket, {
     playerName: 'BadDrivePilot',
     characterId: 'character-1',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);

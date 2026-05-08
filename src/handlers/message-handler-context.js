@@ -5,7 +5,7 @@ const { MARKET_CATALOG, MARKET_CATALOG_BY_ID } = require('../model/market-catalo
 const { computeMidpointPrice } = require('../model/market-pricing');
 const {
   SOLAR_SYSTEM_MARKET_SEED_VERSION,
-  buildSeededMarketsForSolarSystem
+  buildSeededMarketsForSolarSystem,
 } = require('../model/solar-system-market-seed');
 const { buildSeededGateNetwork } = require('../model/solar-system-gate-seed');
 const routingService = require('./context/routing-service');
@@ -30,7 +30,7 @@ const FALLBACK_ANCHOR_POSITION_KM = {
   'sol-saturn': { x: 1_426_666_422, y: 0, z: 0 },
   'sol-uranus': { x: 2_870_658_186, y: 0, z: 0 },
   'sol-neptune': { x: 4_498_396_441, y: 0, z: 0 },
-  'sol-pluto': { x: 5_906_376_272, y: 0, z: 0 }
+  'sol-pluto': { x: 5_906_376_272, y: 0, z: 0 },
 };
 
 function buildMarketKey(marketId, solarSystemId) {
@@ -39,14 +39,14 @@ function buildMarketKey(marketId, solarSystemId) {
 
 function getDefaultStockByRarity(rarity) {
   switch (rarity) {
-  case 'Exotic':
-    return 80;
-  case 'Rare':
-    return 260;
-  case 'Uncommon':
-    return 640;
-  default:
-    return 1200;
+    case 'Exotic':
+      return 80;
+    case 'Rare':
+      return 260;
+    case 'Uncommon':
+      return 640;
+    default:
+      return 1200;
   }
 }
 
@@ -59,7 +59,7 @@ function buildDefaultInventoryEntry(catalogEntry) {
     maxStock,
     restockPerInterval: Math.max(1, Math.round(maxStock * 0.08)),
     marketCanBuy: Boolean(catalogEntry.marketCanBuy),
-    marketCanSell: Boolean(catalogEntry.marketCanSell)
+    marketCanSell: Boolean(catalogEntry.marketCanSell),
   };
 }
 
@@ -73,11 +73,12 @@ class MessageHandlerContext {
     this.databaseService = options.databaseService || null;
     this.game = options.game || new GameState();
     this.log = options.log || ((line) => process.stdout.write(`${line}\n`));
-    this.createId = options.createId || (() => {
-      throw new Error('createId is required');
-    });
-    this.getCurrentTimestamp =
-      options.getCurrentTimestamp || (() => new Date().toISOString());
+    this.createId =
+      options.createId ||
+      (() => {
+        throw new Error('createId is required');
+      });
+    this.getCurrentTimestamp = options.getCurrentTimestamp || (() => new Date().toISOString());
     this._gateGraph = null;
     this._seedDefaultsInitialized = false;
   }
@@ -87,7 +88,7 @@ class MessageHandlerContext {
     if (!seedDefaults || this._seedDefaultsInitialized) {
       return {
         success: true,
-        seededDefaults: false
+        seededDefaults: false,
       };
     }
 
@@ -96,14 +97,14 @@ class MessageHandlerContext {
       this._seedDefaultsInitialized = true;
       return {
         success: true,
-        seededDefaults: true
+        seededDefaults: true,
       };
     }
 
     this._seedDefaultsInitialized = true;
     return {
       success: true,
-      seededDefaults: false
+      seededDefaults: false,
     };
   }
 
@@ -124,19 +125,19 @@ class MessageHandlerContext {
     const orbit = source.orbit ? this.normalizeMarketOrbit(source.orbit) : null;
     const siteType = this.inferMarketSiteType(source);
     const siteName =
-      this.toNonEmptyString(source.siteName)
-      || this.toNonEmptyString(source.locationName)
-      || this.toNonEmptyString(source.marketName);
+      this.toNonEmptyString(source.siteName) ||
+      this.toNonEmptyString(source.locationName) ||
+      this.toNonEmptyString(source.marketName);
     const positionKm = this.normalizeTriple(source.positionKm);
     const spatial = positionKm
       ? {
-        solarSystemId: this.toNonEmptyString(source.solarSystemId).toLowerCase(),
-        frame: 'barycentric',
-        positionKm,
-        epochMs: this.isFiniteNumber(source?.spatial?.epochMs)
-          ? source.spatial.epochMs
-          : Date.parse(orbit?.epoch || timestamp)
-      }
+          solarSystemId: this.toNonEmptyString(source.solarSystemId).toLowerCase(),
+          frame: 'barycentric',
+          positionKm,
+          epochMs: this.isFiniteNumber(source?.spatial?.epochMs)
+            ? source.spatial.epochMs
+            : Date.parse(orbit?.epoch || timestamp),
+        }
       : undefined;
 
     return {
@@ -146,13 +147,14 @@ class MessageHandlerContext {
       siteName,
       ...(spatial ? { spatial } : {}),
       ...(orbit ? { trajectory: { kind: 'orbital-elements', orbit } } : {}),
-      restockIntervalMinutes: Number.isInteger(seedMarket?.restockIntervalMinutes)
-        && seedMarket.restockIntervalMinutes > 0
-        ? seedMarket.restockIntervalMinutes
-        : DEFAULT_RESTOCK_INTERVAL_MINUTES,
+      restockIntervalMinutes:
+        Number.isInteger(seedMarket?.restockIntervalMinutes) &&
+        seedMarket.restockIntervalMinutes > 0
+          ? seedMarket.restockIntervalMinutes
+          : DEFAULT_RESTOCK_INTERVAL_MINUTES,
       lastRestockAt: this.toNonEmptyString(seedMarket?.lastRestockAt) || timestamp,
       inventory: MARKET_CATALOG.map((catalogEntry) => buildDefaultInventoryEntry(catalogEntry)),
-      ledger: []
+      ledger: [],
     };
   }
 
@@ -163,17 +165,17 @@ class MessageHandlerContext {
     }
 
     const hasOrbitInput = Boolean(
-      this.toNonEmptyString(source.anchorBodyId)
-      || this.toNonEmptyString(source.anchorBodyName)
-      || this.toNonEmptyString(source.orbitType)
-      || this.isFiniteNumber(source.semiMajorAxisKm)
-      || this.isFiniteNumber(source.eccentricity)
-      || this.isFiniteNumber(source.inclinationDeg)
-      || this.isFiniteNumber(source.longitudeOfAscendingNodeDeg)
-      || this.isFiniteNumber(source.argumentOfPeriapsisDeg)
-      || this.isFiniteNumber(source.meanAnomalyAtEpochDeg)
-      || this.isFiniteNumber(source.orbitalPeriodSec)
-      || this.toNonEmptyString(source.epoch)
+      this.toNonEmptyString(source.anchorBodyId) ||
+      this.toNonEmptyString(source.anchorBodyName) ||
+      this.toNonEmptyString(source.orbitType) ||
+      this.isFiniteNumber(source.semiMajorAxisKm) ||
+      this.isFiniteNumber(source.eccentricity) ||
+      this.isFiniteNumber(source.inclinationDeg) ||
+      this.isFiniteNumber(source.longitudeOfAscendingNodeDeg) ||
+      this.isFiniteNumber(source.argumentOfPeriapsisDeg) ||
+      this.isFiniteNumber(source.meanAnomalyAtEpochDeg) ||
+      this.isFiniteNumber(source.orbitalPeriodSec) ||
+      this.toNonEmptyString(source.epoch)
     );
 
     if (!hasOrbitInput) {
@@ -197,7 +199,7 @@ class MessageHandlerContext {
         ? source.meanAnomalyAtEpochDeg
         : 0,
       orbitalPeriodSec: this.isFiniteNumber(source.orbitalPeriodSec) ? source.orbitalPeriodSec : 0,
-      epoch: this.toNonEmptyString(source.epoch) || this.getCurrentTimestamp()
+      epoch: this.toNonEmptyString(source.epoch) || this.getCurrentTimestamp(),
     };
   }
 
@@ -228,7 +230,7 @@ class MessageHandlerContext {
       solarSystemId,
       frame: 'barycentric',
       positionKm,
-      epochMs
+      epochMs,
     };
   }
 
@@ -247,7 +249,7 @@ class MessageHandlerContext {
 
     return {
       velocityKmPerSec,
-      ...(angularVelocityRadPerSec ? { angularVelocityRadPerSec } : {})
+      ...(angularVelocityRadPerSec ? { angularVelocityRadPerSec } : {}),
     };
   }
 
@@ -270,7 +272,7 @@ class MessageHandlerContext {
 
     return {
       ...(estimatedMassKg !== undefined ? { estimatedMassKg } : {}),
-      ...(estimatedDiameterM !== undefined ? { estimatedDiameterM } : {})
+      ...(estimatedDiameterM !== undefined ? { estimatedDiameterM } : {}),
     };
   }
 
@@ -283,7 +285,7 @@ class MessageHandlerContext {
       visibility: ['visible', 'not-visible', 'cloaked'].includes(visibility)
         ? visibility
         : 'not-visible',
-      scanState: ['unscanned', 'scanned'].includes(scanState) ? scanState : 'unscanned'
+      scanState: ['unscanned', 'scanned'].includes(scanState) ? scanState : 'unscanned',
     };
   }
 
@@ -300,7 +302,7 @@ class MessageHandlerContext {
     }
 
     const trajectory = {
-      kind
+      kind,
     };
 
     if (kind === 'orbital-elements' && source.orbit) {
@@ -397,9 +399,7 @@ class MessageHandlerContext {
       ...playerData,
       sessionKey: playerData.sessionKey ?? existing.sessionKey ?? null,
       socketId: playerData.socketId ?? existing.socketId ?? null,
-      preferredLocale: this.normalizeLocale(
-        playerData.preferredLocale ?? existing.preferredLocale
-      )
+      preferredLocale: this.normalizeLocale(playerData.preferredLocale ?? existing.preferredLocale),
     };
 
     this.registeredPlayers.set(normalizedPlayerName, merged);
@@ -417,26 +417,32 @@ class MessageHandlerContext {
   normalizeMarketInventoryEntry(entry) {
     const source = this.toPlainObject(entry) || {};
     const catalogEntry = MARKET_CATALOG_BY_ID.get(this.toNonEmptyString(source.itemId));
-    const defaults = catalogEntry ? buildDefaultInventoryEntry(catalogEntry) : {
-      itemId: this.toNonEmptyString(source.itemId),
-      stock: 0,
-      maxStock: 0,
-      restockPerInterval: 0,
-      marketCanBuy: false,
-      marketCanSell: false
-    };
+    const defaults = catalogEntry
+      ? buildDefaultInventoryEntry(catalogEntry)
+      : {
+          itemId: this.toNonEmptyString(source.itemId),
+          stock: 0,
+          maxStock: 0,
+          restockPerInterval: 0,
+          marketCanBuy: false,
+          marketCanSell: false,
+        };
 
     return {
       itemId: defaults.itemId,
       stock: Number.isInteger(source.stock) && source.stock >= 0 ? source.stock : defaults.stock,
-      maxStock: Number.isInteger(source.maxStock) && source.maxStock >= 0
-        ? source.maxStock
-        : defaults.maxStock,
-      restockPerInterval: Number.isInteger(source.restockPerInterval) && source.restockPerInterval >= 0
-        ? source.restockPerInterval
-        : defaults.restockPerInterval,
-      marketCanBuy: source.marketCanBuy != null ? Boolean(source.marketCanBuy) : defaults.marketCanBuy,
-      marketCanSell: source.marketCanSell != null ? Boolean(source.marketCanSell) : defaults.marketCanSell
+      maxStock:
+        Number.isInteger(source.maxStock) && source.maxStock >= 0
+          ? source.maxStock
+          : defaults.maxStock,
+      restockPerInterval:
+        Number.isInteger(source.restockPerInterval) && source.restockPerInterval >= 0
+          ? source.restockPerInterval
+          : defaults.restockPerInterval,
+      marketCanBuy:
+        source.marketCanBuy != null ? Boolean(source.marketCanBuy) : defaults.marketCanBuy,
+      marketCanSell:
+        source.marketCanSell != null ? Boolean(source.marketCanSell) : defaults.marketCanSell,
     };
   }
 
@@ -446,7 +452,11 @@ class MessageHandlerContext {
       return '';
     }
 
-    if (normalized === 'station' || normalized === 'surface-settlement' || normalized === 'free-floating') {
+    if (
+      normalized === 'station' ||
+      normalized === 'surface-settlement' ||
+      normalized === 'free-floating'
+    ) {
       return normalized;
     }
 
@@ -458,7 +468,11 @@ class MessageHandlerContext {
       return 'surface-settlement';
     }
 
-    if (normalized.includes('free') || normalized.includes('belt') || normalized.includes('drift')) {
+    if (
+      normalized.includes('free') ||
+      normalized.includes('belt') ||
+      normalized.includes('drift')
+    ) {
       return 'free-floating';
     }
 
@@ -517,7 +531,7 @@ class MessageHandlerContext {
           solarSystemId,
           frame: 'barycentric',
           positionKm,
-          epochMs: source.spatial?.epochMs || Date.parse(orbit?.epoch || new Date().toISOString())
+          epochMs: source.spatial?.epochMs || Date.parse(orbit?.epoch || new Date().toISOString()),
         };
       }
     }
@@ -527,7 +541,7 @@ class MessageHandlerContext {
     if (!trajectory && orbit) {
       trajectory = {
         kind: 'orbital-elements',
-        orbit
+        orbit,
       };
     }
 
@@ -537,23 +551,25 @@ class MessageHandlerContext {
       marketName: this.toNonEmptyString(source.marketName),
       siteType: this.inferMarketSiteType(source),
       siteName:
-        this.toNonEmptyString(source.siteName)
-        || this.toNonEmptyString(source.locationName)
-        || this.toNonEmptyString(source.marketName),
+        this.toNonEmptyString(source.siteName) ||
+        this.toNonEmptyString(source.locationName) ||
+        this.toNonEmptyString(source.marketName),
       isStarterMarket: Boolean(source.isStarterMarket),
-      priceMultiplier: this.isFiniteNumber(source.priceMultiplier) && source.priceMultiplier > 0
-        ? source.priceMultiplier
-        : 1,
-      driftPercentPerHour: this.isFiniteNumber(source.driftPercentPerHour) && source.driftPercentPerHour >= 0
-        ? source.driftPercentPerHour
-        : 0,
-      restockIntervalMinutes: Number.isInteger(source.restockIntervalMinutes)
-        && source.restockIntervalMinutes > 0
-        ? source.restockIntervalMinutes
-        : DEFAULT_RESTOCK_INTERVAL_MINUTES,
+      priceMultiplier:
+        this.isFiniteNumber(source.priceMultiplier) && source.priceMultiplier > 0
+          ? source.priceMultiplier
+          : 1,
+      driftPercentPerHour:
+        this.isFiniteNumber(source.driftPercentPerHour) && source.driftPercentPerHour >= 0
+          ? source.driftPercentPerHour
+          : 0,
+      restockIntervalMinutes:
+        Number.isInteger(source.restockIntervalMinutes) && source.restockIntervalMinutes > 0
+          ? source.restockIntervalMinutes
+          : DEFAULT_RESTOCK_INTERVAL_MINUTES,
       lastRestockAt: this.toNonEmptyString(source.lastRestockAt) || this.getCurrentTimestamp(),
       inventory,
-      ledger
+      ledger,
     };
 
     if (spatial) {
@@ -601,7 +617,7 @@ class MessageHandlerContext {
       unitPrice: Number.isInteger(source.unitPrice) ? source.unitPrice : 0,
       totalPrice: Number.isInteger(source.totalPrice) ? source.totalPrice : 0,
       timestamp: this.toNonEmptyString(source.timestamp),
-      reversalOfTransactionId: this.toNonEmptyString(source.reversalOfTransactionId) || null
+      reversalOfTransactionId: this.toNonEmptyString(source.reversalOfTransactionId) || null,
     };
   }
 
@@ -626,7 +642,9 @@ class MessageHandlerContext {
     }
 
     if (normalizedSolarSystemId) {
-      return this.marketsByKey.get(buildMarketKey(normalizedMarketId, normalizedSolarSystemId)) || null;
+      return (
+        this.marketsByKey.get(buildMarketKey(normalizedMarketId, normalizedSolarSystemId)) || null
+      );
     }
 
     const allMarkets = Array.from(this.marketsByKey.values());
@@ -728,8 +746,8 @@ class MessageHandlerContext {
     const shipName = this.toNonEmptyString(source.name) || this.toNonEmptyString(source.shipName);
     const inventory = Array.isArray(source.inventory)
       ? source.inventory
-        .map((entry) => this.normalizeInventoryItemReference(entry))
-        .filter((entry) => Boolean(entry))
+          .map((entry) => this.normalizeInventoryItemReference(entry))
+          .filter((entry) => Boolean(entry))
       : [];
 
     let spatial = this.normalizeSpatialState(source.spatial);
@@ -737,7 +755,9 @@ class MessageHandlerContext {
 
     // If still no spatial, this is an error
     if (!spatial) {
-      throw new Error('Ship: spatial state is required. Provide spatial with solarSystemId, frame:\'barycentric\', positionKm, and epochMs.');
+      throw new Error(
+        "Ship: spatial state is required. Provide spatial with solarSystemId, frame:'barycentric', positionKm, and epochMs."
+      );
     }
 
     return {
@@ -745,9 +765,8 @@ class MessageHandlerContext {
       name: shipName || source.name || source.shipName || '',
       status: this.toNonEmptyString(source.status) || null,
       model: this.toNonEmptyString(source.model) || 'Scavenger Pod',
-      tier: Number.isInteger(source.tier) && source.tier >= 1 && source.tier <= 10
-        ? source.tier
-        : 1,
+      tier:
+        Number.isInteger(source.tier) && source.tier >= 1 && source.tier <= 10 ? source.tier : 1,
       createdAt: this.toNonEmptyString(source.createdAt),
       inventory,
       spatial,
@@ -756,7 +775,7 @@ class MessageHandlerContext {
       damageProfile: source.damageProfile != null ? source.damageProfile : null,
       ...(this._normalizeDriveProfile(source.driveProfile) !== null
         ? { driveProfile: this._normalizeDriveProfile(source.driveProfile) }
-        : {})
+        : {}),
     };
   }
 
@@ -771,10 +790,19 @@ class MessageHandlerContext {
     const cruiseSpeedAuPerHour = profile.cruiseSpeedAuPerHour;
     const fuelCostPerAu = profile.fuelCostPerAu;
 
-    if (!id || !name
-      || typeof rangeAu !== 'number' || !Number.isFinite(rangeAu) || rangeAu <= 0
-      || typeof cruiseSpeedAuPerHour !== 'number' || !Number.isFinite(cruiseSpeedAuPerHour) || cruiseSpeedAuPerHour <= 0
-      || typeof fuelCostPerAu !== 'number' || !Number.isFinite(fuelCostPerAu) || fuelCostPerAu <= 0) {
+    if (
+      !id ||
+      !name ||
+      typeof rangeAu !== 'number' ||
+      !Number.isFinite(rangeAu) ||
+      rangeAu <= 0 ||
+      typeof cruiseSpeedAuPerHour !== 'number' ||
+      !Number.isFinite(cruiseSpeedAuPerHour) ||
+      cruiseSpeedAuPerHour <= 0 ||
+      typeof fuelCostPerAu !== 'number' ||
+      !Number.isFinite(fuelCostPerAu) ||
+      fuelCostPerAu <= 0
+    ) {
       this.log('[normalizeShip] driveProfile failed validation; omitting field');
       return null;
     }
@@ -793,7 +821,7 @@ class MessageHandlerContext {
 
     return {
       itemId,
-      itemType
+      itemType,
     };
   }
 
@@ -818,14 +846,15 @@ class MessageHandlerContext {
     const positionKm = this.normalizeTriple(kinematics.position);
     const epochMs = this.isFiniteNumber(reference.epochMs) ? reference.epochMs : null;
 
-    const spatial = (solarSystemId && positionKm && epochMs !== null)
-      ? {
-        solarSystemId,
-        frame: 'barycentric',
-        positionKm,
-        epochMs
-      }
-      : null;
+    const spatial =
+      solarSystemId && positionKm && epochMs !== null
+        ? {
+            solarSystemId,
+            frame: 'barycentric',
+            positionKm,
+            epochMs,
+          }
+        : null;
 
     const velocityKmPerSec = this.normalizeTriple(kinematics.velocity);
     const motion = velocityKmPerSec ? { velocityKmPerSec } : null;
@@ -835,10 +864,12 @@ class MessageHandlerContext {
 
   normalizeItem(item) {
     const source = this.toPlainObject(item) || {};
-    const normalizedContainer = source.container ? {
-      containerType: this.toNonEmptyString(source.container.containerType),
-      containerId: this.toNonEmptyString(source.container.containerId)
-    } : null;
+    const normalizedContainer = source.container
+      ? {
+          containerType: this.toNonEmptyString(source.container.containerType),
+          containerId: this.toNonEmptyString(source.container.containerId),
+        }
+      : null;
 
     let spatial = this.normalizeSpatialState(source.spatial);
     let motion = this.normalizeMotionState(source.motion);
@@ -868,7 +899,7 @@ class MessageHandlerContext {
       destroyedAt: this.toNonEmptyString(source.destroyedAt) || null,
       destroyedReason: this.toNonEmptyString(source.destroyedReason) || null,
       launchable: source.launchable != null ? Boolean(source.launchable) : true,
-      quantity: Number.isInteger(source.quantity) && source.quantity > 0 ? source.quantity : 1
+      quantity: Number.isInteger(source.quantity) && source.quantity > 0 ? source.quantity : 1,
     };
   }
 
@@ -880,7 +911,7 @@ class MessageHandlerContext {
       amount: typeof source.amount === 'number' ? source.amount : 0,
       description: this.toNonEmptyString(source.description),
       timestamp: this.toNonEmptyString(source.timestamp),
-      referenceId: this.toNonEmptyString(source.referenceId) || null
+      referenceId: this.toNonEmptyString(source.referenceId) || null,
     };
   }
 
@@ -918,7 +949,7 @@ class MessageHandlerContext {
       ships,
       missions,
       creditLedger,
-      credits
+      credits,
     };
   }
 
@@ -935,7 +966,7 @@ class MessageHandlerContext {
       completedAt: this.toNonEmptyString(source.completedAt) || undefined,
       updatedAt: this.toNonEmptyString(source.updatedAt) || undefined,
       failureReason: typeof source.failureReason === 'string' ? source.failureReason : undefined,
-      statusDetail: typeof source.statusDetail === 'string' ? source.statusDetail : undefined
+      statusDetail: typeof source.statusDetail === 'string' ? source.statusDetail : undefined,
     };
   }
 
@@ -947,7 +978,9 @@ class MessageHandlerContext {
     let physical = this.normalizePhysicalState(source.physical);
 
     if (!spatial) {
-      throw new Error('CelestialBody: spatial state is required. Provide spatial with solarSystemId, frame:\'barycentric\', positionKm, and epochMs.');
+      throw new Error(
+        "CelestialBody: spatial state is required. Provide spatial with solarSystemId, frame:'barycentric', positionKm, and epochMs."
+      );
     }
 
     const observability = this.normalizeObservabilityState(source.observability);
@@ -965,23 +998,25 @@ class MessageHandlerContext {
       ...(motion ? { motion } : {}),
       ...(physical ? { physical } : {}),
       observability,
-      composition: source.composition ? {
-        rarity: this.toNonEmptyString(source.composition.rarity),
-        material: this.toNonEmptyString(source.composition.material),
-        textureColor: this.toNonEmptyString(source.composition.textureColor)
-      } : null,
+      composition: source.composition
+        ? {
+            rarity: this.toNonEmptyString(source.composition.rarity),
+            material: this.toNonEmptyString(source.composition.material),
+            textureColor: this.toNonEmptyString(source.composition.textureColor),
+          }
+        : null,
       state: this.toNonEmptyString(source.state) || 'active',
       destroyedAt: this.toNonEmptyString(source.destroyedAt) || null,
       destroyedReason: this.toNonEmptyString(source.destroyedReason) || null,
       debrisSeed: Number.isInteger(source.debrisSeed) ? source.debrisSeed : null,
       debris: Array.isArray(source.debris)
         ? source.debris.map((entry) => ({
-          material: this.toNonEmptyString(entry?.material),
-          rarity: this.toNonEmptyString(entry?.rarity),
-          quantity: Number.isInteger(entry?.quantity) && entry.quantity > 0 ? entry.quantity : 1,
-          itemType: this.toNonEmptyString(entry?.itemType)
-        }))
-        : []
+            material: this.toNonEmptyString(entry?.material),
+            rarity: this.toNonEmptyString(entry?.rarity),
+            quantity: Number.isInteger(entry?.quantity) && entry.quantity > 0 ? entry.quantity : 1,
+            itemType: this.toNonEmptyString(entry?.itemType),
+          }))
+        : [],
     };
   }
 
@@ -1025,20 +1060,23 @@ class MessageHandlerContext {
     const normalizedMissionId = this.toNonEmptyString(query?.missionId);
     const normalizedStateValues = Array.isArray(query?.stateValues)
       ? query.stateValues
-        .map((stateValue) => this.toNonEmptyString(stateValue))
-        .filter((stateValue) => Boolean(stateValue))
+          .map((stateValue) => this.toNonEmptyString(stateValue))
+          .filter((stateValue) => Boolean(stateValue))
       : [];
 
     const cacheMatches = Array.from(this.celestialBodiesById.values())
       .map((celestialBody) => this.normalizeCelestialBody(celestialBody))
       .filter((celestialBody) => {
-        if (normalizedSolarSystemId && celestialBody.spatial?.solarSystemId !== normalizedSolarSystemId) {
+        if (
+          normalizedSolarSystemId &&
+          celestialBody.spatial?.solarSystemId !== normalizedSolarSystemId
+        ) {
           return false;
         }
 
         if (
-          normalizedCreatedByCharacterId
-          && celestialBody.createdByCharacterId !== normalizedCreatedByCharacterId
+          normalizedCreatedByCharacterId &&
+          celestialBody.createdByCharacterId !== normalizedCreatedByCharacterId
         ) {
           return false;
         }
@@ -1048,8 +1086,8 @@ class MessageHandlerContext {
         }
 
         if (
-          normalizedStateValues.length > 0
-          && !normalizedStateValues.includes(celestialBody.state)
+          normalizedStateValues.length > 0 &&
+          !normalizedStateValues.includes(celestialBody.state)
         ) {
           return false;
         }
@@ -1057,13 +1095,12 @@ class MessageHandlerContext {
         return true;
       });
 
-    const fromDb = await this.withDbOrNull(
-      'fetching celestial bodies from DB',
-      (databaseService) => databaseService.getCelestialBodies({
+    const fromDb = await this.withDbOrNull('fetching celestial bodies from DB', (databaseService) =>
+      databaseService.getCelestialBodies({
         solarSystemId: normalizedSolarSystemId || undefined,
         createdByCharacterId: normalizedCreatedByCharacterId || undefined,
         missionId: normalizedMissionId || undefined,
-        stateValues: normalizedStateValues.length > 0 ? normalizedStateValues : undefined
+        stateValues: normalizedStateValues.length > 0 ? normalizedStateValues : undefined,
       })
     );
 
@@ -1091,9 +1128,8 @@ class MessageHandlerContext {
       return false;
     }
 
-    await this.withDb(
-      'deleting celestial body in DB',
-      (databaseService) => databaseService.deleteCelestialBodyById(normalizedCelestialBodyId)
+    await this.withDb('deleting celestial body in DB', (databaseService) =>
+      databaseService.deleteCelestialBodyById(normalizedCelestialBodyId)
     );
 
     return this.celestialBodiesById.delete(normalizedCelestialBodyId);
@@ -1151,9 +1187,8 @@ class MessageHandlerContext {
         .map(([itemId, item]) => [itemId, this.normalizeItem(item)])
     );
 
-    const itemsFromDb = await this.withDbOrNull(
-      'fetching items from DB',
-      (databaseService) => databaseService.getItemsByIds(normalizedItemIds)
+    const itemsFromDb = await this.withDbOrNull('fetching items from DB', (databaseService) =>
+      databaseService.getItemsByIds(normalizedItemIds)
     );
 
     if (Array.isArray(itemsFromDb)) {
@@ -1173,9 +1208,8 @@ class MessageHandlerContext {
     const normalizedItems = this.cacheItems(items);
 
     try {
-      await this.withDb(
-        'adding items in DB',
-        (databaseService) => databaseService.addItems(normalizedItems)
+      await this.withDb('adding items in DB', (databaseService) =>
+        databaseService.addItems(normalizedItems)
       );
     } catch (error) {
       for (const item of normalizedItems) {
@@ -1196,9 +1230,8 @@ class MessageHandlerContext {
       return;
     }
 
-    await this.withDb(
-      'deleting items in DB',
-      (databaseService) => databaseService.deleteItemsByIds(normalizedItemIds)
+    await this.withDb('deleting items in DB', (databaseService) =>
+      databaseService.deleteItemsByIds(normalizedItemIds)
     );
 
     for (const itemId of normalizedItemIds) {
@@ -1220,9 +1253,8 @@ class MessageHandlerContext {
     const updatedItem = this.normalizeItem({ ...existing, ...updates });
     this.itemsById.set(normalizedItemId, updatedItem);
 
-    await this.withDbOrNull(
-      'updating item in DB',
-      (databaseService) => databaseService.updateItemById(normalizedItemId, updatedItem)
+    await this.withDbOrNull('updating item in DB', (databaseService) =>
+      databaseService.updateItemById(normalizedItemId, updatedItem)
     );
 
     return updatedItem;
@@ -1238,16 +1270,14 @@ class MessageHandlerContext {
 
     const cachedMatches = [...this.itemsById.values()].filter(
       (item) =>
-        item.container?.containerType === normalizedContainerType
-        && item.container?.containerId === normalizedContainerId
+        item.container?.containerType === normalizedContainerType &&
+        item.container?.containerId === normalizedContainerId
     );
 
     const itemsFromDb = await this.withDbOrNull(
       'fetching items by container from DB',
-      (databaseService) => databaseService.getItemsByContainer(
-        normalizedContainerType,
-        normalizedContainerId
-      )
+      (databaseService) =>
+        databaseService.getItemsByContainer(normalizedContainerType, normalizedContainerId)
     );
 
     if (Array.isArray(itemsFromDb)) {
@@ -1281,10 +1311,10 @@ class MessageHandlerContext {
     const normalizedNextItemType = this.toNonEmptyString(nextItem?.itemType);
     const normalizedNextShipId = this.toNonEmptyString(nextItem?.container?.containerId);
     const shouldAttachToShip =
-      this.toNonEmptyString(nextItem?.container?.containerType) === 'ship'
-      && Boolean(normalizedNextShipId)
-      && Boolean(normalizedNextCharacterId)
-      && Boolean(normalizedNextItemType);
+      this.toNonEmptyString(nextItem?.container?.containerType) === 'ship' &&
+      Boolean(normalizedNextShipId) &&
+      Boolean(normalizedNextCharacterId) &&
+      Boolean(normalizedNextItemType);
 
     const candidateCharacterIds = new Set(
       [normalizedPreviousCharacterId, normalizedNextCharacterId].filter((value) => Boolean(value))
@@ -1305,15 +1335,17 @@ class MessageHandlerContext {
         const wasRemoved = filteredInventory.length !== inventory.length;
 
         let nextInventory = filteredInventory;
-        if (shouldAttachToShip
-          && characterId === normalizedNextCharacterId
-          && ship.id === normalizedNextShipId) {
+        if (
+          shouldAttachToShip &&
+          characterId === normalizedNextCharacterId &&
+          ship.id === normalizedNextShipId
+        ) {
           nextInventory = [
             ...filteredInventory,
             {
               itemId: nextItem.id,
-              itemType: normalizedNextItemType
-            }
+              itemType: normalizedNextItemType,
+            },
           ];
         }
 
@@ -1321,7 +1353,7 @@ class MessageHandlerContext {
           changed = true;
           return {
             ...ship,
-            inventory: nextInventory
+            inventory: nextInventory,
           };
         }
 
@@ -1330,7 +1362,7 @@ class MessageHandlerContext {
 
       if (changed) {
         await this.updateCharacterAsync(canonicalPlayerName, characterId, {
-          ships: nextShips
+          ships: nextShips,
         });
       }
     }
@@ -1365,7 +1397,7 @@ class MessageHandlerContext {
 
     return {
       ...normalizedShip,
-      inventory: [...referencedInOrder, ...additionalContainedItems]
+      inventory: [...referencedInOrder, ...additionalContainedItems],
     };
   }
 
@@ -1433,7 +1465,7 @@ class MessageHandlerContext {
       normalizedPlayerName,
       characterId: character.id,
       characterName: character.characterName,
-      timestamp: now
+      timestamp: now,
     });
 
     character.inGame = true;
@@ -1454,7 +1486,7 @@ class MessageHandlerContext {
     const touched = this.game.touchParticipants({
       normalizedPlayerName,
       characterId: characterId || '',
-      timestamp: now
+      timestamp: now,
     });
 
     for (const participant of touched) {
@@ -1487,7 +1519,7 @@ class MessageHandlerContext {
     return this.game.updateCharacterName({
       normalizedPlayerName,
       characterId: normalizedCharacterId,
-      characterName: normalizedCharacterName
+      characterName: normalizedCharacterName,
     });
   }
 
@@ -1501,7 +1533,7 @@ class MessageHandlerContext {
 
     const detached = this.game.detachCharacter({
       normalizedPlayerName,
-      characterId: normalizedCharacterId
+      characterId: normalizedCharacterId,
     });
 
     const character = this.findCharacter(normalizedPlayerName, normalizedCharacterId);
@@ -1583,9 +1615,8 @@ class MessageHandlerContext {
   async addOrUpdateCelestialBodyAsync(celestialBody) {
     const normalizedCelestialBody = this.normalizeCelestialBody(celestialBody);
 
-    await this.withDb(
-      'adding/updating celestial body in DB',
-      (databaseService) => databaseService.addOrUpdateCelestialBody(normalizedCelestialBody)
+    await this.withDb('adding/updating celestial body in DB', (databaseService) =>
+      databaseService.addOrUpdateCelestialBody(normalizedCelestialBody)
     );
 
     this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
@@ -1600,12 +1631,17 @@ class MessageHandlerContext {
     const missionId = this.toNonEmptyString(query?.missionId);
     const stateValues = Array.isArray(query?.stateValues)
       ? query.stateValues
-        .map((stateValue) => this.toNonEmptyString(stateValue))
-        .filter((stateValue) => Boolean(stateValue))
+          .map((stateValue) => this.toNonEmptyString(stateValue))
+          .filter((stateValue) => Boolean(stateValue))
       : [];
     const limit = query?.limit;
 
-    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
+    if (
+      !solarSystemId ||
+      !this.isTriple(positionKm) ||
+      !this.isFiniteNumber(distanceKm) ||
+      distanceKm < 0
+    ) {
       return [];
     }
 
@@ -1633,7 +1669,8 @@ class MessageHandlerContext {
         return true;
       })
       .map((celestialBody) => {
-        const bodyPositionKm = celestialBody?.spatial?.positionKm || celestialBody?.location?.positionKm;
+        const legacyPositionKm = /** @type {any} */ (celestialBody)?.location?.positionKm;
+        const bodyPositionKm = celestialBody?.spatial?.positionKm || legacyPositionKm;
         if (!this.isTriple(bodyPositionKm)) {
           return null;
         }
@@ -1645,20 +1682,19 @@ class MessageHandlerContext {
 
         return {
           celestialBody,
-          distanceKm: candidateDistanceKm
+          distanceKm: candidateDistanceKm,
         };
       })
       .filter((entry) => Boolean(entry));
 
-    const fromDb = await this.withDbOrNull(
-      'finding celestial bodies from DB',
-      (databaseService) => databaseService.findCelestialBodiesNearPosition({
+    const fromDb = await this.withDbOrNull('finding celestial bodies from DB', (databaseService) =>
+      databaseService.findCelestialBodiesNearPosition({
         solarSystemId,
         positionKm,
         distanceKm,
         createdByCharacterId: createdByCharacterId || undefined,
         missionId: missionId || undefined,
-        stateValues: stateValues.length > 0 ? stateValues : undefined
+        stateValues: stateValues.length > 0 ? stateValues : undefined,
       })
     );
 
@@ -1668,7 +1704,7 @@ class MessageHandlerContext {
         this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
         return {
           celestialBody: normalizedCelestialBody,
-          distanceKm: entry.distanceKm
+          distanceKm: entry.distanceKm,
         };
       });
 
@@ -1699,7 +1735,12 @@ class MessageHandlerContext {
     const itemType = this.toNonEmptyString(query?.itemType);
     const limit = query?.limit;
 
-    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
+    if (
+      !solarSystemId ||
+      !this.isTriple(positionKm) ||
+      !this.isFiniteNumber(distanceKm) ||
+      distanceKm < 0
+    ) {
       return [];
     }
 
@@ -1731,18 +1772,17 @@ class MessageHandlerContext {
 
         return {
           item,
-          distanceKm: candidateDistanceKm
+          distanceKm: candidateDistanceKm,
         };
       })
       .filter((entry) => Boolean(entry));
 
-    const fromDb = await this.withDbOrNull(
-      'finding items from DB',
-      (databaseService) => databaseService.findItemsNearPosition({
+    const fromDb = await this.withDbOrNull('finding items from DB', (databaseService) =>
+      databaseService.findItemsNearPosition({
         solarSystemId,
         positionKm,
         distanceKm,
-        itemType: itemType || undefined
+        itemType: itemType || undefined,
       })
     );
 
@@ -1752,7 +1792,7 @@ class MessageHandlerContext {
         this.itemsById.set(normalizedItem.id, normalizedItem);
         return {
           item: normalizedItem,
-          distanceKm: entry.distanceKm
+          distanceKm: entry.distanceKm,
         };
       });
 
@@ -1778,5 +1818,5 @@ class MessageHandlerContext {
 }
 
 module.exports = {
-  MessageHandlerContext
+  MessageHandlerContext,
 };

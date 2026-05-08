@@ -1,15 +1,8 @@
 'use strict';
 
-const {
-  CELESTIAL_BODY_LIST_RESPONSE_EVENT
-} = require('../model/celestial-body-list');
-const {
-  CELESTIAL_BODY_STATE_VALUES
-} = require('../model/celestial-body-upsert');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { CELESTIAL_BODY_LIST_RESPONSE_EVENT } = require('../model/celestial-body-list');
+const { CELESTIAL_BODY_STATE_VALUES } = require('../model/celestial-body-upsert');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CelestialBodyListMessageHandler {
   constructor(context) {
@@ -21,10 +14,12 @@ class CelestialBodyListMessageHandler {
   }
 
   isTriple(value) {
-    return Boolean(value)
-      && this.isFiniteNumber(value.x)
-      && this.isFiniteNumber(value.y)
-      && this.isFiniteNumber(value.z);
+    return (
+      Boolean(value) &&
+      this.isFiniteNumber(value.x) &&
+      this.isFiniteNumber(value.y) &&
+      this.isFiniteNumber(value.z)
+    );
   }
 
   toPositiveNumberOrZero(value) {
@@ -70,13 +65,14 @@ class CelestialBodyListMessageHandler {
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
-    const positionKm = payload?.positionKm && this.isTriple(payload.positionKm)
-      ? {
-        x: payload.positionKm.x,
-        y: payload.positionKm.y,
-        z: payload.positionKm.z
-      }
-      : null;
+    const positionKm =
+      payload?.positionKm && this.isTriple(payload.positionKm)
+        ? {
+            x: payload.positionKm.x,
+            y: payload.positionKm.y,
+            z: payload.positionKm.z,
+          }
+        : null;
     const distanceKm = this.toPositiveNumberOrZero(payload?.distanceKm);
     const limit = this.toValidLimit(payload?.limit);
     const states = this.normalizeStateFilters(payload?.states);
@@ -89,7 +85,7 @@ class CelestialBodyListMessageHandler {
         message: 'playerName, solarSystemId, positionKm, and distanceKm are required',
         playerName,
         solarSystemId,
-        celestialBodies: []
+        celestialBodies: [],
       };
     }
 
@@ -99,7 +95,7 @@ class CelestialBodyListMessageHandler {
         message: 'limit must be a positive integer when provided',
         playerName,
         solarSystemId,
-        celestialBodies: []
+        celestialBodies: [],
       };
     }
 
@@ -109,7 +105,7 @@ class CelestialBodyListMessageHandler {
         message: `states must be an array with values from: ${CELESTIAL_BODY_STATE_VALUES.join(', ')}`,
         playerName,
         solarSystemId,
-        celestialBodies: []
+        celestialBodies: [],
       };
     }
 
@@ -120,7 +116,7 @@ class CelestialBodyListMessageHandler {
         message: 'Player is not registered',
         playerName,
         solarSystemId,
-        celestialBodies: []
+        celestialBodies: [],
       };
     }
 
@@ -131,7 +127,7 @@ class CelestialBodyListMessageHandler {
       stateValues: states,
       createdByCharacterId: createdByCharacterId || undefined,
       missionId: missionId || undefined,
-      limit
+      limit,
     });
 
     if (!searchResult.length) {
@@ -142,13 +138,13 @@ class CelestialBodyListMessageHandler {
         solarSystemId,
         positionKm,
         distanceKm,
-        celestialBodies: []
+        celestialBodies: [],
       };
     }
 
     const celestialBodies = searchResult.map((entry) => ({
       ...entry.celestialBody,
-      distanceKm: entry.distanceKm
+      distanceKm: entry.distanceKm,
     }));
 
     return {
@@ -158,14 +154,14 @@ class CelestialBodyListMessageHandler {
       solarSystemId,
       positionKm,
       distanceKm,
-      celestialBodies
+      celestialBodies,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('celestial-body-list-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -181,5 +177,5 @@ class CelestialBodyListMessageHandler {
 }
 
 module.exports = {
-  CelestialBodyListMessageHandler
+  CelestialBodyListMessageHandler,
 };

@@ -6,7 +6,7 @@
 
 _**User (2026-04-26 11:54:57Z)**_
 
-good morning - add a new property to a ship that will be called inventory.  this will be a list of items that can be stored in a ships inventory.  the first such item is called an "Expendable Dart Drone".  When creating a new ship of type "Scavenger Pod", there will be one "Expendable Dart Drone" in its inventory.  update the data models, mongodb, documentation, tests, etc. what questions do you have?
+good morning - add a new property to a ship that will be called inventory. this will be a list of items that can be stored in a ships inventory. the first such item is called an "Expendable Dart Drone". When creating a new ship of type "Scavenger Pod", there will be one "Expendable Dart Drone" in its inventory. update the data models, mongodb, documentation, tests, etc. what questions do you have?
 
 _**User (2026-04-26 11:55:16Z)**_
 
@@ -14,19 +14,19 @@ Start implementation
 
 _**User (2026-04-26 11:55:37Z)**_
 
-good morning - add a new property to a ship that will be called inventory.  this will be a list of items that can be stored in a ships inventory.  the first such item is called an "Expendable Dart Drone".  When creating a new ship of type "Scavenger Pod", there will be one "Expendable Dart Drone" in its inventory.  update the data models, mongodb, documentation, tests, etc. 
+good morning - add a new property to a ship that will be called inventory. this will be a list of items that can be stored in a ships inventory. the first such item is called an "Expendable Dart Drone". When creating a new ship of type "Scavenger Pod", there will be one "Expendable Dart Drone" in its inventory. update the data models, mongodb, documentation, tests, etc.
 
 _**User (2026-04-26 11:55:59Z)**_
 
-good morning - add a new property to a ship that will be called inventory.  this will be a list of items that can be stored in a ships inventory.  the first such item is called an "Expendable Dart Drone".  When creating a new ship of type "Scavenger Pod", there will be one "Expendable Dart Drone" in its inventory.  update the data models, mongodb, documentation, tests, etc. 
+good morning - add a new property to a ship that will be called inventory. this will be a list of items that can be stored in a ships inventory. the first such item is called an "Expendable Dart Drone". When creating a new ship of type "Scavenger Pod", there will be one "Expendable Dart Drone" in its inventory. update the data models, mongodb, documentation, tests, etc.
 
 _**User (2026-04-26 11:56:39Z)**_
 
-good morning - add a new property to a ship that will be called inventory.  this will be a list of items that can be stored in a ships inventory.  the first such item is called an "Expendable Dart Drone".  When creating a new ship of type "Scavenger Pod", there will be one "Expendable Dart Drone" in its inventory.  update the data models, mongodb, documentation, tests, etc. 
+good morning - add a new property to a ship that will be called inventory. this will be a list of items that can be stored in a ships inventory. the first such item is called an "Expendable Dart Drone". When creating a new ship of type "Scavenger Pod", there will be one "Expendable Dart Drone" in its inventory. update the data models, mongodb, documentation, tests, etc.
 
 _**User (2026-04-26 12:01:45Z)**_
 
-good morning - add a new property to a ship that will be called inventory.  this will be a list of items that can be stored in a ships inventory.  the first such item is called an "Expendable Dart Drone".  When creating a new ship of type "Scavenger Pod", there will be one "Expendable Dart Drone" in its inventory.  update the data models, mongodb, documentation, tests, etc. 
+good morning - add a new property to a ship that will be called inventory. this will be a list of items that can be stored in a ships inventory. the first such item is called an "Expendable Dart Drone". When creating a new ship of type "Scavenger Pod", there will be one "Expendable Dart Drone" in its inventory. update the data models, mongodb, documentation, tests, etc.
 
 ---
 
@@ -38,7 +38,7 @@ Let me start by reading the relevant files to understand the current codebase st
 
 _**User (2026-04-26 12:35:27Z)**_
 
-ok looking good - next, build out a data model for the "Expendable Dart Drone".  it should include a unique identifier, damage status, kinematics for location in space.  this new model will be used instead of the string in the ship inventory.  with this new model, there will be multiple "parent" relationships - for instance, when it is included in an inventory, then the ship will be its parent.  when it is in space, there will be no "parent" - what is the best way to model this?  what other fields would be helpful in this model?  what questions do you have?
+ok looking good - next, build out a data model for the "Expendable Dart Drone". it should include a unique identifier, damage status, kinematics for location in space. this new model will be used instead of the string in the ship inventory. with this new model, there will be multiple "parent" relationships - for instance, when it is included in an inventory, then the ship will be its parent. when it is in space, there will be no "parent" - what is the best way to model this? what other fields would be helpful in this model? what questions do you have?
 
 ---
 
@@ -50,7 +50,7 @@ I’m checking the existing model shapes for kinematics and ownership so I can g
 
 _**User (2026-04-26 12:42:18Z)**_
 
-1. inherit from ship, 2. yes - there will be a market where drones will be available - a different parent. 3. it will be possible to find Expendable Dart Drones that have been discovered, but if you have launched a dart drone and it impacts with an astered, then it is destroyed, 4. references will work as long as there are no performance impacts, 5. am thinking that it should be queryable globally as there will be other items like this, 6. yes, definitely.  Pragmatic and scalable
+1. inherit from ship, 2. yes - there will be a market where drones will be available - a different parent. 3. it will be possible to find Expendable Dart Drones that have been discovered, but if you have launched a dart drone and it impacts with an astered, then it is destroyed, 4. references will work as long as there are no performance impacts, 5. am thinking that it should be queryable globally as there will be other items like this, 6. yes, definitely. Pragmatic and scalable
 
 ---
 
@@ -64,7 +64,7 @@ I need to respond with concrete recommendations, and maybe I should start consid
 
 _**User (2026-04-26 12:45:04Z)**_
 
-1. global market, and there will be many markets, 2. hydrated at the moment, but only because there are so few fields.  expect that this answer might change if the data model gets too large - yes please implement
+1. global market, and there will be many markets, 2. hydrated at the moment, but only because there are so few fields. expect that this answer might change if the data model gets too large - yes please implement
 
 _**User (2026-04-26 13:05:36Z)**_
 
@@ -72,7 +72,7 @@ add item specific socket apis including upsert, ability to query by parent and o
 
 _**User (2026-04-26 13:19:34Z)**_
 
-using the same pattern that you just implemented, add addition socket api request response of item-list-by-location, which will do a query in the item store, very much like the celestial-body-list.  this will be a location based search.  what questions do you have?
+using the same pattern that you just implemented, add addition socket api request response of item-list-by-location, which will do a query in the item store, very much like the celestial-body-list. this will be a location based search. what questions do you have?
 
 ---
 

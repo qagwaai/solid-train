@@ -2,27 +2,20 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  CharacterAddMessageHandler
-} = require('../src/handlers/character-add-message-handler');
-const {
-  CHARACTER_ADD_RESPONSE_EVENT
-} = require('../src/model/character-add');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { CharacterAddMessageHandler } = require('../src/handlers/character-add-message-handler');
+const { CHARACTER_ADD_RESPONSE_EVENT } = require('../src/model/character-add');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 test('CharacterAddMessageHandler adds a character and emits response', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'BuilderPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new CharacterAddMessageHandler(context);
   const socket = createMockSocket();
@@ -30,7 +23,7 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
   const response = await handler.handle(socket, {
     playerName: 'builderpilot',
     sessionKey: 'session-1',
-    characterName: 'RangerOne'
+    characterName: 'RangerOne',
   });
 
   assert.deepEqual(response, {
@@ -38,7 +31,7 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
     message: 'Character added successfully',
     playerName: 'BuilderPilot',
     characterName: 'RangerOne',
-    characterId: 'player-1'
+    characterId: 'player-1',
   });
   assert.equal(socket.events[0].eventName, CHARACTER_ADD_RESPONSE_EVENT);
   const characters = context.getCharacters('builderpilot');
@@ -56,19 +49,19 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
       inventory: [
         {
           itemId: 'player-1-ship-1-item-1',
-          itemType: 'expendable-dart-drone'
-        }
+          itemType: 'expendable-dart-drone',
+        },
       ],
       status: null,
       spatial: {
         solarSystemId: 'sol',
         frame: 'barycentric',
         positionKm: { x: 0, y: 0, z: 0 },
-        epochMs: 1776384000000
+        epochMs: 1776384000000,
       },
       launchable: true,
-      damageProfile: null
-    }
+      damageProfile: null,
+    },
   ]);
   assert.deepEqual(characters[0].missions, [
     {
@@ -80,8 +73,8 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
       failedAt: undefined,
       completedAt: undefined,
       failureReason: undefined,
-      statusDetail: undefined
-    }
+      statusDetail: undefined,
+    },
   ]);
   assert.deepEqual(characters[0].creditLedger, [
     {
@@ -89,8 +82,8 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
       amount: 425,
       description: 'Starting credits',
       timestamp: '2026-04-17T00:00:00.000Z',
-      referenceId: null
-    }
+      referenceId: null,
+    },
   ]);
   assert.deepEqual(context.getItem('player-1-ship-1-item-1'), {
     id: 'player-1-ship-1-item-1',
@@ -100,7 +93,7 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
     damageStatus: 'intact',
     container: {
       containerType: 'ship',
-      containerId: 'player-1-ship-1'
+      containerId: 'player-1-ship-1',
     },
     owningPlayerId: 'player-seeded',
     owningCharacterId: 'player-1',
@@ -110,7 +103,7 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
     destroyedAt: null,
     destroyedReason: null,
     launchable: true,
-    quantity: 1
+    quantity: 1,
   });
 });
 
@@ -118,7 +111,7 @@ test('CharacterAddMessageHandler rejects invalid sessions before mutating state'
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'BuilderPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new CharacterAddMessageHandler(context);
   const socket = createMockSocket();
@@ -126,7 +119,7 @@ test('CharacterAddMessageHandler rejects invalid sessions before mutating state'
   const response = await handler.handle(socket, {
     playerName: 'BuilderPilot',
     sessionKey: 'wrong-session',
-    characterName: 'GhostUnit'
+    characterName: 'GhostUnit',
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });

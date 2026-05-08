@@ -3,7 +3,7 @@
 function hashString(value) {
   let hash = 0;
   for (let index = 0; index < value.length; index += 1) {
-    hash = ((hash << 5) - hash) + value.charCodeAt(index);
+    hash = (hash << 5) - hash + value.charCodeAt(index);
     hash |= 0;
   }
 
@@ -28,24 +28,31 @@ function calculateDriftMultiplier({ marketId, itemId, timestamp, driftPercentPer
   const hashed = hashString(seed);
   const normalized = (hashed % 10001) / 10000;
   const spread = driftPercentPerHour / 100;
-  return 1 + ((normalized * 2) - 1) * spread;
+  return 1 + (normalized * 2 - 1) * spread;
 }
 
-function computeMidpointPrice({ baseMidpointPrice, marketMultiplier, marketId, itemId, timestamp, driftPercentPerHour }) {
+function computeMidpointPrice({
+  baseMidpointPrice,
+  marketMultiplier,
+  marketId,
+  itemId,
+  timestamp,
+  driftPercentPerHour,
+}) {
   const driftMultiplier = calculateDriftMultiplier({
     marketId,
     itemId,
     timestamp,
-    driftPercentPerHour
+    driftPercentPerHour,
   });
   const midpointPrice = toPrice(baseMidpointPrice * marketMultiplier * driftMultiplier);
 
   return {
     midpointPrice,
-    driftMultiplier
+    driftMultiplier,
   };
 }
 
 module.exports = {
-  computeMidpointPrice
+  computeMidpointPrice,
 };

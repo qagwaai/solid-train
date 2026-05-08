@@ -3,20 +3,15 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  CelestialBodyListMessageHandler
+  CelestialBodyListMessageHandler,
 } = require('../src/handlers/celestial-body-list-message-handler');
-const {
-  CELESTIAL_BODY_LIST_RESPONSE_EVENT
-} = require('../src/model/celestial-body-list');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { CELESTIAL_BODY_LIST_RESPONSE_EVENT } = require('../src/model/celestial-body-list');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createCelestialBody,
   createMockSocket,
   createTestContext,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 test('CelestialBodyListMessageHandler returns nearest-first celestial bodies with computed distance', async () => {
@@ -24,21 +19,42 @@ test('CelestialBodyListMessageHandler returns nearest-first celestial bodies wit
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
-  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
-    id: 'cb-near',
-    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 3, y: 4, z: 0 }, epochMs: 1713360000000 }
-  }));
-  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
-    id: 'cb-mid',
-    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 6, z: 8 }, epochMs: 1713360000000 }
-  }));
-  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
-    id: 'cb-far',
-    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 100, y: 0, z: 0 }, epochMs: 1713360000000 }
-  }));
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-near',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 3, y: 4, z: 0 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-mid',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 0, y: 6, z: 8 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-far',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 100, y: 0, z: 0 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
 
   const handler = new CelestialBodyListMessageHandler(context);
   const socket = createMockSocket();
@@ -49,7 +65,7 @@ test('CelestialBodyListMessageHandler returns nearest-first celestial bodies wit
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
     distanceKm: 10,
-    limit: 2
+    limit: 2,
   });
 
   assert.equal(response.success, true);
@@ -68,13 +84,20 @@ test('CelestialBodyListMessageHandler returns empty list when no bodies match', 
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'ScannerOne',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
-  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
-    id: 'cb-other-system',
-    spatial: { solarSystemId: 'alt', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 1713360000000 }
-  }));
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-other-system',
+      spatial: {
+        solarSystemId: 'alt',
+        frame: 'barycentric',
+        positionKm: { x: 0, y: 0, z: 0 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
 
   const handler = new CelestialBodyListMessageHandler(context);
   const socket = createMockSocket();
@@ -84,7 +107,7 @@ test('CelestialBodyListMessageHandler returns empty list when no bodies match', 
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 1
+    distanceKm: 1,
   });
 
   assert.equal(response.success, true);
@@ -98,7 +121,7 @@ test('CelestialBodyListMessageHandler validates required search inputs', async (
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'ScannerOne',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   const handler = new CelestialBodyListMessageHandler(context);
@@ -109,7 +132,7 @@ test('CelestialBodyListMessageHandler validates required search inputs', async (
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0 },
-    distanceKm: -1
+    distanceKm: -1,
   });
 
   assert.equal(response.success, false);
@@ -126,7 +149,7 @@ test('CelestialBodyListMessageHandler emits invalid session before query', async
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'ScannerOne',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   const handler = new CelestialBodyListMessageHandler(context);
@@ -137,7 +160,7 @@ test('CelestialBodyListMessageHandler emits invalid session before query', async
     sessionKey: 'wrong-session',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 10
+    distanceKm: 10,
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -149,13 +172,20 @@ test('CelestialBodyListMessageHandler merges cache results when DB query returns
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
-  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
-    id: 'cb-cache-only',
-    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 3, y: 4, z: 0 }, epochMs: 1713360000000 }
-  }));
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-cache-only',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 3, y: 4, z: 0 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
 
   context.databaseService = {
     async addOrUpdateCelestialBody() {
@@ -163,7 +193,7 @@ test('CelestialBodyListMessageHandler merges cache results when DB query returns
     },
     async findCelestialBodiesNearPosition() {
       return [];
-    }
+    },
   };
 
   const handler = new CelestialBodyListMessageHandler(context);
@@ -174,7 +204,7 @@ test('CelestialBodyListMessageHandler merges cache results when DB query returns
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 10
+    distanceKm: 10,
   });
 
   assert.equal(response.success, true);
@@ -189,30 +219,51 @@ test('CelestialBodyListMessageHandler filters by states, createdByCharacterId, a
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }]
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
   });
 
-  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
-    id: 'cb-unscanned',
-    state: 'unscanned',
-    missionId: 'first-target',
-    createdByCharacterId: 'character-1',
-    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 1, y: 0, z: 0 }, epochMs: 1713360000000 }
-  }));
-  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
-    id: 'cb-active',
-    state: 'active',
-    missionId: 'first-target',
-    createdByCharacterId: 'character-1',
-    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 2, y: 0, z: 0 }, epochMs: 1713360000000 }
-  }));
-  await context.addOrUpdateCelestialBodyAsync(createCelestialBody({
-    id: 'cb-destroyed',
-    state: 'destroyed',
-    missionId: 'first-target',
-    createdByCharacterId: 'character-1',
-    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 3, y: 0, z: 0 }, epochMs: 1713360000000 }
-  }));
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-unscanned',
+      state: 'unscanned',
+      missionId: 'first-target',
+      createdByCharacterId: 'character-1',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 1, y: 0, z: 0 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-active',
+      state: 'active',
+      missionId: 'first-target',
+      createdByCharacterId: 'character-1',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 2, y: 0, z: 0 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-destroyed',
+      state: 'destroyed',
+      missionId: 'first-target',
+      createdByCharacterId: 'character-1',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 3, y: 0, z: 0 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
 
   const handler = new CelestialBodyListMessageHandler(context);
   const socket = createMockSocket();
@@ -225,7 +276,7 @@ test('CelestialBodyListMessageHandler filters by states, createdByCharacterId, a
     distanceKm: 20,
     states: ['unscanned', 'active'],
     createdByCharacterId: 'character-1',
-    missionId: 'first-target'
+    missionId: 'first-target',
   });
 
   assert.equal(response.success, true);

@@ -1,9 +1,8 @@
 'use strict';
 
 async function getPlayerAsync(ctx, playerName) {
-  const player = await ctx.withDbOrNull(
-    'fetching player from DB',
-    (databaseService) => databaseService.getPlayerByName(playerName)
+  const player = await ctx.withDbOrNull('fetching player from DB', (databaseService) =>
+    databaseService.getPlayerByName(playerName)
   );
   if (player) {
     ctx.cachePlayer(player);
@@ -13,9 +12,8 @@ async function getPlayerAsync(ctx, playerName) {
 }
 
 async function getCharactersAsync(ctx, playerName) {
-  const characters = await ctx.withDbOrNull(
-    'fetching characters from DB',
-    (databaseService) => databaseService.getCharacters(playerName)
+  const characters = await ctx.withDbOrNull('fetching characters from DB', (databaseService) =>
+    databaseService.getCharacters(playerName)
   );
   if (Array.isArray(characters)) {
     return ctx.cacheCharacters(playerName, characters);
@@ -25,25 +23,23 @@ async function getCharactersAsync(ctx, playerName) {
 }
 
 async function registerPlayerAsync(ctx, playerData) {
-  const result = await ctx.withDb(
-    'registering player in DB',
-    (databaseService) => databaseService.registerPlayer(playerData)
+  const result = await ctx.withDb('registering player in DB', (databaseService) =>
+    databaseService.registerPlayer(playerData)
   );
 
   const normalizedPlayerName = playerData.playerName.toLowerCase();
   ctx.registeredPlayers.set(normalizedPlayerName, {
     ...playerData,
     sessionKey: null,
-    socketId: null
+    socketId: null,
   });
   ctx.charactersByPlayer.set(normalizedPlayerName, []);
   return result || playerData;
 }
 
 async function updatePlayerAsync(ctx, playerName, updates) {
-  await ctx.withDb(
-    'updating player in DB',
-    (databaseService) => databaseService.updatePlayer(playerName, updates)
+  await ctx.withDb('updating player in DB', (databaseService) =>
+    databaseService.updatePlayer(playerName, updates)
   );
 
   const player = ctx.getPlayer(playerName);
@@ -53,9 +49,8 @@ async function updatePlayerAsync(ctx, playerName, updates) {
 }
 
 async function addCharacterAsync(ctx, playerName, characterData) {
-  await ctx.withDb(
-    'adding character in DB',
-    (databaseService) => databaseService.addCharacter(playerName, characterData)
+  await ctx.withDb('adding character in DB', (databaseService) =>
+    databaseService.addCharacter(playerName, characterData)
   );
 
   const normalizedPlayerName = ctx.normalizePlayerName(playerName);
@@ -65,9 +60,8 @@ async function addCharacterAsync(ctx, playerName, characterData) {
 }
 
 async function deleteCharacterAsync(ctx, playerName, characterId) {
-  await ctx.withDb(
-    'deleting character in DB',
-    (databaseService) => databaseService.deleteCharacter(playerName, characterId)
+  await ctx.withDb('deleting character in DB', (databaseService) =>
+    databaseService.deleteCharacter(playerName, characterId)
   );
 
   const normalizedPlayerName = ctx.normalizePlayerName(playerName);
@@ -77,9 +71,8 @@ async function deleteCharacterAsync(ctx, playerName, characterId) {
 }
 
 async function updateCharacterAsync(ctx, playerName, characterId, updates) {
-  await ctx.withDb(
-    'updating character in DB',
-    (databaseService) => databaseService.updateCharacter(playerName, characterId, updates)
+  await ctx.withDb('updating character in DB', (databaseService) =>
+    databaseService.updateCharacter(playerName, characterId, updates)
   );
 
   const character = ctx.findCharacter(playerName, characterId);
@@ -89,9 +82,8 @@ async function updateCharacterAsync(ctx, playerName, characterId, updates) {
 }
 
 async function addShipAsync(ctx, playerName, characterId, shipData) {
-  await ctx.withDb(
-    'adding ship in DB',
-    (databaseService) => databaseService.addShip(playerName, characterId, shipData)
+  await ctx.withDb('adding ship in DB', (databaseService) =>
+    databaseService.addShip(playerName, characterId, shipData)
   );
 
   const character = ctx.findCharacter(playerName, characterId);
@@ -104,9 +96,8 @@ async function addShipAsync(ctx, playerName, characterId, shipData) {
 }
 
 async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData) {
-  await ctx.withDb(
-    'adding/updating mission in DB',
-    (databaseService) => databaseService.addOrUpdateMission(playerName, characterId, missionData)
+  await ctx.withDb('adding/updating mission in DB', (databaseService) =>
+    databaseService.addOrUpdateMission(playerName, characterId, missionData)
   );
 
   const character = ctx.findCharacter(playerName, characterId);
@@ -129,9 +120,8 @@ async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData
 }
 
 async function getMissionsAsync(ctx, playerName, characterId) {
-  const missions = await ctx.withDbOrNull(
-    'fetching missions from DB',
-    (databaseService) => databaseService.getMissions(playerName, characterId)
+  const missions = await ctx.withDbOrNull('fetching missions from DB', (databaseService) =>
+    databaseService.getMissions(playerName, characterId)
   );
 
   if (Array.isArray(missions)) {
@@ -195,5 +185,5 @@ module.exports = {
   addOrUpdateMissionAsync,
   getMissionsAsync,
   ensurePlayerLoadedAsync,
-  hasValidSessionAsync
+  hasValidSessionAsync,
 };

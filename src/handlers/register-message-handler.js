@@ -15,13 +15,13 @@ class RegisterMessageHandler {
     if (!playerName || !email || !password) {
       return {
         success: false,
-        message: 'playerName, email, and password are required'
+        message: 'playerName, email, and password are required',
       };
     }
 
     return {
       success: true,
-      message: 'Registration successful'
+      message: 'Registration successful',
     };
   }
 
@@ -41,7 +41,7 @@ class RegisterMessageHandler {
         playerName,
         email,
         password,
-        preferredLocale
+        preferredLocale,
       };
 
       try {
@@ -59,7 +59,7 @@ class RegisterMessageHandler {
         const player = this.context.getPlayer(payload?.playerName);
         if (player) {
           await this.context.updatePlayerAsync(player.playerName, {
-            socketId: socket.id
+            socketId: socket.id,
           });
         }
       } catch (error) {
@@ -81,5 +81,5 @@ class RegisterMessageHandler {
 }
 
 module.exports = {
-  RegisterMessageHandler
+  RegisterMessageHandler,
 };

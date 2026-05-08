@@ -18,10 +18,7 @@ test('calculateDistanceAu returns exactly 1.0 AU for a position 1 AU from origin
     { x: ASTRONOMICAL_UNIT_KM, y: 0, z: 0 }
   );
 
-  assert.ok(
-    Math.abs(result - 1.0) < 1e-9,
-    `Expected ~1.0 AU, got ${result}`
-  );
+  assert.ok(Math.abs(result - 1.0) < 1e-9, `Expected ~1.0 AU, got ${result}`);
 });
 
 test('calculateDistanceAu returns 0 for identical positions', () => {
@@ -41,15 +38,9 @@ test('calculateDistanceAu uses the IAU constant 149597870.7 km per AU', () => {
   // 3D distance of exactly 2 AU along the diagonal axes
   const twoAuKm = 2 * ASTRONOMICAL_UNIT_KM;
   // Place vector so that sqrt(x²) = twoAuKm
-  const result = context.calculateDistanceAu(
-    { x: 0, y: 0, z: 0 },
-    { x: twoAuKm, y: 0, z: 0 }
-  );
+  const result = context.calculateDistanceAu({ x: 0, y: 0, z: 0 }, { x: twoAuKm, y: 0, z: 0 });
 
-  assert.ok(
-    Math.abs(result - 2.0) < 1e-9,
-    `Expected ~2.0 AU, got ${result}`
-  );
+  assert.ok(Math.abs(result - 2.0) < 1e-9, `Expected ~2.0 AU, got ${result}`);
 });
 
 // ---------------------------------------------------------------------------
@@ -60,7 +51,7 @@ function makeGateService(gates) {
   return {
     async getJumpGatesAsync() {
       return gates;
-    }
+    },
   };
 }
 
@@ -75,8 +66,13 @@ test('getHopPathBetweenSystems returns hops:0 and empty path for same system', a
 test('getHopPathBetweenSystems returns 1 hop for directly connected systems', async () => {
   const context = createTestContext();
   context.databaseService = makeGateService([
-    { gateId: 'gate-sol-proxima', sourceSystemId: 'sol', destSystemId: 'proxima-centauri',
-      traversalCostAu: 5, traversalTimeHours: 48 }
+    {
+      gateId: 'gate-sol-proxima',
+      sourceSystemId: 'sol',
+      destSystemId: 'proxima-centauri',
+      traversalCostAu: 5,
+      traversalTimeHours: 48,
+    },
   ]);
 
   const result = await context.getHopPathBetweenSystems('sol', 'proxima-centauri');
@@ -87,10 +83,20 @@ test('getHopPathBetweenSystems returns 1 hop for directly connected systems', as
 test('getHopPathBetweenSystems returns correct hop count and path for multi-hop route', async () => {
   const context = createTestContext();
   context.databaseService = makeGateService([
-    { gateId: 'gate-a-b', sourceSystemId: 'alpha', destSystemId: 'beta',
-      traversalCostAu: 5, traversalTimeHours: 24 },
-    { gateId: 'gate-b-c', sourceSystemId: 'beta', destSystemId: 'gamma',
-      traversalCostAu: 5, traversalTimeHours: 24 }
+    {
+      gateId: 'gate-a-b',
+      sourceSystemId: 'alpha',
+      destSystemId: 'beta',
+      traversalCostAu: 5,
+      traversalTimeHours: 24,
+    },
+    {
+      gateId: 'gate-b-c',
+      sourceSystemId: 'beta',
+      destSystemId: 'gamma',
+      traversalCostAu: 5,
+      traversalTimeHours: 24,
+    },
   ]);
 
   const result = await context.getHopPathBetweenSystems('alpha', 'gamma');
@@ -103,8 +109,13 @@ test('getHopPathBetweenSystems returns correct hop count and path for multi-hop 
 test('getHopPathBetweenSystems returns null when systems are not connected', async () => {
   const context = createTestContext();
   context.databaseService = makeGateService([
-    { gateId: 'gate-sol-proxima', sourceSystemId: 'sol', destSystemId: 'proxima-centauri',
-      traversalCostAu: 5, traversalTimeHours: 48 }
+    {
+      gateId: 'gate-sol-proxima',
+      sourceSystemId: 'sol',
+      destSystemId: 'proxima-centauri',
+      traversalCostAu: 5,
+      traversalTimeHours: 48,
+    },
   ]);
 
   const result = await context.getHopPathBetweenSystems('sol', 'kepler-442');
@@ -116,8 +127,13 @@ test('getHopPathBetweenSystems does not traverse backwards on one-way gates', as
   const context = createTestContext();
   // Gate is only sol -> proxima; reverse should not be found
   context.databaseService = makeGateService([
-    { gateId: 'gate-sol-proxima', sourceSystemId: 'sol', destSystemId: 'proxima-centauri',
-      traversalCostAu: 5, traversalTimeHours: 48 }
+    {
+      gateId: 'gate-sol-proxima',
+      sourceSystemId: 'sol',
+      destSystemId: 'proxima-centauri',
+      traversalCostAu: 5,
+      traversalTimeHours: 48,
+    },
   ]);
 
   const result = await context.getHopPathBetweenSystems('proxima-centauri', 'sol');
@@ -136,10 +152,15 @@ test('loadGateNetworkAsync caches the gate graph and does not call DB a second t
     async getJumpGatesAsync() {
       callCount++;
       return [
-        { gateId: 'gate-1', sourceSystemId: 'sol', destSystemId: 'proxima-centauri',
-          traversalCostAu: 5, traversalTimeHours: 24 }
+        {
+          gateId: 'gate-1',
+          sourceSystemId: 'sol',
+          destSystemId: 'proxima-centauri',
+          traversalCostAu: 5,
+          traversalTimeHours: 24,
+        },
       ];
-    }
+    },
   };
 
   await context.loadGateNetworkAsync();
@@ -164,10 +185,20 @@ test('getRouteForMarketAsync returns { kind: in-system } for the same solar syst
 test('getRouteForMarketAsync returns { kind: gate-route, hops: N } for a reachable system', async () => {
   const context = createTestContext();
   context.databaseService = makeGateService([
-    { gateId: 'gate-sol-proxima', sourceSystemId: 'sol', destSystemId: 'proxima-centauri',
-      traversalCostAu: 5, traversalTimeHours: 48 },
-    { gateId: 'gate-proxima-kepler', sourceSystemId: 'proxima-centauri', destSystemId: 'kepler-442',
-      traversalCostAu: 10, traversalTimeHours: 96 }
+    {
+      gateId: 'gate-sol-proxima',
+      sourceSystemId: 'sol',
+      destSystemId: 'proxima-centauri',
+      traversalCostAu: 5,
+      traversalTimeHours: 48,
+    },
+    {
+      gateId: 'gate-proxima-kepler',
+      sourceSystemId: 'proxima-centauri',
+      destSystemId: 'kepler-442',
+      traversalCostAu: 10,
+      traversalTimeHours: 96,
+    },
   ]);
 
   const directResult = await context.getRouteForMarketAsync('sol', 'proxima-centauri');
@@ -180,8 +211,13 @@ test('getRouteForMarketAsync returns { kind: gate-route, hops: N } for a reachab
 test('getRouteForMarketAsync returns { kind: no-route } for an unreachable system', async () => {
   const context = createTestContext();
   context.databaseService = makeGateService([
-    { gateId: 'gate-sol-proxima', sourceSystemId: 'sol', destSystemId: 'proxima-centauri',
-      traversalCostAu: 5, traversalTimeHours: 48 }
+    {
+      gateId: 'gate-sol-proxima',
+      sourceSystemId: 'sol',
+      destSystemId: 'proxima-centauri',
+      traversalCostAu: 5,
+      traversalTimeHours: 48,
+    },
   ]);
 
   const result = await context.getRouteForMarketAsync('sol', 'tau-ceti');
@@ -201,7 +237,7 @@ test('_normalizeDriveProfile returns a valid profile when all fields are positiv
     name: 'Standard Drive Mk1',
     rangeAu: 10,
     cruiseSpeedAuPerHour: 0.5,
-    fuelCostPerAu: 2.5
+    fuelCostPerAu: 2.5,
   });
 
   assert.deepEqual(result, {
@@ -209,7 +245,7 @@ test('_normalizeDriveProfile returns a valid profile when all fields are positiv
     name: 'Standard Drive Mk1',
     rangeAu: 10,
     cruiseSpeedAuPerHour: 0.5,
-    fuelCostPerAu: 2.5
+    fuelCostPerAu: 2.5,
   });
 });
 
@@ -224,26 +260,38 @@ test('_normalizeDriveProfile returns null for null or missing input', () => {
 test('_normalizeDriveProfile returns null when id or name is empty', () => {
   const context = createTestContext();
 
-  assert.equal(context._normalizeDriveProfile({
-    id: '',
-    name: 'Valid Name',
-    rangeAu: 10,
-    cruiseSpeedAuPerHour: 0.5,
-    fuelCostPerAu: 2.5
-  }), null);
+  assert.equal(
+    context._normalizeDriveProfile({
+      id: '',
+      name: 'Valid Name',
+      rangeAu: 10,
+      cruiseSpeedAuPerHour: 0.5,
+      fuelCostPerAu: 2.5,
+    }),
+    null
+  );
 
-  assert.equal(context._normalizeDriveProfile({
-    id: 'mk1',
-    name: '',
-    rangeAu: 10,
-    cruiseSpeedAuPerHour: 0.5,
-    fuelCostPerAu: 2.5
-  }), null);
+  assert.equal(
+    context._normalizeDriveProfile({
+      id: 'mk1',
+      name: '',
+      rangeAu: 10,
+      cruiseSpeedAuPerHour: 0.5,
+      fuelCostPerAu: 2.5,
+    }),
+    null
+  );
 });
 
 test('_normalizeDriveProfile returns null when any numeric field is zero, negative, or non-finite', () => {
   const context = createTestContext();
-  const base = { id: 'mk1', name: 'Drive', rangeAu: 10, cruiseSpeedAuPerHour: 0.5, fuelCostPerAu: 2.5 };
+  const base = {
+    id: 'mk1',
+    name: 'Drive',
+    rangeAu: 10,
+    cruiseSpeedAuPerHour: 0.5,
+    fuelCostPerAu: 2.5,
+  };
 
   assert.equal(context._normalizeDriveProfile({ ...base, rangeAu: 0 }), null);
   assert.equal(context._normalizeDriveProfile({ ...base, rangeAu: -5 }), null);

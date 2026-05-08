@@ -60,10 +60,15 @@
  * @returns {boolean}
  */
 function isTriple(value) {
-  return Boolean(value)
-    && typeof value.x === 'number' && Number.isFinite(value.x)
-    && typeof value.y === 'number' && Number.isFinite(value.y)
-    && typeof value.z === 'number' && Number.isFinite(value.z);
+  return (
+    Boolean(value) &&
+    typeof value.x === 'number' &&
+    Number.isFinite(value.x) &&
+    typeof value.y === 'number' &&
+    Number.isFinite(value.y) &&
+    typeof value.z === 'number' &&
+    Number.isFinite(value.z)
+  );
 }
 
 /**
@@ -72,11 +77,15 @@ function isTriple(value) {
  * @returns {boolean}
  */
 function isSpatialState(value) {
-  return Boolean(value)
-    && typeof value.solarSystemId === 'string' && value.solarSystemId.length > 0
-    && value.frame === 'barycentric'
-    && isTriple(value.positionKm)
-    && typeof value.epochMs === 'number' && Number.isFinite(value.epochMs);
+  return (
+    Boolean(value) &&
+    typeof value.solarSystemId === 'string' &&
+    value.solarSystemId.length > 0 &&
+    value.frame === 'barycentric' &&
+    isTriple(value.positionKm) &&
+    typeof value.epochMs === 'number' &&
+    Number.isFinite(value.epochMs)
+  );
 }
 
 /**
@@ -89,7 +98,7 @@ function distanceKm(fromPositionKm, toPositionKm) {
   const dx = toPositionKm.x - fromPositionKm.x;
   const dy = toPositionKm.y - fromPositionKm.y;
   const dz = toPositionKm.z - fromPositionKm.z;
-  return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
 /**
@@ -102,12 +111,12 @@ function distanceKmSquared(fromPositionKm, toPositionKm) {
   const dx = toPositionKm.x - fromPositionKm.x;
   const dy = toPositionKm.y - fromPositionKm.y;
   const dz = toPositionKm.z - fromPositionKm.z;
-  return (dx * dx) + (dy * dy) + (dz * dz);
+  return dx * dx + dy * dy + dz * dz;
 }
 
 module.exports = {
   isTriple,
   isSpatialState,
   distanceKm,
-  distanceKmSquared
+  distanceKmSquared,
 };

@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  GAME_JOIN_RESPONSE_EVENT
-} = require('../model/game-join');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { GAME_JOIN_RESPONSE_EVENT } = require('../model/game-join');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class GameJoinMessageHandler {
   constructor(context) {
@@ -22,7 +17,7 @@ class GameJoinMessageHandler {
         success: false,
         message: 'playerName and characterId are required',
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -33,7 +28,7 @@ class GameJoinMessageHandler {
         success: false,
         message: 'Player is not registered',
         playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -44,7 +39,7 @@ class GameJoinMessageHandler {
         success: false,
         message: 'Character is not in player list',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -52,14 +47,14 @@ class GameJoinMessageHandler {
       success: true,
       message: 'Character joined game successfully',
       playerName: player.playerName,
-      characterId
+      characterId,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('game-join', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -69,19 +64,19 @@ class GameJoinMessageHandler {
     this.context.touchJoinedCharacters(payload);
 
     const response = this.buildResponse(payload);
-    
+
     if (response.success) {
       const character = this.context.findCharacter(payload?.playerName, payload?.characterId);
       if (character) {
         this.context.joinCharacterToGame(payload?.playerName, character);
       }
     }
-    
+
     socket.emit(GAME_JOIN_RESPONSE_EVENT, response);
     return response;
   }
 }
 
 module.exports = {
-  GameJoinMessageHandler
+  GameJoinMessageHandler,
 };

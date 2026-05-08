@@ -1,10 +1,7 @@
 'use strict';
 
 const { LAUNCH_ITEM_RESPONSE_EVENT } = require('../model/launch-item');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 const EXPENDABLE_DART_DRONE_ITEM_TYPE = 'expendable-dart-drone';
 const HOTKEY_VALUES = new Set([1, 2, 3, 4, 5]);
@@ -12,7 +9,7 @@ const MATERIAL_YIELD_MULTIPLIER_BY_RARITY = {
   Common: 2,
   Uncommon: 2,
   Rare: 2,
-  Exotic: 2
+  Exotic: 2,
 };
 const MAX_YIELD_QUANTITY = 100;
 
@@ -40,9 +37,7 @@ class LaunchItemMessageHandler {
     const massKg = Number(targetCelestialBody?.physical?.estimatedMassKg);
     const rarity = this.context.toNonEmptyString(targetCelestialBody?.composition?.rarity);
     const multiplier = MATERIAL_YIELD_MULTIPLIER_BY_RARITY[rarity] || 1;
-    const baseFromMass = Number.isFinite(massKg)
-      ? Math.max(1, Math.round(massKg / 5000000000))
-      : 1;
+    const baseFromMass = Number.isFinite(massKg) ? Math.max(1, Math.round(massKg / 5000000000)) : 1;
 
     return Math.min(MAX_YIELD_QUANTITY, Math.max(1, baseFromMass * multiplier));
   }
@@ -68,7 +63,7 @@ class LaunchItemMessageHandler {
       parsed.itemType,
       parsed.targetCelestialBodyId,
       parsed.targetCelestialBody.catalogId,
-      parsed.targetCelestialBody.sourceScanId
+      parsed.targetCelestialBody.sourceScanId,
     ].join('|');
 
     let hash = 2166136261;
@@ -87,39 +82,41 @@ class LaunchItemMessageHandler {
       launchable: false,
       destroyedAt: parsed.item.destroyedAt || now,
       destroyedReason: `expended-on-target:${parsed.targetCelestialBodyId}`,
-      updatedAt: now
+      updatedAt: now,
     });
 
     const nextShips = Array.isArray(parsed.character.ships)
       ? parsed.character.ships.map((ship) => {
-        if (ship.id !== parsed.shipId) {
-          return ship;
-        }
+          if (ship.id !== parsed.shipId) {
+            return ship;
+          }
 
-        const nextInventory = Array.isArray(ship.inventory)
-          ? ship.inventory.filter((reference) => reference.itemId !== parsed.itemId)
-          : [];
+          const nextInventory = Array.isArray(ship.inventory)
+            ? ship.inventory.filter((reference) => reference.itemId !== parsed.itemId)
+            : [];
 
-        return {
-          ...ship,
-          inventory: nextInventory
-        };
-      })
+          return {
+            ...ship,
+            inventory: nextInventory,
+          };
+        })
       : [];
 
     await this.context.updateCharacterAsync(parsed.player.playerName, parsed.characterId, {
-      ships: nextShips
+      ships: nextShips,
     });
 
-    return updatedItem || {
-      ...parsed.item,
-      state: 'destroyed',
-      launchable: false,
-      destroyedAt: parsed.item.destroyedAt || now,
-      destroyedReason: `expended-on-target:${parsed.targetCelestialBodyId}`,
-      updatedAt: now,
-      container: null
-    };
+    return (
+      updatedItem || {
+        ...parsed.item,
+        state: 'destroyed',
+        launchable: false,
+        destroyedAt: parsed.item.destroyedAt || now,
+        destroyedReason: `expended-on-target:${parsed.targetCelestialBodyId}`,
+        updatedAt: now,
+        container: null,
+      }
+    );
   }
 
   async buildParsed(payload) {
@@ -132,16 +129,17 @@ class LaunchItemMessageHandler {
     const hotkey = payload?.hotkey;
 
     if (
-      !playerName
-      || !characterId
-      || !shipId
-      || !targetCelestialBodyId
-      || !itemId
-      || !itemType
-      || !this.isValidHotkey(hotkey)
+      !playerName ||
+      !characterId ||
+      !shipId ||
+      !targetCelestialBodyId ||
+      !itemId ||
+      !itemType ||
+      !this.isValidHotkey(hotkey)
     ) {
       return {
-        error: 'playerName, characterId, shipId, targetCelestialBodyId, hotkey, itemId, and itemType are required'
+        error:
+          'playerName, characterId, shipId, targetCelestialBodyId, hotkey, itemId, and itemType are required',
       };
     }
 
@@ -156,7 +154,7 @@ class LaunchItemMessageHandler {
       return {
         error: 'Character is not in player list',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -167,7 +165,7 @@ class LaunchItemMessageHandler {
       return {
         error: 'Ship is not in character list',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -177,7 +175,7 @@ class LaunchItemMessageHandler {
       return {
         error: 'Item is not in ship inventory',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -186,7 +184,7 @@ class LaunchItemMessageHandler {
       return {
         error: 'Launch item does not exist',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -194,7 +192,7 @@ class LaunchItemMessageHandler {
       return {
         error: 'itemType does not match launch item',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -202,7 +200,7 @@ class LaunchItemMessageHandler {
       return {
         error: 'Launch item is not launchable',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -210,7 +208,7 @@ class LaunchItemMessageHandler {
       return {
         error: 'Launch item is destroyed',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -219,7 +217,7 @@ class LaunchItemMessageHandler {
       return {
         error: 'Target celestial body does not exist',
         playerName: player.playerName,
-        characterId
+        characterId,
       };
     }
 
@@ -234,7 +232,7 @@ class LaunchItemMessageHandler {
       shipId,
       characterId,
       targetCelestialBody,
-      targetCelestialBodyId
+      targetCelestialBodyId,
     };
   }
 
@@ -260,8 +258,8 @@ class LaunchItemMessageHandler {
           targetDestroyed: false,
           yieldedMaterials: [],
           yieldedItems: [],
-          launchSeed
-        }
+          launchSeed,
+        },
       };
     }
 
@@ -269,8 +267,8 @@ class LaunchItemMessageHandler {
       {
         material: parsed.targetCelestialBody.composition.material,
         rarity: parsed.targetCelestialBody.composition.rarity,
-        quantity: this.resolveYieldQuantity(parsed.targetCelestialBody)
-      }
+        quantity: this.resolveYieldQuantity(parsed.targetCelestialBody),
+      },
     ];
 
     const yieldedItemsToCreate = yieldedMaterials.map((entry) => {
@@ -285,7 +283,7 @@ class LaunchItemMessageHandler {
         damageStatus: 'intact',
         container: {
           containerType: 'ship',
-          containerId: parsed.shipId
+          containerId: parsed.shipId,
         },
         owningPlayerId: parsed.player.playerId,
         owningCharacterId: parsed.characterId,
@@ -294,19 +292,18 @@ class LaunchItemMessageHandler {
         destroyedReason: null,
         launchable: false,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       };
     });
 
-    const yieldedItems = yieldedItemsToCreate.length > 0
-      ? await this.context.addItemsAsync(yieldedItemsToCreate)
-      : [];
+    const yieldedItems =
+      yieldedItemsToCreate.length > 0 ? await this.context.addItemsAsync(yieldedItemsToCreate) : [];
 
     const debris = yieldedMaterials.map((entry) => ({
       material: entry.material,
       rarity: entry.rarity,
       quantity: entry.quantity,
-      itemType: this.toRawMaterialItemType(entry.material)
+      itemType: this.toRawMaterialItemType(entry.material),
     }));
 
     const destroyedTarget = {
@@ -316,33 +313,36 @@ class LaunchItemMessageHandler {
       destroyedReason: `impacted-by:${parsed.itemType}`,
       updatedAt: now,
       debrisSeed: launchSeed,
-      debris
+      debris,
     };
 
     await this.context.addOrUpdateCelestialBodyAsync(destroyedTarget);
 
-    const refreshedCharacter = this.context.findCharacter(parsed.player.playerName, parsed.characterId);
+    const refreshedCharacter = this.context.findCharacter(
+      parsed.player.playerName,
+      parsed.characterId
+    );
     const nextShipsWithYield = Array.isArray(refreshedCharacter?.ships)
       ? refreshedCharacter.ships.map((ship) => {
-        if (ship.id !== parsed.shipId) {
-          return ship;
-        }
+          if (ship.id !== parsed.shipId) {
+            return ship;
+          }
 
-        const existingInventory = Array.isArray(ship.inventory) ? ship.inventory : [];
-        const yieldedReferences = yieldedItems.map((item) => ({
-          itemId: item.id,
-          itemType: item.itemType
-        }));
+          const existingInventory = Array.isArray(ship.inventory) ? ship.inventory : [];
+          const yieldedReferences = yieldedItems.map((item) => ({
+            itemId: item.id,
+            itemType: item.itemType,
+          }));
 
-        return {
-          ...ship,
-          inventory: [...existingInventory, ...yieldedReferences]
-        };
-      })
+          return {
+            ...ship,
+            inventory: [...existingInventory, ...yieldedReferences],
+          };
+        })
       : [];
 
     await this.context.updateCharacterAsync(parsed.player.playerName, parsed.characterId, {
-      ships: nextShipsWithYield
+      ships: nextShipsWithYield,
     });
 
     return {
@@ -362,15 +362,15 @@ class LaunchItemMessageHandler {
         yieldedMaterials,
         yieldedItems,
         targetCelestialBody: destroyedTarget,
-        launchSeed
-      }
+        launchSeed,
+      },
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('launch-item-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -390,7 +390,7 @@ class LaunchItemMessageHandler {
         targetCelestialBodyId: this.context.toNonEmptyString(payload?.targetCelestialBodyId),
         hotkey: this.isValidHotkey(payload?.hotkey) ? payload.hotkey : 1,
         itemId: this.context.toNonEmptyString(payload?.itemId),
-        itemType: this.context.toNonEmptyString(payload?.itemType)
+        itemType: this.context.toNonEmptyString(payload?.itemType),
       };
       socket.emit(LAUNCH_ITEM_RESPONSE_EVENT, response);
       return response;
@@ -403,5 +403,5 @@ class LaunchItemMessageHandler {
 }
 
 module.exports = {
-  LaunchItemMessageHandler
+  LaunchItemMessageHandler,
 };

@@ -1,16 +1,8 @@
 'use strict';
 
-const {
-  CHARACTER_ADD_RESPONSE_EVENT
-} = require('../model/character-add');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
-const {
-  DEFAULT_MISSION_STATUS,
-  DEFAULT_STARTER_MISSION_ID
-} = require('../model/mission');
+const { CHARACTER_ADD_RESPONSE_EVENT } = require('../model/character-add');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const { DEFAULT_MISSION_STATUS, DEFAULT_STARTER_MISSION_ID } = require('../model/mission');
 
 class CharacterAddMessageHandler {
   constructor(context) {
@@ -25,7 +17,7 @@ class CharacterAddMessageHandler {
       return {
         success: false,
         message: 'playerName and characterName are required',
-        playerName
+        playerName,
       };
     }
 
@@ -35,7 +27,7 @@ class CharacterAddMessageHandler {
       return {
         success: false,
         message: 'Player is not registered',
-        playerName
+        playerName,
       };
     }
 
@@ -46,14 +38,14 @@ class CharacterAddMessageHandler {
       message: 'Character added successfully',
       playerName: player.playerName,
       characterName,
-      characterId
+      characterId,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-add-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -80,16 +72,18 @@ class CharacterAddMessageHandler {
             damageStatus: 'intact',
             container: {
               containerType: 'ship',
-              containerId: starterShipId
+              containerId: starterShipId,
             },
-            owningPlayerId: this.context.toNonEmptyString(this.context.getPlayer(response.playerName)?.playerId),
+            owningPlayerId: this.context.toNonEmptyString(
+              this.context.getPlayer(response.playerName)?.playerId
+            ),
             owningCharacterId: response.characterId,
             spatial: null,
             createdAt,
             updatedAt: createdAt,
             destroyedAt: null,
-            destroyedReason: null
-          }
+            destroyedReason: null,
+          },
         ];
 
         await this.context.addItemsAsync(starterItems);
@@ -109,23 +103,23 @@ class CharacterAddMessageHandler {
               inventory: [
                 {
                   itemId: starterDroneId,
-                  itemType: 'expendable-dart-drone'
-                }
+                  itemType: 'expendable-dart-drone',
+                },
               ],
               spatial: {
                 solarSystemId: 'sol',
                 frame: 'barycentric',
                 positionKm: { x: 0, y: 0, z: 0 },
-                epochMs: Date.parse(createdAt)
-              }
-            }
+                epochMs: Date.parse(createdAt),
+              },
+            },
           ],
           missions: [
             {
               missionId: DEFAULT_STARTER_MISSION_ID,
               status: DEFAULT_MISSION_STATUS,
-              updatedAt: createdAt
-            }
+              updatedAt: createdAt,
+            },
           ],
           creditLedger: [
             {
@@ -133,9 +127,9 @@ class CharacterAddMessageHandler {
               amount: 425,
               description: 'Starting credits',
               timestamp: createdAt,
-              referenceId: null
-            }
-          ]
+              referenceId: null,
+            },
+          ],
         };
         await this.context.addCharacterAsync(payload?.playerName, characterData);
       } catch (error) {
@@ -143,7 +137,9 @@ class CharacterAddMessageHandler {
           try {
             await this.context.deleteItemsAsync(createdItemIds);
           } catch (cleanupError) {
-            this.context.log(`[character-add-handler] Failed to roll back starter items: ${cleanupError.message}`);
+            this.context.log(
+              `[character-add-handler] Failed to roll back starter items: ${cleanupError.message}`
+            );
           }
         }
         this.context.log(`[character-add-handler] Failed to add character: ${error.message}`);
@@ -160,5 +156,5 @@ class CharacterAddMessageHandler {
 }
 
 module.exports = {
-  CharacterAddMessageHandler
+  CharacterAddMessageHandler,
 };

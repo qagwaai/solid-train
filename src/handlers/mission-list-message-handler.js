@@ -1,16 +1,8 @@
 'use strict';
 
-const {
-  MISSION_LIST_RESPONSE_EVENT
-} = require('../model/mission-list');
-const {
-  MISSION_CATALOG_IDS,
-  MISSION_STATUS_VALUES
-} = require('../model/mission');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { MISSION_LIST_RESPONSE_EVENT } = require('../model/mission-list');
+const { MISSION_CATALOG_IDS, MISSION_STATUS_VALUES } = require('../model/mission');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 const MISSION_STATUS_SET = new Set(MISSION_STATUS_VALUES);
 const MISSION_CATALOG_INDEX = new Map(
@@ -45,7 +37,7 @@ class MissionListMessageHandler {
     const normalized = this.context.normalizeMission(mission);
     const responseMission = {
       missionId: normalized.missionId,
-      status: normalized.status
+      status: normalized.status,
     };
 
     const optionalFields = [
@@ -55,7 +47,7 @@ class MissionListMessageHandler {
       'completedAt',
       'updatedAt',
       'failureReason',
-      'statusDetail'
+      'statusDetail',
     ];
 
     for (const field of optionalFields) {
@@ -89,35 +81,44 @@ class MissionListMessageHandler {
     const characterId = this.context.toNonEmptyString(payload?.characterId);
 
     if (!playerName || !characterId) {
-      return this.attachRequestId({
-        success: false,
-        message: 'playerName and characterId are required',
-        playerName,
-        characterId,
-        missions: []
-      }, payload);
+      return this.attachRequestId(
+        {
+          success: false,
+          message: 'playerName and characterId are required',
+          playerName,
+          characterId,
+          missions: [],
+        },
+        payload
+      );
     }
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return this.attachRequestId({
-        success: false,
-        message: 'Player is not registered',
-        playerName,
-        characterId,
-        missions: []
-      }, payload);
+      return this.attachRequestId(
+        {
+          success: false,
+          message: 'Player is not registered',
+          playerName,
+          characterId,
+          missions: [],
+        },
+        payload
+      );
     }
 
     const character = this.context.findCharacter(playerName, characterId);
     if (!character) {
-      return this.attachRequestId({
-        success: false,
-        message: 'Character is not in player list',
-        playerName: player.playerName,
-        characterId,
-        missions: []
-      }, payload);
+      return this.attachRequestId(
+        {
+          success: false,
+          message: 'Character is not in player list',
+          playerName: player.playerName,
+          characterId,
+          missions: [],
+        },
+        payload
+      );
     }
 
     const statuses = this.sanitizeStatuses(payload?.statuses);
@@ -127,19 +128,22 @@ class MissionListMessageHandler {
       : missions;
     const sortedMissions = this.sortMissions(filteredMissions);
 
-    return this.attachRequestId({
-      success: true,
-      message: 'Mission list retrieved successfully',
-      playerName: player.playerName,
-      characterId,
-      missions: sortedMissions.map((mission) => this.formatMissionForResponse(mission))
-    }, payload);
+    return this.attachRequestId(
+      {
+        success: true,
+        message: 'Mission list retrieved successfully',
+        playerName: player.playerName,
+        characterId,
+        missions: sortedMissions.map((mission) => this.formatMissionForResponse(mission)),
+      },
+      payload
+    );
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('list-missions-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -155,5 +159,5 @@ class MissionListMessageHandler {
 }
 
 module.exports = {
-  MissionListMessageHandler
+  MissionListMessageHandler,
 };

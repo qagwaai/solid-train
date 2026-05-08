@@ -3,16 +3,14 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  MarketLedgerListMessageHandler
+  MarketLedgerListMessageHandler,
 } = require('../src/handlers/market-ledger-list-message-handler');
-const {
-  MARKET_LEDGER_LIST_RESPONSE_EVENT
-} = require('../src/model/market-ledger-list');
+const { MARKET_LEDGER_LIST_RESPONSE_EVENT } = require('../src/model/market-ledger-list');
 const {
   createMockSocket,
   createTestContext,
   seedPlayer,
-  seedTraderCharacter
+  seedTraderCharacter,
 } = require('../test-support/message-handler-test-helpers');
 
 test('MarketLedgerListMessageHandler returns filtered entries', async () => {
@@ -27,7 +25,7 @@ test('MarketLedgerListMessageHandler returns filtered entries', async () => {
     itemId: 'iron',
     direction: 'buy',
     quantity: 2,
-    requestId: 'rq-ledger-1'
+    requestId: 'rq-ledger-1',
   });
 
   const handler = new MarketLedgerListMessageHandler(context);
@@ -40,7 +38,7 @@ test('MarketLedgerListMessageHandler returns filtered entries', async () => {
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     characterId: 'character-1',
-    direction: 'buy'
+    direction: 'buy',
   });
 
   assert.equal(response.success, true);
@@ -55,7 +53,7 @@ test('MarketLedgerListMessageHandler rejects missing required fields', async () 
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MarketPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new MarketLedgerListMessageHandler(context);
   const socket = createMockSocket();
@@ -64,7 +62,7 @@ test('MarketLedgerListMessageHandler rejects missing required fields', async () 
     requestId: 'ledger-list-invalid-1',
     playerName: 'MarketPilot',
     sessionKey: 'session-1',
-    marketId: 'sol-ceres-exchange'
+    marketId: 'sol-ceres-exchange',
   });
 
   assert.equal(response.success, false);
@@ -85,7 +83,7 @@ test('MarketLedgerListMessageHandler rejects unregistered player', async () => {
     playerName: 'GhostPilot',
     sessionKey: 'session-1',
     marketId: 'sol-ceres-exchange',
-    solarSystemId: 'sol'
+    solarSystemId: 'sol',
   });
 
   assert.equal(response.success, false);
@@ -98,7 +96,7 @@ test('MarketLedgerListMessageHandler returns market-not-found reason', async () 
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MarketPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new MarketLedgerListMessageHandler(context);
   const socket = createMockSocket();
@@ -108,7 +106,7 @@ test('MarketLedgerListMessageHandler returns market-not-found reason', async () 
     playerName: 'MarketPilot',
     sessionKey: 'session-1',
     marketId: 'unknown-market',
-    solarSystemId: 'sol'
+    solarSystemId: 'sol',
   });
 
   assert.equal(response.success, false);

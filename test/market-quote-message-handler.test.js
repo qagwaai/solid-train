@@ -2,22 +2,17 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  MarketQuoteMessageHandler
-} = require('../src/handlers/market-quote-message-handler');
+const { MarketQuoteMessageHandler } = require('../src/handlers/market-quote-message-handler');
 const {
   MARKET_QUOTE_RESPONSE_EVENT,
-  MARKET_QUOTE_FAILURE_REASONS
+  MARKET_QUOTE_FAILURE_REASONS,
 } = require('../src/model/market-quote');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
   seedPlayer,
-  seedTraderCharacter
+  seedTraderCharacter,
 } = require('../test-support/message-handler-test-helpers');
 
 test('MarketQuoteMessageHandler returns quote for a valid request', async () => {
@@ -36,7 +31,7 @@ test('MarketQuoteMessageHandler returns quote for a valid request', async () => 
     solarSystemId: 'sol',
     itemId: 'iron',
     direction: 'buy',
-    quantity: 5
+    quantity: 5,
   });
 
   assert.equal(response.success, true);
@@ -65,7 +60,7 @@ test('MarketQuoteMessageHandler rejects invalid payload fields', async () => {
     solarSystemId: 'sol',
     itemId: 'iron',
     direction: 'bad-direction',
-    quantity: 5
+    quantity: 5,
   });
 
   assert.equal(response.success, false);
@@ -78,7 +73,7 @@ test('MarketQuoteMessageHandler emits invalid session before quote logic', async
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MarketPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new MarketQuoteMessageHandler(context);
   const socket = createMockSocket();
@@ -92,15 +87,15 @@ test('MarketQuoteMessageHandler emits invalid session before quote logic', async
     solarSystemId: 'sol',
     itemId: 'iron',
     direction: 'buy',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.deepEqual(socket.events, [
     {
       eventName: INVALID_SESSION_EVENT,
-      payload: { message: INVALID_SESSION_MESSAGE }
-    }
+      payload: { message: INVALID_SESSION_MESSAGE },
+    },
   ]);
 });
 
@@ -120,7 +115,7 @@ test('MarketQuoteMessageHandler returns INVALID_PAYLOAD when marketId is missing
     solarSystemId: 'sol',
     itemId: 'iron',
     direction: 'buy',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -143,7 +138,7 @@ test('MarketQuoteMessageHandler returns PLAYER_NOT_REGISTERED for unknown player
     solarSystemId: 'sol',
     itemId: 'iron',
     direction: 'buy',
-    quantity: 1
+    quantity: 1,
   });
 
   // Session passes, character lookup fails → CHARACTER_NOT_FOUND
@@ -167,7 +162,7 @@ test('MarketQuoteMessageHandler returns MARKET_NOT_FOUND for unknown marketId', 
     solarSystemId: 'sol',
     itemId: 'iron',
     direction: 'buy',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -190,7 +185,7 @@ test('MarketQuoteMessageHandler returns ITEM_NOT_FOUND for unknown itemId', asyn
     solarSystemId: 'sol',
     itemId: 'unknown-ore',
     direction: 'buy',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -213,7 +208,7 @@ test('MarketQuoteMessageHandler returns INVALID_QUANTITY for quantity = 0', asyn
     solarSystemId: 'sol',
     itemId: 'iron',
     direction: 'buy',
-    quantity: 0
+    quantity: 0,
   });
 
   assert.equal(response.success, false);
@@ -243,7 +238,7 @@ test('MarketQuoteMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when sell direc
     solarSystemId: 'sol',
     itemId: 'iron',
     direction: 'sell',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);

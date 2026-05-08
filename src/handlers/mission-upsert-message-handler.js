@@ -1,23 +1,16 @@
 'use strict';
 
-const {
-  MISSION_UPSERT_RESPONSE_EVENT
-} = require('../model/mission-upsert');
+const { MISSION_UPSERT_RESPONSE_EVENT } = require('../model/mission-upsert');
 const {
   DEFAULT_STARTER_MISSION_ID,
   MISSION_CATALOG_IDS,
   MISSION_CATALOG_ID_SET,
   MISSION_PREREQUISITES_BY_ID,
   MISSION_STATUS_VALUES,
-  MISSION_UNLOCK_SOURCE_STATUSES
+  MISSION_UNLOCK_SOURCE_STATUSES,
 } = require('../model/mission');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
-const {
-  DEFAULT_SOLAR_SYSTEM_ID
-} = require('../model/celestial-body-upsert');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const { DEFAULT_SOLAR_SYSTEM_ID } = require('../model/celestial-body-upsert');
 
 const STARTER_MISSION_ASTEROID_STATE = 'unscanned';
 const STARTER_MISSION_ASTEROID_COUNT = 10;
@@ -33,7 +26,7 @@ const STARTER_MISSION_ASTEROID_MATERIALS = [
   { rarity: 'Exotic', material: 'Iridium Vein', textureColor: '#9bb0ff' },
   { rarity: 'Exotic', material: 'Palladium Core', textureColor: '#e0caa1' },
   { rarity: 'Common', material: 'Basaltic Rock', textureColor: '#5c5a63' },
-  { rarity: 'Uncommon', material: 'Crystalline Quartz', textureColor: '#cfd8e6' }
+  { rarity: 'Uncommon', material: 'Crystalline Quartz', textureColor: '#cfd8e6' },
 ];
 
 class MissionUpsertMessageHandler {
@@ -54,7 +47,7 @@ class MissionUpsertMessageHandler {
     const normalized = this.context.normalizeMission(mission);
     const responseMission = {
       missionId: normalized.missionId,
-      status: normalized.status
+      status: normalized.status,
     };
 
     const optionalFields = [
@@ -64,7 +57,7 @@ class MissionUpsertMessageHandler {
       'completedAt',
       'updatedAt',
       'failureReason',
-      'statusDetail'
+      'statusDetail',
     ];
 
     for (const field of optionalFields) {
@@ -103,75 +96,92 @@ class MissionUpsertMessageHandler {
     const characterId = this.context.toNonEmptyString(payload?.characterId);
     const missionId = this.context.toNonEmptyString(payload?.missionId);
     const status = this.context.toNonEmptyString(payload?.status);
-    const statusDetail = typeof payload?.statusDetail === 'string'
-      ? payload.statusDetail
-      : undefined;
+    const statusDetail =
+      typeof payload?.statusDetail === 'string' ? payload.statusDetail : undefined;
 
     if (!playerName || !characterId || !missionId || !status) {
-      return this.attachRequestId({
-        success: false,
-        message: 'playerName, characterId, missionId, and status are required',
-        playerName,
-        characterId
-      }, payload);
+      return this.attachRequestId(
+        {
+          success: false,
+          message: 'playerName, characterId, missionId, and status are required',
+          playerName,
+          characterId,
+        },
+        payload
+      );
     }
 
     if (!MISSION_CATALOG_ID_SET.has(missionId)) {
-      return this.attachRequestId({
-        success: false,
-        message: `missionId must be one of: ${MISSION_CATALOG_IDS.join(', ')}`,
-        playerName,
-        characterId
-      }, payload);
+      return this.attachRequestId(
+        {
+          success: false,
+          message: `missionId must be one of: ${MISSION_CATALOG_IDS.join(', ')}`,
+          playerName,
+          characterId,
+        },
+        payload
+      );
     }
 
     if (!MISSION_STATUS_SET.has(status)) {
-      return this.attachRequestId({
-        success: false,
-        message: `status must be one of: ${MISSION_STATUS_VALUES.join(', ')}`,
-        playerName,
-        characterId
-      }, payload);
+      return this.attachRequestId(
+        {
+          success: false,
+          message: `status must be one of: ${MISSION_STATUS_VALUES.join(', ')}`,
+          playerName,
+          characterId,
+        },
+        payload
+      );
     }
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return this.attachRequestId({
-        success: false,
-        message: 'Player is not registered',
-        playerName,
-        characterId
-      }, payload);
+      return this.attachRequestId(
+        {
+          success: false,
+          message: 'Player is not registered',
+          playerName,
+          characterId,
+        },
+        payload
+      );
     }
 
     const character = this.context.findCharacter(playerName, characterId);
     if (!character) {
-      return this.attachRequestId({
-        success: false,
-        message: 'Character is not in player list',
-        playerName: player.playerName,
-        characterId
-      }, payload);
+      return this.attachRequestId(
+        {
+          success: false,
+          message: 'Character is not in player list',
+          playerName: player.playerName,
+          characterId,
+        },
+        payload
+      );
     }
 
-    return this.attachRequestId({
-      success: true,
-      message: 'Mission recorded successfully',
-      playerName: player.playerName,
-      characterId,
-      mission: {
-        missionId,
-        status,
-        ...(statusDetail !== undefined ? { statusDetail } : {})
-      }
-    }, payload);
+    return this.attachRequestId(
+      {
+        success: true,
+        message: 'Mission recorded successfully',
+        playerName: player.playerName,
+        characterId,
+        mission: {
+          missionId,
+          status,
+          ...(statusDetail !== undefined ? { statusDetail } : {}),
+        },
+      },
+      payload
+    );
   }
 
   enrichMissionTimestamps(mission, existingMission, timestamp) {
     const nextMission = {
       ...(existingMission || {}),
       ...mission,
-      updatedAt: timestamp
+      updatedAt: timestamp,
     };
 
     if (mission.status === 'started' && !nextMission.startedAt) {
@@ -197,16 +207,14 @@ class MissionUpsertMessageHandler {
 
     const timestamp = this.context.getCurrentTimestamp();
     const missions = await this.context.getMissionsAsync(parsed.playerName, parsed.characterId);
-    const missionsById = new Map(
-      missions.map((mission) => [mission.missionId, mission])
-    );
+    const missionsById = new Map(missions.map((mission) => [mission.missionId, mission]));
 
     const unlockedMissionIds = this.resolveUnlockedMissionIds(missionsById);
     for (const missionId of unlockedMissionIds) {
       const unlockedMission = {
         missionId,
         status: 'available',
-        updatedAt: timestamp
+        updatedAt: timestamp,
       };
 
       await this.context.addOrUpdateMissionAsync(
@@ -226,8 +234,9 @@ class MissionUpsertMessageHandler {
     return Array.from({ length: STARTER_MISSION_ASTEROID_COUNT }, (_, index) => {
       const sequence = index + 1;
       const angle = (Math.PI * 2 * index) / STARTER_MISSION_ASTEROID_COUNT;
-      const radiusKm = 250 + (index * 40);
-      const materialProfile = STARTER_MISSION_ASTEROID_MATERIALS[index % STARTER_MISSION_ASTEROID_MATERIALS.length];
+      const radiusKm = 250 + index * 40;
+      const materialProfile =
+        STARTER_MISSION_ASTEROID_MATERIALS[index % STARTER_MISSION_ASTEROID_MATERIALS.length];
       const sourceScanId = `sample-a${sequence}`;
 
       return {
@@ -245,32 +254,32 @@ class MissionUpsertMessageHandler {
           positionKm: {
             x: Math.round(Math.cos(angle) * radiusKm),
             y: Math.round(Math.sin(angle) * radiusKm),
-            z: Math.round((index - 4.5) * 12)
+            z: Math.round((index - 4.5) * 12),
           },
-          epochMs: new Date(timestamp).getTime()
+          epochMs: new Date(timestamp).getTime(),
         },
         motion: {
           velocityKmPerSec: {
             x: Number((Math.sin(angle) * 0.03).toFixed(4)),
             y: Number((Math.cos(angle) * 0.03).toFixed(4)),
-            z: Number((((index % 3) - 1) * 0.005).toFixed(4))
+            z: Number((((index % 3) - 1) * 0.005).toFixed(4)),
           },
           angularVelocityRadPerSec: {
-            x: Number((0.0008 + (index * 0.0001)).toFixed(6)),
-            y: Number((0.001 + (index * 0.00008)).toFixed(6)),
-            z: Number((0.0006 + (index * 0.00009)).toFixed(6))
-          }
+            x: Number((0.0008 + index * 0.0001).toFixed(6)),
+            y: Number((0.001 + index * 0.00008).toFixed(6)),
+            z: Number((0.0006 + index * 0.00009).toFixed(6)),
+          },
         },
         physical: {
-          estimatedMassKg: 22000000000 + (index * 3500000000),
-          estimatedDiameterM: 110 + (index * 12)
+          estimatedMassKg: 22000000000 + index * 3500000000,
+          estimatedDiameterM: 110 + index * 12,
         },
         observability: {
           visibility: 'visible',
-          scanState: 'unscanned'
+          scanState: 'unscanned',
         },
         composition: { ...materialProfile },
-        state: STARTER_MISSION_ASTEROID_STATE
+        state: STARTER_MISSION_ASTEROID_STATE,
       };
     });
   }
@@ -286,7 +295,7 @@ class MissionUpsertMessageHandler {
 
     const existingField = await this.context.getCelestialBodiesAsync({
       createdByCharacterId: parsed.characterId,
-      missionId: DEFAULT_STARTER_MISSION_ID
+      missionId: DEFAULT_STARTER_MISSION_ID,
     });
 
     if (existingField.length > 0) {
@@ -302,7 +311,7 @@ class MissionUpsertMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('add-mission-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -339,13 +348,13 @@ class MissionUpsertMessageHandler {
           playerName: payload?.playerName,
           characterId: payload?.characterId,
           missionId: response.mission.missionId,
-          status: response.mission.status
+          status: response.mission.status,
         });
 
         await this.ensureStarterMissionAsteroidsAsync({
           missionId: response.mission.missionId,
           status: response.mission.status,
-          characterId: response.characterId
+          characterId: response.characterId,
         });
 
         response.mission = this.formatMissionForResponse(missionWithTimestamps);
@@ -363,5 +372,5 @@ class MissionUpsertMessageHandler {
 }
 
 module.exports = {
-  MissionUpsertMessageHandler
+  MissionUpsertMessageHandler,
 };

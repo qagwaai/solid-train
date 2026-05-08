@@ -20,5 +20,5 @@ const GAME_JOIN_RESPONSE_EVENT = 'game-join-response';
 
 module.exports = {
   GAME_JOIN_REQUEST_EVENT,
-  GAME_JOIN_RESPONSE_EVENT
+  GAME_JOIN_RESPONSE_EVENT,
 };

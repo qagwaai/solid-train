@@ -12,7 +12,7 @@ async function resolveDockingStateAsync(ctx, request = {}) {
     return {
       isDocked: false,
       dockedMarketId: null,
-      perMarketDocked: new Map()
+      perMarketDocked: new Map(),
     };
   }
 
@@ -21,7 +21,7 @@ async function resolveDockingStateAsync(ctx, request = {}) {
     return {
       isDocked: false,
       dockedMarketId: null,
-      perMarketDocked: new Map()
+      perMarketDocked: new Map(),
     };
   }
 
@@ -34,18 +34,19 @@ async function resolveDockingStateAsync(ctx, request = {}) {
     return {
       isDocked: false,
       dockedMarketId: null,
-      perMarketDocked: new Map()
+      perMarketDocked: new Map(),
     };
   }
 
-  const nearestDock = markets
-    .filter((market) => Boolean(market.positionKm))
-    .map((market) => ({
-      marketId: market.marketId,
-      distanceKm: ctx.calculateDistanceKm(shipPositionKm, market.positionKm)
-    }))
-    .filter((entry) => entry.distanceKm <= MARKET_DOCKING_DISTANCE_KM)
-    .sort((left, right) => left.distanceKm - right.distanceKm)[0] || null;
+  const nearestDock =
+    markets
+      .filter((market) => Boolean(market.positionKm))
+      .map((market) => ({
+        marketId: market.marketId,
+        distanceKm: ctx.calculateDistanceKm(shipPositionKm, market.positionKm),
+      }))
+      .filter((entry) => entry.distanceKm <= MARKET_DOCKING_DISTANCE_KM)
+      .sort((left, right) => left.distanceKm - right.distanceKm)[0] || null;
 
   const dockedMarketId = nearestDock ? nearestDock.marketId : null;
   const perMarketDocked = new Map(
@@ -55,10 +56,10 @@ async function resolveDockingStateAsync(ctx, request = {}) {
   return {
     isDocked: Boolean(dockedMarketId),
     dockedMarketId,
-    perMarketDocked
+    perMarketDocked,
   };
 }
 
 module.exports = {
-  resolveDockingStateAsync
+  resolveDockingStateAsync,
 };

@@ -2,30 +2,23 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  MarketBuyMessageHandler
-} = require('../src/handlers/market-buy-message-handler');
-const {
-  MarketSellMessageHandler
-} = require('../src/handlers/market-sell-message-handler');
+const { MarketBuyMessageHandler } = require('../src/handlers/market-buy-message-handler');
+const { MarketSellMessageHandler } = require('../src/handlers/market-sell-message-handler');
 const {
   MARKET_BUY_RESPONSE_EVENT,
-  MARKET_BUY_FAILURE_REASONS
+  MARKET_BUY_FAILURE_REASONS,
 } = require('../src/model/market-buy');
 const {
   MARKET_SELL_RESPONSE_EVENT,
-  MARKET_SELL_FAILURE_REASONS
+  MARKET_SELL_FAILURE_REASONS,
 } = require('../src/model/market-sell');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
   seedItems,
   seedPlayer,
-  seedTraderCharacter
+  seedTraderCharacter,
 } = require('../test-support/message-handler-test-helpers');
 
 test('MarketBuyMessageHandler buys item and returns transaction metadata', async () => {
@@ -42,7 +35,7 @@ test('MarketBuyMessageHandler buys item and returns transaction metadata', async
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 3
+    quantity: 3,
   });
 
   assert.equal(response.success, true);
@@ -69,7 +62,7 @@ test('MarketBuyMessageHandler decrements market stock after successful buy', asy
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 3
+    quantity: 3,
   });
 
   assert.equal(response.success, true);
@@ -94,13 +87,15 @@ test('MarketBuyMessageHandler creates bought inventory item for the character', 
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 3
+    quantity: 3,
   });
 
   assert.equal(response.success, true);
   assert.equal(response.requestId, 'buy-items-1');
 
-  const boughtItems = [...context.itemsById.values()].filter((item) => item.owningCharacterId === 'character-1' && item.itemType === 'iron');
+  const boughtItems = [...context.itemsById.values()].filter(
+    (item) => item.owningCharacterId === 'character-1' && item.itemType === 'iron'
+  );
   assert.equal(boughtItems.length, 1);
   assert.equal(boughtItems[0].quantity, 3);
 });
@@ -119,7 +114,7 @@ test('MarketBuyMessageHandler returns INSUFFICIENT_CREDITS when balance is too l
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iridium',
-    quantity: 2
+    quantity: 2,
   });
 
   assert.equal(response.success, false);
@@ -146,8 +141,8 @@ test('MarketSellMessageHandler sells owned quantity and returns success', async 
       destroyedAt: null,
       destroyedReason: null,
       launchable: false,
-      quantity: 5
-    }
+      quantity: 5,
+    },
   ]);
 
   const handler = new MarketSellMessageHandler(context);
@@ -161,7 +156,7 @@ test('MarketSellMessageHandler sells owned quantity and returns success', async 
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 4
+    quantity: 4,
   });
 
   assert.equal(response.success, true);
@@ -188,8 +183,8 @@ test('MarketSellMessageHandler decrements sold item quantity in inventory', asyn
       destroyedAt: null,
       destroyedReason: null,
       launchable: false,
-      quantity: 5
-    }
+      quantity: 5,
+    },
   ]);
 
   const handler = new MarketSellMessageHandler(context);
@@ -203,12 +198,14 @@ test('MarketSellMessageHandler decrements sold item quantity in inventory', asyn
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 4
+    quantity: 4,
   });
 
   assert.equal(response.success, true);
   assert.equal(response.requestId, 'sell-stock-1');
-  const remainingItems = [...context.itemsById.values()].filter((item) => item.id === 'iron-stack-1');
+  const remainingItems = [...context.itemsById.values()].filter(
+    (item) => item.id === 'iron-stack-1'
+  );
   assert.equal(remainingItems.length, 1);
   assert.equal(remainingItems[0].quantity, 1);
 });
@@ -227,7 +224,7 @@ test('MarketSellMessageHandler returns INSUFFICIENT_ITEM_QUANTITY when inventory
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -251,7 +248,7 @@ test('MarketBuyMessageHandler emits invalid-session for bad session', async () =
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -271,7 +268,7 @@ test('MarketBuyMessageHandler returns INVALID_PAYLOAD and echoes requestId when 
     sessionKey: 'session-1',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -293,7 +290,7 @@ test('MarketBuyMessageHandler returns INVALID_PAYLOAD for quantity = 0', async (
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 0
+    quantity: 0,
   });
 
   assert.equal(response.success, false);
@@ -315,7 +312,7 @@ test('MarketBuyMessageHandler returns MARKET_NOT_FOUND for unknown marketId', as
     marketId: 'nonexistent-market',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -337,7 +334,7 @@ test('MarketBuyMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async 
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'unknown-ore',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -366,7 +363,7 @@ test('MarketBuyMessageHandler returns INSUFFICIENT_MARKET_STOCK when stock is to
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 100
+    quantity: 100,
   });
 
   assert.equal(response.success, false);
@@ -379,14 +376,24 @@ test('MarketBuyMessageHandler returns NO_SHIP_AVAILABLE when character has no sh
   seedPlayer(context, {
     playerName: 'MarketPilot',
     sessionKey: 'session-1',
-    characters: [{
-      id: 'character-1',
-      characterName: 'Trader',
-      createdAt: '2026-05-05T00:00:00.000Z',
-      ships: [],
-      missions: [],
-      creditLedger: [{ type: 'put', amount: 5000, description: 'Seed', timestamp: '2026-05-05T00:00:00.000Z', referenceId: null }]
-    }]
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Trader',
+        createdAt: '2026-05-05T00:00:00.000Z',
+        ships: [],
+        missions: [],
+        creditLedger: [
+          {
+            type: 'put',
+            amount: 5000,
+            description: 'Seed',
+            timestamp: '2026-05-05T00:00:00.000Z',
+            referenceId: null,
+          },
+        ],
+      },
+    ],
   });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
@@ -399,7 +406,7 @@ test('MarketBuyMessageHandler returns NO_SHIP_AVAILABLE when character has no sh
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -421,7 +428,7 @@ test('MarketBuyMessageHandler appends type:take creditLedger entry after success
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 2
+    quantity: 2,
   });
 
   assert.equal(response.success, true);
@@ -457,7 +464,7 @@ test('MarketBuyMessageHandler buys successfully after restock interval elapses',
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, true);
@@ -481,7 +488,7 @@ test('MarketSellMessageHandler emits invalid-session for bad session', async () 
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -501,7 +508,7 @@ test('MarketSellMessageHandler returns INVALID_PAYLOAD and echoes requestId when
     sessionKey: 'session-1',
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -523,7 +530,7 @@ test('MarketSellMessageHandler returns INVALID_PAYLOAD for non-integer quantity'
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 'lots'
+    quantity: 'lots',
   });
 
   assert.equal(response.success, false);
@@ -545,7 +552,7 @@ test('MarketSellMessageHandler returns MARKET_NOT_FOUND for wrong solarSystemId'
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'andromeda',
     itemId: 'iron',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -567,7 +574,7 @@ test('MarketSellMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'unknown-ore',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -578,23 +585,25 @@ test('MarketSellMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async
 test('MarketSellMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when market cannot buy', async () => {
   const context = createTestContext();
   seedTraderCharacter(context, { startingBalance: 500 });
-  seedItems(context, [{
-    id: 'iron-stack-2',
-    itemType: 'iron',
-    displayName: 'Iron',
-    state: 'contained',
-    damageStatus: 'intact',
-    container: { containerType: 'ship', containerId: 'ship-1' },
-    owningPlayerId: 'player-1',
-    owningCharacterId: 'character-1',
-    spatial: null,
-    createdAt: '2026-05-05T00:00:00.000Z',
-    updatedAt: '2026-05-05T00:00:00.000Z',
-    destroyedAt: null,
-    destroyedReason: null,
-    launchable: false,
-    quantity: 5
-  }]);
+  seedItems(context, [
+    {
+      id: 'iron-stack-2',
+      itemType: 'iron',
+      displayName: 'Iron',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: { containerType: 'ship', containerId: 'ship-1' },
+      owningPlayerId: 'player-1',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-05-05T00:00:00.000Z',
+      updatedAt: '2026-05-05T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+      launchable: false,
+      quantity: 5,
+    },
+  ]);
   const handler = new MarketSellMessageHandler(context);
   const socket = createMockSocket();
 
@@ -613,7 +622,7 @@ test('MarketSellMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when market cann
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 1
+    quantity: 1,
   });
 
   assert.equal(response.success, false);
@@ -624,23 +633,25 @@ test('MarketSellMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when market cann
 test('MarketSellMessageHandler appends type:put creditLedger entry after successful sell', async () => {
   const context = createTestContext();
   seedTraderCharacter(context, { startingBalance: 500 });
-  seedItems(context, [{
-    id: 'iron-stack-3',
-    itemType: 'iron',
-    displayName: 'Iron',
-    state: 'contained',
-    damageStatus: 'intact',
-    container: { containerType: 'ship', containerId: 'ship-1' },
-    owningPlayerId: 'player-1',
-    owningCharacterId: 'character-1',
-    spatial: null,
-    createdAt: '2026-05-05T00:00:00.000Z',
-    updatedAt: '2026-05-05T00:00:00.000Z',
-    destroyedAt: null,
-    destroyedReason: null,
-    launchable: false,
-    quantity: 3
-  }]);
+  seedItems(context, [
+    {
+      id: 'iron-stack-3',
+      itemType: 'iron',
+      displayName: 'Iron',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: { containerType: 'ship', containerId: 'ship-1' },
+      owningPlayerId: 'player-1',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-05-05T00:00:00.000Z',
+      updatedAt: '2026-05-05T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+      launchable: false,
+      quantity: 3,
+    },
+  ]);
   const handler = new MarketSellMessageHandler(context);
   const socket = createMockSocket();
 
@@ -652,7 +663,7 @@ test('MarketSellMessageHandler appends type:put creditLedger entry after success
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 2
+    quantity: 2,
   });
 
   assert.equal(response.success, true);

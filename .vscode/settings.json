@@ -1,53 +1,53 @@
 {
-    "chat.tools.terminal.autoApprove": {
-        "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test test/celestial-body-list-message-handler\\.test\\.js test/celestial-body-upsert-message-handler\\.test\\.js 2>&1$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test 2>&1 \\| tail -80$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test 2>&1$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test 2>&1 \\| tail -20$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^cd /c/Development/Projects/Github/solid-train && node --test 2>&1 \\| tail -25$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^node --test 2>&1 \\| tail -25$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^cd /c/Development/Projects/Github/solid-train && node --test 2>&1 \\| grep -E \"fail\\|pass\\|cancel\\|✖\\|duration\"$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^cd /c/Development/Projects/Github/solid-train && node --test 2>&1 \\| tail -20$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^cd /c/Development/Projects/Github/solid-train && node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap\\.txt; echo \"Exit: \\$\\?\"; grep -E \"\\^\\(not ok\\|# tests\\|# pass\\|# fail\\)\" /tmp/test-tap\\.txt$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^cd /c/Development/Projects/Github/solid-train && node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap\\.txt 2>&1; grep -E \"\\^\\(# tests\\|# pass\\|# fail\\|not ok\\)\" /tmp/test-tap\\.txt \\| head -30$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^cd /c/Development/Projects/Github/solid-train && node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap\\.txt 2>&1; grep -E \"\\^\\(# tests\\|# pass\\|# fail\\|not ok\\)\" /tmp/test-tap\\.txt$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^cd /c/Development/Projects/Github/solid-train && node --test$/": {
-            "approve": true,
-            "matchCommandLine": true
-        }
+  "chat.tools.terminal.autoApprove": {
+    "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test test/celestial-body-list-message-handler\\.test\\.js test/celestial-body-upsert-message-handler\\.test\\.js 2>&1$/": {
+      "approve": true,
+      "matchCommandLine": true
     },
-    "specstory.cloudSync.enabled": "never"
+    "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test 2>&1 \\| tail -80$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test 2>&1$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^cd c:\\\\\\\\Development\\\\\\\\Projects\\\\\\\\Github\\\\\\\\solid-train && node --test 2>&1 \\| tail -20$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^cd /c/Development/Projects/Github/solid-train && node --test 2>&1 \\| tail -25$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^node --test 2>&1 \\| tail -25$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^cd /c/Development/Projects/Github/solid-train && node --test 2>&1 \\| grep -E \"fail\\|pass\\|cancel\\|✖\\|duration\"$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^cd /c/Development/Projects/Github/solid-train && node --test 2>&1 \\| tail -20$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^cd /c/Development/Projects/Github/solid-train && node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap\\.txt; echo \"Exit: \\$\\?\"; grep -E \"\\^\\(not ok\\|# tests\\|# pass\\|# fail\\)\" /tmp/test-tap\\.txt$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^cd /c/Development/Projects/Github/solid-train && node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap\\.txt 2>&1; grep -E \"\\^\\(# tests\\|# pass\\|# fail\\|not ok\\)\" /tmp/test-tap\\.txt \\| head -30$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^cd /c/Development/Projects/Github/solid-train && node --test --test-reporter=tap --test-reporter-destination=/tmp/test-tap\\.txt 2>&1; grep -E \"\\^\\(# tests\\|# pass\\|# fail\\|not ok\\)\" /tmp/test-tap\\.txt$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^cd /c/Development/Projects/Github/solid-train && node --test$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  },
+  "specstory.cloudSync.enabled": "never"
 }

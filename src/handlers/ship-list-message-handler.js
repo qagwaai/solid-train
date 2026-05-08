@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  SHIP_LIST_RESPONSE_EVENT
-} = require('../model/ship-list');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../model/session');
+const { SHIP_LIST_RESPONSE_EVENT } = require('../model/ship-list');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class ShipListMessageHandler {
   constructor(context) {
@@ -23,7 +18,7 @@ class ShipListMessageHandler {
         message: 'playerName and characterId are required',
         playerName,
         characterId,
-        ships: []
+        ships: [],
       };
     }
 
@@ -35,7 +30,7 @@ class ShipListMessageHandler {
         message: 'Player is not registered',
         playerName,
         characterId,
-        ships: []
+        ships: [],
       };
     }
 
@@ -47,7 +42,7 @@ class ShipListMessageHandler {
         message: 'Character is not in player list',
         playerName: player.playerName,
         characterId,
-        ships: []
+        ships: [],
       };
     }
 
@@ -60,14 +55,14 @@ class ShipListMessageHandler {
       message: 'Ship list retrieved successfully',
       playerName: player.playerName,
       characterId,
-      ships
+      ships,
     };
   }
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-list-request', payload);
 
-    if (!await this.context.hasValidSessionAsync(payload)) {
+    if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
       socket.emit(INVALID_SESSION_EVENT, response);
       return response;
@@ -83,5 +78,5 @@ class ShipListMessageHandler {
 }
 
 module.exports = {
-  ShipListMessageHandler
+  ShipListMessageHandler,
 };

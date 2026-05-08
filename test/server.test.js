@@ -9,99 +9,78 @@ const {
   waitForEvent,
   httpGetJson,
   closeClient,
-  registerAndLogin
+  registerAndLogin,
 } = require('../test-support/socket-test-helpers');
-const {
-  createCelestialBody
-} = require('../test-support/message-handler-test-helpers');
-const {
-  REGISTER_EVENT,
-  REGISTER_RESPONSE_EVENT
-} = require('../src/model/register');
-const {
-  LOGIN_EVENT,
-  LOGIN_RESPONSE_EVENT,
-  LOGIN_FAILURE_REASONS
-} = require('../src/model/login');
+const { createCelestialBody } = require('../test-support/message-handler-test-helpers');
+const { REGISTER_EVENT, REGISTER_RESPONSE_EVENT } = require('../src/model/register');
+const { LOGIN_EVENT, LOGIN_RESPONSE_EVENT, LOGIN_FAILURE_REASONS } = require('../src/model/login');
 const {
   CHARACTER_LIST_REQUEST_EVENT,
-  CHARACTER_LIST_RESPONSE_EVENT
+  CHARACTER_LIST_RESPONSE_EVENT,
 } = require('../src/model/character-list');
 const {
   CHARACTER_ADD_REQUEST_EVENT,
-  CHARACTER_ADD_RESPONSE_EVENT
+  CHARACTER_ADD_RESPONSE_EVENT,
 } = require('../src/model/character-add');
 const {
   CHARACTER_DELETE_REQUEST_EVENT,
-  CHARACTER_DELETE_RESPONSE_EVENT
+  CHARACTER_DELETE_RESPONSE_EVENT,
 } = require('../src/model/character-delete');
 const {
   CHARACTER_EDIT_REQUEST_EVENT,
-  CHARACTER_EDIT_RESPONSE_EVENT
+  CHARACTER_EDIT_RESPONSE_EVENT,
 } = require('../src/model/character-edit');
-const {
-  SHIP_LIST_REQUEST_EVENT,
-  SHIP_LIST_RESPONSE_EVENT
-} = require('../src/model/ship-list');
+const { SHIP_LIST_REQUEST_EVENT, SHIP_LIST_RESPONSE_EVENT } = require('../src/model/ship-list');
 const {
   SHIP_UPSERT_REQUEST_EVENT,
-  SHIP_UPSERT_RESPONSE_EVENT
+  SHIP_UPSERT_RESPONSE_EVENT,
 } = require('../src/model/ship-upsert');
-const {
-  GAME_JOIN_REQUEST_EVENT,
-  GAME_JOIN_RESPONSE_EVENT
-} = require('../src/model/game-join');
+const { GAME_JOIN_REQUEST_EVENT, GAME_JOIN_RESPONSE_EVENT } = require('../src/model/game-join');
 const {
   MISSION_UPSERT_REQUEST_EVENT: MISSION_ADD_REQUEST_EVENT,
-  MISSION_UPSERT_RESPONSE_EVENT: MISSION_ADD_RESPONSE_EVENT
+  MISSION_UPSERT_RESPONSE_EVENT: MISSION_ADD_RESPONSE_EVENT,
 } = require('../src/model/mission-upsert');
 const {
   MISSION_UPSERT_ALIAS_REQUEST_EVENT,
-  MISSION_UPSERT_ALIAS_RESPONSE_EVENT
+  MISSION_UPSERT_ALIAS_RESPONSE_EVENT,
 } = require('../src/model/mission-upsert');
 const {
   CELESTIAL_BODY_UPSERT_REQUEST_EVENT,
-  CELESTIAL_BODY_UPSERT_RESPONSE_EVENT
+  CELESTIAL_BODY_UPSERT_RESPONSE_EVENT,
 } = require('../src/model/celestial-body-upsert');
 const {
   CELESTIAL_BODY_LIST_REQUEST_EVENT,
-  CELESTIAL_BODY_LIST_RESPONSE_EVENT
+  CELESTIAL_BODY_LIST_RESPONSE_EVENT,
 } = require('../src/model/celestial-body-list');
 const {
   MISSION_LIST_REQUEST_EVENT,
-  MISSION_LIST_RESPONSE_EVENT
+  MISSION_LIST_RESPONSE_EVENT,
 } = require('../src/model/mission-list');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   MARKET_LIST_REQUEST_EVENT,
-  MARKET_LIST_RESPONSE_EVENT
+  MARKET_LIST_RESPONSE_EVENT,
 } = require('../src/model/market-list');
 const {
   MARKET_LIST_BY_LOCATION_REQUEST_EVENT,
-  MARKET_LIST_BY_LOCATION_RESPONSE_EVENT
+  MARKET_LIST_BY_LOCATION_RESPONSE_EVENT,
 } = require('../src/model/market-list-by-location');
 const {
   MARKET_QUOTE_REQUEST_EVENT,
-  MARKET_QUOTE_RESPONSE_EVENT
+  MARKET_QUOTE_RESPONSE_EVENT,
 } = require('../src/model/market-quote');
 const {
   MARKET_INVENTORY_LIST_REQUEST_EVENT,
-  MARKET_INVENTORY_LIST_RESPONSE_EVENT
+  MARKET_INVENTORY_LIST_RESPONSE_EVENT,
 } = require('../src/model/market-inventory-list');
 const {
   MARKET_LEDGER_LIST_REQUEST_EVENT,
-  MARKET_LEDGER_LIST_RESPONSE_EVENT
+  MARKET_LEDGER_LIST_RESPONSE_EVENT,
 } = require('../src/model/market-ledger-list');
-const {
-  MARKET_BUY_REQUEST_EVENT,
-  MARKET_BUY_RESPONSE_EVENT
-} = require('../src/model/market-buy');
+const { MARKET_BUY_REQUEST_EVENT, MARKET_BUY_RESPONSE_EVENT } = require('../src/model/market-buy');
 const {
   MARKET_SELL_REQUEST_EVENT,
-  MARKET_SELL_RESPONSE_EVENT
+  MARKET_SELL_RESPONSE_EVENT,
 } = require('../src/model/market-sell');
 
 async function getAvailablePort() {
@@ -236,7 +215,7 @@ test('mission upsert alias request emits alias response event', async () => {
     client.emit(CHARACTER_ADD_REQUEST_EVENT, {
       playerName: 'AliasPilot',
       sessionKey: loginResponse.sessionKey,
-      characterName: 'AliasCharacter'
+      characterName: 'AliasCharacter',
     });
     const addCharacter = await addCharacterPromise;
     assert.equal(addCharacter.success, true);
@@ -247,7 +226,7 @@ test('mission upsert alias request emits alias response event', async () => {
       characterId: addCharacter.characterId,
       missionId: 'first-target',
       status: 'started',
-      sessionKey: loginResponse.sessionKey
+      sessionKey: loginResponse.sessionKey,
     });
 
     const aliasResponse = await aliasResponsePromise;
@@ -271,7 +250,7 @@ test('register returns success and playerId for a unique playerName', async () =
   client.emit(REGISTER_EVENT, {
     playerName: 'CaptainPixel',
     email: 'captain@example.com',
-    password: 'super-secret'
+    password: 'super-secret',
   });
 
   const response = await responsePromise;
@@ -303,7 +282,7 @@ test('market list and market quote return responses for a valid session', async 
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'MarketSocketPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'TraderOne'
+    characterName: 'TraderOne',
   });
   const addCharacter = await addCharacterPromise;
   assert.equal(addCharacter.success, true);
@@ -312,7 +291,7 @@ test('market list and market quote return responses for a valid session', async 
   client.emit(MARKET_LIST_REQUEST_EVENT, {
     playerName: 'MarketSocketPilot',
     sessionKey: loginResponse.sessionKey,
-    solarSystemId: 'sol'
+    solarSystemId: 'sol',
   });
   const marketList = await marketListPromise;
 
@@ -330,7 +309,7 @@ test('market list and market quote return responses for a valid session', async 
     solarSystemId: marketList.markets[0].solarSystemId,
     itemId: 'iron',
     direction: 'buy',
-    quantity: 3
+    quantity: 3,
   });
   const marketQuote = await marketQuotePromise;
 
@@ -366,7 +345,7 @@ test('market list by location returns response for valid session', async () => {
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'MarketRangePilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'RangeTrader'
+    characterName: 'RangeTrader',
   });
   const addCharacter = await addCharacterPromise;
   assert.equal(addCharacter.success, true);
@@ -379,7 +358,7 @@ test('market list by location returns response for valid session', async () => {
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
     distanceAu: 10,
-    limit: 3
+    limit: 3,
   });
   const response = await responsePromise;
 
@@ -405,7 +384,7 @@ test('register rejects duplicate playerName', async () => {
   firstClient.emit(REGISTER_EVENT, {
     playerName: 'ShadowRider',
     email: 'first@example.com',
-    password: 'secret-1'
+    password: 'secret-1',
   });
 
   const firstResponse = await firstResponsePromise;
@@ -418,7 +397,7 @@ test('register rejects duplicate playerName', async () => {
   secondClient.emit(REGISTER_EVENT, {
     playerName: 'shadowrider',
     email: 'second@example.com',
-    password: 'secret-2'
+    password: 'secret-2',
   });
 
   const secondResponse = await secondResponsePromise;
@@ -443,7 +422,7 @@ test('register rejects payload missing required fields', async () => {
   client.emit(REGISTER_EVENT, {
     playerName: '   ',
     email: 'mail@example.com',
-    password: 'x'
+    password: 'x',
   });
 
   const response = await responsePromise;
@@ -467,7 +446,7 @@ test('login returns success for registered player with matching password', async
   client.emit(REGISTER_EVENT, {
     playerName: 'OrbitFox',
     email: 'orbit@example.com',
-    password: 'safe-pass'
+    password: 'safe-pass',
   });
   const registerResponse = await registerResponsePromise;
   assert.equal(registerResponse.success, true);
@@ -475,7 +454,7 @@ test('login returns success for registered player with matching password', async
   const loginResponsePromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
   client.emit(LOGIN_EVENT, {
     playerName: 'orbitfox',
-    password: 'safe-pass'
+    password: 'safe-pass',
   });
 
   const loginResponse = await loginResponsePromise;
@@ -502,7 +481,7 @@ test('login generates a new session key on each successful login', async () => {
   client.emit(REGISTER_EVENT, {
     playerName: 'SessionPilot',
     email: 'session@example.com',
-    password: 'session-pass'
+    password: 'session-pass',
   });
   const registerResponse = await registerResponsePromise;
   assert.equal(registerResponse.success, true);
@@ -510,7 +489,7 @@ test('login generates a new session key on each successful login', async () => {
   const firstLoginPromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
   client.emit(LOGIN_EVENT, {
     playerName: 'SessionPilot',
-    password: 'session-pass'
+    password: 'session-pass',
   });
   const firstLogin = await firstLoginPromise;
   assert.equal(firstLogin.success, true);
@@ -518,7 +497,7 @@ test('login generates a new session key on each successful login', async () => {
   const secondLoginPromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
   client.emit(LOGIN_EVENT, {
     playerName: 'SessionPilot',
-    password: 'session-pass'
+    password: 'session-pass',
   });
   const secondLogin = await secondLoginPromise;
   assert.equal(secondLogin.success, true);
@@ -539,16 +518,13 @@ test('login rejects playerName that is not registered', async () => {
   const loginResponsePromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
   client.emit(LOGIN_EVENT, {
     playerName: 'NoSuchPilot',
-    password: 'whatever'
+    password: 'whatever',
   });
 
   const loginResponse = await loginResponsePromise;
   assert.equal(loginResponse.success, false);
   assert.equal(loginResponse.message, 'Player is not registered');
-  assert.equal(
-    loginResponse.reason,
-    LOGIN_FAILURE_REASONS.PLAYER_NOT_REGISTERED
-  );
+  assert.equal(loginResponse.reason, LOGIN_FAILURE_REASONS.PLAYER_NOT_REGISTERED);
   assert.equal(loginResponse.playerId, undefined);
 
   await closeClient(client);
@@ -567,7 +543,7 @@ test('login rejects password mismatch for registered player', async () => {
   client.emit(REGISTER_EVENT, {
     playerName: 'NovaWing',
     email: 'nova@example.com',
-    password: 'correct-password'
+    password: 'correct-password',
   });
   const registerResponse = await registerResponsePromise;
   assert.equal(registerResponse.success, true);
@@ -575,7 +551,7 @@ test('login rejects password mismatch for registered player', async () => {
   const loginResponsePromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
   client.emit(LOGIN_EVENT, {
     playerName: 'novawing',
-    password: 'wrong-password'
+    password: 'wrong-password',
   });
 
   const loginResponse = await loginResponsePromise;
@@ -599,7 +575,7 @@ test('login rejects payload missing required fields with UNKNOWN reason', async 
   const loginResponsePromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
   client.emit(LOGIN_EVENT, {
     playerName: '   ',
-    password: ''
+    password: '',
   });
 
   const loginResponse = await loginResponsePromise;
@@ -630,7 +606,7 @@ test('character list returns per-player list for registered player', async () =>
   const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'characterpilot',
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
 
   const listResponse = await listResponsePromise;
@@ -654,7 +630,7 @@ test('character list rejects playerName that is not registered', async () => {
   const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'UnknownPilot',
-    sessionKey: 'invalid-session-key'
+    sessionKey: 'invalid-session-key',
   });
 
   const invalidSession = await invalidSessionPromise;
@@ -683,7 +659,7 @@ test('character add adds character and is returned by character list', async () 
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'builderpilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'RangerOne'
+    characterName: 'RangerOne',
   });
 
   const addResponse = await addResponsePromise;
@@ -697,7 +673,7 @@ test('character add adds character and is returned by character list', async () 
   const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'BuilderPilot',
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
 
   const listResponse = await listResponsePromise;
@@ -735,7 +711,7 @@ test('ship list returns ships for a character', async () => {
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'ShipPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'RangerOne'
+    characterName: 'RangerOne',
   });
   const addResponse = await addResponsePromise;
   assert.equal(addResponse.success, true);
@@ -744,7 +720,7 @@ test('ship list returns ships for a character', async () => {
   client.emit(SHIP_LIST_REQUEST_EVENT, {
     playerName: 'shippilot',
     characterId: addResponse.characterId,
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
   const shipListResponse = await shipListResponsePromise;
 
@@ -765,7 +741,7 @@ test('ship list returns ships for a character', async () => {
       damageStatus: 'intact',
       container: {
         containerType: 'ship',
-        containerId: `${addResponse.characterId}-ship-1`
+        containerId: `${addResponse.characterId}-ship-1`,
       },
       owningPlayerId: loginResponse.playerId,
       owningCharacterId: addResponse.characterId,
@@ -775,8 +751,8 @@ test('ship list returns ships for a character', async () => {
       destroyedAt: null,
       destroyedReason: null,
       launchable: true,
-      quantity: 1
-    }
+      quantity: 1,
+    },
   ]);
 
   await closeClient(client);
@@ -802,7 +778,7 @@ test('ship upsert updates ship location and kinematics', async () => {
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'ShipUpsertPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'RangerOne'
+    characterName: 'RangerOne',
   });
   const addResponse = await addResponsePromise;
   assert.equal(addResponse.success, true);
@@ -811,7 +787,7 @@ test('ship upsert updates ship location and kinematics', async () => {
   client.emit(SHIP_LIST_REQUEST_EVENT, {
     playerName: 'ShipUpsertPilot',
     characterId: addResponse.characterId,
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
   const listResponse = await listResponsePromise;
   assert.equal(listResponse.success, true);
@@ -828,12 +804,12 @@ test('ship upsert updates ship location and kinematics', async () => {
         solarSystemId: 'system-sol',
         frame: 'barycentric',
         positionKm: { x: 100.5, y: 200.3, z: 50.1 },
-        epochMs: 1713607200000
+        epochMs: 1713607200000,
       },
       motion: {
-        velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 }
-      }
-    }
+        velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 },
+      },
+    },
   });
 
   const upsertResponse = await upsertResponsePromise;
@@ -847,27 +823,30 @@ test('ship upsert updates ship location and kinematics', async () => {
     solarSystemId: 'system-sol',
     frame: 'barycentric',
     positionKm: { x: 100.5, y: 200.3, z: 50.1 },
-    epochMs: 1713607200000
+    epochMs: 1713607200000,
   });
 
   const shipListAfterUpsertPromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
   client.emit(SHIP_LIST_REQUEST_EVENT, {
     playerName: 'ShipUpsertPilot',
     characterId: addResponse.characterId,
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
   const shipListAfterUpsert = await shipListAfterUpsertPromise;
 
   assert.equal(shipListAfterUpsert.success, true);
-  assert.equal(shipListAfterUpsert.ships[0].inventory[0].id, `${addResponse.characterId}-ship-1-item-1`);
+  assert.equal(
+    shipListAfterUpsert.ships[0].inventory[0].id,
+    `${addResponse.characterId}-ship-1-item-1`
+  );
   assert.deepEqual(shipListAfterUpsert.ships[0].spatial, {
     solarSystemId: 'system-sol',
     frame: 'barycentric',
     positionKm: { x: 100.5, y: 200.3, z: 50.1 },
-    epochMs: 1713607200000
+    epochMs: 1713607200000,
   });
   assert.deepEqual(shipListAfterUpsert.ships[0].motion, {
-    velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 }
+    velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 },
   });
 
   await closeClient(client);
@@ -893,7 +872,7 @@ test('ship upsert emits invalid session for wrong session key', async () => {
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'ShipUpsertSessionPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'RangerOne'
+    characterName: 'RangerOne',
   });
   const addResponse = await addResponsePromise;
   assert.equal(addResponse.success, true);
@@ -902,7 +881,7 @@ test('ship upsert emits invalid session for wrong session key', async () => {
   client.emit(SHIP_LIST_REQUEST_EVENT, {
     playerName: 'ShipUpsertSessionPilot',
     characterId: addResponse.characterId,
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
   const listResponse = await listResponsePromise;
   assert.equal(listResponse.success, true);
@@ -918,9 +897,9 @@ test('ship upsert emits invalid session for wrong session key', async () => {
         solarSystemId: 'sol',
         frame: 'barycentric',
         positionKm: { x: 10, y: 20, z: 30 },
-        epochMs: 0
-      }
-    }
+        epochMs: 0,
+      },
+    },
   });
   const invalidSession = await invalidSessionPromise;
 
@@ -949,7 +928,7 @@ test('mission add stores mission progress and mission list returns it', async ()
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'MissionSocketPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'RangerOne'
+    characterName: 'RangerOne',
   });
   const addCharacter = await addCharacterPromise;
   assert.equal(addCharacter.success, true);
@@ -960,7 +939,7 @@ test('mission add stores mission progress and mission list returns it', async ()
     characterId: addCharacter.characterId,
     missionId: 'first-target',
     status: 'started',
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
   const addMission = await addMissionPromise;
 
@@ -976,7 +955,7 @@ test('mission add stores mission progress and mission list returns it', async ()
     playerName: 'MissionSocketPilot',
     characterId: addCharacter.characterId,
     statuses: ['started'],
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
   const listMissions = await listMissionsPromise;
 
@@ -1011,7 +990,7 @@ test('mission list emits invalid session for wrong session key', async () => {
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'MissionSessionPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'RangerOne'
+    characterName: 'RangerOne',
   });
   const addCharacter = await addCharacterPromise;
   assert.equal(addCharacter.success, true);
@@ -1020,7 +999,7 @@ test('mission list emits invalid session for wrong session key', async () => {
   client.emit(MISSION_LIST_REQUEST_EVENT, {
     playerName: 'MissionSessionPilot',
     characterId: addCharacter.characterId,
-    sessionKey: 'wrong-session-key'
+    sessionKey: 'wrong-session-key',
   });
   const invalidSession = await invalidSessionPromise;
   assert.equal(invalidSession.message, INVALID_SESSION_MESSAGE);
@@ -1048,7 +1027,7 @@ test('ship list handles character missing from player list', async () => {
   client.emit(SHIP_LIST_REQUEST_EVENT, {
     playerName: 'EdgeShipPilot',
     characterId: 'missing-character-id',
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
   const shipListResponse = await shipListResponsePromise;
 
@@ -1081,7 +1060,7 @@ test('ship list emits invalid session for wrong session key', async () => {
   client.emit(SHIP_LIST_REQUEST_EVENT, {
     playerName: 'SessionShipPilot',
     characterId: 'any-id',
-    sessionKey: 'wrong-session-key'
+    sessionKey: 'wrong-session-key',
   });
   const invalidSession = await invalidSessionPromise;
 
@@ -1103,7 +1082,7 @@ test('character add rejects request for unregistered player', async () => {
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'MissingPilot',
     sessionKey: 'invalid-session-key',
-    characterName: 'GhostUnit'
+    characterName: 'GhostUnit',
   });
 
   const invalidSession = await invalidSessionPromise;
@@ -1132,19 +1111,16 @@ test('character delete removes character from player list', async () => {
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'DeletePilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'TempCharacter'
+    characterName: 'TempCharacter',
   });
   const addResponse = await addResponsePromise;
   assert.equal(addResponse.success, true);
 
-  const deleteResponsePromise = waitForEvent(
-    client,
-    CHARACTER_DELETE_RESPONSE_EVENT
-  );
+  const deleteResponsePromise = waitForEvent(client, CHARACTER_DELETE_RESPONSE_EVENT);
   client.emit(CHARACTER_DELETE_REQUEST_EVENT, {
     playerName: 'deletepilot',
     sessionKey: loginResponse.sessionKey,
-    characterId: addResponse.characterId
+    characterId: addResponse.characterId,
   });
 
   const deleteResponse = await deleteResponsePromise;
@@ -1156,7 +1132,7 @@ test('character delete removes character from player list', async () => {
   const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'DeletePilot',
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
 
   const listResponse = await listResponsePromise;
@@ -1182,14 +1158,11 @@ test('character delete handles character not found for player', async () => {
     'edge-pass'
   );
 
-  const deleteResponsePromise = waitForEvent(
-    client,
-    CHARACTER_DELETE_RESPONSE_EVENT
-  );
+  const deleteResponsePromise = waitForEvent(client, CHARACTER_DELETE_RESPONSE_EVENT);
   client.emit(CHARACTER_DELETE_REQUEST_EVENT, {
     playerName: 'EdgePilot',
     sessionKey: loginResponse.sessionKey,
-    characterId: 'missing-character-id'
+    characterId: 'missing-character-id',
   });
 
   const deleteResponse = await deleteResponsePromise;
@@ -1201,7 +1174,7 @@ test('character delete handles character not found for player', async () => {
   const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'EdgePilot',
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
 
   const listResponse = await listResponsePromise;
@@ -1220,14 +1193,11 @@ test('character delete rejects request for unregistered player', async () => {
   const client = connectClient(port);
   await waitForEvent(client, 'connect');
 
-  const invalidSessionPromise = waitForEvent(
-    client,
-    INVALID_SESSION_EVENT
-  );
+  const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
   client.emit(CHARACTER_DELETE_REQUEST_EVENT, {
     playerName: 'UnknownDeletePilot',
     sessionKey: 'invalid-session-key',
-    characterId: 'any-id'
+    characterId: 'any-id',
   });
 
   const invalidSession = await invalidSessionPromise;
@@ -1250,7 +1220,7 @@ test('character list emits invalid session event when session key does not match
   const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'SessionMismatchPilot',
-    sessionKey: 'wrong-session-key'
+    sessionKey: 'wrong-session-key',
   });
 
   const invalidSession = await invalidSessionPromise;
@@ -1279,7 +1249,7 @@ test('character edit updates character name in player list', async () => {
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'EditPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'OldName'
+    characterName: 'OldName',
   });
   const addResponse = await addResponsePromise;
   assert.equal(addResponse.success, true);
@@ -1289,7 +1259,7 @@ test('character edit updates character name in player list', async () => {
     playerName: 'editpilot',
     sessionKey: loginResponse.sessionKey,
     characterId: addResponse.characterId,
-    characterName: 'NewName'
+    characterName: 'NewName',
   });
 
   const editResponse = await editResponsePromise;
@@ -1302,7 +1272,7 @@ test('character edit updates character name in player list', async () => {
   const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'EditPilot',
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
 
   const listResponse = await listResponsePromise;
@@ -1335,7 +1305,7 @@ test('character edit handles character not found for player', async () => {
     playerName: 'EdgeEditPilot',
     sessionKey: loginResponse.sessionKey,
     characterId: 'missing-character-id',
-    characterName: 'GhostName'
+    characterName: 'GhostName',
   });
 
   const editResponse = await editResponsePromise;
@@ -1347,7 +1317,7 @@ test('character edit handles character not found for player', async () => {
   const listResponsePromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'EdgeEditPilot',
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
 
   const listResponse = await listResponsePromise;
@@ -1366,14 +1336,19 @@ test('character edit emits invalid session for wrong session key', async () => {
   const client = connectClient(port);
   await waitForEvent(client, 'connect');
 
-  await registerAndLogin(client, 'SessionEditPilot', 'session-edit@example.com', 'session-edit-pass');
+  await registerAndLogin(
+    client,
+    'SessionEditPilot',
+    'session-edit@example.com',
+    'session-edit-pass'
+  );
 
   const invalidSessionPromise = waitForEvent(client, INVALID_SESSION_EVENT);
   client.emit(CHARACTER_EDIT_REQUEST_EVENT, {
     playerName: 'SessionEditPilot',
     sessionKey: 'wrong-session-key',
     characterId: 'any-id',
-    characterName: 'NewName'
+    characterName: 'NewName',
   });
 
   const invalidSession = await invalidSessionPromise;
@@ -1402,7 +1377,7 @@ test('game join marks a character as joined in the player character list', async
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'JoinPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'RangerOne'
+    characterName: 'RangerOne',
   });
   const addResponse = await addResponsePromise;
   assert.equal(addResponse.success, true);
@@ -1411,7 +1386,7 @@ test('game join marks a character as joined in the player character list', async
   client.emit(GAME_JOIN_REQUEST_EVENT, {
     playerName: 'joinpilot',
     sessionKey: loginResponse.sessionKey,
-    characterId: addResponse.characterId
+    characterId: addResponse.characterId,
   });
   const gameJoinResponse = await gameJoinResponsePromise;
   assert.equal(gameJoinResponse.success, true);
@@ -1422,7 +1397,7 @@ test('game join marks a character as joined in the player character list', async
   const firstListPromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'JoinPilot',
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
   const firstList = await firstListPromise;
   assert.equal(firstList.success, true);
@@ -1434,7 +1409,7 @@ test('game join marks a character as joined in the player character list', async
   const secondListPromise = waitForEvent(client, CHARACTER_LIST_RESPONSE_EVENT);
   client.emit(CHARACTER_LIST_REQUEST_EVENT, {
     playerName: 'JoinPilot',
-    sessionKey: loginResponse.sessionKey
+    sessionKey: loginResponse.sessionKey,
   });
   const secondList = await secondListPromise;
   assert.equal(secondList.success, true);
@@ -1467,7 +1442,7 @@ test('game join handles character missing from player list', async () => {
   client.emit(GAME_JOIN_REQUEST_EVENT, {
     playerName: 'EdgeJoinPilot',
     sessionKey: loginResponse.sessionKey,
-    characterId: 'missing-character-id'
+    characterId: 'missing-character-id',
   });
 
   const gameJoinResponse = await gameJoinResponsePromise;
@@ -1499,7 +1474,7 @@ test('game join emits invalid session for wrong session key', async () => {
   client.emit(GAME_JOIN_REQUEST_EVENT, {
     playerName: 'SessionJoinPilot',
     sessionKey: 'wrong-session-key',
-    characterId: 'any-id'
+    characterId: 'any-id',
   });
 
   const invalidSession = await invalidSessionPromise;
@@ -1528,22 +1503,19 @@ test('celestial body upsert stores a scanned celestial body and returns the wrap
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'ScannerPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'ProbeOne'
+    characterName: 'ProbeOne',
   });
   const characterAddResponse = await characterAddPromise;
   assert.equal(characterAddResponse.success, true);
 
-  const celestialBodyUpsertPromise = waitForEvent(
-    client,
-    CELESTIAL_BODY_UPSERT_RESPONSE_EVENT
-  );
+  const celestialBodyUpsertPromise = waitForEvent(client, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
   client.emit(CELESTIAL_BODY_UPSERT_REQUEST_EVENT, {
     playerName: 'ScannerPilot',
     sessionKey: loginResponse.sessionKey,
     celestialBody: createCelestialBody({
       id: 'cb-1',
-      createdByCharacterId: characterAddResponse.characterId
-    })
+      createdByCharacterId: characterAddResponse.characterId,
+    }),
   });
 
   const celestialBodyResponse = await celestialBodyUpsertPromise;
@@ -1580,7 +1552,7 @@ test('celestial body upsert emits invalid session for wrong session key', async 
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'ScannerSessionPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'ProbeTwo'
+    characterName: 'ProbeTwo',
   });
   const characterAddResponse = await characterAddPromise;
   assert.equal(characterAddResponse.success, true);
@@ -1593,8 +1565,8 @@ test('celestial body upsert emits invalid session for wrong session key', async 
       id: 'cb-2',
       catalogId: 'CAT-002',
       sourceScanId: 'scan-2',
-      createdByCharacterId: characterAddResponse.characterId
-    })
+      createdByCharacterId: characterAddResponse.characterId,
+    }),
   });
 
   const invalidSession = await invalidSessionPromise;
@@ -1623,7 +1595,7 @@ test('celestial body list returns sorted bodies filtered by spherical distance a
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'ScannerListPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'ProbeThree'
+    characterName: 'ProbeThree',
   });
   const characterAddResponse = await characterAddPromise;
   assert.equal(characterAddResponse.success, true);
@@ -1633,20 +1605,35 @@ test('celestial body list returns sorted bodies filtered by spherical distance a
       id: 'cb-list-near',
       sourceScanId: 'scan-near',
       createdByCharacterId: characterAddResponse.characterId,
-      spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 3, y: 4, z: 0 }, epochMs: 1713360000000 }
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 3, y: 4, z: 0 },
+        epochMs: 1713360000000,
+      },
     }),
     createCelestialBody({
       id: 'cb-list-mid',
       sourceScanId: 'scan-mid',
       createdByCharacterId: characterAddResponse.characterId,
-      spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 6, z: 8 }, epochMs: 1713360000000 }
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 0, y: 6, z: 8 },
+        epochMs: 1713360000000,
+      },
     }),
     createCelestialBody({
       id: 'cb-list-far',
       sourceScanId: 'scan-far',
       createdByCharacterId: characterAddResponse.characterId,
-      spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 100, y: 0, z: 0 }, epochMs: 1713360000000 }
-    })
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 100, y: 0, z: 0 },
+        epochMs: 1713360000000,
+      },
+    }),
   ];
 
   for (const celestialBody of celestialBodiesToCreate) {
@@ -1654,7 +1641,7 @@ test('celestial body list returns sorted bodies filtered by spherical distance a
     client.emit(CELESTIAL_BODY_UPSERT_REQUEST_EVENT, {
       playerName: 'ScannerListPilot',
       sessionKey: loginResponse.sessionKey,
-      celestialBody
+      celestialBody,
     });
     const upsertResponse = await upsertPromise;
     assert.equal(upsertResponse.success, true);
@@ -1667,7 +1654,7 @@ test('celestial body list returns sorted bodies filtered by spherical distance a
     solarSystemId: 'sol',
     positionKm: { x: 0, y: 0, z: 0 },
     distanceKm: 10,
-    limit: 2
+    limit: 2,
   });
 
   const listResponse = await listResponsePromise;
@@ -1702,7 +1689,7 @@ test('market inventory, buy, sell, and market ledger list flow works end-to-end'
   client.emit(CHARACTER_ADD_REQUEST_EVENT, {
     playerName: 'MarketFlowPilot',
     sessionKey: loginResponse.sessionKey,
-    characterName: 'TraderCore'
+    characterName: 'TraderCore',
   });
   const addCharacter = await addCharacterPromise;
   assert.equal(addCharacter.success, true);
@@ -1714,7 +1701,7 @@ test('market inventory, buy, sell, and market ledger list flow works end-to-end'
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     offset: 0,
-    limit: 10
+    limit: 10,
   });
   const inventoryResponse = await inventoryPromise;
   assert.equal(inventoryResponse.success, true);
@@ -1729,7 +1716,7 @@ test('market inventory, buy, sell, and market ledger list flow works end-to-end'
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 2
+    quantity: 2,
   });
   const buyResponse = await buyPromise;
   assert.equal(buyResponse.success, true);
@@ -1744,7 +1731,7 @@ test('market inventory, buy, sell, and market ledger list flow works end-to-end'
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     itemId: 'iron',
-    quantity: 1
+    quantity: 1,
   });
   const sellResponse = await sellPromise;
   assert.equal(sellResponse.success, true);
@@ -1757,7 +1744,7 @@ test('market inventory, buy, sell, and market ledger list flow works end-to-end'
     marketId: 'sol-ceres-exchange',
     solarSystemId: 'sol',
     characterId: addCharacter.characterId,
-    itemId: 'iron'
+    itemId: 'iron',
   });
   const ledgerResponse = await ledgerPromise;
 

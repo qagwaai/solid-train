@@ -2,21 +2,14 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  ShipUpsertMessageHandler
-} = require('../src/handlers/ship-upsert-message-handler');
-const {
-  SHIP_UPSERT_RESPONSE_EVENT
-} = require('../src/model/ship-upsert');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { ShipUpsertMessageHandler } = require('../src/handlers/ship-upsert-message-handler');
+const { SHIP_UPSERT_RESPONSE_EVENT } = require('../src/model/ship-upsert');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
   seedItems,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 function createShipUpdate(overrides = {}) {
@@ -26,12 +19,12 @@ function createShipUpdate(overrides = {}) {
       solarSystemId: 'system-sol',
       frame: 'barycentric',
       positionKm: { x: 100.5, y: 200.3, z: 50.1 },
-      epochMs: 1713607200000
+      epochMs: 1713607200000,
     },
     motion: {
-      velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 }
+      velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 },
     },
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -46,7 +39,7 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
       damageStatus: 'intact',
       container: {
         containerType: 'ship',
-        containerId: 'ship-1'
+        containerId: 'ship-1',
       },
       owningPlayerId: 'player-seeded',
       owningCharacterId: 'character-1',
@@ -54,8 +47,8 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
       createdAt: '2026-04-17T00:00:00.000Z',
       updatedAt: '2026-04-17T00:00:00.000Z',
       destroyedAt: null,
-      destroyedReason: null
-    }
+      destroyedReason: null,
+    },
   ]);
   seedPlayer(context, {
     playerName: 'ShipPilot',
@@ -72,19 +65,19 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
               solarSystemId: 'sol',
               frame: 'barycentric',
               positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0
+              epochMs: 0,
             },
             inventory: [
               {
                 itemId: 'item-1',
-                itemType: 'expendable-dart-drone'
-              }
+                itemType: 'expendable-dart-drone',
+              },
             ],
-            createdAt: '2026-04-17T00:00:00.000Z'
-          }
-        ]
-      }
-    ]
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipUpsertMessageHandler(context);
@@ -94,7 +87,7 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
     playerName: 'shippilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    ship: createShipUpdate()
+    ship: createShipUpdate(),
   });
 
   assert.equal(response.success, true);
@@ -106,10 +99,10 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
     solarSystemId: 'system-sol',
     frame: 'barycentric',
     positionKm: { x: 100.5, y: 200.3, z: 50.1 },
-    epochMs: 1713607200000
+    epochMs: 1713607200000,
   });
   assert.deepEqual(response.ship.motion, {
-    velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 }
+    velocityKmPerSec: { x: 0.5, y: -0.2, z: 0.1 },
   });
   assert.deepEqual(response.ship.inventory, [
     {
@@ -120,7 +113,7 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
       damageStatus: 'intact',
       container: {
         containerType: 'ship',
-        containerId: 'ship-1'
+        containerId: 'ship-1',
       },
       owningPlayerId: 'player-seeded',
       owningCharacterId: 'character-1',
@@ -130,8 +123,8 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
       destroyedAt: null,
       destroyedReason: null,
       launchable: true,
-      quantity: 1
-    }
+      quantity: 1,
+    },
   ]);
   assert.equal(response.ship.inventory[0].id, 'item-1');
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
@@ -146,9 +139,21 @@ test('ShipUpsertMessageHandler rejects missing location and kinematics update', 
       {
         id: 'character-1',
         characterName: 'RangerOne',
-        ships: [{ id: 'ship-1', shipName: 'Scout Ship', createdAt: '2026-04-17T00:00:00.000Z', spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 } }]
-      }
-    ]
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            createdAt: '2026-04-17T00:00:00.000Z',
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipUpsertMessageHandler(context);
@@ -158,11 +163,14 @@ test('ShipUpsertMessageHandler rejects missing location and kinematics update', 
     playerName: 'ShipPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    ship: { id: 'ship-1' }
+    ship: { id: 'ship-1' },
   });
 
   assert.equal(response.success, false);
-  assert.equal(response.message, 'ship.spatial, ship.motion, ship.model, and/or ship.tier is required');
+  assert.equal(
+    response.message,
+    'ship.spatial, ship.motion, ship.model, and/or ship.tier is required'
+  );
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });
 
@@ -175,9 +183,21 @@ test('ShipUpsertMessageHandler emits invalid session before mutation', async () 
       {
         id: 'character-1',
         characterName: 'RangerOne',
-        ships: [{ id: 'ship-1', shipName: 'Scout Ship', createdAt: '2026-04-17T00:00:00.000Z', spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 } }]
-      }
-    ]
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            createdAt: '2026-04-17T00:00:00.000Z',
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipUpsertMessageHandler(context);
@@ -187,7 +207,7 @@ test('ShipUpsertMessageHandler emits invalid session before mutation', async () 
     playerName: 'SessionPilot',
     characterId: 'character-1',
     sessionKey: 'wrong-session',
-    ship: createShipUpdate()
+    ship: createShipUpdate(),
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
@@ -205,7 +225,7 @@ test('ShipUpsertMessageHandler updates ship model and tier', async () => {
       damageStatus: 'intact',
       container: {
         containerType: 'ship',
-        containerId: 'ship-1'
+        containerId: 'ship-1',
       },
       owningPlayerId: 'player-seeded',
       owningCharacterId: 'character-1',
@@ -213,8 +233,8 @@ test('ShipUpsertMessageHandler updates ship model and tier', async () => {
       createdAt: '2026-04-17T00:00:00.000Z',
       updatedAt: '2026-04-17T00:00:00.000Z',
       destroyedAt: null,
-      destroyedReason: null
-    }
+      destroyedReason: null,
+    },
   ]);
   seedPlayer(context, {
     playerName: 'ShipPilot',
@@ -233,19 +253,19 @@ test('ShipUpsertMessageHandler updates ship model and tier', async () => {
               solarSystemId: 'sol',
               frame: 'barycentric',
               positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0
+              epochMs: 0,
             },
             inventory: [
               {
                 itemId: 'item-1',
-                itemType: 'expendable-dart-drone'
-              }
+                itemType: 'expendable-dart-drone',
+              },
             ],
-            createdAt: '2026-04-17T00:00:00.000Z'
-          }
-        ]
-      }
-    ]
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipUpsertMessageHandler(context);
@@ -255,7 +275,7 @@ test('ShipUpsertMessageHandler updates ship model and tier', async () => {
     playerName: 'shippilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    ship: { id: 'ship-1', model: 'Reaver Hauler', tier: 2 }
+    ship: { id: 'ship-1', model: 'Reaver Hauler', tier: 2 },
   });
 
   assert.equal(response.success, true);
@@ -278,10 +298,10 @@ function createDamageProfile(overrides = {}) {
         label: 'Hull Integrity',
         severity: 'major',
         summary: 'Breach detected',
-        repairPriority: 1
-      }
+        repairPriority: 1,
+      },
     ],
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -301,13 +321,13 @@ function seedShipPlayer(context) {
               solarSystemId: 'sol',
               frame: 'barycentric',
               positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0
+              epochMs: 0,
             },
-            createdAt: '2026-04-17T00:00:00.000Z'
-          }
-        ]
-      }
-    ]
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
   });
 }
 
@@ -326,8 +346,8 @@ test('ShipUpsertMessageHandler persists status and damageProfile', async () => {
     ship: {
       id: 'ship-1',
       status: 'docked',
-      damageProfile: profile
-    }
+      damageProfile: profile,
+    },
   });
 
   assert.equal(response.success, true);
@@ -343,9 +363,9 @@ test('ShipUpsertMessageHandler persists status and damageProfile', async () => {
         label: 'Hull Integrity',
         severity: 'major',
         summary: 'Breach detected',
-        repairPriority: 1
-      }
-    ]
+        repairPriority: 1,
+      },
+    ],
   });
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });
@@ -362,7 +382,7 @@ test('ShipUpsertMessageHandler echoes persisted status and damageProfile in resp
     playerName: 'ShipPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    ship: { id: 'ship-1', status: 'in-flight', damageProfile: profile }
+    ship: { id: 'ship-1', status: 'in-flight', damageProfile: profile },
   });
 
   assert.equal(response.success, true);
@@ -386,13 +406,13 @@ test('ShipUpsertMessageHandler ship-list returns persisted status and damageProf
     playerName: 'ShipPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    ship: { id: 'ship-1', status: 'docked', damageProfile: profile }
+    ship: { id: 'ship-1', status: 'docked', damageProfile: profile },
   });
 
   const listResponse = await listHandler.handle(createMockSocket(), {
     playerName: 'ShipPilot',
     characterId: 'character-1',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   assert.equal(listResponse.success, true);
@@ -415,12 +435,17 @@ test('ShipUpsertMessageHandler partial upsert without damageProfile preserves ex
             shipName: 'Scout Ship',
             status: 'docked',
             damageProfile: createDamageProfile(),
-            spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 },
-            createdAt: '2026-04-17T00:00:00.000Z'
-          }
-        ]
-      }
-    ]
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipUpsertMessageHandler(context);
@@ -430,7 +455,7 @@ test('ShipUpsertMessageHandler partial upsert without damageProfile preserves ex
     playerName: 'ShipPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    ship: { id: 'ship-1', status: 'in-flight' }
+    ship: { id: 'ship-1', status: 'in-flight' },
   });
 
   assert.equal(response.success, true);
@@ -452,12 +477,17 @@ test('ShipUpsertMessageHandler explicit damageProfile null clears stored profile
             id: 'ship-1',
             shipName: 'Scout Ship',
             damageProfile: createDamageProfile(),
-            spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 },
-            createdAt: '2026-04-17T00:00:00.000Z'
-          }
-        ]
-      }
-    ]
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
   });
 
   const handler = new ShipUpsertMessageHandler(context);
@@ -467,7 +497,7 @@ test('ShipUpsertMessageHandler explicit damageProfile null clears stored profile
     playerName: 'ShipPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    ship: { id: 'ship-1', damageProfile: null }
+    ship: { id: 'ship-1', damageProfile: null },
   });
 
   assert.equal(response.success, true);
@@ -492,13 +522,16 @@ test('ShipUpsertMessageHandler rejects invalid damageProfile with success false'
         summary: 'bad data',
         origin: 'combat',
         updatedAt: '2026-04-28T10:00:00.000Z',
-        systems: []
-      }
-    }
+        systems: [],
+      },
+    },
   });
 
   assert.equal(response.success, false);
-  assert.ok(response.message.includes('overallStatus'), `Expected message about overallStatus, got: ${response.message}`);
+  assert.ok(
+    response.message.includes('overallStatus'),
+    `Expected message about overallStatus, got: ${response.message}`
+  );
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });
 
@@ -513,11 +546,14 @@ test('ShipUpsertMessageHandler rejects non-string status', async () => {
     playerName: 'ShipPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    ship: { id: 'ship-1', status: 42 }
+    ship: { id: 'ship-1', status: 42 },
   });
 
   assert.equal(response.success, false);
-  assert.ok(response.message.includes('status'), `Expected message about status, got: ${response.message}`);
+  assert.ok(
+    response.message.includes('status'),
+    `Expected message about status, got: ${response.message}`
+  );
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });
 
@@ -532,68 +568,67 @@ test('ShipUpsertMessageHandler status and damageProfile only update does not req
     playerName: 'ShipPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
-    ship: { id: 'ship-1', status: 'docked', damageProfile: createDamageProfile() }
+    ship: { id: 'ship-1', status: 'docked', damageProfile: createDamageProfile() },
   });
 
   assert.equal(response.success, true);
   assert.equal(response.ship.status, 'docked');
 });
 
-  test('ShipUpsertMessageHandler rejects legacy location field', async () => {
-    const context = createTestContext();
-    seedShipPlayer(context);
+test('ShipUpsertMessageHandler rejects legacy location field', async () => {
+  const context = createTestContext();
+  seedShipPlayer(context);
 
-    const handler = new ShipUpsertMessageHandler(context);
-    const socket = createMockSocket();
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
 
-    const response = await handler.handle(socket, {
-      playerName: 'ShipPilot',
-      characterId: 'character-1',
-      sessionKey: 'session-1',
-      ship: {
-        id: 'ship-1',
-        location: { positionKm: { x: 0, y: 0, z: 0 } }
-      }
-    });
-
-    assert.equal(response.success, false);
-    assert.ok(
-      response.message.includes('location'),
-      `Expected message about 'location', got: ${response.message}`
-    );
-    assert.ok(
-      response.message.includes('spatial'),
-      `Expected message to mention 'spatial', got: ${response.message}`
-    );
-    assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: {
+      id: 'ship-1',
+      location: { positionKm: { x: 0, y: 0, z: 0 } },
+    },
   });
 
-  test('ShipUpsertMessageHandler rejects legacy kinematics field', async () => {
-    const context = createTestContext();
-    seedShipPlayer(context);
+  assert.equal(response.success, false);
+  assert.ok(
+    response.message.includes('location'),
+    `Expected message about 'location', got: ${response.message}`
+  );
+  assert.ok(
+    response.message.includes('spatial'),
+    `Expected message to mention 'spatial', got: ${response.message}`
+  );
+  assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
+});
 
-    const handler = new ShipUpsertMessageHandler(context);
-    const socket = createMockSocket();
+test('ShipUpsertMessageHandler rejects legacy kinematics field', async () => {
+  const context = createTestContext();
+  seedShipPlayer(context);
 
-    const response = await handler.handle(socket, {
-      playerName: 'ShipPilot',
-      characterId: 'character-1',
-      sessionKey: 'session-1',
-      ship: {
-        id: 'ship-1',
-        kinematics: { velocityKmPerSec: { x: 1, y: 0, z: 0 } }
-      }
-    });
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
 
-    assert.equal(response.success, false);
-    assert.ok(
-      response.message.includes('kinematics'),
-      `Expected message about 'kinematics', got: ${response.message}`
-    );
-    assert.ok(
-      response.message.includes('motion'),
-      `Expected message to mention 'motion', got: ${response.message}`
-    );
-    assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: {
+      id: 'ship-1',
+      kinematics: { velocityKmPerSec: { x: 1, y: 0, z: 0 } },
+    },
   });
 
+  assert.equal(response.success, false);
+  assert.ok(
+    response.message.includes('kinematics'),
+    `Expected message about 'kinematics', got: ${response.message}`
+  );
+  assert.ok(
+    response.message.includes('motion'),
+    `Expected message to mention 'motion', got: ${response.message}`
+  );
+  assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
+});

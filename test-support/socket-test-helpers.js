@@ -3,14 +3,8 @@
 const http = require('node:http');
 const assert = require('node:assert/strict');
 const { io: createClient } = require('socket.io-client');
-const {
-  REGISTER_EVENT,
-  REGISTER_RESPONSE_EVENT
-} = require('../src/model/register');
-const {
-  LOGIN_EVENT,
-  LOGIN_RESPONSE_EVENT
-} = require('../src/model/login');
+const { REGISTER_EVENT, REGISTER_RESPONSE_EVENT } = require('../src/model/register');
+const { LOGIN_EVENT, LOGIN_RESPONSE_EVENT } = require('../src/model/login');
 
 function listen(server) {
   return new Promise((resolve, reject) => {
@@ -25,7 +19,7 @@ function connectClient(port) {
   return createClient(`http://127.0.0.1:${port}`, {
     transports: ['websocket'],
     forceNew: true,
-    reconnection: false
+    reconnection: false,
   });
 }
 
@@ -37,19 +31,21 @@ function waitForEvent(socket, eventName) {
 
 function httpGetJson(url) {
   return new Promise((resolve, reject) => {
-    http.get(url, (response) => {
-      let body = '';
-      response.setEncoding('utf8');
-      response.on('data', (chunk) => {
-        body += chunk;
-      });
-      response.on('end', () => {
-        resolve({
-          statusCode: response.statusCode,
-          body
+    http
+      .get(url, (response) => {
+        let body = '';
+        response.setEncoding('utf8');
+        response.on('data', (chunk) => {
+          body += chunk;
         });
-      });
-    }).on('error', reject);
+        response.on('end', () => {
+          resolve({
+            statusCode: response.statusCode,
+            body,
+          });
+        });
+      })
+      .on('error', reject);
   });
 }
 
@@ -69,7 +65,7 @@ async function registerAndLogin(client, playerName, email, password) {
   client.emit(REGISTER_EVENT, {
     playerName,
     email,
-    password
+    password,
   });
   const registerResponse = await registerResponsePromise;
   assert.equal(registerResponse.success, true);
@@ -77,7 +73,7 @@ async function registerAndLogin(client, playerName, email, password) {
   const loginResponsePromise = waitForEvent(client, LOGIN_RESPONSE_EVENT);
   client.emit(LOGIN_EVENT, {
     playerName,
-    password
+    password,
   });
   const loginResponse = await loginResponsePromise;
   assert.equal(loginResponse.success, true);
@@ -93,5 +89,5 @@ module.exports = {
   waitForEvent,
   httpGetJson,
   closeClient,
-  registerAndLogin
+  registerAndLogin,
 };

@@ -2,27 +2,20 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  MarketListMessageHandler
-} = require('../src/handlers/market-list-message-handler');
-const {
-  MARKET_LIST_RESPONSE_EVENT
-} = require('../src/model/market-list');
-const {
-  INVALID_SESSION_EVENT,
-  INVALID_SESSION_MESSAGE
-} = require('../src/model/session');
+const { MarketListMessageHandler } = require('../src/handlers/market-list-message-handler');
+const { MARKET_LIST_RESPONSE_EVENT } = require('../src/model/market-list');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
-  seedPlayer
+  seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
 test('MarketListMessageHandler returns markets for a solar system', async () => {
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MarketPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new MarketListMessageHandler(context);
   const socket = createMockSocket();
@@ -30,7 +23,7 @@ test('MarketListMessageHandler returns markets for a solar system', async () => 
   const response = await handler.handle(socket, {
     playerName: 'marketpilot',
     sessionKey: 'session-1',
-    solarSystemId: 'sol'
+    solarSystemId: 'sol',
   });
 
   assert.equal(response.success, true);
@@ -38,8 +31,8 @@ test('MarketListMessageHandler returns markets for a solar system', async () => 
   assert.equal(response.solarSystemId, 'sol');
   assert.ok(Array.isArray(response.markets));
   assert.ok(response.markets.length >= 14);
-    assert.ok(response.markets.every((market) => market.spatial?.solarSystemId === 'sol'));
-    assert.ok(response.markets.every((market) => market.trajectory?.orbit));
+  assert.ok(response.markets.every((market) => market.spatial?.solarSystemId === 'sol'));
+  assert.ok(response.markets.every((market) => market.trajectory?.orbit));
   assert.ok(response.markets.some((market) => market.isStarterMarket));
   assert.ok(response.markets.every((market) => typeof market.distanceAu === 'number'));
   assert.equal(socket.events[0].eventName, MARKET_LIST_RESPONSE_EVENT);
@@ -49,7 +42,7 @@ test('MarketListMessageHandler emits invalid session before responding', async (
   const context = createTestContext();
   seedPlayer(context, {
     playerName: 'MarketPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
   const handler = new MarketListMessageHandler(context);
   const socket = createMockSocket();
@@ -57,15 +50,15 @@ test('MarketListMessageHandler emits invalid session before responding', async (
   const response = await handler.handle(socket, {
     playerName: 'MarketPilot',
     sessionKey: 'bad-session',
-    solarSystemId: 'sol'
+    solarSystemId: 'sol',
   });
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.deepEqual(socket.events, [
     {
       eventName: INVALID_SESSION_EVENT,
-      payload: { message: INVALID_SESSION_MESSAGE }
-    }
+      payload: { message: INVALID_SESSION_MESSAGE },
+    },
   ]);
 });
 
@@ -82,11 +75,11 @@ test('MarketListMessageHandler fails when market spatial is not canonical', asyn
     isStarterMarket: false,
     inventory: [],
     ledger: [],
-    spatial: null
+    spatial: null,
   });
   seedPlayer(context, {
     playerName: 'MarketPilot',
-    sessionKey: 'session-1'
+    sessionKey: 'session-1',
   });
 
   const handler = new MarketListMessageHandler(context);
@@ -95,7 +88,7 @@ test('MarketListMessageHandler fails when market spatial is not canonical', asyn
   const response = await handler.handle(socket, {
     playerName: 'marketpilot',
     sessionKey: 'session-1',
-    solarSystemId: 'sol'
+    solarSystemId: 'sol',
   });
 
   assert.equal(response.success, false);

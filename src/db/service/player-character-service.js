@@ -2,13 +2,7 @@
 
 async function registerPlayer(ctx, Player, playerData) {
   try {
-    const {
-      playerId,
-      playerName,
-      email,
-      password,
-      preferredLocale = 'en'
-    } = playerData;
+    const { playerId, playerName, email, password, preferredLocale = 'en' } = playerData;
     const playerNameNormalized = ctx.toNonEmptyString(playerName).toLowerCase();
 
     const existing = await Player.findOne({ playerNameNormalized });
@@ -23,7 +17,7 @@ async function registerPlayer(ctx, Player, playerData) {
       email,
       password,
       preferredLocale,
-      characters: []
+      characters: [],
     });
 
     await player.save();
@@ -97,7 +91,7 @@ async function addCharacter(ctx, Player, playerName, characterData) {
       playerNameQuery,
       {
         $push: { characters: characterData },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
@@ -134,7 +128,7 @@ async function deleteCharacter(ctx, Player, playerName, characterId) {
       playerNameQuery,
       {
         $pull: { characters: { id: characterId } },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
@@ -304,5 +298,5 @@ module.exports = {
   addShip,
   addOrUpdateMission,
   getMissions,
-  getShips
+  getShips,
 };

@@ -15,6 +15,7 @@ _**Agent (copilot/auto)**_
 You want practical ways to connect a Node.js server to a database, so I’ll summarize the main architecture options, common libraries, and when each choice is best.Here are the main options, from simplest to most structured:
 
 1. Direct database driver
+
 - What it is: Your Node.js app uses the vendor library directly.
 - Examples: PostgreSQL pg, MySQL mysql2, MongoDB mongodb, MSSQL mssql.
 - Pros: Fast, flexible, full control, minimal abstraction.
@@ -22,6 +23,7 @@ You want practical ways to connect a Node.js server to a database, so I’ll sum
 - Best for: Small to medium apps, teams comfortable with SQL, performance-sensitive paths.
 
 2. Query builder
+
 - What it is: A layer that builds SQL programmatically while staying close to SQL.
 - Examples: knex, kysely, drizzle query builder mode.
 - Pros: Safer dynamic queries, readable composition, less boilerplate than raw SQL.
@@ -29,6 +31,7 @@ You want practical ways to connect a Node.js server to a database, so I’ll sum
 - Best for: Teams that like SQL but want cleaner, reusable query construction.
 
 3. ORM (Object-Relational Mapper)
+
 - What it is: Map tables to classes/models and query through objects.
 - Examples: Prisma, TypeORM, Sequelize, MikroORM.
 - Pros: Faster CRUD development, migrations, schema tooling, type safety (especially Prisma/TS).
@@ -36,6 +39,7 @@ You want practical ways to connect a Node.js server to a database, so I’ll sum
 - Best for: Product teams optimizing for speed of development and maintainability.
 
 4. Document ODM (for MongoDB)
+
 - What it is: ORM-like abstraction for document databases.
 - Example: Mongoose.
 - Pros: Schema validation, middleware/hooks, model-based workflow.
@@ -43,6 +47,7 @@ You want practical ways to connect a Node.js server to a database, so I’ll sum
 - Best for: Node + Mongo stacks that want schema discipline.
 
 5. Data API / Backend-as-a-Service connector
+
 - What it is: Node calls a managed API instead of raw DB connections.
 - Examples: Supabase, Firebase, AWS AppSync/Dynamo access patterns, PlanetScale serverless driver patterns.
 - Pros: Less ops, auth integration, scaling conveniences.
@@ -50,12 +55,14 @@ You want practical ways to connect a Node.js server to a database, so I’ll sum
 - Best for: Rapid startup builds and small teams avoiding DB ops complexity.
 
 6. Repository/service layer on top of any of the above
+
 - What it is: Architectural pattern, not a library. DB code is isolated behind repositories/services.
 - Pros: Easier testing, cleaner handlers/controllers, easier DB swap later.
 - Cons: Extra structure upfront.
 - Best for: Most production apps, especially as codebase grows.
 
 Practical decision guide
+
 - Want maximum control/performance: direct driver.
 - Want SQL with ergonomics: query builder.
 - Want fastest CRUD development and schema tooling: ORM.
@@ -63,6 +70,7 @@ Practical decision guide
 - Want minimal infrastructure management: managed Data API/BaaS.
 
 Connection and runtime considerations (important in production)
+
 - Use connection pooling for long-running servers.
 - For serverless, use serverless-friendly drivers or Data API patterns.
 - Keep secrets in environment variables, never hardcode credentials.
@@ -83,14 +91,16 @@ add the ability to use a Document ODM to connect to a mongodb
 _**Agent (copilot/auto)**_
 
 The user wants me to add MongoDB ODM support to their Node.js server. Looking at the current file structure, they have:
+
 - A message handler architecture
-- Model layer 
+- Model layer
 - Handlers for various operations (login, register, character operations, etc.)
 - Tests
 
-They want to integrate a Document ODM (which would be Mongoose) to connect to MongoDB. 
+They want to integrate a Document ODM (which would be Mongoose) to connect to MongoDB.
 
 Let me first understand their current setup by reading the repo notes and examining the existing code structure, then I'll:
+
 1. Add Mongoose to package.json
 2. Create database connection logic
 3. Update the model layer to use Mongoose schemas/models
@@ -109,6 +119,7 @@ implement the changes to server.js to import the handlers and configure the init
 _**Agent (copilot/auto)**_
 
 The user wants me to update the server.js file to:
+
 1. Import the MongoDB connection and database service
 2. Configure the initial connection
 3. Likely also integrate the handlers to use the database service
@@ -149,11 +160,13 @@ _**Agent (copilot/auto)**_
 
 <think><details><summary>Thought Process</summary>
 I’ll quickly check the current git changes so you get an exact status, then I’ll summarize what has and hasn’t been done with subagents.
+
 </details></think>
 
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="generic" data-tool-name="get_changed_files"><details>
+
 <summary>Tool use: **get_changed_files**</summary>
 
 </details></tool-use>
@@ -222,6 +235,7 @@ _**Agent (copilot/auto)**_
 
 <think><details><summary>Thought Process</summary>
 I’ll add a compact sample documents section to the schema file so it shows realistic Player, Character, and Drone records based on your current model fields.
+
 </details></think>
 
 _**Agent (copilot/auto)**_
@@ -240,6 +254,7 @@ _**Agent (copilot/auto)**_
 
 <think><details><summary>Thought Process</summary>
 I’ll add that before/after operations section to the schema doc now, focused on login and character-add so it mirrors your actual runtime flow.
+
 </details></think>
 
 _**Agent (copilot/auto)**_

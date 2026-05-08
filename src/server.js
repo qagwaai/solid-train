@@ -7,158 +7,72 @@ const { randomUUID } = require('node:crypto');
 const { Server } = require('socket.io');
 const { MongoConnection } = require('./db/connection');
 const { DatabaseService } = require('./db/service');
-const {
-  REGISTER_EVENT
-} = require('./model/register');
-const {
-  LOGIN_EVENT
-} = require('./model/login');
-const {
-  CHARACTER_LIST_REQUEST_EVENT
-} = require('./model/character-list');
-const {
-  CHARACTER_ADD_REQUEST_EVENT
-} = require('./model/character-add');
-const {
-  CHARACTER_DELETE_REQUEST_EVENT
-} = require('./model/character-delete');
-const {
-  CHARACTER_EDIT_REQUEST_EVENT
-} = require('./model/character-edit');
-const {
-  SHIP_LIST_REQUEST_EVENT
-} = require('./model/ship-list');
-const {
-  SHIP_UPSERT_REQUEST_EVENT
-} = require('./model/ship-upsert');
-const {
-  GAME_JOIN_REQUEST_EVENT
-} = require('./model/game-join');
+const { REGISTER_EVENT } = require('./model/register');
+const { LOGIN_EVENT } = require('./model/login');
+const { CHARACTER_LIST_REQUEST_EVENT } = require('./model/character-list');
+const { CHARACTER_ADD_REQUEST_EVENT } = require('./model/character-add');
+const { CHARACTER_DELETE_REQUEST_EVENT } = require('./model/character-delete');
+const { CHARACTER_EDIT_REQUEST_EVENT } = require('./model/character-edit');
+const { SHIP_LIST_REQUEST_EVENT } = require('./model/ship-list');
+const { SHIP_UPSERT_REQUEST_EVENT } = require('./model/ship-upsert');
+const { GAME_JOIN_REQUEST_EVENT } = require('./model/game-join');
 const {
   MISSION_UPSERT_REQUEST_EVENT,
   MISSION_UPSERT_ALIAS_REQUEST_EVENT,
-  MISSION_UPSERT_ALIAS_RESPONSE_EVENT
+  MISSION_UPSERT_ALIAS_RESPONSE_EVENT,
 } = require('./model/mission-upsert');
+const { CELESTIAL_BODY_UPSERT_REQUEST_EVENT } = require('./model/celestial-body-upsert');
+const { CELESTIAL_BODY_LIST_REQUEST_EVENT } = require('./model/celestial-body-list');
+const { MISSION_LIST_REQUEST_EVENT } = require('./model/mission-list');
+const { ITEM_UPSERT_REQUEST_EVENT } = require('./model/item-upsert');
+const { ITEM_LIST_BY_CONTAINER_REQUEST_EVENT } = require('./model/item-list-by-container');
+const { ITEM_LIST_BY_LOCATION_REQUEST_EVENT } = require('./model/item-list-by-location');
+const { LAUNCH_ITEM_REQUEST_EVENT } = require('./model/launch-item');
+const { MARKET_LIST_REQUEST_EVENT } = require('./model/market-list');
+const { MARKET_LIST_BY_LOCATION_REQUEST_EVENT } = require('./model/market-list-by-location');
+const { MARKET_QUOTE_REQUEST_EVENT } = require('./model/market-quote');
+const { MARKET_INVENTORY_LIST_REQUEST_EVENT } = require('./model/market-inventory-list');
+const { MARKET_LEDGER_LIST_REQUEST_EVENT } = require('./model/market-ledger-list');
+const { MARKET_BUY_REQUEST_EVENT } = require('./model/market-buy');
+const { MARKET_SELL_REQUEST_EVENT } = require('./model/market-sell');
+const { MessageHandlerContext } = require('./handlers/message-handler-context');
+const { RegisterMessageHandler } = require('./handlers/register-message-handler');
+const { LoginMessageHandler } = require('./handlers/login-message-handler');
+const { CharacterListMessageHandler } = require('./handlers/character-list-message-handler');
+const { CharacterAddMessageHandler } = require('./handlers/character-add-message-handler');
+const { CharacterDeleteMessageHandler } = require('./handlers/character-delete-message-handler');
+const { CharacterEditMessageHandler } = require('./handlers/character-edit-message-handler');
+const { ShipListMessageHandler } = require('./handlers/ship-list-message-handler');
+const { ShipUpsertMessageHandler } = require('./handlers/ship-upsert-message-handler');
+const { GameJoinMessageHandler } = require('./handlers/game-join-message-handler');
+const { MissionUpsertMessageHandler } = require('./handlers/mission-upsert-message-handler');
 const {
-  CELESTIAL_BODY_UPSERT_REQUEST_EVENT
-} = require('./model/celestial-body-upsert');
-const {
-  CELESTIAL_BODY_LIST_REQUEST_EVENT
-} = require('./model/celestial-body-list');
-const {
-  MISSION_LIST_REQUEST_EVENT
-} = require('./model/mission-list');
-const {
-  ITEM_UPSERT_REQUEST_EVENT
-} = require('./model/item-upsert');
-const {
-  ITEM_LIST_BY_CONTAINER_REQUEST_EVENT
-} = require('./model/item-list-by-container');
-const {
-  ITEM_LIST_BY_LOCATION_REQUEST_EVENT
-} = require('./model/item-list-by-location');
-const {
-  LAUNCH_ITEM_REQUEST_EVENT
-} = require('./model/launch-item');
-const {
-  MARKET_LIST_REQUEST_EVENT
-} = require('./model/market-list');
-const {
-  MARKET_LIST_BY_LOCATION_REQUEST_EVENT
-} = require('./model/market-list-by-location');
-const {
-  MARKET_QUOTE_REQUEST_EVENT
-} = require('./model/market-quote');
-const {
-  MARKET_INVENTORY_LIST_REQUEST_EVENT
-} = require('./model/market-inventory-list');
-const {
-  MARKET_LEDGER_LIST_REQUEST_EVENT
-} = require('./model/market-ledger-list');
-const {
-  MARKET_BUY_REQUEST_EVENT
-} = require('./model/market-buy');
-const {
-  MARKET_SELL_REQUEST_EVENT
-} = require('./model/market-sell');
-const {
-  MessageHandlerContext
-} = require('./handlers/message-handler-context');
-const {
-  RegisterMessageHandler
-} = require('./handlers/register-message-handler');
-const {
-  LoginMessageHandler
-} = require('./handlers/login-message-handler');
-const {
-  CharacterListMessageHandler
-} = require('./handlers/character-list-message-handler');
-const {
-  CharacterAddMessageHandler
-} = require('./handlers/character-add-message-handler');
-const {
-  CharacterDeleteMessageHandler
-} = require('./handlers/character-delete-message-handler');
-const {
-  CharacterEditMessageHandler
-} = require('./handlers/character-edit-message-handler');
-const {
-  ShipListMessageHandler
-} = require('./handlers/ship-list-message-handler');
-const {
-  ShipUpsertMessageHandler
-} = require('./handlers/ship-upsert-message-handler');
-const {
-  GameJoinMessageHandler
-} = require('./handlers/game-join-message-handler');
-const {
-  MissionUpsertMessageHandler
-} = require('./handlers/mission-upsert-message-handler');
-const {
-  CelestialBodyUpsertMessageHandler
+  CelestialBodyUpsertMessageHandler,
 } = require('./handlers/celestial-body-upsert-message-handler');
 const {
-  CelestialBodyListMessageHandler
+  CelestialBodyListMessageHandler,
 } = require('./handlers/celestial-body-list-message-handler');
+const { MissionListMessageHandler } = require('./handlers/mission-list-message-handler');
+const { ItemUpsertMessageHandler } = require('./handlers/item-upsert-message-handler');
 const {
-  MissionListMessageHandler
-} = require('./handlers/mission-list-message-handler');
-const {
-  ItemUpsertMessageHandler
-} = require('./handlers/item-upsert-message-handler');
-const {
-  ItemListByContainerMessageHandler
+  ItemListByContainerMessageHandler,
 } = require('./handlers/item-list-by-container-message-handler');
 const {
-  ItemListByLocationMessageHandler
+  ItemListByLocationMessageHandler,
 } = require('./handlers/item-list-by-location-message-handler');
+const { LaunchItemMessageHandler } = require('./handlers/launch-item-message-handler');
+const { MarketListMessageHandler } = require('./handlers/market-list-message-handler');
 const {
-  LaunchItemMessageHandler
-} = require('./handlers/launch-item-message-handler');
-const {
-  MarketListMessageHandler
-} = require('./handlers/market-list-message-handler');
-const {
-  MarketListByLocationMessageHandler
+  MarketListByLocationMessageHandler,
 } = require('./handlers/market-list-by-location-message-handler');
+const { MarketQuoteMessageHandler } = require('./handlers/market-quote-message-handler');
 const {
-  MarketQuoteMessageHandler
-} = require('./handlers/market-quote-message-handler');
-const {
-  MarketInventoryListMessageHandler
+  MarketInventoryListMessageHandler,
 } = require('./handlers/market-inventory-list-message-handler');
-const {
-  MarketLedgerListMessageHandler
-} = require('./handlers/market-ledger-list-message-handler');
-const {
-  MarketBuyMessageHandler
-} = require('./handlers/market-buy-message-handler');
-const {
-  MarketSellMessageHandler
-} = require('./handlers/market-sell-message-handler');
-const {
-  registerSocketHandlers
-} = require('./handlers/socket-handler-registry');
+const { MarketLedgerListMessageHandler } = require('./handlers/market-ledger-list-message-handler');
+const { MarketBuyMessageHandler } = require('./handlers/market-buy-message-handler');
+const { MarketSellMessageHandler } = require('./handlers/market-sell-message-handler');
+const { registerSocketHandlers } = require('./handlers/socket-handler-registry');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -182,79 +96,47 @@ function createServer(options = {}) {
     celestialBodiesById,
     itemsById,
     databaseService: options.databaseService || null,
-    createId: randomUUID
+    createId: randomUUID,
   });
   messageHandlerContext.initializeAsync({ seedDefaults: true }).catch((error) => {
     process.stderr.write(`[server] Context initialization failed: ${error.message}\n`);
   });
   const registerMessageHandler = new RegisterMessageHandler(messageHandlerContext);
   const loginMessageHandler = new LoginMessageHandler(messageHandlerContext);
-  const characterListMessageHandler = new CharacterListMessageHandler(
-    messageHandlerContext
-  );
-  const characterAddMessageHandler = new CharacterAddMessageHandler(
-    messageHandlerContext
-  );
-  const characterDeleteMessageHandler = new CharacterDeleteMessageHandler(
-    messageHandlerContext
-  );
-  const characterEditMessageHandler = new CharacterEditMessageHandler(
-    messageHandlerContext
-  );
-  const shipListMessageHandler = new ShipListMessageHandler(
-    messageHandlerContext
-  );
-  const shipUpsertMessageHandler = new ShipUpsertMessageHandler(
-    messageHandlerContext
-  );
-  const gameJoinMessageHandler = new GameJoinMessageHandler(
-    messageHandlerContext
-  );
-  const missionUpsertMessageHandler = new MissionUpsertMessageHandler(
-    messageHandlerContext
-  );
+  const characterListMessageHandler = new CharacterListMessageHandler(messageHandlerContext);
+  const characterAddMessageHandler = new CharacterAddMessageHandler(messageHandlerContext);
+  const characterDeleteMessageHandler = new CharacterDeleteMessageHandler(messageHandlerContext);
+  const characterEditMessageHandler = new CharacterEditMessageHandler(messageHandlerContext);
+  const shipListMessageHandler = new ShipListMessageHandler(messageHandlerContext);
+  const shipUpsertMessageHandler = new ShipUpsertMessageHandler(messageHandlerContext);
+  const gameJoinMessageHandler = new GameJoinMessageHandler(messageHandlerContext);
+  const missionUpsertMessageHandler = new MissionUpsertMessageHandler(messageHandlerContext);
   const celestialBodyUpsertMessageHandler = new CelestialBodyUpsertMessageHandler(
     messageHandlerContext
   );
   const celestialBodyListMessageHandler = new CelestialBodyListMessageHandler(
     messageHandlerContext
   );
-  const missionListMessageHandler = new MissionListMessageHandler(
-    messageHandlerContext
-  );
-  const itemUpsertMessageHandler = new ItemUpsertMessageHandler(
-    messageHandlerContext
-  );
+  const missionListMessageHandler = new MissionListMessageHandler(messageHandlerContext);
+  const itemUpsertMessageHandler = new ItemUpsertMessageHandler(messageHandlerContext);
   const itemListByContainerMessageHandler = new ItemListByContainerMessageHandler(
     messageHandlerContext
   );
   const itemListByLocationMessageHandler = new ItemListByLocationMessageHandler(
     messageHandlerContext
   );
-  const launchItemMessageHandler = new LaunchItemMessageHandler(
-    messageHandlerContext
-  );
-  const marketListMessageHandler = new MarketListMessageHandler(
-    messageHandlerContext
-  );
+  const launchItemMessageHandler = new LaunchItemMessageHandler(messageHandlerContext);
+  const marketListMessageHandler = new MarketListMessageHandler(messageHandlerContext);
   const marketListByLocationMessageHandler = new MarketListByLocationMessageHandler(
     messageHandlerContext
   );
-  const marketQuoteMessageHandler = new MarketQuoteMessageHandler(
-    messageHandlerContext
-  );
+  const marketQuoteMessageHandler = new MarketQuoteMessageHandler(messageHandlerContext);
   const marketInventoryListMessageHandler = new MarketInventoryListMessageHandler(
     messageHandlerContext
   );
-  const marketLedgerListMessageHandler = new MarketLedgerListMessageHandler(
-    messageHandlerContext
-  );
-  const marketBuyMessageHandler = new MarketBuyMessageHandler(
-    messageHandlerContext
-  );
-  const marketSellMessageHandler = new MarketSellMessageHandler(
-    messageHandlerContext
-  );
+  const marketLedgerListMessageHandler = new MarketLedgerListMessageHandler(messageHandlerContext);
+  const marketBuyMessageHandler = new MarketBuyMessageHandler(messageHandlerContext);
+  const marketSellMessageHandler = new MarketSellMessageHandler(messageHandlerContext);
 
   const server = http.createServer((req, res) => {
     if (req.url === '/health') {
@@ -270,20 +152,20 @@ function createServer(options = {}) {
   const io = new Server(server, {
     cors: {
       origin: process.env.CORS_ORIGIN || '*',
-      methods: ['GET', 'POST']
-    }
+      methods: ['GET', 'POST'],
+    },
   });
 
   io.on('connection', (socket) => {
     socket.emit('welcome', {
       id: socket.id,
-      message: 'Connected to Stellar Socket.IO server'
+      message: 'Connected to Stellar Socket.IO server',
     });
 
     socket.on('message', (payload) => {
       io.emit('message', {
         id: socket.id,
-        payload
+        payload,
       });
     });
 
@@ -311,17 +193,19 @@ function createServer(options = {}) {
       marketInventoryListMessageHandler,
       marketLedgerListMessageHandler,
       marketBuyMessageHandler,
-      marketSellMessageHandler
+      marketSellMessageHandler,
     });
 
     socket.on(MISSION_UPSERT_ALIAS_REQUEST_EVENT, (payload) => {
-      missionUpsertMessageHandler.handle(socket, payload).then((response) => {
-        socket.emit(MISSION_UPSERT_ALIAS_RESPONSE_EVENT, response);
-      }).catch((error) => {
-        process.stderr.write(`[socket] Mission upsert alias handler error: ${error.message}\n`);
-      });
+      missionUpsertMessageHandler
+        .handle(socket, payload)
+        .then((response) => {
+          socket.emit(MISSION_UPSERT_ALIAS_RESPONSE_EVENT, response);
+        })
+        .catch((error) => {
+          process.stderr.write(`[socket] Mission upsert alias handler error: ${error.message}\n`);
+        });
     });
-
   });
 
   return { port, server, io, messageHandlerContext };
@@ -329,7 +213,7 @@ function createServer(options = {}) {
 
 async function startServer(options = {}) {
   const mongoConnection = new MongoConnection({
-    mongoUri: process.env.MONGODB_URI
+    mongoUri: process.env.MONGODB_URI,
   });
   let databaseService = null;
 
@@ -350,13 +234,13 @@ async function startServer(options = {}) {
 
   const { port, server, io, messageHandlerContext } = createServer({
     ...options,
-    databaseService
+    databaseService,
   });
 
   await messageHandlerContext.initializeAsync({ seedDefaults: true });
 
   const marketSeedResult = await messageHandlerContext.seedSolarSystemMarketsAsync({
-    solarSystemId: 'sol'
+    solarSystemId: 'sol',
   });
   process.stdout.write(
     `[server] Market seeding ${marketSeedResult.success ? 'completed' : 'skipped'} for ${marketSeedResult.solarSystemId}: ${marketSeedResult.marketCount}\n`
@@ -403,7 +287,7 @@ async function startServer(options = {}) {
     shutdown,
     mongoConnection,
     databaseService,
-    messageHandlerContext
+    messageHandlerContext,
   };
 }
 
@@ -417,5 +301,5 @@ if (require.main === module) {
 module.exports = {
   createServer,
   resolvePort,
-  startServer
+  startServer,
 };
