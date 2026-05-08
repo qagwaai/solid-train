@@ -32,6 +32,7 @@ test('Integration (Option 1): Sol station query returns only local station marke
     createId: randomUUID,
     getCurrentTimestamp: () => '2026-05-07T00:00:00.000Z'
   });
+  await context.initializeAsync({ seedDefaults: true });
   const handler = new MarketListByLocationMessageHandler(context);
   const socket = createMockSocket();
 
@@ -63,6 +64,7 @@ test('Integration (Option 1): Station filter excludes known non-sol station mark
     createId: randomUUID,
     getCurrentTimestamp: () => '2026-05-07T00:00:00.000Z'
   });
+  await context.initializeAsync({ seedDefaults: true });
   const handler = new MarketListByLocationMessageHandler(context);
   const socket = createMockSocket();
 
@@ -87,6 +89,7 @@ test('Integration (Option 1): Query solarSystemId is case-insensitive', async ()
     createId: randomUUID,
     getCurrentTimestamp: () => '2026-05-07T00:00:00.000Z'
   });
+  await context.initializeAsync({ seedDefaults: true });
   const handler = new MarketListByLocationMessageHandler(context);
   const socket = createMockSocket();
 

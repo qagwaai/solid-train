@@ -12,7 +12,7 @@ function createTestContext(options = {}) {
     .filter((value) => Boolean(value));
   let generatedIdCounter = 0;
 
-  return new MessageHandlerContext({
+  const context = new MessageHandlerContext({
     createId: () => {
       const nextIssued = issuedIds.shift();
       if (nextIssued) {
@@ -24,6 +24,9 @@ function createTestContext(options = {}) {
     },
     getCurrentTimestamp: () => '2026-04-17T00:00:00.000Z'
   });
+
+  void context.initializeAsync({ seedDefaults: true });
+  return context;
 }
 
 function createMockSocket(id = 'socket-1') {

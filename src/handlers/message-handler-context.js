@@ -79,14 +79,36 @@ class MessageHandlerContext {
     this.getCurrentTimestamp =
       options.getCurrentTimestamp || (() => new Date().toISOString());
     this._gateGraph = null;
+    this._seedDefaultsInitialized = false;
+  }
+
+  async initializeAsync(options = {}) {
+    const seedDefaults = options.seedDefaults !== false;
+    if (!seedDefaults || this._seedDefaultsInitialized) {
+      return {
+        success: true,
+        seededDefaults: false
+      };
+    }
 
     if (this.marketsByKey.size === 0) {
       this.seedDefaultMarkets();
+      this._seedDefaultsInitialized = true;
+      return {
+        success: true,
+        seededDefaults: true
+      };
     }
+
+    this._seedDefaultsInitialized = true;
+    return {
+      success: true,
+      seededDefaults: false
+    };
   }
 
   seedDefaultMarkets() {
-    const now = new Date().toISOString();
+    const now = this.getCurrentTimestamp();
     const systemIds = ['sol', 'alpha-centauri', 'barnards-star'];
 
     for (const systemId of systemIds) {

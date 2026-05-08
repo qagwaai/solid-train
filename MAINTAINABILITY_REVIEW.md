@@ -126,7 +126,14 @@ Implemented (slice 4, celestial + gates + ship/missions model extraction):
 
 ## M-06 — Side-effecting constructor
 
+Status: Completed on 2026-05-08.
+
 `MessageHandlerContext` constructor calls `seedDefaultMarkets()` (line ~77), which uses `new Date().toISOString()` directly (bypassing the injected `getCurrentTimestamp`) and silently mutates state. This makes `new MessageHandlerContext({})` non-deterministic and surprising for tests/SSR. Move to an explicit `await context.initializeAsync()` step (server already calls `seedSolarSystemMarketsAsync` after construction).
+
+Implemented:
+- `MessageHandlerContext` now exposes `initializeAsync({ seedDefaults })` and no longer seeds default markets in the constructor.
+- Default market seeding now consistently uses injected `getCurrentTimestamp` instead of `new Date().toISOString()`.
+- Server lifecycle now explicitly initializes context via `initializeAsync({ seedDefaults: true })` before startup seeding.
 
 ---
 
@@ -189,7 +196,7 @@ Several are point-in-time progress reports (e.g. `SPATIAL_MODEL_IMPLEMENTATION.m
 | **M-08** | Add ESLint + CI workflow + npm scripts | Style/correctness drift | S |
 | **M-05** | Split `db/models.js` and `db/service.js` — **Completed 2026-05-08** | Domain modules extracted (players, items, markets/seed-state, celestial/gates, ship/missions) behind stable facades | M |
 | **M-07** | Extract `withDb` helper | Easy duplication removal | S |
-| **M-06** | Move seeding out of constructor | Hidden non-determinism; bites tests | S |
+| **M-06** | Move seeding out of constructor — **Completed 2026-05-08** | Constructor side-effects removed; explicit initialization and timestamp consistency implemented | S |
 | **M-09** | Consolidate markdown docs | Drift; onboarding cost | S |
 | **M-10** | Constants + naming + small extractions | Quality-of-life | S |
 

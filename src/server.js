@@ -184,6 +184,9 @@ function createServer(options = {}) {
     databaseService: options.databaseService || null,
     createId: randomUUID
   });
+  messageHandlerContext.initializeAsync({ seedDefaults: true }).catch((error) => {
+    process.stderr.write(`[server] Context initialization failed: ${error.message}\n`);
+  });
   const registerMessageHandler = new RegisterMessageHandler(messageHandlerContext);
   const loginMessageHandler = new LoginMessageHandler(messageHandlerContext);
   const characterListMessageHandler = new CharacterListMessageHandler(
@@ -349,6 +352,8 @@ async function startServer(options = {}) {
     ...options,
     databaseService
   });
+
+  await messageHandlerContext.initializeAsync({ seedDefaults: true });
 
   const marketSeedResult = await messageHandlerContext.seedSolarSystemMarketsAsync({
     solarSystemId: 'sol'
