@@ -45,22 +45,23 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - README + CODEBASE.md updated to reflect `mission-upsert-request` as canonical event name; `add-mission-request` noted as alias
 - Event `add-mission-request` itself is unchanged — still handled by `MissionUpsertMessageHandler`
 
-### TQ-04 Cover money-flow branches (market buy / sell / quote)
-- **Why**: 36.84% / 38.89% / 47.37% branch coverage on the most consequential
-  handlers in the system. See [TEST_QUALITY_REVIEW.md](TEST_QUALITY_REVIEW.md) §2.1.
-- **Add tests for**:
-  - Insufficient market stock
-  - Market not found / wrong `solarSystemId`
-  - Catalog miss (`itemId` not in `MARKET_CATALOG_BY_ID`)
-  - `quantity` ≤ 0 / non-integer / NaN
-  - Lazy restock fires during a buy when interval has elapsed
-  - `priceMultiplier` and `driftPercentPerHour` actually applied to the
-    ledger amount (not just to the response payload)
-  - **`creditLedger` entry is appended** with correct
-    `type: 'take'` (buy) / `'put'` (sell), `amount`, `description`,
-    `referenceId` after every successful transaction
-  - `requestId` echoed on failure responses
-- **Target**: ≥ 80% branch on each of the three handlers.
+### ~~TQ-04~~ ✅ Cover money-flow branches (market buy / sell / quote)
+- **Completed**: 2026-05-07
+- **Added 22 new tests** across `test/market-buy-sell-message-handler.test.js` (+16) and `test/market-quote-message-handler.test.js` (+6)
+- **Covered**:
+  - Invalid session (buy, sell)
+  - `INVALID_PAYLOAD` with `requestId` echoed (buy: missing marketId / quantity=0; sell: missing itemId / non-integer quantity)
+  - `MARKET_NOT_FOUND` (buy: unknown marketId; sell: wrong solarSystemId)
+  - `ITEM_NOT_FOUND` / catalog miss for buy, sell, quote
+  - `INSUFFICIENT_MARKET_STOCK` (buy)
+  - `NO_SHIP_AVAILABLE` (buy, character has no ships)
+  - `MARKET_DOES_NOT_BUY_ITEM` (sell and quote)
+  - `INVALID_QUANTITY` — quantity=0 (quote)
+  - `CHARACTER_NOT_FOUND` (quote)
+  - `creditLedger` entry: `type:'take'` after buy, `type:'put'` after sell with correct amount/description/referenceId
+  - Lazy restock fires during buy when interval has elapsed
+- **Skipped**: `priceMultiplier`/`driftPercentPerHour` ledger assertions (deferred per decision)
+- **Test count**: 244 → 266 (all green)
 
 ### TQ-05 Add Socket.IO + Mongo round-trip smoke test
 - **Why**: 0 tests cover the production wiring (real socket layer + real DB).
