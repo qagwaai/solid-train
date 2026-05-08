@@ -156,6 +156,9 @@ const {
 const {
   MarketSellMessageHandler
 } = require('./handlers/market-sell-message-handler');
+const {
+  registerSocketHandlers
+} = require('./handlers/socket-handler-registry');
 
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
@@ -281,64 +284,31 @@ function createServer(options = {}) {
       });
     });
 
-    socket.on(REGISTER_EVENT, (payload) => {
-      registerMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Register handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(LOGIN_EVENT, (payload) => {
-      loginMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Login handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(CHARACTER_LIST_REQUEST_EVENT, (payload) => {
-      characterListMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Character list handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(CHARACTER_ADD_REQUEST_EVENT, (payload) => {
-      characterAddMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Character add handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(CHARACTER_DELETE_REQUEST_EVENT, (payload) => {
-      characterDeleteMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Character delete handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(CHARACTER_EDIT_REQUEST_EVENT, (payload) => {
-      characterEditMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Character edit handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(SHIP_LIST_REQUEST_EVENT, (payload) => {
-      shipListMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Ship list handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(SHIP_UPSERT_REQUEST_EVENT, (payload) => {
-      shipUpsertMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Ship upsert handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(GAME_JOIN_REQUEST_EVENT, (payload) => {
-      gameJoinMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Game join handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(MISSION_UPSERT_REQUEST_EVENT, (payload) => {
-      missionUpsertMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Mission upsert handler error: ${error.message}\n`);
-      });
+    registerSocketHandlers(socket, {
+      registerMessageHandler,
+      loginMessageHandler,
+      characterListMessageHandler,
+      characterAddMessageHandler,
+      characterDeleteMessageHandler,
+      characterEditMessageHandler,
+      shipListMessageHandler,
+      shipUpsertMessageHandler,
+      gameJoinMessageHandler,
+      missionUpsertMessageHandler,
+      celestialBodyUpsertMessageHandler,
+      celestialBodyListMessageHandler,
+      missionListMessageHandler,
+      itemUpsertMessageHandler,
+      itemListByContainerMessageHandler,
+      itemListByLocationMessageHandler,
+      launchItemMessageHandler,
+      marketListMessageHandler,
+      marketListByLocationMessageHandler,
+      marketQuoteMessageHandler,
+      marketInventoryListMessageHandler,
+      marketLedgerListMessageHandler,
+      marketBuyMessageHandler,
+      marketSellMessageHandler
     });
 
     socket.on(MISSION_UPSERT_ALIAS_REQUEST_EVENT, (payload) => {
@@ -349,89 +319,6 @@ function createServer(options = {}) {
       });
     });
 
-    socket.on(CELESTIAL_BODY_UPSERT_REQUEST_EVENT, (payload) => {
-      celestialBodyUpsertMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Celestial body upsert handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(CELESTIAL_BODY_LIST_REQUEST_EVENT, (payload) => {
-      celestialBodyListMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Celestial body list handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(MISSION_LIST_REQUEST_EVENT, (payload) => {
-      missionListMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Mission list handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(ITEM_UPSERT_REQUEST_EVENT, (payload) => {
-      itemUpsertMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Item upsert handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(ITEM_LIST_BY_CONTAINER_REQUEST_EVENT, (payload) => {
-      itemListByContainerMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Item list by container handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(ITEM_LIST_BY_LOCATION_REQUEST_EVENT, (payload) => {
-      itemListByLocationMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Item list by location handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(LAUNCH_ITEM_REQUEST_EVENT, (payload) => {
-      launchItemMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Launch item handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(MARKET_LIST_REQUEST_EVENT, (payload) => {
-      marketListMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Market list handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(MARKET_LIST_BY_LOCATION_REQUEST_EVENT, (payload) => {
-      marketListByLocationMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Market list by location handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(MARKET_QUOTE_REQUEST_EVENT, (payload) => {
-      marketQuoteMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Market quote handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(MARKET_INVENTORY_LIST_REQUEST_EVENT, (payload) => {
-      marketInventoryListMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Market inventory list handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(MARKET_LEDGER_LIST_REQUEST_EVENT, (payload) => {
-      marketLedgerListMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Market ledger list handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(MARKET_BUY_REQUEST_EVENT, (payload) => {
-      marketBuyMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Market buy handler error: ${error.message}\n`);
-      });
-    });
-
-    socket.on(MARKET_SELL_REQUEST_EVENT, (payload) => {
-      marketSellMessageHandler.handle(socket, payload).catch((error) => {
-        process.stderr.write(`[socket] Market sell handler error: ${error.message}\n`);
-      });
-    });
   });
 
   return { port, server, io, messageHandlerContext };

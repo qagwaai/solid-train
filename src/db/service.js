@@ -1,9 +1,15 @@
 'use strict';
 
 const { CelestialBody, GameStateDocument, Item, JumpGate, Market, Player } = require('./models');
-const {
-  SOLAR_SYSTEM_MARKET_SEED_STATE_KEY
-} = require('../model/solar-system-market-seed');
+const playerCharacterService = require('./service/player-character-service');
+const itemWriteService = require('./service/item-write-service');
+const itemQueryService = require('./service/item-query-service');
+const marketWriteService = require('./service/market-write-service');
+const marketQueryService = require('./service/market-query-service');
+const marketSeedStateService = require('./service/market-seed-state-service');
+const celestialWriteService = require('./service/celestial-write-service');
+const celestialQueryService = require('./service/celestial-query-service');
+const jumpGateQueryService = require('./service/jump-gate-query-service');
 
 /**
  * Database service layer - provides a clean interface for CRUD operations
@@ -98,39 +104,7 @@ class DatabaseService {
    * @returns {Promise<Object>} Created player document
    */
   async registerPlayer(playerData) {
-    try {
-      const {
-        playerId,
-        playerName,
-        email,
-        password,
-        preferredLocale = 'en'
-      } = playerData;
-      const playerNameNormalized = this.toNonEmptyString(playerName).toLowerCase();
-
-      // Check if player already exists
-      const existing = await Player.findOne({ playerNameNormalized });
-      if (existing) {
-        throw new Error('Player already exists');
-      }
-
-      const player = new Player({
-        playerId,
-        playerName,
-        playerNameNormalized,
-        email,
-        password,
-        preferredLocale,
-        characters: []
-      });
-
-      await player.save();
-      this.log(`[db-service] Player registered: ${playerId}`);
-      return player.toObject();
-    } catch (error) {
-      this.log(`[db-service] Error registering player: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.registerPlayer(this, Player, playerData);
   }
 
   /**
@@ -139,25 +113,7 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async getPlayerByName(playerName) {
-    try {
-      const playerNameQuery = this.buildPlayerNameQuery(playerName);
-      if (!playerNameQuery) {
-        return null;
-      }
-
-      const normalizedPlayerName = this.toNonEmptyString(playerName).toLowerCase();
-      const player = await Player.findOne(playerNameQuery);
-
-      if (player && !player.playerNameNormalized && normalizedPlayerName) {
-        player.playerNameNormalized = normalizedPlayerName;
-        await player.save();
-      }
-
-      return player ? player.toObject() : null;
-    } catch (error) {
-      this.log(`[db-service] Error fetching player: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.getPlayerByName(this, Player, playerName);
   }
 
   /**
@@ -166,13 +122,7 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async getPlayerById(playerId) {
-    try {
-      const player = await Player.findOne({ playerId });
-      return player ? player.toObject() : null;
-    } catch (error) {
-      this.log(`[db-service] Error fetching player by ID: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.getPlayerById(this, Player, playerId);
   }
 
   /**
@@ -182,22 +132,7 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async updatePlayer(playerName, updates) {
-    try {
-      const playerNameQuery = this.buildPlayerNameQuery(playerName);
-      if (!playerNameQuery) {
-        return null;
-      }
-
-      const player = await Player.findOneAndUpdate(
-        playerNameQuery,
-        { ...updates, updatedAt: new Date() },
-        { new: true }
-      );
-      return player ? player.toObject() : null;
-    } catch (error) {
-      this.log(`[db-service] Error updating player: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.updatePlayer(this, Player, playerName, updates);
   }
 
   /**
@@ -207,25 +142,7 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async addCharacter(playerName, characterData) {
-    try {
-      const playerNameQuery = this.buildPlayerNameQuery(playerName);
-      if (!playerNameQuery) {
-        return null;
-      }
-
-      const player = await Player.findOneAndUpdate(
-        playerNameQuery,
-        {
-          $push: { characters: characterData },
-          updatedAt: new Date()
-        },
-        { new: true }
-      );
-      return player ? player.toObject() : null;
-    } catch (error) {
-      this.log(`[db-service] Error adding character: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.addCharacter(this, Player, playerName, characterData);
   }
 
   /**
@@ -234,18 +151,7 @@ class DatabaseService {
    * @returns {Promise<Array>}
    */
   async getCharacters(playerName) {
-    try {
-      const playerNameQuery = this.buildPlayerNameQuery(playerName);
-      if (!playerNameQuery) {
-        return [];
-      }
-
-      const player = await Player.findOne(playerNameQuery, { characters: 1 }).lean();
-      return player && Array.isArray(player.characters) ? player.characters : [];
-    } catch (error) {
-      this.log(`[db-service] Error fetching characters: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.getCharacters(this, Player, playerName);
   }
 
   /**
@@ -255,25 +161,7 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async deleteCharacter(playerName, characterId) {
-    try {
-      const playerNameQuery = this.buildPlayerNameQuery(playerName);
-      if (!playerNameQuery) {
-        return null;
-      }
-
-      const player = await Player.findOneAndUpdate(
-        playerNameQuery,
-        {
-          $pull: { characters: { id: characterId } },
-          updatedAt: new Date()
-        },
-        { new: true }
-      );
-      return player ? player.toObject() : null;
-    } catch (error) {
-      this.log(`[db-service] Error deleting character: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.deleteCharacter(this, Player, playerName, characterId);
   }
 
   /**
@@ -284,31 +172,7 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async updateCharacter(playerName, characterId, updates) {
-    try {
-      const playerNameQuery = this.buildPlayerNameQuery(playerName);
-      if (!playerNameQuery) {
-        return null;
-      }
-
-      const player = await Player.findOne(playerNameQuery);
-      
-      if (!player) {
-        return null;
-      }
-
-      const character = player.characters.find(c => c.id === characterId);
-      if (!character) {
-        return null;
-      }
-
-      Object.assign(character, this.normalizeCharacterUpdatesForPersistence(updates));
-      player.updatedAt = new Date();
-      await player.save();
-      return player.toObject();
-    } catch (error) {
-      this.log(`[db-service] Error updating character: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.updateCharacter(this, Player, playerName, characterId, updates);
   }
 
   /**
@@ -319,34 +183,7 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async addShip(playerName, characterId, shipData) {
-    try {
-      const playerNameQuery = this.buildPlayerNameQuery(playerName);
-      if (!playerNameQuery) {
-        return null;
-      }
-
-      const player = await Player.findOne(playerNameQuery);
-      
-      if (!player) {
-        return null;
-      }
-
-      const character = player.characters.find(c => c.id === characterId);
-      if (!character) {
-        return null;
-      }
-
-      if (!character.ships) {
-        character.ships = [];
-      }
-      character.ships.push(shipData);
-      player.updatedAt = new Date();
-      await player.save();
-      return player.toObject();
-    } catch (error) {
-      this.log(`[db-service] Error adding ship: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.addShip(this, Player, playerName, characterId, shipData);
   }
 
   /**
@@ -355,17 +192,7 @@ class DatabaseService {
    * @returns {Promise<Object[]>}
    */
   async addItems(itemsData) {
-    try {
-      if (!Array.isArray(itemsData) || itemsData.length === 0) {
-        return [];
-      }
-
-      const items = await Item.insertMany(itemsData, { ordered: true });
-      return items.map((item) => item.toObject());
-    } catch (error) {
-      this.log(`[db-service] Error adding items: ${error.message}`);
-      throw error;
-    }
+    return itemWriteService.addItems(this, Item, itemsData);
   }
 
   /**
@@ -374,16 +201,7 @@ class DatabaseService {
    * @returns {Promise<void>}
    */
   async deleteItemsByIds(itemIds) {
-    try {
-      if (!Array.isArray(itemIds) || itemIds.length === 0) {
-        return;
-      }
-
-      await Item.deleteMany({ id: { $in: itemIds } });
-    } catch (error) {
-      this.log(`[db-service] Error deleting items: ${error.message}`);
-      throw error;
-    }
+    return itemWriteService.deleteItemsByIds(this, Item, itemIds);
   }
 
   /**
@@ -392,16 +210,7 @@ class DatabaseService {
    * @returns {Promise<Object[]>}
    */
   async getItemsByIds(itemIds) {
-    try {
-      if (!Array.isArray(itemIds) || itemIds.length === 0) {
-        return [];
-      }
-
-      return await Item.find({ id: { $in: itemIds } }).lean();
-    } catch (error) {
-      this.log(`[db-service] Error fetching items: ${error.message}`);
-      throw error;
-    }
+    return itemQueryService.getItemsByIds(this, Item, itemIds);
   }
 
   /**
@@ -411,18 +220,7 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async updateItemById(itemId, updates) {
-    try {
-      const result = await Item.findOneAndUpdate(
-        { id: itemId },
-        { $set: updates },
-        { new: true }
-      ).lean();
-
-      return result;
-    } catch (error) {
-      this.log(`[db-service] Error updating item: ${error.message}`);
-      throw error;
-    }
+    return itemWriteService.updateItemById(this, Item, itemId, updates);
   }
 
   /**
@@ -432,15 +230,7 @@ class DatabaseService {
    * @returns {Promise<Object[]>}
    */
   async getItemsByContainer(containerType, containerId) {
-    try {
-      return await Item.find({
-        'container.containerType': containerType,
-        'container.containerId': containerId
-      }).lean();
-    } catch (error) {
-      this.log(`[db-service] Error fetching items by container: ${error.message}`);
-      throw error;
-    }
+    return itemQueryService.getItemsByContainer(this, Item, containerType, containerId);
   }
 
   /**
@@ -451,47 +241,7 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async addOrUpdateMission(playerName, characterId, missionData) {
-    try {
-      const playerNameQuery = this.buildPlayerNameQuery(playerName);
-      if (!playerNameQuery) {
-        return null;
-      }
-
-      const player = await Player.findOne(playerNameQuery);
-
-      if (!player) {
-        return null;
-      }
-
-      const character = player.characters.find((c) => c.id === characterId);
-      if (!character) {
-        return null;
-      }
-
-      if (!Array.isArray(character.missions)) {
-        character.missions = [];
-      }
-
-      const missionIndex = character.missions.findIndex(
-        (mission) => mission.missionId === missionData.missionId
-      );
-
-      if (missionIndex >= 0) {
-        // Update existing mission using array index to ensure Mongoose tracks the change
-        character.missions[missionIndex] = missionData;
-        player.markModified(`characters.${player.characters.indexOf(character)}.missions`);
-      } else {
-        // Add new mission
-        character.missions.push(missionData);
-      }
-
-      player.updatedAt = new Date();
-      await player.save();
-      return player.toObject();
-    } catch (error) {
-      this.log(`[db-service] Error adding/updating mission: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.addOrUpdateMission(this, Player, playerName, characterId, missionData);
   }
 
   /**
@@ -501,28 +251,7 @@ class DatabaseService {
    * @returns {Promise<Array>}
    */
   async getMissions(playerName, characterId) {
-    try {
-      const playerNameQuery = this.buildPlayerNameQuery(playerName);
-      if (!playerNameQuery) {
-        return [];
-      }
-
-      const player = await Player.findOne(playerNameQuery);
-
-      if (!player) {
-        return [];
-      }
-
-      const character = player.characters.find((c) => c.id === characterId);
-      if (!character || !Array.isArray(character.missions)) {
-        return [];
-      }
-
-      return character.missions;
-    } catch (error) {
-      this.log(`[db-service] Error fetching missions: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.getMissions(this, Player, playerName, characterId);
   }
 
   /**
@@ -532,24 +261,7 @@ class DatabaseService {
    * @returns {Promise<Array>}
    */
   async getShips(playerName, characterId) {
-    try {
-      const playerNameQuery = this.buildPlayerNameQuery(playerName);
-      if (!playerNameQuery) {
-        return [];
-      }
-
-      const player = await Player.findOne(playerNameQuery);
-      
-      if (!player) {
-        return [];
-      }
-
-      const character = player.characters.find(c => c.id === characterId);
-      return character && character.ships ? character.ships : [];
-    } catch (error) {
-      this.log(`[db-service] Error fetching ships: ${error.message}`);
-      throw error;
-    }
+    return playerCharacterService.getShips(this, Player, playerName, characterId);
   }
 
   /**
@@ -558,39 +270,7 @@ class DatabaseService {
    * @returns {Promise<Object>}
    */
   async addOrUpdateCelestialBody(celestialBodyData) {
-    try {
-      const upsertQuery = this.toNonEmptyString(celestialBodyData?.id)
-        ? { id: this.toNonEmptyString(celestialBodyData.id) }
-        : {
-          sourceScanId: this.toNonEmptyString(celestialBodyData?.sourceScanId),
-          createdByCharacterId: this.toNonEmptyString(celestialBodyData?.createdByCharacterId),
-          missionId: this.toNonEmptyString(celestialBodyData?.missionId)
-        };
-
-      if (!upsertQuery.id) {
-        if (
-          !upsertQuery.sourceScanId
-          || !upsertQuery.createdByCharacterId
-          || !upsertQuery.missionId
-        ) {
-          throw new Error('Celestial body upsert requires id or sourceScanId+createdByCharacterId+missionId');
-        }
-      }
-
-      const celestialBody = await CelestialBody.findOneAndUpdate(
-        upsertQuery,
-        celestialBodyData,
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true
-        }
-      );
-      return celestialBody ? celestialBody.toObject() : null;
-    } catch (error) {
-      this.log(`[db-service] Error adding/updating celestial body: ${error.message}`);
-      throw error;
-    }
+    return celestialWriteService.addOrUpdateCelestialBody(this, CelestialBody, celestialBodyData);
   }
 
   /**
@@ -599,17 +279,7 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async getCelestialBodyById(celestialBodyId) {
-    try {
-      if (!celestialBodyId || typeof celestialBodyId !== 'string') {
-        return null;
-      }
-
-      const celestialBody = await CelestialBody.findOne({ id: celestialBodyId.trim() }).lean();
-      return celestialBody || null;
-    } catch (error) {
-      this.log(`[db-service] Error fetching celestial body by id: ${error.message}`);
-      throw error;
-    }
+    return celestialQueryService.getCelestialBodyById(this, CelestialBody, celestialBodyId);
   }
 
   /**
@@ -618,17 +288,7 @@ class DatabaseService {
    * @returns {Promise<boolean>}
    */
   async deleteCelestialBodyById(celestialBodyId) {
-    try {
-      if (!celestialBodyId || typeof celestialBodyId !== 'string') {
-        return false;
-      }
-
-      const result = await CelestialBody.deleteOne({ id: celestialBodyId.trim() });
-      return result.deletedCount > 0;
-    } catch (error) {
-      this.log(`[db-service] Error deleting celestial body by id: ${error.message}`);
-      throw error;
-    }
+    return celestialWriteService.deleteCelestialBodyById(this, CelestialBody, celestialBodyId);
   }
 
   /**
@@ -643,81 +303,7 @@ class DatabaseService {
    * @returns {Promise<Array<{celestialBody:Object,distanceKm:number}>>}
    */
   async findCelestialBodiesNearPosition(query) {
-    const solarSystemId = typeof query?.solarSystemId === 'string'
-      ? query.solarSystemId.trim()
-      : '';
-    const positionKm = query?.positionKm;
-    const distanceKm = query?.distanceKm;
-    const createdByCharacterId = typeof query?.createdByCharacterId === 'string'
-      ? query.createdByCharacterId.trim()
-      : '';
-    const missionId = typeof query?.missionId === 'string'
-      ? query.missionId.trim()
-      : '';
-    const stateValues = Array.isArray(query?.stateValues)
-      ? query.stateValues
-        .map((stateValue) => (typeof stateValue === 'string' ? stateValue.trim() : ''))
-        .filter((stateValue) => Boolean(stateValue))
-      : [];
-
-    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
-      return [];
-    }
-
-    try {
-      const boundsQuery = {
-        'spatial.solarSystemId': solarSystemId,
-        'spatial.positionKm.x': {
-          $gte: positionKm.x - distanceKm,
-          $lte: positionKm.x + distanceKm
-        },
-        'spatial.positionKm.y': {
-          $gte: positionKm.y - distanceKm,
-          $lte: positionKm.y + distanceKm
-        },
-        'spatial.positionKm.z': {
-          $gte: positionKm.z - distanceKm,
-          $lte: positionKm.z + distanceKm
-        }
-      };
-
-      if (createdByCharacterId) {
-        boundsQuery.createdByCharacterId = createdByCharacterId;
-      }
-
-      if (missionId) {
-        boundsQuery.missionId = missionId;
-      }
-
-      if (stateValues.length > 0) {
-        boundsQuery.state = { $in: stateValues };
-      }
-
-      const candidates = await CelestialBody.find(boundsQuery).lean();
-
-      return candidates
-        .map((celestialBody) => {
-          const bodyPositionKm = celestialBody?.spatial?.positionKm;
-          if (!this.isTriple(bodyPositionKm)) {
-            return null;
-          }
-
-          const candidateDistanceKm = this.calculateDistanceKm(positionKm, bodyPositionKm);
-          if (candidateDistanceKm > distanceKm) {
-            return null;
-          }
-
-          return {
-            celestialBody,
-            distanceKm: candidateDistanceKm
-          };
-        })
-        .filter((entry) => Boolean(entry))
-        .sort((left, right) => left.distanceKm - right.distanceKm);
-    } catch (error) {
-      this.log(`[db-service] Error finding celestial bodies near position: ${error.message}`);
-      throw error;
-    }
+    return celestialQueryService.findCelestialBodiesNearPosition(this, CelestialBody, query);
   }
 
   /**
@@ -730,38 +316,7 @@ class DatabaseService {
    * @returns {Promise<Object[]>}
    */
   async getCelestialBodies(query = {}) {
-    try {
-      const mongoQuery = {};
-      const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
-      const createdByCharacterId = this.toNonEmptyString(query?.createdByCharacterId);
-      const missionId = this.toNonEmptyString(query?.missionId);
-      const stateValues = Array.isArray(query?.stateValues)
-        ? query.stateValues
-          .map((stateValue) => this.toNonEmptyString(stateValue))
-          .filter((stateValue) => Boolean(stateValue))
-        : [];
-
-      if (solarSystemId) {
-        mongoQuery.solarSystemId = solarSystemId;
-      }
-
-      if (createdByCharacterId) {
-        mongoQuery.createdByCharacterId = createdByCharacterId;
-      }
-
-      if (missionId) {
-        mongoQuery.missionId = missionId;
-      }
-
-      if (stateValues.length > 0) {
-        mongoQuery.state = { $in: stateValues };
-      }
-
-      return await CelestialBody.find(mongoQuery).lean();
-    } catch (error) {
-      this.log(`[db-service] Error fetching celestial bodies: ${error.message}`);
-      throw error;
-    }
+    return celestialQueryService.getCelestialBodies(this, CelestialBody, query);
   }
 
   /**
@@ -776,180 +331,29 @@ class DatabaseService {
    * @returns {Promise<Array<{item:Object,distanceKm:number}>>}
    */
   async findItemsNearPosition(query) {
-    const solarSystemId = typeof query?.solarSystemId === 'string'
-      ? query.solarSystemId.trim()
-      : '';
-    const positionKm = query?.positionKm;
-    const distanceKm = query?.distanceKm;
-    const itemType = typeof query?.itemType === 'string' ? query.itemType.trim() : '';
-
-    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
-      return [];
-    }
-
-    try {
-      const boundsQuery = {
-        'spatial.solarSystemId': solarSystemId,
-        'spatial.positionKm.x': {
-          $gte: positionKm.x - distanceKm,
-          $lte: positionKm.x + distanceKm
-        },
-        'spatial.positionKm.y': {
-          $gte: positionKm.y - distanceKm,
-          $lte: positionKm.y + distanceKm
-        },
-        'spatial.positionKm.z': {
-          $gte: positionKm.z - distanceKm,
-          $lte: positionKm.z + distanceKm
-        }
-      };
-
-      if (itemType) {
-        boundsQuery.itemType = itemType;
-      }
-
-      const candidates = await Item.find(boundsQuery).lean();
-
-      return candidates
-        .map((item) => {
-          const itemPositionKm = item?.spatial?.positionKm;
-          if (!this.isTriple(itemPositionKm)) {
-            return null;
-          }
-
-          const candidateDistanceKm = this.calculateDistanceKm(positionKm, itemPositionKm);
-          if (candidateDistanceKm > distanceKm) {
-            return null;
-          }
-
-          return {
-            item,
-            distanceKm: candidateDistanceKm
-          };
-        })
-        .filter((entry) => Boolean(entry))
-        .sort((left, right) => left.distanceKm - right.distanceKm);
-    } catch (error) {
-      this.log(`[db-service] Error finding items near position: ${error.message}`);
-      throw error;
-    }
+    return itemQueryService.findItemsNearPosition(this, Item, query);
   }
 
   async upsertMarket(marketData) {
-    try {
-      const marketId = this.toNonEmptyString(marketData?.marketId);
-      const solarSystemId = this.toNonEmptyString(marketData?.solarSystemId);
-      if (!marketId || !solarSystemId) {
-        return null;
-      }
-
-      const persisted = await Market.findOneAndUpdate(
-        { marketId, solarSystemId },
-        marketData,
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true
-        }
-      );
-
-      return persisted ? persisted.toObject() : null;
-    } catch (error) {
-      this.log(`[db-service] Error upserting market: ${error.message}`);
-      throw error;
-    }
+    return marketWriteService.upsertMarket(this, Market, marketData);
   }
 
   async getMarkets(query = {}) {
-    try {
-      const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
-      const mongoQuery = solarSystemId ? { solarSystemId } : {};
-      return await Market.find(mongoQuery).lean();
-    } catch (error) {
-      this.log(`[db-service] Error fetching markets: ${error.message}`);
-      throw error;
-    }
+    return marketQueryService.getMarkets(this, Market, query);
   }
 
   async getSolarSystemMarketSeedState(solarSystemId) {
-    try {
-      const normalizedSolarSystemId = this.toNonEmptyString(solarSystemId).toLowerCase();
-      if (!normalizedSolarSystemId) {
-        return null;
-      }
-
-      const state = await GameStateDocument.findOne({
-        key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY
-      }).lean();
-
-      const systems = Array.isArray(state?.value?.systems) ? state.value.systems : [];
-      const match = systems.find((entry) => (
-        this.toNonEmptyString(entry?.solarSystemId).toLowerCase() === normalizedSolarSystemId
-      ));
-
-      if (!match) {
-        return null;
-      }
-
-      return {
-        solarSystemId: normalizedSolarSystemId,
-        seedVersion: this.toNonEmptyString(match.seedVersion),
-        seededAt: this.toNonEmptyString(match.seededAt)
-      };
-    } catch (error) {
-      this.log(`[db-service] Error fetching market seed state: ${error.message}`);
-      throw error;
-    }
+    return marketSeedStateService.getSolarSystemMarketSeedState(this, GameStateDocument, solarSystemId);
   }
 
   async setSolarSystemMarketSeedState(solarSystemId, seedVersion, seededAt) {
-    try {
-      const normalizedSolarSystemId = this.toNonEmptyString(solarSystemId).toLowerCase();
-      const normalizedSeedVersion = this.toNonEmptyString(seedVersion);
-      const normalizedSeededAt = this.toNonEmptyString(seededAt);
-
-      if (!normalizedSolarSystemId || !normalizedSeedVersion || !normalizedSeededAt) {
-        return null;
-      }
-
-      const state = await GameStateDocument.findOne({
-        key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY
-      });
-
-      const systems = Array.isArray(state?.value?.systems)
-        ? state.value.systems.map((entry) => ({
-          solarSystemId: this.toNonEmptyString(entry?.solarSystemId).toLowerCase(),
-          seedVersion: this.toNonEmptyString(entry?.seedVersion),
-          seededAt: this.toNonEmptyString(entry?.seededAt)
-        }))
-        : [];
-
-      const filtered = systems.filter((entry) => entry.solarSystemId !== normalizedSolarSystemId);
-      filtered.push({
-        solarSystemId: normalizedSolarSystemId,
-        seedVersion: normalizedSeedVersion,
-        seededAt: normalizedSeededAt
-      });
-
-      const persisted = await GameStateDocument.findOneAndUpdate(
-        { key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY },
-        {
-          key: SOLAR_SYSTEM_MARKET_SEED_STATE_KEY,
-          value: { systems: filtered },
-          updatedAt: new Date()
-        },
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true
-        }
-      ).lean();
-
-      return persisted;
-    } catch (error) {
-      this.log(`[db-service] Error setting market seed state: ${error.message}`);
-      throw error;
-    }
+    return marketSeedStateService.setSolarSystemMarketSeedState(
+      this,
+      GameStateDocument,
+      solarSystemId,
+      seedVersion,
+      seededAt
+    );
   }
 
   /**
@@ -973,23 +377,7 @@ class DatabaseService {
    * @returns {Promise<Array>} Array of jump gate documents
    */
   async getJumpGatesAsync() {
-    if (this.useInMemoryFallback) {
-      return [];
-    }
-
-    try {
-      const gates = await JumpGate.find({ isActive: true }).lean();
-      return gates.map((gate) => ({
-        gateId: gate.gateId,
-        sourceSystemId: gate.sourceSystemId,
-        destSystemId: gate.destSystemId,
-        traversalCostAu: gate.traversalCostAu,
-        traversalTimeHours: gate.traversalTimeHours
-      }));
-    } catch (error) {
-      this.log(`[db-service] Error loading jump gates: ${error.message}`);
-      return [];
-    }
+    return jumpGateQueryService.getJumpGatesAsync(this, JumpGate);
   }
 }
 

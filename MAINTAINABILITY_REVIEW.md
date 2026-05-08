@@ -48,9 +48,16 @@ Implemented extraction:
 
 ## M-02 — Replace `socket.on` boilerplate with a registration table
 
+Status: Completed on 2026-05-08.
+
 In `src/server.js` (~lines 150–420) the same 4-line `socket.on(EVENT, p => handler.handle(socket, p).catch(err => process.stderr.write(...)))` pattern is copy-pasted ~25 times, plus a one-off alias for `MISSION_UPSERT_ALIAS_REQUEST_EVENT`. Each addition requires editing four places (import, instantiate, wire, log message).
 
 Suggested: a `[ { event, handlerKey, aliasResponse? } ]` table + a single `wireHandler(io, socket, table, handlers)` function. Reduces ~250 LOC to ~30, removes inconsistent log strings, and makes adding a handler one entry.
+
+Implemented extraction:
+- `src/handlers/socket-handler-registry.js` now owns the core event-to-handler registration table.
+- `src/server.js` now wires core handlers through `registerSocketHandlers(socket, handlersByKey)`.
+- The mission upsert alias path remains explicit to preserve alias-specific response emission behavior.
 
 ---
 
@@ -77,9 +84,43 @@ Items were migrated to canonical `spatial`/`motion`, legacy ship/celestial fallb
 
 ## M-05 — `db/models.js` and `db/service.js` are monoliths
 
+Status: Completed on 2026-05-08 (slice 1-4).
+
 `src/db/models.js` defines every Mongoose schema in 1k LOC; `src/db/service.js` mixes player CRUD, item CRUD, celestial-body CRUD, market CRUD, jump-gate CRUD, and seed-state CRUD. Suggested:
 - `db/models/player.js`, `db/models/item.js`, `db/models/celestial-body.js`, `db/models/market.js`, `db/models/jump-gate.js`, `db/models/game-state.js`, plus shared sub-schemas (`spatial`, `motion`, `physical`, `observability`) factored once.
 - `db/services/players.js`, `db/services/items.js`, … with a thin `DatabaseService` aggregator. The integration test files already split this way (`db-players.mongo.integration.test.js`, etc.) — production layout has just not caught up.
+
+Implemented (slice 1, players + characters):
+- Added `src/db/models/player-model.js` and moved `Player`, `playerSchema`, `characterSchema`, and `creditLedgerEntrySchema` there.
+- Added `src/db/service/player-character-service.js` and moved player/character methods there (`registerPlayer`, `getPlayerByName`, `getPlayerById`, `updatePlayer`, character/ship/mission methods).
+- `src/db/models.js` and `src/db/service.js` remain stable facades with backward-compatible exports and method signatures.
+
+Implemented (slice 2, items + shared primitives):
+- Added `src/db/models/shared-primitives.js` and moved shared schemas (`tripleSchema`, `shipKinematicsSchema`, `motionStateSchema`, `spatialStateSchema`) there.
+- Added `src/db/models/item-model.js` and moved `Item`, `itemSchema`, `itemContainerSchema`, and `inventoryItemReferenceSchema` there.
+- Added fine-grained item services:
+  - `src/db/service/item-write-service.js` (`addItems`, `deleteItemsByIds`, `updateItemById`)
+  - `src/db/service/item-query-service.js` (`getItemsByIds`, `getItemsByContainer`, `findItemsNearPosition`)
+- `src/db/models.js` and `src/db/service.js` continue as stable facades with existing exports and method signatures unchanged.
+
+Implemented (slice 3, markets + seed-state):
+- Added `src/db/models/market-model.js` and moved `Market`, `marketSchema`, `marketInventoryEntrySchema`, `marketLedgerEntrySchema`, and `marketOrbitSchema` there.
+- Added `src/db/models/game-state-model.js` and moved `GameStateDocument` + `gameStateDocumentSchema` there.
+- Added fine-grained market services:
+  - `src/db/service/market-write-service.js` (`upsertMarket`)
+  - `src/db/service/market-query-service.js` (`getMarkets`)
+  - `src/db/service/market-seed-state-service.js` (`getSolarSystemMarketSeedState`, `setSolarSystemMarketSeedState`)
+- `src/db/models.js` and `src/db/service.js` remain stable facades with backward-compatible exports and method signatures.
+
+Implemented (slice 4, celestial + gates + ship/missions model extraction):
+- Added `src/db/models/celestial-model.js` and moved `CelestialBody`, `celestialBodySchema`, and `asteroidMaterialProfileSchema` there.
+- Added `src/db/models/jump-gate-model.js` and moved `JumpGate` + `jumpGateSchema` there.
+- Added `src/db/models/ship-model.js` and moved `driveProfileSchema`, `shipSchema`, and `missionSchema` there.
+- Added fine-grained service modules:
+  - `src/db/service/celestial-write-service.js` (`addOrUpdateCelestialBody`, `deleteCelestialBodyById`)
+  - `src/db/service/celestial-query-service.js` (`getCelestialBodyById`, `findCelestialBodiesNearPosition`, `getCelestialBodies`)
+  - `src/db/service/jump-gate-query-service.js` (`getJumpGatesAsync`)
+- `src/db/models.js` and `src/db/service.js` continue to expose the same public exports and method signatures as facades.
 
 ---
 
@@ -144,9 +185,9 @@ Several are point-in-time progress reports (e.g. `SPATIAL_MODEL_IMPLEMENTATION.m
 | **M-04** | Finish spatial-model cutover (items + remove legacy readers) — **Completed 2026-05-08** | Hard 2026-06-30 sunset addressed ahead of sunset | M |
 | **M-03** | Hash passwords | Security + blocks auth refactors | S |
 | **M-01** | Split `MessageHandlerContext` — **Completed 2026-05-08** | Compounding complexity reduced via façade + extracted modules | L |
-| **M-02** | Table-driven socket wiring | Boilerplate growth on every new event | S |
+| **M-02** | Table-driven socket wiring — **Completed 2026-05-08** | Boilerplate growth reduced with shared registry wiring | S |
 | **M-08** | Add ESLint + CI workflow + npm scripts | Style/correctness drift | S |
-| **M-05** | Split `db/models.js` and `db/service.js` | Per-collection changes touch the world | M |
+| **M-05** | Split `db/models.js` and `db/service.js` — **Completed 2026-05-08** | Domain modules extracted (players, items, markets/seed-state, celestial/gates, ship/missions) behind stable facades | M |
 | **M-07** | Extract `withDb` helper | Easy duplication removal | S |
 | **M-06** | Move seeding out of constructor | Hidden non-determinism; bites tests | S |
 | **M-09** | Consolidate markdown docs | Drift; onboarding cost | S |
