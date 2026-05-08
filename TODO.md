@@ -109,14 +109,18 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Fixture updates**: migrated market fixtures to canonical helper-compatible `siteType` + `trajectory.orbit` overrides where required.
 - **Validation**: full suite green after migration (`281` pass, `0` fail).
 
-### TQ-09 Make `createTestContext` ID generator robust past 4 calls
-- **Where**: [test-support/message-handler-test-helpers.js:7-12](test-support/message-handler-test-helpers.js#L7-L12)
-- **Why**: After the 4 seeded IDs are drained, the fallback returns
-  `generated-0` repeatedly because `issuedIds.length` is always 0 once
-  emptied. Tests creating multiple characters silently get duplicate IDs.
-- **Deliverable**: Replace fallback with a monotonic counter
-  (`generated-1`, `generated-2`, …). Optionally accept a `seedIds` argument
-  so tests that need specific IDs are explicit.
+### ~~TQ-09~~ ✅ Make `createTestContext` ID generator robust past 4 calls
+- **Completed**: 2026-05-07
+- **Implemented** in `test-support/message-handler-test-helpers.js`:
+  - `createTestContext({ seedIds })` optional API
+  - Default seed IDs preserved: `player-1`, `session-1`, `session-2`, `character-1`
+  - Monotonic per-context fallback after seed exhaustion: `generated-1`, `generated-2`, ...
+  - Custom `seedIds` are trimmed/filtered before use
+- **Added tests**: `test/message-handler-test-helpers.test.js`
+  - default-seed then monotonic fallback behavior
+  - custom `seedIds` behavior
+  - per-context counter isolation (no cross-test leakage)
+- **Validation**: full suite green (`284` pass, `0` fail)
 
 ### TQ-10 Extract a shared trader-character seeder
 - **Why**: [TEST_QUALITY_REVIEW.md](TEST_QUALITY_REVIEW.md) §4.3 — three

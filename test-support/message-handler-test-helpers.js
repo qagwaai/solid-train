@@ -4,11 +4,24 @@ const {
   MessageHandlerContext
 } = require('../src/handlers/message-handler-context');
 
-function createTestContext() {
-  const issuedIds = ['player-1', 'session-1', 'session-2', 'character-1'];
+function createTestContext(options = {}) {
+  const defaultSeedIds = ['player-1', 'session-1', 'session-2', 'character-1'];
+  const providedSeedIds = Array.isArray(options.seedIds) ? options.seedIds : null;
+  const issuedIds = (providedSeedIds || defaultSeedIds)
+    .map((value) => (typeof value === 'string' ? value.trim() : ''))
+    .filter((value) => Boolean(value));
+  let generatedIdCounter = 0;
 
   return new MessageHandlerContext({
-    createId: () => issuedIds.shift() || `generated-${issuedIds.length}`,
+    createId: () => {
+      const nextIssued = issuedIds.shift();
+      if (nextIssued) {
+        return nextIssued;
+      }
+
+      generatedIdCounter += 1;
+      return `generated-${generatedIdCounter}`;
+    },
     getCurrentTimestamp: () => '2026-04-17T00:00:00.000Z'
   });
 }
