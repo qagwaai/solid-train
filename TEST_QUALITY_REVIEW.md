@@ -28,7 +28,7 @@ risks are concentrated in **five themes**:
    which [MESSAGE_CONTRACT.md](MESSAGE_CONTRACT.md) schedules for removal on
    **2026-06-30** (~7 weeks from now).
 4. **Misnamed / orphan test files** — `mission-add-message-handler.test.js`
-   actually tests `MissionUpsertMessageHandler`; `km-to-au-migration.test.js`
+  actually tests `MissionUpsertMessageHandler`; `context-distance-and-routing.test.js`
    actually tests `calculateDistanceAu` and gate-routing BFS;
    `MissionAddMessageHandler` is **dead code** (no wiring in `src/server.js`,
    no test imports it).
@@ -113,7 +113,7 @@ public event, so the wiring may simply have been missed.
 ### 2.3 `solar-system-gate-seed.js` at 25.58% line coverage
 
 Lines 10–41 (most of the seed body) are untouched. Gate routing itself is tested
-via BFS in [test/km-to-au-migration.test.js](test/km-to-au-migration.test.js) (see
+via BFS in [test/context-distance-and-routing.test.js](test/context-distance-and-routing.test.js) (see
 naming issue 4.1), but the seed step that populates the network from
 [data/Stellar mineable raw elements - Mineable Materials.csv](data/Stellar%20mineable%20raw%20elements%20-%20Mineable%20Materials.csv)
 or the in-code seed list isn't asserted.
@@ -316,16 +316,15 @@ inbound `ship-upsert-request` or `celestial-body-upsert-request` carrying a
 
 - [test/mission-add-message-handler.test.js](test/mission-add-message-handler.test.js)
   imports `MissionUpsertMessageHandler` — file name vs subject mismatch.
-- [test/km-to-au-migration.test.js](test/km-to-au-migration.test.js) actually
+- [test/context-distance-and-routing.test.js](test/context-distance-and-routing.test.js) actually
   tests `calculateDistanceAu` and `getHopPathBetweenSystems`. There is no
   KM→AU migration; the file name is historical. The first tests in this
   file would be at home in `distance-and-routing.test.js` or split into
   `context-distance.test.js` and `context-gate-routing.test.js`.
 - [test/credit-ledger.test.js](test/credit-ledger.test.js) is correctly named
-  for its first half but its second half also tests gate routing
-  (per the grep for `getHopPathBetweenSystems` matches in `credit-ledger.test.js`).
+  and is now focused on credit normalization/ledger behavior.
 - `db-service-core.test.js` vs `db-service-extended.test.js` — the split is
-  unclear from the names.
+  documented in [test/DB_SERVICE_TEST_SPLIT.md](test/DB_SERVICE_TEST_SPLIT.md).
 
 ---
 

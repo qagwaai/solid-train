@@ -17,6 +17,7 @@ class MarketLedgerListMessageHandler {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const marketId = this.context.toNonEmptyString(payload?.marketId);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
+    const requestId = this.context.toNonEmptyString(payload?.requestId) || null;
     const offset = Number.isInteger(payload?.offset) ? payload.offset : 0;
     const limit = Number.isInteger(payload?.limit) ? payload.limit : 50;
 
@@ -27,7 +28,8 @@ class MarketLedgerListMessageHandler {
         entries: [],
         total: 0,
         offset,
-        limit
+        limit,
+        requestId
       };
     }
 
@@ -39,7 +41,8 @@ class MarketLedgerListMessageHandler {
         entries: [],
         total: 0,
         offset,
-        limit
+        limit,
+        requestId
       };
     }
 
@@ -63,7 +66,8 @@ class MarketLedgerListMessageHandler {
         entries: [],
         total: 0,
         offset,
-        limit
+        limit,
+        requestId
       };
     }
 
@@ -76,7 +80,8 @@ class MarketLedgerListMessageHandler {
       entries: result.entries,
       total: result.total,
       offset: result.offset,
-      limit: result.limit
+      limit: result.limit,
+      requestId
     };
   }
 

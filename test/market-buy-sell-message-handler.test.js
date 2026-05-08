@@ -28,14 +28,11 @@ const {
   seedTraderCharacter
 } = require('../test-support/message-handler-test-helpers');
 
-test('MarketBuyMessageHandler buys item, updates credits, stock, and character inventory', async () => {
+test('MarketBuyMessageHandler buys item and returns transaction metadata', async () => {
   const context = createTestContext();
   seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
-
-  const beforeMarket = context.getMarket('sol-ceres-exchange', 'sol');
-  const beforeStock = beforeMarket.inventory.find((entry) => entry.itemId === 'iron').stock;
 
   const response = await handler.handle(socket, {
     requestId: 'buy-1',
@@ -52,15 +49,60 @@ test('MarketBuyMessageHandler buys item, updates credits, stock, and character i
   assert.equal(response.requestId, 'buy-1');
   assert.equal(response.transaction.itemId, 'iron');
   assert.equal(response.transaction.quantity, 3);
+  assert.equal(socket.events[0].eventName, MARKET_BUY_RESPONSE_EVENT);
+});
+
+test('MarketBuyMessageHandler decrements market stock after successful buy', async () => {
+  const context = createTestContext();
+  seedTraderCharacter(context, { startingBalance: 2000 });
+  const handler = new MarketBuyMessageHandler(context);
+  const socket = createMockSocket();
+
+  const beforeMarket = context.getMarket('sol-ceres-exchange', 'sol');
+  const beforeStock = beforeMarket.inventory.find((entry) => entry.itemId === 'iron').stock;
+
+  const response = await handler.handle(socket, {
+    requestId: 'buy-stock-1',
+    playerName: 'MarketPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol',
+    itemId: 'iron',
+    quantity: 3
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.requestId, 'buy-stock-1');
 
   const afterMarket = context.getMarket('sol-ceres-exchange', 'sol');
   const afterStock = afterMarket.inventory.find((entry) => entry.itemId === 'iron').stock;
   assert.equal(afterStock, beforeStock - 3);
+});
+
+test('MarketBuyMessageHandler creates bought inventory item for the character', async () => {
+  const context = createTestContext();
+  seedTraderCharacter(context, { startingBalance: 2000 });
+  const handler = new MarketBuyMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    requestId: 'buy-items-1',
+    playerName: 'MarketPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol',
+    itemId: 'iron',
+    quantity: 3
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.requestId, 'buy-items-1');
 
   const boughtItems = [...context.itemsById.values()].filter((item) => item.owningCharacterId === 'character-1' && item.itemType === 'iron');
   assert.equal(boughtItems.length, 1);
   assert.equal(boughtItems[0].quantity, 3);
-  assert.equal(socket.events[0].eventName, MARKET_BUY_RESPONSE_EVENT);
 });
 
 test('MarketBuyMessageHandler returns INSUFFICIENT_CREDITS when balance is too low', async () => {
@@ -70,6 +112,7 @@ test('MarketBuyMessageHandler returns INSUFFICIENT_CREDITS when balance is too l
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'buy-low-credits-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -81,9 +124,10 @@ test('MarketBuyMessageHandler returns INSUFFICIENT_CREDITS when balance is too l
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_BUY_FAILURE_REASONS.INSUFFICIENT_CREDITS);
+  assert.equal(response.requestId, 'buy-low-credits-1');
 });
 
-test('MarketSellMessageHandler sells owned quantity and credits character', async () => {
+test('MarketSellMessageHandler sells owned quantity and returns success', async () => {
   const context = createTestContext();
   seedTraderCharacter(context, { startingBalance: 500 });
   seedItems(context, [
@@ -121,10 +165,52 @@ test('MarketSellMessageHandler sells owned quantity and credits character', asyn
   });
 
   assert.equal(response.success, true);
+  assert.equal(response.requestId, 'sell-1');
+  assert.equal(socket.events[0].eventName, MARKET_SELL_RESPONSE_EVENT);
+});
+
+test('MarketSellMessageHandler decrements sold item quantity in inventory', async () => {
+  const context = createTestContext();
+  seedTraderCharacter(context, { startingBalance: 500 });
+  seedItems(context, [
+    {
+      id: 'iron-stack-1',
+      itemType: 'iron',
+      displayName: 'Iron',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: { containerType: 'ship', containerId: 'ship-1' },
+      owningPlayerId: 'player-1',
+      owningCharacterId: 'character-1',
+      kinematics: null,
+      createdAt: '2026-05-05T00:00:00.000Z',
+      updatedAt: '2026-05-05T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+      launchable: false,
+      quantity: 5
+    }
+  ]);
+
+  const handler = new MarketSellMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    requestId: 'sell-stock-1',
+    playerName: 'MarketPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol',
+    itemId: 'iron',
+    quantity: 4
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.requestId, 'sell-stock-1');
   const remainingItems = [...context.itemsById.values()].filter((item) => item.id === 'iron-stack-1');
   assert.equal(remainingItems.length, 1);
   assert.equal(remainingItems[0].quantity, 1);
-  assert.equal(socket.events[0].eventName, MARKET_SELL_RESPONSE_EVENT);
 });
 
 test('MarketSellMessageHandler returns INSUFFICIENT_ITEM_QUANTITY when inventory is low', async () => {
@@ -134,6 +220,7 @@ test('MarketSellMessageHandler returns INSUFFICIENT_ITEM_QUANTITY when inventory
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'sell-low-qty-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -145,6 +232,7 @@ test('MarketSellMessageHandler returns INSUFFICIENT_ITEM_QUANTITY when inventory
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_SELL_FAILURE_REASONS.INSUFFICIENT_ITEM_QUANTITY);
+  assert.equal(response.requestId, 'sell-low-qty-1');
 });
 
 // ─── Buy: additional branch coverage ───────────────────────────────────────
@@ -156,6 +244,7 @@ test('MarketBuyMessageHandler emits invalid-session for bad session', async () =
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'buy-invalid-qty-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'wrong-key',
@@ -197,6 +286,7 @@ test('MarketBuyMessageHandler returns INVALID_PAYLOAD for quantity = 0', async (
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'buy-invalid-qty-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -208,6 +298,7 @@ test('MarketBuyMessageHandler returns INVALID_PAYLOAD for quantity = 0', async (
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_BUY_FAILURE_REASONS.INVALID_PAYLOAD);
+  assert.equal(response.requestId, 'buy-invalid-qty-1');
 });
 
 test('MarketBuyMessageHandler returns MARKET_NOT_FOUND for unknown marketId', async () => {
@@ -217,6 +308,7 @@ test('MarketBuyMessageHandler returns MARKET_NOT_FOUND for unknown marketId', as
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'buy-market-missing-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -228,6 +320,7 @@ test('MarketBuyMessageHandler returns MARKET_NOT_FOUND for unknown marketId', as
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_BUY_FAILURE_REASONS.MARKET_NOT_FOUND);
+  assert.equal(response.requestId, 'buy-market-missing-1');
 });
 
 test('MarketBuyMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async () => {
@@ -237,6 +330,7 @@ test('MarketBuyMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async 
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'buy-item-missing-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -248,6 +342,7 @@ test('MarketBuyMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async 
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_BUY_FAILURE_REASONS.ITEM_NOT_FOUND);
+  assert.equal(response.requestId, 'buy-item-missing-1');
 });
 
 test('MarketBuyMessageHandler returns INSUFFICIENT_MARKET_STOCK when stock is too low', async () => {
@@ -264,6 +359,7 @@ test('MarketBuyMessageHandler returns INSUFFICIENT_MARKET_STOCK when stock is to
   context.cacheMarket(market);
 
   const response = await handler.handle(socket, {
+    requestId: 'buy-stock-low-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -275,6 +371,7 @@ test('MarketBuyMessageHandler returns INSUFFICIENT_MARKET_STOCK when stock is to
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_BUY_FAILURE_REASONS.INSUFFICIENT_MARKET_STOCK);
+  assert.equal(response.requestId, 'buy-stock-low-1');
 });
 
 test('MarketBuyMessageHandler returns NO_SHIP_AVAILABLE when character has no ship', async () => {
@@ -295,6 +392,7 @@ test('MarketBuyMessageHandler returns NO_SHIP_AVAILABLE when character has no sh
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'buy-no-ship-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -306,6 +404,7 @@ test('MarketBuyMessageHandler returns NO_SHIP_AVAILABLE when character has no sh
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_BUY_FAILURE_REASONS.NO_SHIP_AVAILABLE);
+  assert.equal(response.requestId, 'buy-no-ship-1');
 });
 
 test('MarketBuyMessageHandler appends type:take creditLedger entry after successful buy', async () => {
@@ -326,6 +425,7 @@ test('MarketBuyMessageHandler appends type:take creditLedger entry after success
   });
 
   assert.equal(response.success, true);
+  assert.equal(response.requestId, 'buy-ledger');
 
   const character = context.findCharacter('MarketPilot', 'character-1');
   const lastEntry = character.creditLedger[character.creditLedger.length - 1];
@@ -350,6 +450,7 @@ test('MarketBuyMessageHandler buys successfully after restock interval elapses',
   context.cacheMarket(market);
 
   const response = await handler.handle(socket, {
+    requestId: 'buy-restock-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -360,6 +461,7 @@ test('MarketBuyMessageHandler buys successfully after restock interval elapses',
   });
 
   assert.equal(response.success, true);
+  assert.equal(response.requestId, 'buy-restock-1');
   assert.equal(response.transaction.itemId, 'iron');
 });
 
@@ -372,6 +474,7 @@ test('MarketSellMessageHandler emits invalid-session for bad session', async () 
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'sell-invalid-qty-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'wrong-key',
@@ -413,6 +516,7 @@ test('MarketSellMessageHandler returns INVALID_PAYLOAD for non-integer quantity'
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'sell-invalid-qty-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -424,6 +528,7 @@ test('MarketSellMessageHandler returns INVALID_PAYLOAD for non-integer quantity'
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_SELL_FAILURE_REASONS.INVALID_PAYLOAD);
+  assert.equal(response.requestId, 'sell-invalid-qty-1');
 });
 
 test('MarketSellMessageHandler returns MARKET_NOT_FOUND for wrong solarSystemId', async () => {
@@ -433,6 +538,7 @@ test('MarketSellMessageHandler returns MARKET_NOT_FOUND for wrong solarSystemId'
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'sell-market-missing-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -444,6 +550,7 @@ test('MarketSellMessageHandler returns MARKET_NOT_FOUND for wrong solarSystemId'
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_SELL_FAILURE_REASONS.MARKET_NOT_FOUND);
+  assert.equal(response.requestId, 'sell-market-missing-1');
 });
 
 test('MarketSellMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async () => {
@@ -453,6 +560,7 @@ test('MarketSellMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'sell-item-missing-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -464,6 +572,7 @@ test('MarketSellMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_SELL_FAILURE_REASONS.ITEM_NOT_FOUND);
+  assert.equal(response.requestId, 'sell-item-missing-1');
 });
 
 test('MarketSellMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when market cannot buy', async () => {
@@ -497,6 +606,7 @@ test('MarketSellMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when market cann
   context.cacheMarket(market);
 
   const response = await handler.handle(socket, {
+    requestId: 'sell-market-cannot-buy-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -508,6 +618,7 @@ test('MarketSellMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when market cann
 
   assert.equal(response.success, false);
   assert.equal(response.reason, MARKET_SELL_FAILURE_REASONS.MARKET_DOES_NOT_BUY_ITEM);
+  assert.equal(response.requestId, 'sell-market-cannot-buy-1');
 });
 
 test('MarketSellMessageHandler appends type:put creditLedger entry after successful sell', async () => {
@@ -545,6 +656,7 @@ test('MarketSellMessageHandler appends type:put creditLedger entry after success
   });
 
   assert.equal(response.success, true);
+  assert.equal(response.requestId, 'sell-ledger');
 
   const character = context.findCharacter('MarketPilot', 'character-1');
   const lastEntry = character.creditLedger[character.creditLedger.length - 1];

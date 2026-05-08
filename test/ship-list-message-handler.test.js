@@ -545,6 +545,46 @@ test('ShipListMessageHandler omits driveProfile key when ship has no drive profi
   assert.equal('driveProfile' in response.ships[0], false);
 });
 
+test('ShipListMessageHandler omits driveProfile key when driveProfile is null', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'NullDrivePilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Drifter',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'scavenger-pod',
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0
+            },
+            driveProfile: null
+          }
+        ]
+      }
+    ]
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'NullDrivePilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal('driveProfile' in response.ships[0], false);
+});
+
 test('ShipListMessageHandler omits driveProfile when profile fields are invalid', async () => {
   const context = createTestContext();
   seedPlayer(context, {

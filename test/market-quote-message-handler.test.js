@@ -57,6 +57,7 @@ test('MarketQuoteMessageHandler rejects invalid payload fields', async () => {
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'rq-invalid-direction-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -68,6 +69,7 @@ test('MarketQuoteMessageHandler rejects invalid payload fields', async () => {
   });
 
   assert.equal(response.success, false);
+  assert.equal(response.requestId, 'rq-invalid-direction-1');
   assert.equal(response.reason, MARKET_QUOTE_FAILURE_REASONS.INVALID_DIRECTION);
   assert.equal(socket.events[0].eventName, MARKET_QUOTE_RESPONSE_EVENT);
 });
@@ -82,6 +84,7 @@ test('MarketQuoteMessageHandler emits invalid session before quote logic', async
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'rq-missing-market-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'bad-session',
@@ -110,6 +113,7 @@ test('MarketQuoteMessageHandler returns INVALID_PAYLOAD when marketId is missing
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'rq-missing-market-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -120,6 +124,7 @@ test('MarketQuoteMessageHandler returns INVALID_PAYLOAD when marketId is missing
   });
 
   assert.equal(response.success, false);
+  assert.equal(response.requestId, 'rq-missing-market-1');
   assert.equal(response.reason, MARKET_QUOTE_FAILURE_REASONS.INVALID_PAYLOAD);
 });
 
@@ -130,6 +135,7 @@ test('MarketQuoteMessageHandler returns PLAYER_NOT_REGISTERED for unknown player
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'rq-character-missing-1',
     playerName: 'MarketPilot',
     characterId: 'nonexistent',
     sessionKey: 'session-1',
@@ -142,6 +148,7 @@ test('MarketQuoteMessageHandler returns PLAYER_NOT_REGISTERED for unknown player
 
   // Session passes, character lookup fails → CHARACTER_NOT_FOUND
   assert.equal(response.success, false);
+  assert.equal(response.requestId, 'rq-character-missing-1');
   assert.equal(response.reason, MARKET_QUOTE_FAILURE_REASONS.CHARACTER_NOT_FOUND);
 });
 
@@ -152,6 +159,7 @@ test('MarketQuoteMessageHandler returns MARKET_NOT_FOUND for unknown marketId', 
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'rq-market-missing-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -163,6 +171,7 @@ test('MarketQuoteMessageHandler returns MARKET_NOT_FOUND for unknown marketId', 
   });
 
   assert.equal(response.success, false);
+  assert.equal(response.requestId, 'rq-market-missing-1');
   assert.equal(response.reason, MARKET_QUOTE_FAILURE_REASONS.MARKET_NOT_FOUND);
 });
 
@@ -173,6 +182,7 @@ test('MarketQuoteMessageHandler returns ITEM_NOT_FOUND for unknown itemId', asyn
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'rq-item-missing-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -184,6 +194,7 @@ test('MarketQuoteMessageHandler returns ITEM_NOT_FOUND for unknown itemId', asyn
   });
 
   assert.equal(response.success, false);
+  assert.equal(response.requestId, 'rq-item-missing-1');
   assert.equal(response.reason, MARKET_QUOTE_FAILURE_REASONS.ITEM_NOT_FOUND);
 });
 
@@ -194,6 +205,7 @@ test('MarketQuoteMessageHandler returns INVALID_QUANTITY for quantity = 0', asyn
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'rq-invalid-qty-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -205,6 +217,7 @@ test('MarketQuoteMessageHandler returns INVALID_QUANTITY for quantity = 0', asyn
   });
 
   assert.equal(response.success, false);
+  assert.equal(response.requestId, 'rq-invalid-qty-1');
   assert.equal(response.reason, MARKET_QUOTE_FAILURE_REASONS.INVALID_QUANTITY);
 });
 
@@ -222,6 +235,7 @@ test('MarketQuoteMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when sell direc
   context.cacheMarket(market);
 
   const response = await handler.handle(socket, {
+    requestId: 'rq-market-cannot-buy-1',
     playerName: 'MarketPilot',
     characterId: 'character-1',
     sessionKey: 'session-1',
@@ -233,5 +247,6 @@ test('MarketQuoteMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when sell direc
   });
 
   assert.equal(response.success, false);
+  assert.equal(response.requestId, 'rq-market-cannot-buy-1');
   assert.equal(response.reason, MARKET_QUOTE_FAILURE_REASONS.MARKET_DOES_NOT_BUY_ITEM);
 });

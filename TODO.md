@@ -153,43 +153,69 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 
 ## P2 — Test design polish
 
-### TQ-12 One assertion per test name (where reasonable)
-- **Why**: Multi-clause names hide the real failure cause.
-- **Deliverable**: Where a test asserts ≥ 3 unrelated post-conditions,
-  split into sibling tests or use `t.test()` subtests. Prioritize the
-  market-buy/sell tests and any `'... and ...'`-named handler tests.
+### ~~TQ-12~~ ✅ One assertion per test name (where reasonable)
+- **Completed**: 2026-05-07
+- **Implementation**:
+  - Split broad market tests into narrower sibling tests in
+    `test/market-buy-sell-message-handler.test.js`.
+  - Separated buy assertions into focused tests for transaction metadata,
+    stock decrement, and inventory write.
+  - Separated sell assertions into focused tests for success response and
+    inventory quantity decrement.
+- **Validation**: targeted suite green (`106` pass, `0` fail).
 
-### TQ-13 Free-port server tests
-- **Why**: [test/server.test.js](test/server.test.js) hard-codes 21+ specific
-  ports; `listen(server)` already shows the right `server.listen(0)` pattern.
-- **Deliverable**: Replace `createServer({ port: '30xx' })` calls with
-  `createServer({ port: '0' })` (or a helper `createTestServer()`); use the
-  existing `listen()` helper to read the actual port.
+### ~~TQ-13~~ ✅ Free-port server tests
+- **Completed**: 2026-05-07
+- **Implementation**:
+  - Replaced fixed 30xx `createServer(...)` call sites in `test/server.test.js`
+    with `createServer()` to avoid fixed-port coupling.
+  - Added `getAvailablePort()` helper for the `startServer(...)` test and now
+    pass a dynamically probed port.
+  - Preserved the explicit `createServer({ port: '4000' })` unit test that
+    verifies `resolvePort` behavior.
+- **Validation**: `test/server.test.js` passing in targeted suite.
 
-### TQ-14 Rename historically-misnamed test files
-- **Why**: [TEST_QUALITY_REVIEW.md](TEST_QUALITY_REVIEW.md) §7.2.
-- **Remaining**:
-  - Rename `test/km-to-au-migration.test.js` →
-    `test/context-distance-and-routing.test.js` (or split).
-  - Move the gate-routing tests out of `test/credit-ledger.test.js`.
-  - Document the split between `db-service-core.test.js` and
-    `db-service-extended.test.js`, or merge them.
+### ~~TQ-14~~ ✅ Rename historically-misnamed test files
+- **Completed**: 2026-05-07
+- **Implementation**:
+  - Renamed `test/km-to-au-migration.test.js` to
+    `test/context-distance-and-routing.test.js`.
+  - Updated stale references in `TEST_QUALITY_REVIEW.md`.
+  - Added `test/DB_SERVICE_TEST_SPLIT.md` documenting the intended scope split
+    between `db-service-core.test.js` and `db-service-extended.test.js`.
+- **Validation**: renamed test file passes in targeted suite.
 
-### TQ-15 Echo `requestId` consistently in market-test assertions
-- **Deliverable**: For each market handler test, include a `requestId` in
-  the request payload and assert it is echoed in both success and failure
-  responses. Closes a contract gap noted in §3.3.
+### ~~TQ-15~~ ✅ Echo `requestId` consistently in market-test assertions
+- **Completed**: 2026-05-07
+- **Implementation**:
+  - Added/standardized `requestId` payloads and echo assertions across:
+    - `test/market-buy-sell-message-handler.test.js`
+    - `test/market-quote-message-handler.test.js`
+    - `test/market-ledger-list-message-handler.test.js`
+  - Updated `src/handlers/market-ledger-list-message-handler.js` to include
+    `requestId` in success and failure responses.
+- **Validation**: all targeted market handler tests passing.
 
-### TQ-16 Cover `solar-system-gate-seed.js`
-- **Why**: 25.58% line coverage on the seeder.
-- **Deliverable**: A seed-then-query test against the memory harness
-  asserting expected gate count + traversal cost/time after seeding.
+### ~~TQ-16~~ ✅ Cover `solar-system-gate-seed.js`
+- **Completed**: 2026-05-07
+- **Implementation**:
+  - Added `test/solar-system-gate-seed.test.js` with:
+    - direct assertions on seeded gate count and traversal fields,
+    - memory-harness seed-then-query route validation via
+      `loadGateNetworkAsync()` and `getHopPathBetweenSystems()`.
+- **Validation**: new gate-seed test file passing.
 
-### TQ-17 Verify ship `driveProfile` matrix items
-- **Why**: [MESSAGE_CONTRACT.md](MESSAGE_CONTRACT.md) acceptance matrix calls
-  for both "present when configured" and "null/absent when not"; only one
-  side appears tested.
-- **Deliverable**: Two ship-list tests asserting both branches.
+### ~~TQ-17~~ ✅ Verify ship `driveProfile` matrix items
+- **Completed**: 2026-05-07
+- **Implementation**:
+  - Confirmed and retained the positive branch test where driveProfile is
+    present and valid.
+  - Added explicit null/absent branch coverage in
+    `test/ship-list-message-handler.test.js`:
+    - `driveProfile` missing
+    - `driveProfile: null`
+    - invalid profile omitted
+- **Validation**: ship-list targeted tests passing.
 
 ---
 

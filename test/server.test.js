@@ -104,6 +104,26 @@ const {
   MARKET_SELL_RESPONSE_EVENT
 } = require('../src/model/market-sell');
 
+async function getAvailablePort() {
+  const net = require('node:net');
+
+  return await new Promise((resolve, reject) => {
+    const probe = net.createServer();
+    probe.listen(0, () => {
+      const address = probe.address();
+      const port = address && typeof address === 'object' ? address.port : null;
+      probe.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(port);
+      });
+    });
+    probe.on('error', reject);
+  });
+}
+
 test('resolvePort returns default port when not set', () => {
   assert.equal(resolvePort(undefined), 3000);
 });
@@ -141,7 +161,8 @@ test('startServer runs without MongoDB URI and shutdown exits cleanly', async ()
   };
 
   try {
-    const started = await startServer({ port: '3064' });
+    const freePort = await getAvailablePort();
+    const started = await startServer({ port: String(freePort) });
     assert.equal(typeof started.shutdown, 'function');
 
     await started.shutdown();
@@ -159,7 +180,7 @@ test('startServer runs without MongoDB URI and shutdown exits cleanly', async ()
 });
 
 test('server health endpoint responds with ok JSON payload', async () => {
-  const { server, io } = createServer({ port: '3061' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   try {
@@ -173,7 +194,7 @@ test('server health endpoint responds with ok JSON payload', async () => {
 });
 
 test('server broadcasts generic message payload to connected clients', async () => {
-  const { server, io } = createServer({ port: '3062' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const sender = connectClient(port);
@@ -197,7 +218,7 @@ test('server broadcasts generic message payload to connected clients', async () 
 });
 
 test('mission upsert alias request emits alias response event', async () => {
-  const { server, io } = createServer({ port: '3063' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -240,7 +261,7 @@ test('mission upsert alias request emits alias response event', async () => {
   }
 });
 test('register returns success and playerId for a unique playerName', async () => {
-  const { server, io } = createServer({ port: '3001' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -265,7 +286,7 @@ test('register returns success and playerId for a unique playerName', async () =
 });
 
 test('market list and market quote return responses for a valid session', async () => {
-  const { server, io } = createServer({ port: '3050' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -328,7 +349,7 @@ test('market list and market quote return responses for a valid session', async 
 });
 
 test('market list by location returns response for valid session', async () => {
-  const { server, io } = createServer({ port: '3051' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -374,7 +395,7 @@ test('market list by location returns response for valid session', async () => {
 });
 
 test('register rejects duplicate playerName', async () => {
-  const { server, io } = createServer({ port: '3002' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const firstClient = connectClient(port);
@@ -412,7 +433,7 @@ test('register rejects duplicate playerName', async () => {
 });
 
 test('register rejects payload missing required fields', async () => {
-  const { server, io } = createServer({ port: '3003' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -436,7 +457,7 @@ test('register rejects payload missing required fields', async () => {
 });
 
 test('login returns success for registered player with matching password', async () => {
-  const { server, io } = createServer({ port: '3004' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -471,7 +492,7 @@ test('login returns success for registered player with matching password', async
 });
 
 test('login generates a new session key on each successful login', async () => {
-  const { server, io } = createServer({ port: '3015' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -509,7 +530,7 @@ test('login generates a new session key on each successful login', async () => {
 });
 
 test('login rejects playerName that is not registered', async () => {
-  const { server, io } = createServer({ port: '3005' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -536,7 +557,7 @@ test('login rejects playerName that is not registered', async () => {
 });
 
 test('login rejects password mismatch for registered player', async () => {
-  const { server, io } = createServer({ port: '3006' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -569,7 +590,7 @@ test('login rejects password mismatch for registered player', async () => {
 });
 
 test('login rejects payload missing required fields with UNKNOWN reason', async () => {
-  const { server, io } = createServer({ port: '3007' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -593,7 +614,7 @@ test('login rejects payload missing required fields with UNKNOWN reason', async 
 });
 
 test('character list returns per-player list for registered player', async () => {
-  const { server, io } = createServer({ port: '3008' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -624,7 +645,7 @@ test('character list returns per-player list for registered player', async () =>
 });
 
 test('character list rejects playerName that is not registered', async () => {
-  const { server, io } = createServer({ port: '3009' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -645,7 +666,7 @@ test('character list rejects playerName that is not registered', async () => {
 });
 
 test('character add adds character and is returned by character list', async () => {
-  const { server, io } = createServer({ port: '3010' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -697,7 +718,7 @@ test('character add adds character and is returned by character list', async () 
 });
 
 test('ship list returns ships for a character', async () => {
-  const { server, io } = createServer({ port: '3023' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -764,7 +785,7 @@ test('ship list returns ships for a character', async () => {
 });
 
 test('ship upsert updates ship location and kinematics', async () => {
-  const { server, io } = createServer({ port: '3040' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -855,7 +876,7 @@ test('ship upsert updates ship location and kinematics', async () => {
 });
 
 test('ship upsert emits invalid session for wrong session key', async () => {
-  const { server, io } = createServer({ port: '3041' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -911,7 +932,7 @@ test('ship upsert emits invalid session for wrong session key', async () => {
 });
 
 test('mission add stores mission progress and mission list returns it', async () => {
-  const { server, io } = createServer({ port: '3026' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -973,7 +994,7 @@ test('mission add stores mission progress and mission list returns it', async ()
 });
 
 test('mission list emits invalid session for wrong session key', async () => {
-  const { server, io } = createServer({ port: '3027' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1010,7 +1031,7 @@ test('mission list emits invalid session for wrong session key', async () => {
 });
 
 test('ship list handles character missing from player list', async () => {
-  const { server, io } = createServer({ port: '3024' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1043,7 +1064,7 @@ test('ship list handles character missing from player list', async () => {
 });
 
 test('ship list emits invalid session for wrong session key', async () => {
-  const { server, io } = createServer({ port: '3025' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1072,7 +1093,7 @@ test('ship list emits invalid session for wrong session key', async () => {
 });
 
 test('character add rejects request for unregistered player', async () => {
-  const { server, io } = createServer({ port: '3011' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1094,7 +1115,7 @@ test('character add rejects request for unregistered player', async () => {
 });
 
 test('character delete removes character from player list', async () => {
-  const { server, io } = createServer({ port: '3012' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1148,7 +1169,7 @@ test('character delete removes character from player list', async () => {
 });
 
 test('character delete handles character not found for player', async () => {
-  const { server, io } = createServer({ port: '3013' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1193,7 +1214,7 @@ test('character delete handles character not found for player', async () => {
 });
 
 test('character delete rejects request for unregistered player', async () => {
-  const { server, io } = createServer({ port: '3014' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1218,7 +1239,7 @@ test('character delete rejects request for unregistered player', async () => {
 });
 
 test('character list emits invalid session event when session key does not match', async () => {
-  const { server, io } = createServer({ port: '3016' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1241,7 +1262,7 @@ test('character list emits invalid session event when session key does not match
 });
 
 test('character edit updates character name in player list', async () => {
-  const { server, io } = createServer({ port: '3017' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1296,7 +1317,7 @@ test('character edit updates character name in player list', async () => {
 });
 
 test('character edit handles character not found for player', async () => {
-  const { server, io } = createServer({ port: '3018' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1339,7 +1360,7 @@ test('character edit handles character not found for player', async () => {
 });
 
 test('character edit emits invalid session for wrong session key', async () => {
-  const { server, io } = createServer({ port: '3019' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1364,7 +1385,7 @@ test('character edit emits invalid session for wrong session key', async () => {
 });
 
 test('game join marks a character as joined in the player character list', async () => {
-  const { server, io } = createServer({ port: '3020' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1429,7 +1450,7 @@ test('game join marks a character as joined in the player character list', async
 });
 
 test('game join handles character missing from player list', async () => {
-  const { server, io } = createServer({ port: '3021' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1461,7 +1482,7 @@ test('game join handles character missing from player list', async () => {
 });
 
 test('game join emits invalid session for wrong session key', async () => {
-  const { server, io } = createServer({ port: '3022' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1490,7 +1511,7 @@ test('game join emits invalid session for wrong session key', async () => {
 });
 
 test('celestial body upsert stores a scanned celestial body and returns the wrapped response', async () => {
-  const { server, io } = createServer({ port: '3023' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1542,7 +1563,7 @@ test('celestial body upsert stores a scanned celestial body and returns the wrap
 });
 
 test('celestial body upsert emits invalid session for wrong session key', async () => {
-  const { server, io } = createServer({ port: '3024' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1585,7 +1606,7 @@ test('celestial body upsert emits invalid session for wrong session key', async 
 });
 
 test('celestial body list returns sorted bodies filtered by spherical distance and limit', async () => {
-  const { server, io } = createServer({ port: '3025' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);
@@ -1664,7 +1685,7 @@ test('celestial body list returns sorted bodies filtered by spherical distance a
 });
 
 test('market inventory, buy, sell, and market ledger list flow works end-to-end', async () => {
-  const { server, io } = createServer({ port: '3051' });
+  const { server, io } = createServer();
   const port = await listen(server);
 
   const client = connectClient(port);

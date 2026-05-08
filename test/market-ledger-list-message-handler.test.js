@@ -34,6 +34,7 @@ test('MarketLedgerListMessageHandler returns filtered entries', async () => {
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'ledger-list-1',
     playerName: 'MarketPilot',
     sessionKey: 'session-1',
     marketId: 'sol-ceres-exchange',
@@ -43,6 +44,7 @@ test('MarketLedgerListMessageHandler returns filtered entries', async () => {
   });
 
   assert.equal(response.success, true);
+  assert.equal(response.requestId, 'ledger-list-1');
   assert.ok(response.entries.length >= 1);
   assert.ok(response.entries.every((entry) => entry.direction === 'buy'));
   assert.ok(response.entries.every((entry) => entry.characterId === 'character-1'));
@@ -59,12 +61,14 @@ test('MarketLedgerListMessageHandler rejects missing required fields', async () 
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'ledger-list-invalid-1',
     playerName: 'MarketPilot',
     sessionKey: 'session-1',
     marketId: 'sol-ceres-exchange'
   });
 
   assert.equal(response.success, false);
+  assert.equal(response.requestId, 'ledger-list-invalid-1');
   assert.equal(response.message, 'playerName, marketId, and solarSystemId are required');
   assert.deepEqual(response.entries, []);
   assert.equal(socket.events[0].eventName, MARKET_LEDGER_LIST_RESPONSE_EVENT);
@@ -77,6 +81,7 @@ test('MarketLedgerListMessageHandler rejects unregistered player', async () => {
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'ledger-list-unregistered-1',
     playerName: 'GhostPilot',
     sessionKey: 'session-1',
     marketId: 'sol-ceres-exchange',
@@ -84,6 +89,7 @@ test('MarketLedgerListMessageHandler rejects unregistered player', async () => {
   });
 
   assert.equal(response.success, false);
+  assert.equal(response.requestId, 'ledger-list-unregistered-1');
   assert.equal(response.message, 'Player is not registered');
   assert.deepEqual(response.entries, []);
 });
@@ -98,6 +104,7 @@ test('MarketLedgerListMessageHandler returns market-not-found reason', async () 
   const socket = createMockSocket();
 
   const response = await handler.handle(socket, {
+    requestId: 'ledger-list-market-missing-1',
     playerName: 'MarketPilot',
     sessionKey: 'session-1',
     marketId: 'unknown-market',
@@ -105,6 +112,7 @@ test('MarketLedgerListMessageHandler returns market-not-found reason', async () 
   });
 
   assert.equal(response.success, false);
+  assert.equal(response.requestId, 'ledger-list-market-missing-1');
   assert.equal(response.message, 'Market was not found');
   assert.equal(response.reason, 'MARKET_NOT_FOUND');
 });
