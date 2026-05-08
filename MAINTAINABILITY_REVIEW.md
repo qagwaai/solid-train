@@ -20,6 +20,8 @@ Author: AI-assisted review. Findings ranked by leverage × risk.
 
 ## M-01 — Decompose `MessageHandlerContext` (highest leverage)
 
+Status: Completed on 2026-05-08.
+
 `src/handlers/message-handler-context.js` is a 2.8k-line god object that owns: in-memory caches, normalization for every domain entity, market pricing/orbit math, gate routing, docking, ledger arithmetic, Kepler solver, and the DB fall-through layer for every collection. Every handler depends on the whole surface, so any change ripples broadly and tests are forced to mock through the same seam.
 
 Suggested split:
@@ -31,6 +33,16 @@ Suggested split:
 - `context/persistence-bridge.js` — the cache-or-DB methods (`getPlayerAsync`, `getCharactersAsync`, etc., currently a thick block of duplicated try/log).
 
 Keep `MessageHandlerContext` as a thin façade so handler call sites are unchanged. Each module becomes independently testable and reviewable.
+
+Implemented extraction:
+- `src/handlers/context/normalizers.js`
+- `src/handlers/context/orbital-math.js`
+- `src/handlers/context/market-service.js`
+- `src/handlers/context/routing-service.js`
+- `src/handlers/context/docking-service.js`
+- `src/handlers/context/persistence-bridge.js`
+
+`MessageHandlerContext` now delegates routing, orbital/distance math, docking, market transaction workflows, and persistence/session bridge operations while keeping the public API stable for handlers.
 
 ---
 
@@ -131,7 +143,7 @@ Several are point-in-time progress reports (e.g. `SPATIAL_MODEL_IMPLEMENTATION.m
 |---|---|---|---|
 | **M-04** | Finish spatial-model cutover (items + remove legacy readers) — **Completed 2026-05-08** | Hard 2026-06-30 sunset addressed ahead of sunset | M |
 | **M-03** | Hash passwords | Security + blocks auth refactors | S |
-| **M-01** | Split `MessageHandlerContext` | Compounding complexity; reviews already strain | L |
+| **M-01** | Split `MessageHandlerContext` — **Completed 2026-05-08** | Compounding complexity reduced via façade + extracted modules | L |
 | **M-02** | Table-driven socket wiring | Boilerplate growth on every new event | S |
 | **M-08** | Add ESLint + CI workflow + npm scripts | Style/correctness drift | S |
 | **M-05** | Split `db/models.js` and `db/service.js` | Per-collection changes touch the world | M |

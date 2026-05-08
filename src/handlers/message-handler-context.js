@@ -8,6 +8,12 @@ const {
   buildSeededMarketsForSolarSystem
 } = require('../model/solar-system-market-seed');
 const { buildSeededGateNetwork } = require('../model/solar-system-gate-seed');
+const routingService = require('./context/routing-service');
+const orbitalMath = require('./context/orbital-math');
+const dockingService = require('./context/docking-service');
+const marketService = require('./context/market-service');
+const persistenceBridge = require('./context/persistence-bridge');
+const normalizers = require('./context/normalizers');
 const SUPPORTED_LOCALES = new Set(['en', 'it']);
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
 const MARKET_DOCKING_DISTANCE_KM = 50;
@@ -174,26 +180,15 @@ class MessageHandlerContext {
   }
 
   isFiniteNumber(value) {
-    return typeof value === 'number' && Number.isFinite(value);
+    return normalizers.isFiniteNumber(this, value);
   }
 
   isTriple(value) {
-    return Boolean(value)
-      && this.isFiniteNumber(value.x)
-      && this.isFiniteNumber(value.y)
-      && this.isFiniteNumber(value.z);
+    return normalizers.isTriple(this, value);
   }
 
   normalizeTriple(value) {
-    if (!this.isTriple(value)) {
-      return null;
-    }
-
-    return {
-      x: value.x,
-      y: value.y,
-      z: value.z
-    };
+    return normalizers.normalizeTriple(this, value);
   }
 
   normalizeSpatialState(value) {
@@ -297,109 +292,35 @@ class MessageHandlerContext {
   }
 
   calculateDistanceKm(fromPositionKm, toPositionKm) {
-    const dx = toPositionKm.x - fromPositionKm.x;
-    const dy = toPositionKm.y - fromPositionKm.y;
-    const dz = toPositionKm.z - fromPositionKm.z;
-
-    return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+    return orbitalMath.calculateDistanceKm(this, fromPositionKm, toPositionKm);
   }
 
   calculateDistanceAu(fromPositionKm, toPositionKm) {
-    return this.calculateDistanceKm(fromPositionKm, toPositionKm) / ASTRONOMICAL_UNIT_KM;
+    return orbitalMath.calculateDistanceAu(this, fromPositionKm, toPositionKm);
   }
 
   async loadGateNetworkAsync() {
-    if (this._gateGraph !== null) {
-      return this._gateGraph;
-    }
-
-    const gates = this.databaseService
-      ? await this.databaseService.getJumpGatesAsync()
-      : buildSeededGateNetwork();
-
-    const graph = new Map();
-    for (const gate of gates) {
-      if (!graph.has(gate.sourceSystemId)) {
-        graph.set(gate.sourceSystemId, []);
-      }
-      graph.get(gate.sourceSystemId).push(gate);
-    }
-
-    this._gateGraph = graph;
-    return graph;
+    return routingService.loadGateNetworkAsync(this);
   }
 
   async getHopPathBetweenSystems(sourceSystemId, destSystemId) {
-    if (sourceSystemId === destSystemId) {
-      return { hops: 0, path: [] };
-    }
-
-    const graph = await this.loadGateNetworkAsync();
-    const visited = new Set([sourceSystemId]);
-    const queue = [{ systemId: sourceSystemId, hops: 0, path: [] }];
-
-    while (queue.length > 0) {
-      const current = queue.shift();
-      const outgoing = graph.get(current.systemId) || [];
-
-      for (const gate of outgoing) {
-        if (gate.destSystemId === destSystemId) {
-          return { hops: current.hops + 1, path: [...current.path, gate.gateId] };
-        }
-
-        if (!visited.has(gate.destSystemId)) {
-          visited.add(gate.destSystemId);
-          queue.push({
-            systemId: gate.destSystemId,
-            hops: current.hops + 1,
-            path: [...current.path, gate.gateId]
-          });
-        }
-      }
-    }
-
-    return null;
+    return routingService.getHopPathBetweenSystems(this, sourceSystemId, destSystemId);
   }
 
   async getRouteForMarketAsync(requestSolarSystemId, marketSolarSystemId) {
-    if (marketSolarSystemId === requestSolarSystemId) {
-      return { kind: 'in-system' };
-    }
-
-    const hopPath = await this.getHopPathBetweenSystems(requestSolarSystemId, marketSolarSystemId);
-    if (hopPath) {
-      return { kind: 'gate-route', hops: hopPath.hops };
-    }
-
-    return { kind: 'no-route' };
+    return routingService.getRouteForMarketAsync(this, requestSolarSystemId, marketSolarSystemId);
   }
 
   toNonEmptyString(value) {
-    if (typeof value !== 'string') {
-      return '';
-    }
-
-    return value.trim();
+    return normalizers.toNonEmptyString(this, value);
   }
 
   normalizeLocale(value) {
-    const raw = this.toNonEmptyString(value).toLowerCase();
-    if (!raw) {
-      return 'en';
-    }
-
-    const base = raw.split('-')[0];
-    return SUPPORTED_LOCALES.has(base) ? base : 'en';
+    return normalizers.normalizeLocale(this, value);
   }
 
   normalizePlayerName(value) {
-    const playerName = this.toNonEmptyString(value);
-
-    if (!playerName) {
-      return '';
-    }
-
-    return playerName.toLowerCase();
+    return normalizers.normalizePlayerName(this, value);
   }
 
   getPlayer(playerName) {
@@ -616,96 +537,7 @@ class MessageHandlerContext {
   }
 
   async seedSolarSystemMarketsAsync(request = {}) {
-    const solarSystemId = this.toNonEmptyString(request?.solarSystemId).toLowerCase() || 'sol';
-    const asOf = this.toNonEmptyString(request?.asOf) || this.getCurrentTimestamp();
-    const force = Boolean(request?.force);
-    const seeded = buildSeededMarketsForSolarSystem(solarSystemId, asOf);
-
-    if (seeded.length === 0) {
-      return {
-        success: false,
-        reason: 'UNSUPPORTED_SOLAR_SYSTEM',
-        solarSystemId,
-        marketCount: 0
-      };
-    }
-
-    const payloads = seeded.map((market) => this.createSeedMarketPayload(market, asOf));
-
-    if (!this.databaseService) {
-      for (const market of payloads) {
-        this.cacheMarket(market);
-      }
-
-      return {
-        success: true,
-        solarSystemId,
-        seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
-        marketCount: payloads.length,
-        source: 'in-memory'
-      };
-    }
-
-    try {
-      const existingSeedState = await this.databaseService.getSolarSystemMarketSeedState(solarSystemId);
-      const isCurrentVersion = existingSeedState
-        && existingSeedState.seedVersion === SOLAR_SYSTEM_MARKET_SEED_VERSION;
-
-      if (!force && isCurrentVersion) {
-        const persistedMarkets = await this.databaseService.getMarkets({ solarSystemId });
-        if (Array.isArray(persistedMarkets) && persistedMarkets.length > 0) {
-          for (const market of persistedMarkets) {
-            this.cacheMarket(market);
-          }
-
-          return {
-            success: true,
-            solarSystemId,
-            seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
-            marketCount: persistedMarkets.length,
-            source: 'database-cache'
-          };
-        }
-      }
-
-      for (const market of payloads) {
-        await this.databaseService.upsertMarket(market);
-      }
-
-      await this.databaseService.setSolarSystemMarketSeedState(
-        solarSystemId,
-        SOLAR_SYSTEM_MARKET_SEED_VERSION,
-        asOf
-      );
-
-      const persistedMarkets = await this.databaseService.getMarkets({ solarSystemId });
-      const marketsToCache = persistedMarkets.length > 0 ? persistedMarkets : payloads;
-      for (const market of marketsToCache) {
-        this.cacheMarket(market);
-      }
-
-      return {
-        success: true,
-        solarSystemId,
-        seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
-        marketCount: marketsToCache.length,
-        source: 'database-upsert'
-      };
-    } catch (error) {
-      this.log(`[context] Error seeding solar system markets: ${error.message}`);
-
-      for (const market of payloads) {
-        this.cacheMarket(market);
-      }
-
-      return {
-        success: true,
-        solarSystemId,
-        seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
-        marketCount: payloads.length,
-        source: 'in-memory-fallback'
-      };
-    }
+    return marketService.seedSolarSystemMarketsAsync(this, request);
   }
 
   normalizeMarketLedgerEntry(entry) {
@@ -754,807 +586,93 @@ class MessageHandlerContext {
   }
 
   applyMarketRestock(market, nowTimestamp) {
-    const asOf = new Date(nowTimestamp);
-    const lastRestock = new Date(market.lastRestockAt);
-    if (Number.isNaN(asOf.getTime()) || Number.isNaN(lastRestock.getTime())) {
-      market.lastRestockAt = this.getCurrentTimestamp();
-      return market;
-    }
-
-    const elapsedMinutes = Math.floor((asOf.getTime() - lastRestock.getTime()) / (60 * 1000));
-    const intervalMinutes = Math.max(1, market.restockIntervalMinutes);
-    const intervals = Math.floor(elapsedMinutes / intervalMinutes);
-    if (intervals <= 0) {
-      return market;
-    }
-
-    market.inventory = market.inventory.map((entry) => ({
-      ...entry,
-      stock: Math.min(
-        entry.maxStock,
-        entry.stock + (entry.restockPerInterval * intervals)
-      )
-    }));
-
-    const advancedAt = new Date(lastRestock.getTime() + (intervals * intervalMinutes * 60 * 1000));
-    market.lastRestockAt = advancedAt.toISOString();
-    this.cacheMarket(market);
-    return market;
+    return marketService.applyMarketRestock(this, market, nowTimestamp);
   }
 
   async getMarketsAsync(query = {}) {
-    const normalizedSolarSystemId = this.toNonEmptyString(query?.solarSystemId).toLowerCase();
-    const nowTimestamp = this.toNonEmptyString(query?.asOf) || this.getCurrentTimestamp();
-
-    return Array.from(this.marketsByKey.values())
-      .filter((market) => {
-        if (!normalizedSolarSystemId) {
-          return true;
-        }
-
-        const marketSolarSystemId = this.toNonEmptyString(market?.solarSystemId).toLowerCase();
-        return marketSolarSystemId === normalizedSolarSystemId;
-      })
-      .map((market) => this.applyMarketRestock({ ...market }, nowTimestamp))
-      .sort((left, right) => left.marketName.localeCompare(right.marketName));
+    return marketService.getMarketsAsync(this, query);
   }
 
   normalizeAngleRadians(value) {
-    const twoPi = Math.PI * 2;
-    const normalized = value % twoPi;
-    return normalized < 0 ? normalized + twoPi : normalized;
+    return orbitalMath.normalizeAngleRadians(this, value);
   }
 
   solveEccentricAnomaly(meanAnomalyRad, eccentricity) {
-    let eccentricAnomaly = meanAnomalyRad;
-
-    for (let index = 0; index < 8; index += 1) {
-      const delta = (eccentricAnomaly - (eccentricity * Math.sin(eccentricAnomaly)) - meanAnomalyRad)
-        / (1 - (eccentricity * Math.cos(eccentricAnomaly)));
-      eccentricAnomaly -= delta;
-
-      if (Math.abs(delta) < 1e-8) {
-        break;
-      }
-    }
-
-    return eccentricAnomaly;
+    return orbitalMath.solveEccentricAnomaly(this, meanAnomalyRad, eccentricity);
   }
 
   rotatePerifocalVector(perifocalVector, orbit) {
-    const omega = (orbit.argumentOfPeriapsisDeg * Math.PI) / 180;
-    const inclination = (orbit.inclinationDeg * Math.PI) / 180;
-    const ascendingNode = (orbit.longitudeOfAscendingNodeDeg * Math.PI) / 180;
-
-    const cosOmega = Math.cos(omega);
-    const sinOmega = Math.sin(omega);
-    const cosI = Math.cos(inclination);
-    const sinI = Math.sin(inclination);
-    const cosNode = Math.cos(ascendingNode);
-    const sinNode = Math.sin(ascendingNode);
-
-    const px = perifocalVector.x;
-    const py = perifocalVector.y;
-    const pz = perifocalVector.z;
-
-    const x = (
-      (cosNode * cosOmega - sinNode * sinOmega * cosI) * px
-      + (-cosNode * sinOmega - sinNode * cosOmega * cosI) * py
-      + (sinNode * sinI) * pz
-    );
-    const y = (
-      (sinNode * cosOmega + cosNode * sinOmega * cosI) * px
-      + (-sinNode * sinOmega + cosNode * cosOmega * cosI) * py
-      + (-cosNode * sinI) * pz
-    );
-    const z = ((sinOmega * sinI) * px) + ((cosOmega * sinI) * py) + (cosI * pz);
-
-    return { x, y, z };
+    return orbitalMath.rotatePerifocalVector(this, perifocalVector, orbit);
   }
 
   computeRelativeOrbitPositionKm(orbit, timestamp) {
-    const a = Math.max(0, orbit.semiMajorAxisKm);
-    const e = Math.max(0, Math.min(0.99, orbit.eccentricity));
-    const periodSec = Math.max(1, orbit.orbitalPeriodSec);
-    const epochMs = Date.parse(orbit.epoch);
-    const timestampMs = Date.parse(timestamp);
-    const baselineMs = Number.isNaN(epochMs) ? timestampMs : epochMs;
-    const nowMs = Number.isNaN(timestampMs) ? baselineMs : timestampMs;
-
-    const meanMotionRadPerSec = (Math.PI * 2) / periodSec;
-    const elapsedSec = (nowMs - baselineMs) / 1000;
-    const meanAnomalyAtEpoch = (orbit.meanAnomalyAtEpochDeg * Math.PI) / 180;
-    const meanAnomaly = this.normalizeAngleRadians(meanAnomalyAtEpoch + (meanMotionRadPerSec * elapsedSec));
-    const eccentricAnomaly = this.solveEccentricAnomaly(meanAnomaly, e);
-
-    const xPerifocal = a * (Math.cos(eccentricAnomaly) - e);
-    const yPerifocal = a * Math.sqrt(1 - (e * e)) * Math.sin(eccentricAnomaly);
-
-    return this.rotatePerifocalVector(
-      { x: xPerifocal, y: yPerifocal, z: 0 },
-      orbit
-    );
+    return orbitalMath.computeRelativeOrbitPositionKm(this, orbit, timestamp);
   }
 
   async resolveMarketPositionKmAsync(market, timestamp) {
-    // Prefer orbit + anchor-body positioning for orbital markets.
-    const orbit = this.normalizeMarketOrbit(market?.orbit || market?.trajectory?.orbit);
-    if (orbit && orbit.anchorBodyId) {
-      const relative = this.computeRelativeOrbitPositionKm(orbit, timestamp || this.getCurrentTimestamp());
-      const anchorBody = await this.getCelestialBodyByIdAsync(orbit.anchorBodyId);
-      const fallbackAnchorPosition = FALLBACK_ANCHOR_POSITION_KM[orbit.anchorBodyId] || { x: 0, y: 0, z: 0 };
-      const anchorPosition = this.isTriple(anchorBody?.spatial?.positionKm)
-        ? anchorBody.spatial.positionKm
-        : fallbackAnchorPosition;
-
-      return {
-        x: anchorPosition.x + relative.x,
-        y: anchorPosition.y + relative.y,
-        z: anchorPosition.z + relative.z
-      };
-    }
-
-    // Otherwise use explicit spatial as-is.
-    if (this.isTriple(market?.spatial?.positionKm)) {
-      return market.spatial.positionKm;
-    }
-
-    return { x: 0, y: 0, z: 0 };
+    return orbitalMath.resolveMarketPositionKmAsync(this, market, timestamp);
   }
 
   getShipPositionKm(ship) {
-    if (this.isTriple(ship?.spatial?.positionKm)) {
-      return ship.spatial.positionKm;
-    }
-
-    return null;
+    return orbitalMath.getShipPositionKm(this, ship);
   }
 
   async resolveDockingStateAsync(request = {}) {
-    const playerName = this.toNonEmptyString(request.playerName);
-    const characterId = this.toNonEmptyString(request.characterId);
-    const shipId = this.toNonEmptyString(request.shipId);
-    const markets = Array.isArray(request.markets) ? request.markets : [];
-
-    if (!playerName || !characterId || markets.length === 0) {
-      return {
-        isDocked: false,
-        dockedMarketId: null,
-        perMarketDocked: new Map()
-      };
-    }
-
-    const character = this.findCharacter(playerName, characterId);
-    if (!character) {
-      return {
-        isDocked: false,
-        dockedMarketId: null,
-        perMarketDocked: new Map()
-      };
-    }
-
-    const ships = Array.isArray(character.ships) ? character.ships : [];
-    const ship = shipId
-      ? ships.find((candidate) => this.toNonEmptyString(candidate?.id) === shipId) || null
-      : ships[0] || null;
-    const shipPositionKm = this.getShipPositionKm(ship);
-    if (!shipPositionKm) {
-      return {
-        isDocked: false,
-        dockedMarketId: null,
-        perMarketDocked: new Map()
-      };
-    }
-
-    const nearestDock = markets
-      .filter((market) => Boolean(market.positionKm))
-      .map((market) => ({
-        marketId: market.marketId,
-        distanceKm: this.calculateDistanceKm(shipPositionKm, market.positionKm)
-      }))
-      .filter((entry) => entry.distanceKm <= MARKET_DOCKING_DISTANCE_KM)
-      .sort((left, right) => left.distanceKm - right.distanceKm)[0] || null;
-
-    const dockedMarketId = nearestDock ? nearestDock.marketId : null;
-    const perMarketDocked = new Map(
-      markets.map((market) => [market.marketId, market.marketId === dockedMarketId])
-    );
-
-    return {
-      isDocked: Boolean(dockedMarketId),
-      dockedMarketId,
-      perMarketDocked
-    };
+    return dockingService.resolveDockingStateAsync(this, request);
   }
 
   async getMarketsByLocationAsync(query = {}) {
-    const solarSystemId = this.toNonEmptyString(query?.solarSystemId).toLowerCase();
-    const positionKm = query?.positionKm;
-    const distanceAu = query?.distanceAu;
-    const asOf = this.toNonEmptyString(query?.asOf) || this.getCurrentTimestamp();
-    const limit = Number.isInteger(query?.limit) && query.limit > 0 ? query.limit : null;
-    const locationTypes = Array.isArray(query?.locationTypes)
-      ? query.locationTypes
-        .map((value) => this.toNonEmptyString(value).toLowerCase())
-        .filter((value) => Boolean(value))
-      : [];
-
-    if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceAu) || distanceAu < 0) {
-      return [];
-    }
-
-    const maxDistanceKm = distanceAu * ASTRONOMICAL_UNIT_KM;
-    let systemMarkets = await this.getMarketsAsync({ solarSystemId, asOf });
-
-    if (systemMarkets.length === 0) {
-      const seededMarkets = buildSeededMarketsForSolarSystem(solarSystemId, asOf);
-      if (seededMarkets.length > 0) {
-        for (const seededMarket of seededMarkets) {
-          this.cacheMarket(this.createSeedMarketPayload(seededMarket, asOf));
-        }
-
-        systemMarkets = await this.getMarketsAsync({ solarSystemId, asOf });
-      }
-    }
-
-    const results = [];
-
-    for (const market of systemMarkets) {
-      const normalizedLocationType = this.inferMarketSiteType(market);
-      if (locationTypes.length > 0 && !locationTypes.includes(normalizedLocationType)) {
-        continue;
-      }
-
-      const marketPositionKm = await this.resolveMarketPositionKmAsync(market, asOf);
-      const computedDistanceKm = this.calculateDistanceKm(positionKm, marketPositionKm);
-
-      if (computedDistanceKm > maxDistanceKm) {
-        continue;
-      }
-
-      const computedDistanceAu = parseFloat((computedDistanceKm / ASTRONOMICAL_UNIT_KM).toFixed(6));
-      const epochMs = Date.parse(asOf);
-      results.push({
-        ...market,
-        positionKm: marketPositionKm,
-        spatial: {
-          solarSystemId: market.solarSystemId,
-          frame: 'barycentric',
-          positionKm: marketPositionKm,
-          epochMs: Number.isNaN(epochMs) ? 0 : epochMs
-        },
-        _sortKey: 0,
-        _sortSecondary: computedDistanceKm,
-        distanceAu: computedDistanceAu,
-        route: { kind: 'in-system' }
-      });
-    }
-
-    const sorted = results.sort((a, b) => {
-      if (a._sortKey !== b._sortKey) return a._sortKey - b._sortKey;
-      return a._sortSecondary - b._sortSecondary;
-    });
-    const limited = limit ? sorted.slice(0, limit) : sorted;
-    return limited.map(({ _sortKey: _k, _sortSecondary: _s, ...rest }) => rest);
+    return marketService.getMarketsByLocationAsync(this, query);
   }
 
   async getMarketQuoteAsync(request = {}) {
-    const marketId = this.toNonEmptyString(request.marketId);
-    const solarSystemId = this.toNonEmptyString(request.solarSystemId);
-    const itemId = this.toNonEmptyString(request.itemId).toLowerCase();
-    const direction = this.toNonEmptyString(request.direction).toLowerCase();
-    const quantity = Number.isInteger(request.quantity) ? request.quantity : Number(request.quantity);
-    const asOf = this.toNonEmptyString(request.asOf) || this.getCurrentTimestamp();
-
-    const market = this.getMarket(marketId, solarSystemId);
-    if (!market) {
-      return { success: false, reason: 'MARKET_NOT_FOUND' };
-    }
-
-    const catalogEntry = MARKET_CATALOG_BY_ID.get(itemId);
-    if (!catalogEntry) {
-      return { success: false, reason: 'ITEM_NOT_FOUND' };
-    }
-
-    if (direction !== 'buy' && direction !== 'sell') {
-      return { success: false, reason: 'INVALID_DIRECTION' };
-    }
-
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-      return { success: false, reason: 'INVALID_QUANTITY' };
-    }
-
-    const hydratedMarket = this.applyMarketRestock({ ...market }, asOf);
-    const inventoryEntry = hydratedMarket.inventory.find((entry) => entry.itemId === itemId);
-    if (!inventoryEntry || !inventoryEntry.marketCanSell) {
-      return { success: false, reason: 'ITEM_NOT_TRADEABLE' };
-    }
-
-    if (direction === 'sell' && !inventoryEntry.marketCanBuy) {
-      return { success: false, reason: 'MARKET_DOES_NOT_BUY_ITEM' };
-    }
-
-    const pricing = computeMidpointPrice({
-      baseMidpointPrice: catalogEntry.baseMidpointPrice,
-      marketMultiplier: hydratedMarket.priceMultiplier,
-      marketId: hydratedMarket.marketId,
-      itemId,
-      timestamp: asOf,
-      driftPercentPerHour: hydratedMarket.driftPercentPerHour
-    });
-
-    return {
-      success: true,
-      quote: {
-        marketId: hydratedMarket.marketId,
-        solarSystemId: hydratedMarket.solarSystemId,
-        itemId,
-        itemType: catalogEntry.itemType,
-        displayName: catalogEntry.displayName,
-        rarity: catalogEntry.rarity,
-        direction,
-        quantity,
-        unitPrice: pricing.midpointPrice,
-        totalPrice: pricing.midpointPrice * quantity,
-        availableStock: inventoryEntry.stock,
-        marketCanBuy: inventoryEntry.marketCanBuy,
-        marketCanSell: inventoryEntry.marketCanSell,
-        marketMultiplier: hydratedMarket.priceMultiplier,
-        driftMultiplier: pricing.driftMultiplier,
-        quotedAt: asOf
-      }
-    };
+    return marketService.getMarketQuoteAsync(this, request);
   }
 
   async getMarketInventoryAsync(query = {}) {
-    const marketId = this.toNonEmptyString(query?.marketId);
-    const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
-    const offset = Number.isInteger(query?.offset) && query.offset >= 0 ? query.offset : 0;
-    const limit = Number.isInteger(query?.limit) && query.limit > 0 ? query.limit : 50;
-    const asOf = this.toNonEmptyString(query?.asOf) || this.getCurrentTimestamp();
-
-    const market = this.getMarket(marketId, solarSystemId);
-    if (!market) {
-      return {
-        success: false,
-        reason: 'MARKET_NOT_FOUND',
-        inventory: [],
-        total: 0,
-        offset,
-        limit
-      };
-    }
-
-    const hydratedMarket = this.applyMarketRestock({ ...market }, asOf);
-    const inventory = hydratedMarket.inventory
-      .map((entry) => {
-        const catalogEntry = MARKET_CATALOG_BY_ID.get(entry.itemId);
-        if (!catalogEntry) {
-          return null;
-        }
-
-        return {
-          itemId: entry.itemId,
-          itemType: catalogEntry.itemType,
-          displayName: catalogEntry.displayName,
-          rarity: catalogEntry.rarity,
-          stock: entry.stock,
-          maxStock: entry.maxStock,
-          restockPerInterval: entry.restockPerInterval,
-          marketCanBuy: entry.marketCanBuy,
-          marketCanSell: entry.marketCanSell
-        };
-      })
-      .filter((entry) => Boolean(entry))
-      .sort((left, right) => left.displayName.localeCompare(right.displayName));
-
-    return {
-      success: true,
-      marketId: hydratedMarket.marketId,
-      solarSystemId: hydratedMarket.solarSystemId,
-      marketName: hydratedMarket.marketName,
-      inventory: inventory.slice(offset, offset + limit),
-      total: inventory.length,
-      offset,
-      limit,
-      asOf
-    };
+    return marketService.getMarketInventoryAsync(this, query);
   }
 
   async getMarketLedgerAsync(query = {}) {
-    const marketId = this.toNonEmptyString(query?.marketId);
-    const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
-    const characterId = this.toNonEmptyString(query?.characterId);
-    const itemId = this.toNonEmptyString(query?.itemId).toLowerCase();
-    const direction = this.toNonEmptyString(query?.direction).toLowerCase();
-    const offset = Number.isInteger(query?.offset) && query.offset >= 0 ? query.offset : 0;
-    const limit = Number.isInteger(query?.limit) && query.limit > 0 ? query.limit : 50;
-    const startAt = this.toNonEmptyString(query?.startAt);
-    const endAt = this.toNonEmptyString(query?.endAt);
-
-    const market = this.getMarket(marketId, solarSystemId);
-    if (!market) {
-      return {
-        success: false,
-        reason: 'MARKET_NOT_FOUND',
-        entries: [],
-        total: 0,
-        offset,
-        limit
-      };
-    }
-
-    const startAtMs = startAt ? Date.parse(startAt) : Number.NEGATIVE_INFINITY;
-    const endAtMs = endAt ? Date.parse(endAt) : Number.POSITIVE_INFINITY;
-
-    const filtered = market.ledger
-      .filter((entry) => {
-        if (characterId && entry.characterId !== characterId) {
-          return false;
-        }
-        if (itemId && entry.itemId !== itemId) {
-          return false;
-        }
-        if (direction && entry.direction !== direction) {
-          return false;
-        }
-
-        const timestampMs = Date.parse(entry.timestamp);
-        if (!Number.isNaN(startAtMs) && timestampMs < startAtMs) {
-          return false;
-        }
-        if (!Number.isNaN(endAtMs) && timestampMs > endAtMs) {
-          return false;
-        }
-        return true;
-      })
-      .sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp));
-
-    return {
-      success: true,
-      marketId: market.marketId,
-      solarSystemId: market.solarSystemId,
-      entries: filtered.slice(offset, offset + limit),
-      total: filtered.length,
-      offset,
-      limit
-    };
+    return marketService.getMarketLedgerAsync(this, query);
   }
 
   async getCharacterTradeItemsAsync(playerName, characterId, itemId) {
-    const character = this.findCharacter(playerName, characterId);
-    if (!character) {
-      return [];
-    }
-
-    const ships = Array.isArray(character.ships) ? character.ships : [];
-    const containers = await Promise.all(
-      ships.map((ship) => this.getItemsByContainerAsync('ship', this.toNonEmptyString(ship.id)))
-    );
-
-    return containers
-      .flat()
-      .map((item) => this.normalizeItem(item))
-      .filter((item) => (
-        item.owningCharacterId === characterId
-        && item.state === 'contained'
-        && item.itemType === itemId
-      ));
+    return marketService.getCharacterTradeItemsAsync(this, playerName, characterId, itemId);
   }
 
   async applyMarketStockDeltaAsync(marketId, solarSystemId, itemId, delta) {
-    const market = this.getMarket(marketId, solarSystemId);
-    if (!market) {
-      return false;
-    }
-
-    const nextMarket = this.normalizeMarket({ ...market });
-    nextMarket.inventory = nextMarket.inventory.map((entry) => {
-      if (entry.itemId !== itemId) {
-        return entry;
-      }
-
-      const nextStock = Math.max(0, Math.min(entry.maxStock, entry.stock + delta));
-      return {
-        ...entry,
-        stock: nextStock
-      };
-    });
-
-    this.cacheMarket(nextMarket);
-    return true;
+    return marketService.applyMarketStockDeltaAsync(this, marketId, solarSystemId, itemId, delta);
   }
 
   async appendCharacterLedgerEntryAsync(playerName, characterId, entry) {
-    const character = this.findCharacter(playerName, characterId);
-    if (!character) {
-      return false;
-    }
-
-    const creditLedger = Array.isArray(character.creditLedger) ? [...character.creditLedger] : [];
-    creditLedger.push(this.normalizeCreditLedgerEntry(entry));
-    await this.updateCharacterAsync(playerName, characterId, {
-      creditLedger,
-      credits: this.calculateCharacterCredits({ creditLedger })
-    });
-    return true;
+    return marketService.appendCharacterLedgerEntryAsync(this, playerName, characterId, entry);
   }
 
   async appendMarketLedgerEntryAsync(marketId, solarSystemId, entry) {
-    const market = this.getMarket(marketId, solarSystemId);
-    if (!market) {
-      return false;
-    }
-
-    const nextMarket = this.normalizeMarket({ ...market });
-    nextMarket.ledger = [...nextMarket.ledger, this.normalizeMarketLedgerEntry(entry)];
-    this.cacheMarket(nextMarket);
-    return true;
+    return marketService.appendMarketLedgerEntryAsync(this, marketId, solarSystemId, entry);
   }
 
   async addTradeItemToCharacterAsync(player, character, itemId, quantity) {
-    const normalizedItemId = this.toNonEmptyString(itemId).toLowerCase();
-    const tradeItems = await this.getCharacterTradeItemsAsync(
-      player.playerName,
-      character.id,
-      normalizedItemId
-    );
-    const now = this.getCurrentTimestamp();
-
-    if (tradeItems.length > 0) {
-      const target = tradeItems[0];
-      await this.updateItemAsync(target.id, {
-        quantity: target.quantity + quantity,
-        updatedAt: now
-      });
-      return true;
-    }
-
-    const ships = Array.isArray(character.ships) ? character.ships : [];
-    const targetShipId = this.toNonEmptyString(ships[0]?.id);
-    if (!targetShipId) {
-      return false;
-    }
-
-    const catalogEntry = MARKET_CATALOG_BY_ID.get(normalizedItemId);
-    const newItem = {
-      id: `${character.id}-${normalizedItemId}-${this.createId()}`,
-      itemType: normalizedItemId,
-      displayName: catalogEntry?.displayName || normalizedItemId,
-      state: 'contained',
-      damageStatus: 'intact',
-      container: {
-        containerType: 'ship',
-        containerId: targetShipId
-      },
-      owningPlayerId: this.toNonEmptyString(player.playerId),
-      owningCharacterId: character.id,
-      spatial: null,
-      createdAt: now,
-      updatedAt: now,
-      destroyedAt: null,
-      destroyedReason: null,
-      launchable: false,
-      quantity
-    };
-
-    await this.addItemsAsync([newItem]);
-    return true;
+    return marketService.addTradeItemToCharacterAsync(this, player, character, itemId, quantity);
   }
 
   async removeTradeItemFromCharacterAsync(playerName, characterId, itemId, quantity) {
-    let remaining = quantity;
-    const tradeItems = await this.getCharacterTradeItemsAsync(playerName, characterId, itemId);
-    const normalizedItems = tradeItems.sort((left, right) => left.id.localeCompare(right.id));
-
-    for (const item of normalizedItems) {
-      if (remaining <= 0) {
-        break;
-      }
-
-      if (item.quantity > remaining) {
-        await this.updateItemAsync(item.id, {
-          quantity: item.quantity - remaining,
-          updatedAt: this.getCurrentTimestamp()
-        });
-        remaining = 0;
-        break;
-      }
-
-      remaining -= item.quantity;
-      await this.syncShipInventoryReferenceForItemAsync(playerName, item, {
-        ...item,
-        container: null
-      });
-      await this.deleteItemsAsync([item.id]);
-    }
-
-    return remaining === 0;
+    return marketService.removeTradeItemFromCharacterAsync(
+      this,
+      playerName,
+      characterId,
+      itemId,
+      quantity
+    );
   }
 
   async executeMarketTransactionAsync(request = {}) {
-    const playerName = this.toNonEmptyString(request.playerName);
-    const characterId = this.toNonEmptyString(request.characterId);
-    const marketId = this.toNonEmptyString(request.marketId);
-    const solarSystemId = this.toNonEmptyString(request.solarSystemId);
-    const itemId = this.toNonEmptyString(request.itemId).toLowerCase();
-    const direction = this.toNonEmptyString(request.direction).toLowerCase();
-    const quantity = Number.isInteger(request.quantity) ? request.quantity : Number(request.quantity);
-    const requestId = this.toNonEmptyString(request.requestId) || null;
-
-    const player = this.getPlayer(playerName);
-    if (!player) {
-      return { success: false, reason: 'PLAYER_NOT_REGISTERED' };
-    }
-
-    const character = this.findCharacter(player.playerName, characterId);
-    if (!character) {
-      return { success: false, reason: 'CHARACTER_NOT_FOUND' };
-    }
-
-    const quoteResult = await this.getMarketQuoteAsync({
-      marketId,
-      solarSystemId,
-      itemId,
-      direction,
-      quantity,
-      asOf: this.getCurrentTimestamp()
-    });
-    if (!quoteResult.success) {
-      return quoteResult;
-    }
-
-    const quote = quoteResult.quote;
-    if (direction === 'buy' && quote.availableStock < quantity) {
-      return { success: false, reason: 'INSUFFICIENT_MARKET_STOCK' };
-    }
-
-    if (direction === 'buy' && this.calculateCharacterCredits(character) < quote.totalPrice) {
-      return { success: false, reason: 'INSUFFICIENT_CREDITS' };
-    }
-
-    const ownedItems = direction === 'sell'
-      ? await this.getCharacterTradeItemsAsync(player.playerName, character.id, itemId)
-      : [];
-    const ownedQuantity = ownedItems.reduce((total, item) => total + item.quantity, 0);
-    if (direction === 'sell' && ownedQuantity < quantity) {
-      return { success: false, reason: 'INSUFFICIENT_ITEM_QUANTITY' };
-    }
-
-    if (direction === 'buy') {
-      const ships = Array.isArray(character.ships) ? character.ships : [];
-      if (ships.length === 0) {
-        return { success: false, reason: 'NO_SHIP_AVAILABLE' };
-      }
-    }
-
-    const transactionId = this.toNonEmptyString(request.transactionId) || this.createId();
-    const timestamp = this.getCurrentTimestamp();
-    const characterLedgerEntry = {
-      type: direction === 'buy' ? 'take' : 'put',
-      amount: quote.totalPrice,
-      description: `Market ${direction}: ${quote.displayName} x${quantity}`,
-      timestamp,
-      referenceId: transactionId
-    };
-    const marketLedgerEntry = {
-      transactionId,
-      requestId,
-      characterId,
-      itemId,
-      direction,
-      quantity,
-      unitPrice: quote.unitPrice,
-      totalPrice: quote.totalPrice,
-      timestamp,
-      reversalOfTransactionId: null
-    };
-
-    let stockApplied = false;
-    let itemsApplied = false;
-    let characterLedgerApplied = false;
-    let marketLedgerApplied = false;
-
-    try {
-      await this.applyMarketStockDeltaAsync(
-        marketId,
-        solarSystemId,
-        itemId,
-        direction === 'buy' ? -quantity : quantity
-      );
-      stockApplied = true;
-
-      if (direction === 'buy') {
-        itemsApplied = await this.addTradeItemToCharacterAsync(player, character, itemId, quantity);
-      } else {
-        itemsApplied = await this.removeTradeItemFromCharacterAsync(
-          player.playerName,
-          character.id,
-          itemId,
-          quantity
-        );
-      }
-
-      if (!itemsApplied) {
-        throw new Error('Item mutation failed');
-      }
-
-      await this.appendCharacterLedgerEntryAsync(player.playerName, character.id, characterLedgerEntry);
-      characterLedgerApplied = true;
-
-      await this.appendMarketLedgerEntryAsync(marketId, solarSystemId, marketLedgerEntry);
-      marketLedgerApplied = true;
-
-      const updatedCharacter = this.findCharacter(player.playerName, character.id);
-      const updatedMarket = this.getMarket(marketId, solarSystemId);
-      const inventoryEntry = updatedMarket?.inventory?.find((entry) => entry.itemId === itemId) || null;
-
-      return {
-        success: true,
-        transaction: {
-          transactionId,
-          requestId,
-          marketId,
-          solarSystemId,
-          characterId,
-          itemId,
-          direction,
-          quantity,
-          unitPrice: quote.unitPrice,
-          totalPrice: quote.totalPrice,
-          timestamp,
-          characterCredits: updatedCharacter
-            ? this.calculateCharacterCredits(updatedCharacter)
-            : null,
-          marketStock: inventoryEntry?.stock ?? null
-        }
-      };
-    } catch (error) {
-      if (stockApplied) {
-        await this.applyMarketStockDeltaAsync(
-          marketId,
-          solarSystemId,
-          itemId,
-          direction === 'buy' ? quantity : -quantity
-        );
-      }
-
-      if (characterLedgerApplied) {
-        await this.appendCharacterLedgerEntryAsync(player.playerName, character.id, {
-          type: direction === 'buy' ? 'put' : 'take',
-          amount: quote.totalPrice,
-          description: `Reversal for transaction ${transactionId}`,
-          timestamp: this.getCurrentTimestamp(),
-          referenceId: transactionId
-        });
-      }
-
-      if (marketLedgerApplied) {
-        await this.appendMarketLedgerEntryAsync(marketId, solarSystemId, {
-          ...marketLedgerEntry,
-          transactionId: this.createId(),
-          direction: 'reversal',
-          reversalOfTransactionId: transactionId,
-          timestamp: this.getCurrentTimestamp()
-        });
-      }
-
-      this.log(`[context] Market transaction failed: ${error.message}`);
-      return {
-        success: false,
-        reason: characterLedgerApplied || marketLedgerApplied
-          ? 'PARTIAL_WRITE_REVERSED'
-          : 'TRANSACTION_FAILED'
-      };
-    }
+    return marketService.executeMarketTransactionAsync(this, request);
   }
 
   toPlainObject(value) {
-    if (value && typeof value.toObject === 'function') {
-      return value.toObject();
-    }
-
-    return value;
+    return normalizers.toPlainObject(this, value);
   }
 
   normalizeShip(ship) {
@@ -2244,33 +1362,11 @@ class MessageHandlerContext {
   }
 
   async ensurePlayerLoadedAsync(playerName) {
-    const normalizedPlayerName = this.normalizePlayerName(playerName);
-    if (!normalizedPlayerName) {
-      return null;
-    }
-
-    let player = this.getPlayer(normalizedPlayerName);
-    if (player || !this.databaseService) {
-      return player;
-    }
-
-    await this.getPlayerAsync(normalizedPlayerName);
-    player = this.getPlayer(normalizedPlayerName);
-    return player;
+    return persistenceBridge.ensurePlayerLoadedAsync(this, playerName);
   }
 
   async hasValidSessionAsync(payload) {
-    const sessionKey = this.toNonEmptyString(payload?.sessionKey);
-    if (!sessionKey) {
-      return false;
-    }
-
-    const player = await this.ensurePlayerLoadedAsync(payload?.playerName);
-    if (!player || !player.sessionKey) {
-      return false;
-    }
-
-    return player.sessionKey === sessionKey;
+    return persistenceBridge.hasValidSessionAsync(this, payload);
   }
 
   logHandlerMessage(messageType, payload) {
@@ -2418,203 +1514,43 @@ class MessageHandlerContext {
    */
 
   async getPlayerAsync(playerName) {
-    if (this.databaseService) {
-      try {
-        const player = await this.databaseService.getPlayerByName(playerName);
-        if (player) {
-          this.cachePlayer(player);
-        }
-        return player;
-      } catch (error) {
-        this.log(`[context] Error fetching player from DB: ${error.message}`);
-        return null;
-      }
-    }
-    return this.getPlayer(playerName);
+    return persistenceBridge.getPlayerAsync(this, playerName);
   }
 
   async getCharactersAsync(playerName) {
-    if (this.databaseService) {
-      try {
-        const characters = await this.databaseService.getCharacters(playerName);
-        return this.cacheCharacters(playerName, characters);
-      } catch (error) {
-        this.log(`[context] Error fetching characters from DB: ${error.message}`);
-        return [];
-      }
-    }
-    const normalizedPlayerName = this.normalizePlayerName(playerName);
-    return this.getCharacters(normalizedPlayerName);
+    return persistenceBridge.getCharactersAsync(this, playerName);
   }
 
   async registerPlayerAsync(playerData) {
-    if (this.databaseService) {
-      try {
-        const result = await this.databaseService.registerPlayer(playerData);
-        // Also cache in memory for session tracking
-        const normalizedPlayerName = playerData.playerName.toLowerCase();
-        this.registeredPlayers.set(normalizedPlayerName, {
-          ...playerData,
-          sessionKey: null,
-          socketId: null
-        });
-        this.charactersByPlayer.set(normalizedPlayerName, []);
-        return result;
-      } catch (error) {
-        this.log(`[context] Error registering player in DB: ${error.message}`);
-        throw error;
-      }
-    }
-    // Fallback: in-memory registration
-    const normalizedPlayerName = playerData.playerName.toLowerCase();
-    this.registeredPlayers.set(normalizedPlayerName, {
-      ...playerData,
-      sessionKey: null,
-      socketId: null
-    });
-    this.charactersByPlayer.set(normalizedPlayerName, []);
-    return playerData;
+    return persistenceBridge.registerPlayerAsync(this, playerData);
   }
 
   async updatePlayerAsync(playerName, updates) {
-    if (this.databaseService) {
-      try {
-        await this.databaseService.updatePlayer(playerName, updates);
-      } catch (error) {
-        this.log(`[context] Error updating player in DB: ${error.message}`);
-        throw error;
-      }
-    }
-    // Also update in-memory for session tracking
-    const player = this.getPlayer(playerName);
-    if (player) {
-      Object.assign(player, updates);
-    }
+    return persistenceBridge.updatePlayerAsync(this, playerName, updates);
   }
 
   async addCharacterAsync(playerName, characterData) {
-    if (this.databaseService) {
-      try {
-        await this.databaseService.addCharacter(playerName, characterData);
-      } catch (error) {
-        this.log(`[context] Error adding character in DB: ${error.message}`);
-        throw error;
-      }
-    }
-    // Also update in-memory
-    const normalizedPlayerName = this.normalizePlayerName(playerName);
-    const characters = this.getCharacters(normalizedPlayerName);
-    characters.push(this.normalizeCharacter(characterData));
-    this.setCharacters(normalizedPlayerName, characters);
+    return persistenceBridge.addCharacterAsync(this, playerName, characterData);
   }
 
   async deleteCharacterAsync(playerName, characterId) {
-    if (this.databaseService) {
-      try {
-        await this.databaseService.deleteCharacter(playerName, characterId);
-      } catch (error) {
-        this.log(`[context] Error deleting character in DB: ${error.message}`);
-        throw error;
-      }
-    }
-    // Also update in-memory
-    const normalizedPlayerName = this.normalizePlayerName(playerName);
-    const characters = this.getCharacters(normalizedPlayerName);
-    const filtered = characters.filter((c) => c.id !== characterId);
-    this.setCharacters(normalizedPlayerName, filtered);
+    return persistenceBridge.deleteCharacterAsync(this, playerName, characterId);
   }
 
   async updateCharacterAsync(playerName, characterId, updates) {
-    if (this.databaseService) {
-      try {
-        await this.databaseService.updateCharacter(playerName, characterId, updates);
-      } catch (error) {
-        this.log(`[context] Error updating character in DB: ${error.message}`);
-        throw error;
-      }
-    }
-    // Also update in-memory
-    const character = this.findCharacter(playerName, characterId);
-    if (character) {
-      Object.assign(character, updates);
-    }
+    return persistenceBridge.updateCharacterAsync(this, playerName, characterId, updates);
   }
 
   async addShipAsync(playerName, characterId, shipData) {
-    if (this.databaseService) {
-      try {
-        await this.databaseService.addShip(playerName, characterId, shipData);
-      } catch (error) {
-        this.log(`[context] Error adding ship in DB: ${error.message}`);
-        throw error;
-      }
-    }
-    // Also update in-memory
-    const character = this.findCharacter(playerName, characterId);
-    if (character) {
-      if (!character.ships) {
-        character.ships = [];
-      }
-      character.ships.push(shipData);
-    }
+    return persistenceBridge.addShipAsync(this, playerName, characterId, shipData);
   }
 
   async addOrUpdateMissionAsync(playerName, characterId, missionData) {
-    if (this.databaseService) {
-      try {
-        await this.databaseService.addOrUpdateMission(playerName, characterId, missionData);
-      } catch (error) {
-        this.log(`[context] Error adding/updating mission in DB: ${error.message}`);
-        throw error;
-      }
-    }
-
-    const character = this.findCharacter(playerName, characterId);
-    if (!character) {
-      return;
-    }
-
-    if (!Array.isArray(character.missions)) {
-      character.missions = [];
-    }
-
-    const missionIndex = character.missions.findIndex(
-      (mission) => mission.missionId === missionData.missionId
-    );
-    if (missionIndex >= 0) {
-      // Update existing mission by index
-      character.missions[missionIndex] = missionData;
-    } else {
-      // Add new mission
-      character.missions.push(missionData);
-    }
+    return persistenceBridge.addOrUpdateMissionAsync(this, playerName, characterId, missionData);
   }
 
   async getMissionsAsync(playerName, characterId) {
-    if (this.databaseService) {
-      try {
-        const missions = await this.databaseService.getMissions(playerName, characterId);
-        const character = this.findCharacter(playerName, characterId);
-        const normalizedMissions = Array.isArray(missions)
-          ? missions.map((mission) => this.normalizeMission(mission))
-          : [];
-
-        if (character) {
-          character.missions = normalizedMissions;
-        }
-
-        return normalizedMissions;
-      } catch (error) {
-        this.log(`[context] Error fetching missions from DB: ${error.message}`);
-      }
-    }
-
-    const character = this.findCharacter(playerName, characterId);
-    if (!character || !Array.isArray(character.missions)) {
-      return [];
-    }
-
-    return character.missions.map((mission) => this.normalizeMission(mission));
+    return persistenceBridge.getMissionsAsync(this, playerName, characterId);
   }
 
   async addOrUpdateCelestialBodyAsync(celestialBody) {
