@@ -122,12 +122,17 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
   - per-context counter isolation (no cross-test leakage)
 - **Validation**: full suite green (`284` pass, `0` fail)
 
-### TQ-10 Extract a shared trader-character seeder
-- **Why**: [TEST_QUALITY_REVIEW.md](TEST_QUALITY_REVIEW.md) §4.3 — three
-  market test files reimplement near-identical "character with N credits + ship".
-- **Deliverable**: Add `seedTraderCharacter(context, { credits, shipOverrides })`
-  to `test-support/message-handler-test-helpers.js`; replace local seeders
-  in `market-buy-sell`, `market-quote`, `market-ledger-list` test files.
+### ~~TQ-10~~ ✅ Extract a shared trader-character seeder
+- **Completed**: 2026-05-07
+- **Added helper** in `test-support/message-handler-test-helpers.js`:
+  - `seedTraderCharacter(context, { credits, shipOverrides })`
+  - Defaults: `MarketPilot`, `session-1`, `player-1`, `character-1`, one `ship-1`, seed ledger entry timestamp `2026-05-05T00:00:00.000Z`
+- **Migrated usage**:
+  - `test/market-buy-sell-message-handler.test.js` (removed local `seedMarketCharacter`)
+  - `test/market-quote-message-handler.test.js` (straightforward trader seed cases)
+  - `test/market-ledger-list-message-handler.test.js`
+- **Scope note**: explicit `credits` field intentionally left unchanged for TQ-11.
+- **Validation**: full suite green (`284` pass, `0` fail)
 
 ### TQ-11 Remove explicit `credits` from character fixtures
 - **Why**: [CODEBASE.md](CODEBASE.md) invariant #2: `credits` is computed,

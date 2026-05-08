@@ -199,6 +199,41 @@ function seedPlayer(context, overrides = {}) {
   return player;
 }
 
+function seedTraderCharacter(context, options = {}) {
+  const credits = Number.isFinite(options.credits) ? options.credits : 2000;
+  const shipOverrides = options.shipOverrides || {};
+
+  seedPlayer(context, {
+    playerName: 'MarketPilot',
+    sessionKey: 'session-1',
+    playerId: 'player-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Trader',
+        createdAt: '2026-05-05T00:00:00.000Z',
+        ships: [createShip({
+          id: 'ship-1',
+          shipName: 'Trader Ship 1',
+          createdAt: '2026-05-05T00:00:00.000Z',
+          ...shipOverrides
+        })],
+        missions: [],
+        creditLedger: [
+          {
+            type: 'put',
+            amount: credits,
+            description: 'Seed',
+            timestamp: '2026-05-05T00:00:00.000Z',
+            referenceId: null
+          }
+        ],
+        credits
+      }
+    ]
+  });
+}
+
 module.exports = {
   createCelestialBody,
   createMarket,
@@ -211,5 +246,6 @@ module.exports = {
   createTestContext,
   seedCelestialBodies,
   seedItems,
-  seedPlayer
+  seedPlayer,
+  seedTraderCharacter
 };
