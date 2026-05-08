@@ -321,6 +321,32 @@ class MessageHandlerContext {
     return orbitalMath.calculateDistanceAu(this, fromPositionKm, toPositionKm);
   }
 
+  async withDb(operationName, operation) {
+    if (!this.databaseService) {
+      return null;
+    }
+
+    try {
+      return await operation(this.databaseService);
+    } catch (error) {
+      this.log(`[context] Error ${operationName}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async withDbOrNull(operationName, operation) {
+    if (!this.databaseService) {
+      return null;
+    }
+
+    try {
+      return await operation(this.databaseService);
+    } catch (error) {
+      this.log(`[context] Error ${operationName}: ${error.message}`);
+      return null;
+    }
+  }
+
   async loadGateNetworkAsync() {
     return routingService.loadGateNetworkAsync(this);
   }
@@ -980,25 +1006,17 @@ class MessageHandlerContext {
       return cached;
     }
 
-    if (!this.databaseService) {
+    const celestialBody = await this.withDbOrNull(
+      'fetching celestial body by id from DB',
+      (databaseService) => databaseService.getCelestialBodyById(normalizedCelestialBodyId)
+    );
+    if (!celestialBody) {
       return null;
     }
 
-    try {
-      const celestialBody = await this.databaseService.getCelestialBodyById(
-        normalizedCelestialBodyId
-      );
-      if (!celestialBody) {
-        return null;
-      }
-
-      const normalized = this.normalizeCelestialBody(celestialBody);
-      this.celestialBodiesById.set(normalized.id, normalized);
-      return normalized;
-    } catch (error) {
-      this.log(`[context] Error fetching celestial body by id from DB: ${error.message}`);
-      return null;
-    }
+    const normalized = this.normalizeCelestialBody(celestialBody);
+    this.celestialBodiesById.set(normalized.id, normalized);
+    return normalized;
   }
 
   async getCelestialBodiesAsync(query = {}) {
@@ -1039,30 +1057,29 @@ class MessageHandlerContext {
         return true;
       });
 
-    if (this.databaseService) {
-      try {
-        const fromDb = await this.databaseService.getCelestialBodies({
-          solarSystemId: normalizedSolarSystemId || undefined,
-          createdByCharacterId: normalizedCreatedByCharacterId || undefined,
-          missionId: normalizedMissionId || undefined,
-          stateValues: normalizedStateValues.length > 0 ? normalizedStateValues : undefined
-        });
+    const fromDb = await this.withDbOrNull(
+      'fetching celestial bodies from DB',
+      (databaseService) => databaseService.getCelestialBodies({
+        solarSystemId: normalizedSolarSystemId || undefined,
+        createdByCharacterId: normalizedCreatedByCharacterId || undefined,
+        missionId: normalizedMissionId || undefined,
+        stateValues: normalizedStateValues.length > 0 ? normalizedStateValues : undefined
+      })
+    );
 
-        const mergedById = new Map();
-        for (const celestialBody of cacheMatches) {
-          mergedById.set(celestialBody.id, celestialBody);
-        }
-
-        for (const celestialBody of fromDb) {
-          const normalizedCelestialBody = this.normalizeCelestialBody(celestialBody);
-          this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
-          mergedById.set(normalizedCelestialBody.id, normalizedCelestialBody);
-        }
-
-        return [...mergedById.values()];
-      } catch (error) {
-        this.log(`[context] Error fetching celestial bodies from DB: ${error.message}`);
+    if (Array.isArray(fromDb)) {
+      const mergedById = new Map();
+      for (const celestialBody of cacheMatches) {
+        mergedById.set(celestialBody.id, celestialBody);
       }
+
+      for (const celestialBody of fromDb) {
+        const normalizedCelestialBody = this.normalizeCelestialBody(celestialBody);
+        this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
+        mergedById.set(normalizedCelestialBody.id, normalizedCelestialBody);
+      }
+
+      return [...mergedById.values()];
     }
 
     return cacheMatches;
@@ -1074,14 +1091,10 @@ class MessageHandlerContext {
       return false;
     }
 
-    if (this.databaseService) {
-      try {
-        await this.databaseService.deleteCelestialBodyById(normalizedCelestialBodyId);
-      } catch (error) {
-        this.log(`[context] Error deleting celestial body in DB: ${error.message}`);
-        throw error;
-      }
-    }
+    await this.withDb(
+      'deleting celestial body in DB',
+      (databaseService) => databaseService.deleteCelestialBodyById(normalizedCelestialBodyId)
+    );
 
     return this.celestialBodiesById.delete(normalizedCelestialBodyId);
   }
@@ -1138,15 +1151,15 @@ class MessageHandlerContext {
         .map(([itemId, item]) => [itemId, this.normalizeItem(item)])
     );
 
-    if (this.databaseService) {
-      try {
-        const items = await this.databaseService.getItemsByIds(normalizedItemIds);
-        const dbItems = this.cacheItems(items);
-        for (const item of dbItems) {
-          cachedById.set(item.id, item);
-        }
-      } catch (error) {
-        this.log(`[context] Error fetching items from DB: ${error.message}`);
+    const itemsFromDb = await this.withDbOrNull(
+      'fetching items from DB',
+      (databaseService) => databaseService.getItemsByIds(normalizedItemIds)
+    );
+
+    if (Array.isArray(itemsFromDb)) {
+      const dbItems = this.cacheItems(itemsFromDb);
+      for (const item of dbItems) {
+        cachedById.set(item.id, item);
       }
     }
 
@@ -1159,16 +1172,16 @@ class MessageHandlerContext {
   async addItemsAsync(items) {
     const normalizedItems = this.cacheItems(items);
 
-    if (this.databaseService) {
-      try {
-        await this.databaseService.addItems(normalizedItems);
-      } catch (error) {
-        for (const item of normalizedItems) {
-          this.itemsById.delete(item.id);
-        }
-        this.log(`[context] Error adding items in DB: ${error.message}`);
-        throw error;
+    try {
+      await this.withDb(
+        'adding items in DB',
+        (databaseService) => databaseService.addItems(normalizedItems)
+      );
+    } catch (error) {
+      for (const item of normalizedItems) {
+        this.itemsById.delete(item.id);
       }
+      throw error;
     }
 
     return normalizedItems;
@@ -1183,14 +1196,10 @@ class MessageHandlerContext {
       return;
     }
 
-    if (this.databaseService) {
-      try {
-        await this.databaseService.deleteItemsByIds(normalizedItemIds);
-      } catch (error) {
-        this.log(`[context] Error deleting items in DB: ${error.message}`);
-        throw error;
-      }
-    }
+    await this.withDb(
+      'deleting items in DB',
+      (databaseService) => databaseService.deleteItemsByIds(normalizedItemIds)
+    );
 
     for (const itemId of normalizedItemIds) {
       this.itemsById.delete(itemId);
@@ -1211,13 +1220,10 @@ class MessageHandlerContext {
     const updatedItem = this.normalizeItem({ ...existing, ...updates });
     this.itemsById.set(normalizedItemId, updatedItem);
 
-    if (this.databaseService) {
-      try {
-        await this.databaseService.updateItemById(normalizedItemId, updatedItem);
-      } catch (error) {
-        this.log(`[context] Error updating item in DB: ${error.message}`);
-      }
-    }
+    await this.withDbOrNull(
+      'updating item in DB',
+      (databaseService) => databaseService.updateItemById(normalizedItemId, updatedItem)
+    );
 
     return updatedItem;
   }
@@ -1236,28 +1242,27 @@ class MessageHandlerContext {
         && item.container?.containerId === normalizedContainerId
     );
 
-    if (this.databaseService) {
-      try {
-        const items = await this.databaseService.getItemsByContainer(
-          normalizedContainerType,
-          normalizedContainerId
-        );
+    const itemsFromDb = await this.withDbOrNull(
+      'fetching items by container from DB',
+      (databaseService) => databaseService.getItemsByContainer(
+        normalizedContainerType,
+        normalizedContainerId
+      )
+    );
 
-        const dbItems = this.cacheItems(items);
-        const mergedById = new Map();
+    if (Array.isArray(itemsFromDb)) {
+      const dbItems = this.cacheItems(itemsFromDb);
+      const mergedById = new Map();
 
-        for (const item of cachedMatches) {
-          mergedById.set(item.id, this.normalizeItem(item));
-        }
-
-        for (const item of dbItems) {
-          mergedById.set(item.id, item);
-        }
-
-        return [...mergedById.values()];
-      } catch (error) {
-        this.log(`[context] Error fetching items by container from DB: ${error.message}`);
+      for (const item of cachedMatches) {
+        mergedById.set(item.id, this.normalizeItem(item));
       }
+
+      for (const item of dbItems) {
+        mergedById.set(item.id, item);
+      }
+
+      return [...mergedById.values()];
     }
 
     return cachedMatches.map((item) => this.normalizeItem(item));
@@ -1578,14 +1583,10 @@ class MessageHandlerContext {
   async addOrUpdateCelestialBodyAsync(celestialBody) {
     const normalizedCelestialBody = this.normalizeCelestialBody(celestialBody);
 
-    if (this.databaseService) {
-      try {
-        await this.databaseService.addOrUpdateCelestialBody(normalizedCelestialBody);
-      } catch (error) {
-        this.log(`[context] Error adding/updating celestial body in DB: ${error.message}`);
-        throw error;
-      }
-    }
+    await this.withDb(
+      'adding/updating celestial body in DB',
+      (databaseService) => databaseService.addOrUpdateCelestialBody(normalizedCelestialBody)
+    );
 
     this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
     return normalizedCelestialBody;
@@ -1649,39 +1650,37 @@ class MessageHandlerContext {
       })
       .filter((entry) => Boolean(entry));
 
-    if (this.databaseService) {
-      try {
-        const fromDb = await this.databaseService.findCelestialBodiesNearPosition({
-          solarSystemId,
-          positionKm,
-          distanceKm,
-          createdByCharacterId: createdByCharacterId || undefined,
-          missionId: missionId || undefined,
-          stateValues: stateValues.length > 0 ? stateValues : undefined
-        });
+    const fromDb = await this.withDbOrNull(
+      'finding celestial bodies from DB',
+      (databaseService) => databaseService.findCelestialBodiesNearPosition({
+        solarSystemId,
+        positionKm,
+        distanceKm,
+        createdByCharacterId: createdByCharacterId || undefined,
+        missionId: missionId || undefined,
+        stateValues: stateValues.length > 0 ? stateValues : undefined
+      })
+    );
 
-        const fromDbResults = fromDb.map((entry) => {
-          const normalizedCelestialBody = this.normalizeCelestialBody(entry.celestialBody);
-          this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
-          return {
-            celestialBody: normalizedCelestialBody,
-            distanceKm: entry.distanceKm
-          };
-        });
+    if (Array.isArray(fromDb)) {
+      const fromDbResults = fromDb.map((entry) => {
+        const normalizedCelestialBody = this.normalizeCelestialBody(entry.celestialBody);
+        this.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
+        return {
+          celestialBody: normalizedCelestialBody,
+          distanceKm: entry.distanceKm
+        };
+      });
 
-        const mergedById = new Map();
-        for (const entry of cacheResults) {
-          mergedById.set(entry.celestialBody.id, entry);
-        }
-        for (const entry of fromDbResults) {
-          mergedById.set(entry.celestialBody.id, entry);
-        }
-
-        results = [...mergedById.values()].sort((left, right) => left.distanceKm - right.distanceKm);
-      } catch (error) {
-        this.log(`[context] Error finding celestial bodies from DB: ${error.message}`);
-        results = cacheResults.sort((left, right) => left.distanceKm - right.distanceKm);
+      const mergedById = new Map();
+      for (const entry of cacheResults) {
+        mergedById.set(entry.celestialBody.id, entry);
       }
+      for (const entry of fromDbResults) {
+        mergedById.set(entry.celestialBody.id, entry);
+      }
+
+      results = [...mergedById.values()].sort((left, right) => left.distanceKm - right.distanceKm);
     } else {
       results = cacheResults.sort((left, right) => left.distanceKm - right.distanceKm);
     }
@@ -1737,37 +1736,35 @@ class MessageHandlerContext {
       })
       .filter((entry) => Boolean(entry));
 
-    if (this.databaseService) {
-      try {
-        const fromDb = await this.databaseService.findItemsNearPosition({
-          solarSystemId,
-          positionKm,
-          distanceKm,
-          itemType: itemType || undefined
-        });
+    const fromDb = await this.withDbOrNull(
+      'finding items from DB',
+      (databaseService) => databaseService.findItemsNearPosition({
+        solarSystemId,
+        positionKm,
+        distanceKm,
+        itemType: itemType || undefined
+      })
+    );
 
-        const fromDbResults = fromDb.map((entry) => {
-          const normalizedItem = this.normalizeItem(entry.item);
-          this.itemsById.set(normalizedItem.id, normalizedItem);
-          return {
-            item: normalizedItem,
-            distanceKm: entry.distanceKm
-          };
-        });
+    if (Array.isArray(fromDb)) {
+      const fromDbResults = fromDb.map((entry) => {
+        const normalizedItem = this.normalizeItem(entry.item);
+        this.itemsById.set(normalizedItem.id, normalizedItem);
+        return {
+          item: normalizedItem,
+          distanceKm: entry.distanceKm
+        };
+      });
 
-        const mergedById = new Map();
-        for (const entry of cacheResults) {
-          mergedById.set(entry.item.id, entry);
-        }
-        for (const entry of fromDbResults) {
-          mergedById.set(entry.item.id, entry);
-        }
-
-        results = [...mergedById.values()].sort((left, right) => left.distanceKm - right.distanceKm);
-      } catch (error) {
-        this.log(`[context] Error finding items from DB: ${error.message}`);
-        results = cacheResults.sort((left, right) => left.distanceKm - right.distanceKm);
+      const mergedById = new Map();
+      for (const entry of cacheResults) {
+        mergedById.set(entry.item.id, entry);
       }
+      for (const entry of fromDbResults) {
+        mergedById.set(entry.item.id, entry);
+      }
+
+      results = [...mergedById.values()].sort((left, right) => left.distanceKm - right.distanceKm);
     } else {
       results = cacheResults.sort((left, right) => left.distanceKm - right.distanceKm);
     }

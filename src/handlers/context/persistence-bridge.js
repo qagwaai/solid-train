@@ -1,52 +1,34 @@
 'use strict';
 
 async function getPlayerAsync(ctx, playerName) {
-  if (ctx.databaseService) {
-    try {
-      const player = await ctx.databaseService.getPlayerByName(playerName);
-      if (player) {
-        ctx.cachePlayer(player);
-      }
-      return player;
-    } catch (error) {
-      ctx.log(`[context] Error fetching player from DB: ${error.message}`);
-      return null;
-    }
+  const player = await ctx.withDbOrNull(
+    'fetching player from DB',
+    (databaseService) => databaseService.getPlayerByName(playerName)
+  );
+  if (player) {
+    ctx.cachePlayer(player);
+    return player;
   }
   return ctx.getPlayer(playerName);
 }
 
 async function getCharactersAsync(ctx, playerName) {
-  if (ctx.databaseService) {
-    try {
-      const characters = await ctx.databaseService.getCharacters(playerName);
-      return ctx.cacheCharacters(playerName, characters);
-    } catch (error) {
-      ctx.log(`[context] Error fetching characters from DB: ${error.message}`);
-      return [];
-    }
+  const characters = await ctx.withDbOrNull(
+    'fetching characters from DB',
+    (databaseService) => databaseService.getCharacters(playerName)
+  );
+  if (Array.isArray(characters)) {
+    return ctx.cacheCharacters(playerName, characters);
   }
   const normalizedPlayerName = ctx.normalizePlayerName(playerName);
   return ctx.getCharacters(normalizedPlayerName);
 }
 
 async function registerPlayerAsync(ctx, playerData) {
-  if (ctx.databaseService) {
-    try {
-      const result = await ctx.databaseService.registerPlayer(playerData);
-      const normalizedPlayerName = playerData.playerName.toLowerCase();
-      ctx.registeredPlayers.set(normalizedPlayerName, {
-        ...playerData,
-        sessionKey: null,
-        socketId: null
-      });
-      ctx.charactersByPlayer.set(normalizedPlayerName, []);
-      return result;
-    } catch (error) {
-      ctx.log(`[context] Error registering player in DB: ${error.message}`);
-      throw error;
-    }
-  }
+  const result = await ctx.withDb(
+    'registering player in DB',
+    (databaseService) => databaseService.registerPlayer(playerData)
+  );
 
   const normalizedPlayerName = playerData.playerName.toLowerCase();
   ctx.registeredPlayers.set(normalizedPlayerName, {
@@ -55,18 +37,14 @@ async function registerPlayerAsync(ctx, playerData) {
     socketId: null
   });
   ctx.charactersByPlayer.set(normalizedPlayerName, []);
-  return playerData;
+  return result || playerData;
 }
 
 async function updatePlayerAsync(ctx, playerName, updates) {
-  if (ctx.databaseService) {
-    try {
-      await ctx.databaseService.updatePlayer(playerName, updates);
-    } catch (error) {
-      ctx.log(`[context] Error updating player in DB: ${error.message}`);
-      throw error;
-    }
-  }
+  await ctx.withDb(
+    'updating player in DB',
+    (databaseService) => databaseService.updatePlayer(playerName, updates)
+  );
 
   const player = ctx.getPlayer(playerName);
   if (player) {
@@ -75,14 +53,10 @@ async function updatePlayerAsync(ctx, playerName, updates) {
 }
 
 async function addCharacterAsync(ctx, playerName, characterData) {
-  if (ctx.databaseService) {
-    try {
-      await ctx.databaseService.addCharacter(playerName, characterData);
-    } catch (error) {
-      ctx.log(`[context] Error adding character in DB: ${error.message}`);
-      throw error;
-    }
-  }
+  await ctx.withDb(
+    'adding character in DB',
+    (databaseService) => databaseService.addCharacter(playerName, characterData)
+  );
 
   const normalizedPlayerName = ctx.normalizePlayerName(playerName);
   const characters = ctx.getCharacters(normalizedPlayerName);
@@ -91,14 +65,10 @@ async function addCharacterAsync(ctx, playerName, characterData) {
 }
 
 async function deleteCharacterAsync(ctx, playerName, characterId) {
-  if (ctx.databaseService) {
-    try {
-      await ctx.databaseService.deleteCharacter(playerName, characterId);
-    } catch (error) {
-      ctx.log(`[context] Error deleting character in DB: ${error.message}`);
-      throw error;
-    }
-  }
+  await ctx.withDb(
+    'deleting character in DB',
+    (databaseService) => databaseService.deleteCharacter(playerName, characterId)
+  );
 
   const normalizedPlayerName = ctx.normalizePlayerName(playerName);
   const characters = ctx.getCharacters(normalizedPlayerName);
@@ -107,14 +77,10 @@ async function deleteCharacterAsync(ctx, playerName, characterId) {
 }
 
 async function updateCharacterAsync(ctx, playerName, characterId, updates) {
-  if (ctx.databaseService) {
-    try {
-      await ctx.databaseService.updateCharacter(playerName, characterId, updates);
-    } catch (error) {
-      ctx.log(`[context] Error updating character in DB: ${error.message}`);
-      throw error;
-    }
-  }
+  await ctx.withDb(
+    'updating character in DB',
+    (databaseService) => databaseService.updateCharacter(playerName, characterId, updates)
+  );
 
   const character = ctx.findCharacter(playerName, characterId);
   if (character) {
@@ -123,14 +89,10 @@ async function updateCharacterAsync(ctx, playerName, characterId, updates) {
 }
 
 async function addShipAsync(ctx, playerName, characterId, shipData) {
-  if (ctx.databaseService) {
-    try {
-      await ctx.databaseService.addShip(playerName, characterId, shipData);
-    } catch (error) {
-      ctx.log(`[context] Error adding ship in DB: ${error.message}`);
-      throw error;
-    }
-  }
+  await ctx.withDb(
+    'adding ship in DB',
+    (databaseService) => databaseService.addShip(playerName, characterId, shipData)
+  );
 
   const character = ctx.findCharacter(playerName, characterId);
   if (character) {
@@ -142,14 +104,10 @@ async function addShipAsync(ctx, playerName, characterId, shipData) {
 }
 
 async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData) {
-  if (ctx.databaseService) {
-    try {
-      await ctx.databaseService.addOrUpdateMission(playerName, characterId, missionData);
-    } catch (error) {
-      ctx.log(`[context] Error adding/updating mission in DB: ${error.message}`);
-      throw error;
-    }
-  }
+  await ctx.withDb(
+    'adding/updating mission in DB',
+    (databaseService) => databaseService.addOrUpdateMission(playerName, characterId, missionData)
+  );
 
   const character = ctx.findCharacter(playerName, characterId);
   if (!character) {
@@ -171,22 +129,20 @@ async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData
 }
 
 async function getMissionsAsync(ctx, playerName, characterId) {
-  if (ctx.databaseService) {
-    try {
-      const missions = await ctx.databaseService.getMissions(playerName, characterId);
-      const character = ctx.findCharacter(playerName, characterId);
-      const normalizedMissions = Array.isArray(missions)
-        ? missions.map((mission) => ctx.normalizeMission(mission))
-        : [];
+  const missions = await ctx.withDbOrNull(
+    'fetching missions from DB',
+    (databaseService) => databaseService.getMissions(playerName, characterId)
+  );
 
-      if (character) {
-        character.missions = normalizedMissions;
-      }
+  if (Array.isArray(missions)) {
+    const character = ctx.findCharacter(playerName, characterId);
+    const normalizedMissions = missions.map((mission) => ctx.normalizeMission(mission));
 
-      return normalizedMissions;
-    } catch (error) {
-      ctx.log(`[context] Error fetching missions from DB: ${error.message}`);
+    if (character) {
+      character.missions = normalizedMissions;
     }
+
+    return normalizedMissions;
   }
 
   const character = ctx.findCharacter(playerName, characterId);

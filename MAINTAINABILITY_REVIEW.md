@@ -139,6 +139,8 @@ Implemented:
 
 ## M-07 — Repeated DB-fallback try/log pattern
 
+Status: Completed on 2026-05-08.
+
 In `message-handler-context.js` (~lines 1900–2200) and similar elsewhere, ~15 methods follow:
 
 ```js
@@ -152,6 +154,11 @@ async fooAsync(...) {
 ```
 
 Extract `withDb(operationName, fn)` and `withDbOrNull(operationName, fn)` helpers; remove ~200 LOC of repetition; centralizes error/log policy (and lets you add metrics/correlation IDs later).
+
+Implemented:
+- Added `withDb(operationName, fn)` and `withDbOrNull(operationName, fn)` to `src/handlers/message-handler-context.js`.
+- Replaced repeated DB fallback blocks in `MessageHandlerContext` (celestial/item CRUD + near-position query paths) with helper calls while preserving existing throw/null/fallback behavior.
+- Refactored `src/handlers/context/persistence-bridge.js` to use context helpers for DB-backed player/character/mission operations, preserving in-memory fallback semantics.
 
 ---
 
@@ -195,7 +202,7 @@ Several are point-in-time progress reports (e.g. `SPATIAL_MODEL_IMPLEMENTATION.m
 | **M-02** | Table-driven socket wiring — **Completed 2026-05-08** | Boilerplate growth reduced with shared registry wiring | S |
 | **M-08** | Add ESLint + CI workflow + npm scripts | Style/correctness drift | S |
 | **M-05** | Split `db/models.js` and `db/service.js` — **Completed 2026-05-08** | Domain modules extracted (players, items, markets/seed-state, celestial/gates, ship/missions) behind stable facades | M |
-| **M-07** | Extract `withDb` helper | Easy duplication removal | S |
+| **M-07** | Extract `withDb` helper — **Completed 2026-05-08** | Repeated DB fallback try/log blocks centralized via `withDb` + `withDbOrNull` | S |
 | **M-06** | Move seeding out of constructor — **Completed 2026-05-08** | Constructor side-effects removed; explicit initialization and timestamp consistency implemented | S |
 | **M-09** | Consolidate markdown docs | Drift; onboarding cost | S |
 | **M-10** | Constants + naming + small extractions | Quality-of-life | S |
