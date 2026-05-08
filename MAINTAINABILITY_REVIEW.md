@@ -1,6 +1,12 @@
+---
+Owner: Project Maintainers
+Last Verified: 2026-05-08
+Status: Living
+---
+
 # Maintainability Review — 2026-05-08
 
-Scope: full codebase **excluding** test coverage/quality (covered by `TEST_QUALITY_REVIEW.md` / `TODO.md`).
+Scope: full codebase **excluding** test coverage/quality (covered by `docs/history/2026-05-07_test-quality-review.md` / `TODO.md`).
 Author: AI-assisted review. Findings ranked by leverage × risk.
 
 ---
@@ -199,9 +205,22 @@ Remaining for full M-08 completion:
 
 ## M-09 — Documentation drift risk
 
-Living root-level docs: `CODEBASE.md`, `MESSAGE_CONTRACT.md`, `MONGODB_SCHEMA.md`, `MONGODB_SCHEMA_SPATIAL_MODEL.md`, `SPATIAL_MODEL_IMPLEMENTATION.md`, `SPATIAL_MODEL_RESPONSE_CONTRACTS.md`, `TEST_QUALITY_REVIEW.md`, `TODO.md`, `README.md`.
+Status: Completed on 2026-05-08.
 
-Several are point-in-time progress reports (e.g. `SPATIAL_MODEL_IMPLEMENTATION.md` dated May 5 2026 still shows "Tests require fixture updates" though that's now done). Recommend:
+Current living docs: `README.md`, `CODEBASE.md`, `MESSAGE_CONTRACT.md`, `MONGODB_SCHEMA.md`, `TODO.md`, and `docs/spatial-model.md`.
+
+Implemented:
+
+- Moved time-stamped status docs to `docs/history/`:
+  - `docs/history/2026-05-05_spatial-model-implementation.md`
+  - `docs/history/2026-05-07_test-quality-review.md`
+- Merged spatial references into canonical `docs/spatial-model.md`.
+- Archived superseded spatial docs under `docs/history/`:
+  - `docs/history/2026-05-05_mongodb-schema-spatial-model.md`
+  - `docs/history/2026-05-05_spatial-model-response-contracts.md`
+- Added a doc metadata header (`Owner`, `Last Verified`, `Status`) to each living documentation file.
+
+Original recommendation set (implemented):
 
 - Move time-stamped status docs into `docs/history/` (or rely on git history).
 - Merge the two spatial-model docs.
@@ -231,7 +250,7 @@ Several are point-in-time progress reports (e.g. `SPATIAL_MODEL_IMPLEMENTATION.m
 | **M-05** | Split `db/models.js` and `db/service.js` — **Completed 2026-05-08**                     | Domain modules extracted (players, items, markets/seed-state, celestial/gates, ship/missions) behind stable facades | M      |
 | **M-07** | Extract `withDb` helper — **Completed 2026-05-08**                                      | Repeated DB fallback try/log blocks centralized via `withDb` + `withDbOrNull`                                       | S      |
 | **M-06** | Move seeding out of constructor — **Completed 2026-05-08**                              | Constructor side-effects removed; explicit initialization and timestamp consistency implemented                     | S      |
-| **M-09** | Consolidate markdown docs                                                               | Drift; onboarding cost                                                                                              | S      |
+| **M-09** | Consolidate markdown docs — **Completed 2026-05-08**                                    | Documentation ownership, archival boundaries, and canonical spatial references are now explicit                     | S      |
 | **M-10** | Constants + naming + small extractions                                                  | Quality-of-life                                                                                                     | S      |
 
 ---

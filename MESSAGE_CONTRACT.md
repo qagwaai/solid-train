@@ -1,3 +1,9 @@
+---
+Owner: Project Maintainers
+Last Verified: 2026-05-08
+Status: Living
+---
+
 # Stellar Socket Message Contract
 
 This document describes all Socket.IO message types handled by this server,

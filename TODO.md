@@ -1,6 +1,12 @@
+---
+Owner: Project Maintainers
+Last Verified: 2026-05-08
+Status: Living
+---
+
 # TODO — Test Quality Remediation
 
-Derived from [TEST_QUALITY_REVIEW.md](TEST_QUALITY_REVIEW.md) (2026-05-07).
+Derived from [docs/history/2026-05-07_test-quality-review.md](docs/history/2026-05-07_test-quality-review.md) (2026-05-07).
 Items are roughly ordered by risk × effort. Each item lists the suggested
 deliverable so it can be picked up independently.
 
@@ -194,7 +200,7 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Implementation**:
   - Renamed `test/km-to-au-migration.test.js` to
     `test/context-distance-and-routing.test.js`.
-  - Updated stale references in `TEST_QUALITY_REVIEW.md`.
+  - Updated stale references in `docs/history/2026-05-07_test-quality-review.md`.
   - Added `test/DB_SERVICE_TEST_SPLIT.md` documenting the intended scope split
     between `db-service-core.test.js` and `db-service-extended.test.js`.
 - **Validation**: renamed test file passes in targeted suite.

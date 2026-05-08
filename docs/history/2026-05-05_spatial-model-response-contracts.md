@@ -3,7 +3,7 @@
 **Effective**: May 5, 2026  
 **Status**: Core implementation complete. Responses use canonical spatial model.
 
-This document defines the canonical response shapes for all entity types (Ships, Celestial Bodies, Markets) using the spatial model cutover. See [SPATIAL_MODEL_IMPLEMENTATION.md](./SPATIAL_MODEL_IMPLEMENTATION.md) for implementation details.
+This document defines the canonical response shapes for all entity types (Ships, Celestial Bodies, Markets) using the spatial model cutover. See [2026-05-05_spatial-model-implementation.md](./2026-05-05_spatial-model-implementation.md) for implementation details.
 
 ---
 
@@ -400,6 +400,6 @@ const ship = {
 
 ## References
 
-- [SPATIAL_MODEL_IMPLEMENTATION.md](./SPATIAL_MODEL_IMPLEMENTATION.md) - Implementation details
-- [src/model/spatial-model.js](./src/model/spatial-model.js) - Core type definitions
-- [src/db/models.js](./src/db/models.js) - MongoDB schema definitions
+- [2026-05-05_spatial-model-implementation.md](./2026-05-05_spatial-model-implementation.md) - Implementation details
+- [src/model/spatial-model.js](../../src/model/spatial-model.js) - Core type definitions
+- [src/db/models.js](../../src/db/models.js) - MongoDB schema definitions

@@ -1,3 +1,9 @@
+---
+Owner: Project Maintainers
+Last Verified: 2026-05-08
+Status: Living
+---
+
 # solid-train
 
 Simple Socket.IO server with Node.js.

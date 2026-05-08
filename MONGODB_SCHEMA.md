@@ -1,6 +1,14 @@
+---
+Owner: Project Maintainers
+Last Verified: 2026-05-08
+Status: Living
+---
+
 # MongoDB Schema and Relationships
 
 This document describes the active MongoDB schema used by the Node.js server through Mongoose.
+
+For canonical spatial-model schema and response references, see `docs/spatial-model.md`.
 
 ## Overview
 

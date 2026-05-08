@@ -1,3 +1,9 @@
+---
+Owner: Project Maintainers
+Last Verified: 2026-05-08
+Status: Living
+---
+
 # Codebase Guide
 
 A reference for AI assistants working in this repository.

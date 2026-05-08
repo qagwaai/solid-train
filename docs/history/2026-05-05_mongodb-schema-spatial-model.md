@@ -436,6 +436,6 @@ For existing databases with legacy schemas:
 
 ## References
 
-- [SPATIAL_MODEL_IMPLEMENTATION.md](./SPATIAL_MODEL_IMPLEMENTATION.md) - Backend implementation
-- [SPATIAL_MODEL_RESPONSE_CONTRACTS.md](./SPATIAL_MODEL_RESPONSE_CONTRACTS.md) - Response shapes
-- [src/db/models.js](./src/db/models.js) - Mongoose schema definitions
+- [2026-05-05_spatial-model-implementation.md](./2026-05-05_spatial-model-implementation.md) - Backend implementation
+- [2026-05-05_spatial-model-response-contracts.md](./2026-05-05_spatial-model-response-contracts.md) - Response shapes
+- [src/db/models.js](../../src/db/models.js) - Mongoose schema definitions

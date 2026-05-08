@@ -373,7 +373,7 @@ If you want a follow-up, these scopes are the most useful to do separately:
 - **Production-code maintainability review** of the handlers themselves
   (duplication of session/idle boilerplate is visible across all 26 handlers).
 - **Schema/contract sync audit** between
-  [MONGODB_SCHEMA.md](MONGODB_SCHEMA.md),
-  [MONGODB_SCHEMA_SPATIAL_MODEL.md](MONGODB_SCHEMA_SPATIAL_MODEL.md), and
-  [src/db/models.js](src/db/models.js) — both schema docs are currently active
+  [MONGODB_SCHEMA.md](../../MONGODB_SCHEMA.md),
+  [docs/spatial-model.md](../spatial-model.md), and
+  [src/db/models.js](../../src/db/models.js) — both schema docs are currently active
   and drift between them is likely.
