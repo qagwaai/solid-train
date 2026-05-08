@@ -30,7 +30,7 @@ const {
 
 test('MarketBuyMessageHandler buys item, updates credits, stock, and character inventory', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
 
@@ -65,7 +65,7 @@ test('MarketBuyMessageHandler buys item, updates credits, stock, and character i
 
 test('MarketBuyMessageHandler returns INSUFFICIENT_CREDITS when balance is too low', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 1 });
+  seedTraderCharacter(context, { startingBalance: 1 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
 
@@ -85,7 +85,7 @@ test('MarketBuyMessageHandler returns INSUFFICIENT_CREDITS when balance is too l
 
 test('MarketSellMessageHandler sells owned quantity and credits character', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 500 });
+  seedTraderCharacter(context, { startingBalance: 500 });
   seedItems(context, [
     {
       id: 'iron-stack-1',
@@ -129,7 +129,7 @@ test('MarketSellMessageHandler sells owned quantity and credits character', asyn
 
 test('MarketSellMessageHandler returns INSUFFICIENT_ITEM_QUANTITY when inventory is low', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 500 });
+  seedTraderCharacter(context, { startingBalance: 500 });
   const handler = new MarketSellMessageHandler(context);
   const socket = createMockSocket();
 
@@ -151,7 +151,7 @@ test('MarketSellMessageHandler returns INSUFFICIENT_ITEM_QUANTITY when inventory
 
 test('MarketBuyMessageHandler emits invalid-session for bad session', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
 
@@ -171,7 +171,7 @@ test('MarketBuyMessageHandler emits invalid-session for bad session', async () =
 
 test('MarketBuyMessageHandler returns INVALID_PAYLOAD and echoes requestId when marketId is missing', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
 
@@ -192,7 +192,7 @@ test('MarketBuyMessageHandler returns INVALID_PAYLOAD and echoes requestId when 
 
 test('MarketBuyMessageHandler returns INVALID_PAYLOAD for quantity = 0', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
 
@@ -212,7 +212,7 @@ test('MarketBuyMessageHandler returns INVALID_PAYLOAD for quantity = 0', async (
 
 test('MarketBuyMessageHandler returns MARKET_NOT_FOUND for unknown marketId', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
 
@@ -232,7 +232,7 @@ test('MarketBuyMessageHandler returns MARKET_NOT_FOUND for unknown marketId', as
 
 test('MarketBuyMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
 
@@ -252,7 +252,7 @@ test('MarketBuyMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async 
 
 test('MarketBuyMessageHandler returns INSUFFICIENT_MARKET_STOCK when stock is too low', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 200000 });
+  seedTraderCharacter(context, { startingBalance: 200000 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
 
@@ -310,7 +310,7 @@ test('MarketBuyMessageHandler returns NO_SHIP_AVAILABLE when character has no sh
 
 test('MarketBuyMessageHandler appends type:take creditLedger entry after successful buy', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
 
@@ -337,7 +337,7 @@ test('MarketBuyMessageHandler appends type:take creditLedger entry after success
 
 test('MarketBuyMessageHandler buys successfully after restock interval elapses', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketBuyMessageHandler(context);
   const socket = createMockSocket();
 
@@ -367,7 +367,7 @@ test('MarketBuyMessageHandler buys successfully after restock interval elapses',
 
 test('MarketSellMessageHandler emits invalid-session for bad session', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 500 });
+  seedTraderCharacter(context, { startingBalance: 500 });
   const handler = new MarketSellMessageHandler(context);
   const socket = createMockSocket();
 
@@ -387,7 +387,7 @@ test('MarketSellMessageHandler emits invalid-session for bad session', async () 
 
 test('MarketSellMessageHandler returns INVALID_PAYLOAD and echoes requestId when itemId is missing', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 500 });
+  seedTraderCharacter(context, { startingBalance: 500 });
   const handler = new MarketSellMessageHandler(context);
   const socket = createMockSocket();
 
@@ -408,7 +408,7 @@ test('MarketSellMessageHandler returns INVALID_PAYLOAD and echoes requestId when
 
 test('MarketSellMessageHandler returns INVALID_PAYLOAD for non-integer quantity', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 500 });
+  seedTraderCharacter(context, { startingBalance: 500 });
   const handler = new MarketSellMessageHandler(context);
   const socket = createMockSocket();
 
@@ -428,7 +428,7 @@ test('MarketSellMessageHandler returns INVALID_PAYLOAD for non-integer quantity'
 
 test('MarketSellMessageHandler returns MARKET_NOT_FOUND for wrong solarSystemId', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 500 });
+  seedTraderCharacter(context, { startingBalance: 500 });
   const handler = new MarketSellMessageHandler(context);
   const socket = createMockSocket();
 
@@ -448,7 +448,7 @@ test('MarketSellMessageHandler returns MARKET_NOT_FOUND for wrong solarSystemId'
 
 test('MarketSellMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 500 });
+  seedTraderCharacter(context, { startingBalance: 500 });
   const handler = new MarketSellMessageHandler(context);
   const socket = createMockSocket();
 
@@ -468,7 +468,7 @@ test('MarketSellMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async
 
 test('MarketSellMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when market cannot buy', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 500 });
+  seedTraderCharacter(context, { startingBalance: 500 });
   seedItems(context, [{
     id: 'iron-stack-2',
     itemType: 'iron',
@@ -512,7 +512,7 @@ test('MarketSellMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when market cann
 
 test('MarketSellMessageHandler appends type:put creditLedger entry after successful sell', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 500 });
+  seedTraderCharacter(context, { startingBalance: 500 });
   seedItems(context, [{
     id: 'iron-stack-3',
     itemType: 'iron',

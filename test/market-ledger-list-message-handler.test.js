@@ -17,7 +17,7 @@ const {
 
 test('MarketLedgerListMessageHandler returns filtered entries', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
 
   await context.executeMarketTransactionAsync({
     playerName: 'MarketPilot',

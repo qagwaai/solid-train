@@ -200,7 +200,9 @@ function seedPlayer(context, overrides = {}) {
 }
 
 function seedTraderCharacter(context, options = {}) {
-  const credits = Number.isFinite(options.credits) ? options.credits : 2000;
+  const startingBalance = Number.isFinite(options.startingBalance)
+    ? options.startingBalance
+    : 2000;
   const shipOverrides = options.shipOverrides || {};
 
   seedPlayer(context, {
@@ -222,13 +224,12 @@ function seedTraderCharacter(context, options = {}) {
         creditLedger: [
           {
             type: 'put',
-            amount: credits,
+            amount: startingBalance,
             description: 'Seed',
             timestamp: '2026-05-05T00:00:00.000Z',
             referenceId: null
           }
-        ],
-        credits
+        ]
       }
     ]
   });

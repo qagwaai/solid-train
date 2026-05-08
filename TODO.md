@@ -134,12 +134,20 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Scope note**: explicit `credits` field intentionally left unchanged for TQ-11.
 - **Validation**: full suite green (`284` pass, `0` fail)
 
-### TQ-11 Remove explicit `credits` from character fixtures
-- **Why**: [CODEBASE.md](CODEBASE.md) invariant #2: `credits` is computed,
-  never stored. [test/market-buy-sell-message-handler.test.js:38](test/market-buy-sell-message-handler.test.js#L38)
-  sets both `creditLedger` and `credits` — misleading template.
-- **Deliverable**: Delete `credits` from all character seed objects; let
-  `normalizeCharacter` compute it.
+### ~~TQ-11~~ ✅ Remove explicit `credits` from character fixtures
+- **Completed**: 2026-05-07
+- **Fixture/API cleanup**:
+  - Removed explicit `credits:` fields from character fixture objects in tests.
+  - Updated `seedTraderCharacter` API in `test-support/message-handler-test-helpers.js`:
+    - removed `{ credits }` option
+    - replaced with `{ startingBalance }` (ledger-only seed)
+    - removed persisted `character.credits` field assignment
+- **Call-site migration**:
+  - `test/market-buy-sell-message-handler.test.js`
+  - `test/market-quote-message-handler.test.js`
+  - `test/market-ledger-list-message-handler.test.js`
+  - expectation cleanup in `test/character-add-message-handler.test.js` and `test/login-message-handler.test.js`
+- **Validation**: full suite green (`284` pass, `0` fail)
 
 ---
 

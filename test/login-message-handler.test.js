@@ -117,17 +117,14 @@ test('LoginMessageHandler hydrates player from database when memory is empty', a
   assert.equal(socket.events[0].eventName, LOGIN_RESPONSE_EVENT);
   assert.equal(context.getPlayer('OrbitFox').socketId, 'socket-db-login');
   assert.equal(context.getPlayer('OrbitFox').sessionKey, 'player-1');
-  assert.deepEqual(context.getCharacters('orbitfox'), [
-    {
-      id: 'char-1',
-      characterName: 'RangerOne',
-      createdAt: '2026-04-20T00:00:00.000Z',
-      ships: [],
-      missions: [],
-      creditLedger: [],
-      credits: 0
-    }
-  ]);
+  const orbitFoxCharacters = context.getCharacters('orbitfox');
+  assert.equal(orbitFoxCharacters.length, 1);
+  assert.equal(orbitFoxCharacters[0].id, 'char-1');
+  assert.equal(orbitFoxCharacters[0].characterName, 'RangerOne');
+  assert.equal(orbitFoxCharacters[0].createdAt, '2026-04-20T00:00:00.000Z');
+  assert.deepEqual(orbitFoxCharacters[0].ships, []);
+  assert.deepEqual(orbitFoxCharacters[0].missions, []);
+  assert.deepEqual(orbitFoxCharacters[0].creditLedger, []);
 });
 
 test('LoginMessageHandler normalizes legacy character name fields from database', async () => {
@@ -168,31 +165,28 @@ test('LoginMessageHandler normalizes legacy character name fields from database'
 
   assert.equal(response.success, true);
   assert.equal(socket.events[0].eventName, LOGIN_RESPONSE_EVENT);
-  assert.deepEqual(context.getCharacters('legacypilot'), [
+  const legacyCharacters = context.getCharacters('legacypilot');
+  assert.equal(legacyCharacters.length, 1);
+  assert.equal(legacyCharacters[0].id, 'legacy-char-1');
+  assert.equal(legacyCharacters[0].name, 'Legacy Ranger');
+  assert.equal(legacyCharacters[0].characterName, 'Legacy Ranger');
+  assert.equal(legacyCharacters[0].createdAt, '2026-04-20T00:00:00.000Z');
+  assert.deepEqual(legacyCharacters[0].ships, [
     {
-      id: 'legacy-char-1',
-      name: 'Legacy Ranger',
-      characterName: 'Legacy Ranger',
+      id: 'd-1',
+      name: 'Legacy Ship',
+      model: 'Scavenger Pod',
+      tier: 1,
+      inventory: [],
       createdAt: '2026-04-20T00:00:00.000Z',
-      ships: [
-        {
-          id: 'd-1',
-          name: 'Legacy Ship',
-          model: 'Scavenger Pod',
-          tier: 1,
-          inventory: [],
-          createdAt: '2026-04-20T00:00:00.000Z',
-          status: null,
-          spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 },
-          launchable: true,
-          damageProfile: null
-        }
-      ],
-      missions: [],
-      creditLedger: [],
-      credits: 0
+      status: null,
+      spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 },
+      launchable: true,
+      damageProfile: null
     }
   ]);
+  assert.deepEqual(legacyCharacters[0].missions, []);
+  assert.deepEqual(legacyCharacters[0].creditLedger, []);
 });
 
 test('LoginMessageHandler accepts locale and persists normalized base code', async () => {

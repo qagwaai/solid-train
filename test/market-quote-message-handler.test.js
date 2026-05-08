@@ -22,7 +22,7 @@ const {
 
 test('MarketQuoteMessageHandler returns quote for a valid request', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
 
   const handler = new MarketQuoteMessageHandler(context);
   const socket = createMockSocket();
@@ -52,7 +52,7 @@ test('MarketQuoteMessageHandler returns quote for a valid request', async () => 
 
 test('MarketQuoteMessageHandler rejects invalid payload fields', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketQuoteMessageHandler(context);
   const socket = createMockSocket();
 
@@ -105,7 +105,7 @@ test('MarketQuoteMessageHandler emits invalid session before quote logic', async
 
 test('MarketQuoteMessageHandler returns INVALID_PAYLOAD when marketId is missing', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketQuoteMessageHandler(context);
   const socket = createMockSocket();
 
@@ -125,7 +125,7 @@ test('MarketQuoteMessageHandler returns INVALID_PAYLOAD when marketId is missing
 
 test('MarketQuoteMessageHandler returns PLAYER_NOT_REGISTERED for unknown player', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketQuoteMessageHandler(context);
   const socket = createMockSocket();
 
@@ -147,7 +147,7 @@ test('MarketQuoteMessageHandler returns PLAYER_NOT_REGISTERED for unknown player
 
 test('MarketQuoteMessageHandler returns MARKET_NOT_FOUND for unknown marketId', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketQuoteMessageHandler(context);
   const socket = createMockSocket();
 
@@ -168,7 +168,7 @@ test('MarketQuoteMessageHandler returns MARKET_NOT_FOUND for unknown marketId', 
 
 test('MarketQuoteMessageHandler returns ITEM_NOT_FOUND for unknown itemId', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketQuoteMessageHandler(context);
   const socket = createMockSocket();
 
@@ -189,7 +189,7 @@ test('MarketQuoteMessageHandler returns ITEM_NOT_FOUND for unknown itemId', asyn
 
 test('MarketQuoteMessageHandler returns INVALID_QUANTITY for quantity = 0', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketQuoteMessageHandler(context);
   const socket = createMockSocket();
 
@@ -210,7 +210,7 @@ test('MarketQuoteMessageHandler returns INVALID_QUANTITY for quantity = 0', asyn
 
 test('MarketQuoteMessageHandler returns MARKET_DOES_NOT_BUY_ITEM when sell direction and market cannot buy', async () => {
   const context = createTestContext();
-  seedTraderCharacter(context, { credits: 2000 });
+  seedTraderCharacter(context, { startingBalance: 2000 });
   const handler = new MarketQuoteMessageHandler(context);
   const socket = createMockSocket();
 

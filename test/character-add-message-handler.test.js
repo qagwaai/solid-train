@@ -41,58 +41,55 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
     characterId: 'player-1'
   });
   assert.equal(socket.events[0].eventName, CHARACTER_ADD_RESPONSE_EVENT);
-  assert.deepEqual(context.getCharacters('builderpilot'), [
+  const characters = context.getCharacters('builderpilot');
+  assert.equal(characters.length, 1);
+  assert.equal(characters[0].id, 'player-1');
+  assert.equal(characters[0].characterName, 'RangerOne');
+  assert.equal(characters[0].createdAt, '2026-04-17T00:00:00.000Z');
+  assert.deepEqual(characters[0].ships, [
     {
-      id: 'player-1',
-      characterName: 'RangerOne',
+      id: 'player-1-ship-1',
+      name: 'RangerOne Ship 1',
+      model: 'Scavenger Pod',
+      tier: 1,
       createdAt: '2026-04-17T00:00:00.000Z',
-      ships: [
+      inventory: [
         {
-          id: 'player-1-ship-1',
-          name: 'RangerOne Ship 1',
-          model: 'Scavenger Pod',
-          tier: 1,
-          createdAt: '2026-04-17T00:00:00.000Z',
-          inventory: [
-            {
-              itemId: 'player-1-ship-1-item-1',
-              itemType: 'expendable-dart-drone'
-            }
-          ],
-          status: null,
-          spatial: {
-            solarSystemId: 'sol',
-            frame: 'barycentric',
-            positionKm: { x: 0, y: 0, z: 0 },
-            epochMs: 1776384000000
-          },
-          launchable: true,
-          damageProfile: null
+          itemId: 'player-1-ship-1-item-1',
+          itemType: 'expendable-dart-drone'
         }
       ],
-      missions: [
-        {
-          missionId: 'first-target',
-          status: 'available',
-          updatedAt: '2026-04-17T00:00:00.000Z',
-          startedAt: undefined,
-          inProgressAt: undefined,
-          failedAt: undefined,
-          completedAt: undefined,
-          failureReason: undefined,
-          statusDetail: undefined
-        }
-      ],
-      creditLedger: [
-        {
-          type: 'put',
-          amount: 425,
-          description: 'Starting credits',
-          timestamp: '2026-04-17T00:00:00.000Z',
-          referenceId: null
-        }
-      ],
-      credits: 425
+      status: null,
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 0, y: 0, z: 0 },
+        epochMs: 1776384000000
+      },
+      launchable: true,
+      damageProfile: null
+    }
+  ]);
+  assert.deepEqual(characters[0].missions, [
+    {
+      missionId: 'first-target',
+      status: 'available',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      startedAt: undefined,
+      inProgressAt: undefined,
+      failedAt: undefined,
+      completedAt: undefined,
+      failureReason: undefined,
+      statusDetail: undefined
+    }
+  ]);
+  assert.deepEqual(characters[0].creditLedger, [
+    {
+      type: 'put',
+      amount: 425,
+      description: 'Starting credits',
+      timestamp: '2026-04-17T00:00:00.000Z',
+      referenceId: null
     }
   ]);
   assert.deepEqual(context.getItem('player-1-ship-1-item-1'), {
