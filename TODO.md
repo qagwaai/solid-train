@@ -71,13 +71,17 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
 - **Also created**: `test-support/socket-test-helpers.js` — extracted `listen`, `connectClient`, `waitForEvent`, `httpGetJson`, `closeClient`, `registerAndLogin` from `test/server.test.js` so they can be shared
 - **Test count**: 266 → 267 (all green)
 
-### TQ-06 Mongo round-trip per collection
-- **Why**: Only markets have a real-Mongo integration test. See
-  [TEST_QUALITY_REVIEW.md](TEST_QUALITY_REVIEW.md) §2.6.
-- **Deliverable**: One `*.mongo.integration.test.js` per collection
-  (`players`, `items`, `cb`, `jump_gates`) with one round-trip per CRUD op.
-  Use `createMongoTestHarness()` and `clearDatabase()` per test, as the
-  existing market test does.
+### ~~TQ-06~~ ✅ Mongo round-trip per collection
+- **Completed**: 2026-05-07 (with approved scope decision)
+- **Added**:
+  - `test/db-players.mongo.integration.test.js`
+  - `test/db-items.mongo.integration.test.js`
+  - `test/db-celestial-bodies.mongo.integration.test.js`
+- **Coverage added**:
+  - Players: register/read/update + character add/read/update/delete + clear + negative input short-circuits
+  - Items: add/read/update/delete + container query + near-position query + negative/empty input paths
+  - Celestial bodies: upsert/read/update/delete + filtered list + near-position query + invalid upsert/delete paths
+- **Deferred by decision**: `jump_gates` round-trip coverage moved to TQ-07 scope discussion.
 
 ### TQ-07 Lift `db/service.js` branch coverage from 64.67%
 - **Why**: Most uncovered branches are error-input or empty-input paths.
