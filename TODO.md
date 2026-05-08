@@ -83,11 +83,17 @@ Legend: **P0** must-do before 2026-06-30 legacy cutover · **P1** high value · 
   - Celestial bodies: upsert/read/update/delete + filtered list + near-position query + invalid upsert/delete paths
 - **Deferred by decision**: `jump_gates` round-trip coverage moved to TQ-07 scope discussion.
 
-### TQ-07 Lift `db/service.js` branch coverage from 64.67%
-- **Why**: Most uncovered branches are error-input or empty-input paths.
-- **Deliverable**: Negative-input tests against `DatabaseService` driven by
-  the memory-server harness rather than prototype stubs (the current core/
-  extended files mock `Player`/`Item.findOne` etc.). Aim ≥ 80% branch.
+### ~~TQ-07~~ ✅ Lift `db/service.js` branch coverage
+- **Completed**: 2026-05-07
+- **Result**: `src/db/service.js` branch coverage is now **80.00%**
+  (line: 90.38%, funcs: 95.08%).
+- **Added**: `test/db-service-branch.mongo.integration.test.js`
+- **Covered branches**:
+  - Market seed-state round-trip + invalid inputs (`get/setSolarSystemMarketSeedState`)
+  - Market upsert/get invalid + filtered paths (`upsertMarket`, `getMarkets`)
+  - Player character mutations with negative paths (`addShip`, `addOrUpdateMission`, `getMissions`, `getShips`)
+  - Jump-gate fallback and catch-return-empty branches (`getJumpGatesAsync`)
+- **Approach**: Real memory-server harness for DB-backed paths, plus minimal targeted monkey-patch only for the jump-gate catch branch that intentionally returns `[]` on DB failures.
 
 ---
 
