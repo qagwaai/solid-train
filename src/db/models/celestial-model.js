@@ -50,6 +50,61 @@ function createCelestialModelArtifacts({
     { _id: false }
   );
 
+  const orbitalElementsSchema = new mongoose.Schema(
+    {
+      semiMajorAxisKm: { type: Number, required: true, min: 0 },
+      eccentricity: { type: Number, required: true, min: 0, max: 0.999 },
+      inclinationDeg: { type: Number, required: true, default: 0 },
+      longitudeOfAscendingNodeDeg: { type: Number, required: true, default: 0 },
+      argumentOfPeriapsisDeg: { type: Number, required: true, default: 0 },
+      meanAnomalyAtEpochDeg: { type: Number, required: true, default: 0 },
+      orbitalPeriodSec: { type: Number, required: true, min: 1 },
+      epoch: { type: String, required: true },
+    },
+    { _id: false }
+  );
+
+  const catalogPhysicalSchema = new mongoose.Schema(
+    {
+      massKg: { type: Number, default: null },
+      meanRadiusKm: { type: Number, default: null },
+      equatorialRadiusKm: { type: Number, default: null },
+      rotationPeriodSec: { type: Number, default: null },
+      axialTiltDeg: { type: Number, default: null },
+      surfaceGravityMps2: { type: Number, default: null },
+      meanTemperatureK: { type: Number, default: null },
+      compositionTags: { type: [String], default: [] },
+    },
+    { _id: false }
+  );
+
+  const atmosphereSchema = new mongoose.Schema(
+    {
+      hasAtmosphere: { type: Boolean, required: true, default: false },
+      surfacePressurePa: { type: Number, default: null },
+      primaryComponents: { type: [String], default: [] },
+    },
+    { _id: false }
+  );
+
+  const discoverySchema = new mongoose.Schema(
+    {
+      discoveredBy: { type: String, default: null },
+      discoveredYear: { type: Number, default: null },
+      discoveryNotes: { type: String, default: null },
+    },
+    { _id: false }
+  );
+
+  const magnitudesSchema = new mongoose.Schema(
+    {
+      absoluteMagnitudeH: { type: Number, default: null },
+      apparentMagnitudeMin: { type: Number, default: null },
+      apparentMagnitudeMax: { type: Number, default: null },
+    },
+    { _id: false }
+  );
+
   const celestialBodySchema = new mongoose.Schema(
     {
       id: {
@@ -132,6 +187,46 @@ function createCelestialModelArtifacts({
       debris: {
         type: [celestialBodyDebrisMaterialSchema],
         default: [],
+      },
+      bodyType: {
+        type: String,
+        enum: ['star', 'planet', 'dwarf-planet', 'moon', 'asteroid', 'tno', 'comet', null],
+        default: null,
+        index: true,
+      },
+      displayName: {
+        type: String,
+        default: null,
+      },
+      parentBodyId: {
+        type: String,
+        default: null,
+        index: true,
+      },
+      orbitalElements: {
+        type: orbitalElementsSchema,
+        default: null,
+      },
+      physicalCatalog: {
+        type: catalogPhysicalSchema,
+        default: null,
+      },
+      atmosphere: {
+        type: atmosphereSchema,
+        default: null,
+      },
+      discovery: {
+        type: discoverySchema,
+        default: null,
+      },
+      magnitudes: {
+        type: magnitudesSchema,
+        default: null,
+      },
+      isCatalogBody: {
+        type: Boolean,
+        default: false,
+        index: true,
       },
     },
     {

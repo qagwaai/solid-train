@@ -200,6 +200,11 @@ function createMarketModelArtifacts({ mongoose, spatialStateSchema }) {
         required: true,
         default: false,
       },
+      parentCelestialBodyId: {
+        type: String,
+        default: null,
+        index: true,
+      },
       priceMultiplier: {
         type: Number,
         required: true,

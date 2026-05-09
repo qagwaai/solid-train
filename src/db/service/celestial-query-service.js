@@ -127,7 +127,7 @@ async function getCelestialBodies(ctx, CelestialBody, query = {}) {
       : [];
 
     if (solarSystemId) {
-      mongoQuery.solarSystemId = solarSystemId;
+      mongoQuery['spatial.solarSystemId'] = solarSystemId;
     }
 
     if (createdByCharacterId) {

@@ -7,6 +7,10 @@ const {
   SOLAR_SYSTEM_MARKET_SEED_VERSION,
   buildSeededMarketsForSolarSystem,
 } = require('../model/solar-system-market-seed');
+const {
+  SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
+  buildSeededCelestialBodiesForSolarSystem,
+} = require('../model/solar-system-celestial-seed');
 const { buildSeededGateNetwork } = require('../model/solar-system-gate-seed');
 const routingService = require('./context/routing-service');
 const orbitalMath = require('./context/orbital-math');
@@ -625,6 +629,104 @@ class MessageHandlerContext {
     return marketService.seedSolarSystemMarketsAsync(this, request);
   }
 
+  /**
+   * Seed (or refresh) the canonical Sol-system celestial body catalog.
+   * Idempotent via persisted seed version. Falls back to in-memory caching when no DB.
+   */
+  async seedSolarSystemCelestialBodiesAsync(request = {}) {
+    const solarSystemId = this.toNonEmptyString(request?.solarSystemId).toLowerCase() || 'sol';
+    const asOf = this.toNonEmptyString(request?.asOf) || this.getCurrentTimestamp();
+    const force = Boolean(request?.force);
+    const bodies = buildSeededCelestialBodiesForSolarSystem(solarSystemId, asOf);
+
+    if (bodies.length === 0) {
+      return {
+        success: false,
+        reason: 'UNSUPPORTED_SOLAR_SYSTEM',
+        solarSystemId,
+        bodyCount: 0,
+      };
+    }
+
+    if (!this.databaseService) {
+      for (const body of bodies) {
+        const normalized = this.normalizeCelestialBody(body);
+        this.celestialBodiesById.set(normalized.id, normalized);
+      }
+      return {
+        success: true,
+        solarSystemId,
+        seedVersion: SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
+        bodyCount: bodies.length,
+        source: 'in-memory',
+      };
+    }
+
+    try {
+      const existingSeedState =
+        await this.databaseService.getSolarSystemCelestialSeedState(solarSystemId);
+      const isCurrentVersion =
+        existingSeedState && existingSeedState.seedVersion === SOLAR_SYSTEM_CELESTIAL_SEED_VERSION;
+
+      if (!force && isCurrentVersion) {
+        const persisted = await this.databaseService.getCelestialBodies({ solarSystemId });
+        if (Array.isArray(persisted) && persisted.length > 0) {
+          for (const body of persisted) {
+            const normalized = this.normalizeCelestialBody(body);
+            this.celestialBodiesById.set(normalized.id, normalized);
+          }
+          return {
+            success: true,
+            solarSystemId,
+            seedVersion: SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
+            bodyCount: persisted.length,
+            source: 'database-cache',
+          };
+        }
+      }
+
+      for (const body of bodies) {
+        await this.databaseService.addOrUpdateCelestialBody(body);
+      }
+
+      await this.databaseService.setSolarSystemCelestialSeedState(
+        solarSystemId,
+        SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
+        asOf
+      );
+
+      const persisted = await this.databaseService.getCelestialBodies({ solarSystemId });
+      const toCache = persisted.length > 0 ? persisted : bodies;
+      for (const body of toCache) {
+        const normalized = this.normalizeCelestialBody(body);
+        this.celestialBodiesById.set(normalized.id, normalized);
+      }
+
+      return {
+        success: true,
+        solarSystemId,
+        seedVersion: SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
+        bodyCount: toCache.length,
+        source: 'database-upsert',
+      };
+    } catch (error) {
+      this.log(`[context] Error seeding solar system celestial bodies: ${error.message}`);
+
+      for (const body of bodies) {
+        const normalized = this.normalizeCelestialBody(body);
+        this.celestialBodiesById.set(normalized.id, normalized);
+      }
+
+      return {
+        success: true,
+        solarSystemId,
+        seedVersion: SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
+        bodyCount: bodies.length,
+        source: 'in-memory-fallback',
+      };
+    }
+  }
+
   normalizeMarketLedgerEntry(entry) {
     const source = this.toPlainObject(entry) || {};
 
@@ -1038,6 +1140,17 @@ class MessageHandlerContext {
             itemType: this.toNonEmptyString(entry?.itemType),
           }))
         : [],
+      ...(source.bodyType ? { bodyType: this.toNonEmptyString(source.bodyType) } : {}),
+      ...(source.displayName ? { displayName: this.toNonEmptyString(source.displayName) } : {}),
+      ...(source.parentBodyId !== undefined
+        ? { parentBodyId: this.toNonEmptyString(source.parentBodyId) || null }
+        : {}),
+      ...(source.orbitalElements ? { orbitalElements: source.orbitalElements } : {}),
+      ...(source.physicalCatalog ? { physicalCatalog: source.physicalCatalog } : {}),
+      ...(source.atmosphere ? { atmosphere: source.atmosphere } : {}),
+      ...(source.discovery ? { discovery: source.discovery } : {}),
+      ...(source.magnitudes ? { magnitudes: source.magnitudes } : {}),
+      ...(source.isCatalogBody ? { isCatalogBody: true } : {}),
     };
   }
 

@@ -255,6 +255,13 @@ async function startServer(options = {}) {
 
   await messageHandlerContext.initializeAsync({ seedDefaults: true });
 
+  const celestialSeedResult = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
+    solarSystemId: 'sol',
+  });
+  process.stdout.write(
+    `[server] Celestial body seeding ${celestialSeedResult.success ? 'completed' : 'skipped'} for ${celestialSeedResult.solarSystemId}: ${celestialSeedResult.bodyCount}\n`
+  );
+
   const marketSeedResult = await messageHandlerContext.seedSolarSystemMarketsAsync({
     solarSystemId: 'sol',
   });

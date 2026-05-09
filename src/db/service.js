@@ -9,6 +9,7 @@ const marketQueryService = require('./service/market-query-service');
 const marketSeedStateService = require('./service/market-seed-state-service');
 const celestialWriteService = require('./service/celestial-write-service');
 const celestialQueryService = require('./service/celestial-query-service');
+const celestialSeedStateService = require('./service/celestial-seed-state-service');
 const jumpGateQueryService = require('./service/jump-gate-query-service');
 
 /**
@@ -380,6 +381,24 @@ class DatabaseService {
 
   async setSolarSystemMarketSeedState(solarSystemId, seedVersion, seededAt) {
     return marketSeedStateService.setSolarSystemMarketSeedState(
+      this,
+      GameStateDocument,
+      solarSystemId,
+      seedVersion,
+      seededAt
+    );
+  }
+
+  async getSolarSystemCelestialSeedState(solarSystemId) {
+    return celestialSeedStateService.getSolarSystemCelestialSeedState(
+      this,
+      GameStateDocument,
+      solarSystemId
+    );
+  }
+
+  async setSolarSystemCelestialSeedState(solarSystemId, seedVersion, seededAt) {
+    return celestialSeedStateService.setSolarSystemCelestialSeedState(
       this,
       GameStateDocument,
       solarSystemId,
