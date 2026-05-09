@@ -228,6 +228,26 @@ function createCelestialModelArtifacts({
         default: false,
         index: true,
       },
+      planetType: {
+        type: String,
+        default: null,
+      },
+      hygId: {
+        type: String,
+        default: null,
+        index: true,
+      },
+      visualization: {
+        type: new mongoose.Schema(
+          {
+            colorHex: { type: String, default: null },
+            spectralClass: { type: String, default: null },
+            textureKey: { type: String, default: null },
+          },
+          { _id: false }
+        ),
+        default: null,
+      },
     },
     {
       collection: 'cb',

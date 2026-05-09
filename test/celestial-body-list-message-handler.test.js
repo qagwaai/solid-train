@@ -138,7 +138,7 @@ test('CelestialBodyListMessageHandler validates required search inputs', async (
   assert.equal(response.success, false);
   assert.equal(
     response.message,
-    'playerName, solarSystemId, positionKm, and distanceKm are required'
+    'positionKm and distanceKm must both be supplied for radius queries; omit both for a whole-system listing'
   );
   assert.deepEqual(response.celestialBodies, []);
   assert.equal('bodies' in response, false);
@@ -283,4 +283,62 @@ test('CelestialBodyListMessageHandler filters by states, createdByCharacterId, a
   assert.equal(response.celestialBodies.length, 2);
   assert.ok(response.celestialBodies.some((entry) => entry.id === 'cb-unscanned'));
   assert.ok(response.celestialBodies.some((entry) => entry.id === 'cb-active'));
+});
+
+test('CelestialBodyListMessageHandler returns whole-system bodies when positionKm and distanceKm omitted', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ScannerOne',
+    sessionKey: 'session-1',
+  });
+
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-sol-1',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 1e6, y: 0, z: 0 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-sol-2',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 0, y: 1e7, z: 0 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-other',
+      spatial: {
+        solarSystemId: 'alpha-centauri',
+        frame: 'barycentric',
+        positionKm: { x: 0, y: 0, z: 0 },
+        epochMs: 1713360000000,
+      },
+    })
+  );
+
+  const handler = new CelestialBodyListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ScannerOne',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.celestialBodies.length, 2);
+  assert.ok(response.celestialBodies.every((b) => b.spatial.solarSystemId === 'sol'));
+  // Whole-system mode does not compute distanceKm.
+  assert.ok(response.celestialBodies.every((b) => !('distanceKm' in b)));
+  assert.equal(socket.events[0].eventName, CELESTIAL_BODY_LIST_RESPONSE_EVENT);
 });

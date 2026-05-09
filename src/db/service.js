@@ -1,6 +1,6 @@
 'use strict';
 
-const { CelestialBody, GameStateDocument, Item, JumpGate, Market, Player } = require('./models');
+const { CelestialBody, GameStateDocument, Item, JumpGate, Market, Player, SolarSystem, Star } = require('./models');
 const playerCharacterService = require('./service/player-character-service');
 const itemWriteService = require('./service/item-write-service');
 const itemQueryService = require('./service/item-query-service');
@@ -11,6 +11,8 @@ const celestialWriteService = require('./service/celestial-write-service');
 const celestialQueryService = require('./service/celestial-query-service');
 const celestialSeedStateService = require('./service/celestial-seed-state-service');
 const jumpGateQueryService = require('./service/jump-gate-query-service');
+const starService = require('./service/star-service');
+const solarSystemService = require('./service/solar-system-service');
 
 /**
  * Database service layer - provides a clean interface for CRUD operations
@@ -429,6 +431,42 @@ class DatabaseService {
    */
   async getJumpGatesAsync() {
     return jumpGateQueryService.getJumpGatesAsync(this, JumpGate);
+  }
+
+  // ---------- HYG stars ----------
+
+  async upsertStar(starData) {
+    return starService.upsertStar(this, Star, starData);
+  }
+
+  async upsertStars(starsData) {
+    return starService.upsertStars(this, Star, starsData);
+  }
+
+  async getStarByHygId(hygId) {
+    return starService.getStarByHygId(this, Star, hygId);
+  }
+
+  async getStars(query = {}) {
+    return starService.getStars(this, Star, query);
+  }
+
+  // ---------- Solar systems ----------
+
+  async upsertSolarSystem(systemData) {
+    return solarSystemService.upsertSolarSystem(this, SolarSystem, systemData);
+  }
+
+  async upsertSolarSystems(systemsData) {
+    return solarSystemService.upsertSolarSystems(this, SolarSystem, systemsData);
+  }
+
+  async getSolarSystemById(id) {
+    return solarSystemService.getSolarSystemById(this, SolarSystem, id);
+  }
+
+  async getSolarSystems(query = {}) {
+    return solarSystemService.getSolarSystems(this, SolarSystem, query);
   }
 }
 

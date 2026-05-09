@@ -15,8 +15,8 @@ const CELESTIAL_BODY_LIST_RESPONSE_EVENT = 'celestial-body-list-response';
  * @property {string} playerName
  * @property {string} sessionKey
  * @property {string} solarSystemId
- * @property {Triple} positionKm
- * @property {number} distanceKm
+ * @property {Triple} [positionKm] - required only when distanceKm is supplied
+ * @property {number} [distanceKm] - when omitted, the request lists all bodies in the system
  * @property {number} [limit]
  * @property {('unscanned'|'active'|'destroyed')[]} [states]
  * @property {string} [createdByCharacterId]

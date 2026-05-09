@@ -19,6 +19,7 @@ kinematics.velocity → motion.velocityKmPerSec (motion is now optional)
 Remove: location, kinematics.reference, kinematics.position
 Target structure:
 
+
 {  spatial: SpatialState; // Required  motion?: MotionState; // Optional}
 Celestial Bodies – Refactor all persisted body records and list responses:
 
@@ -40,11 +41,13 @@ orbit → trajectory.orbit (wrapped in descriptor)
 Add required spatial field to all market responses
 Target structure:
 
+
 {  siteType: string; // Renamed  siteName: string; // Renamed  spatial: SpatialState; // Required  trajectory?: TrajectoryDescriptor; // Wraps orbit}
 Core Model Interfaces to Implement
 All responses should use these canonical types:
 
-export interface SpatialState {  solarSystemId: string;  frame: 'barycentric';  positionKm: Triple;  epochMs: number;}export interface MotionState {  velocityKmPerSec: Triple;  angularVelocityRadPerSec?: Triple;}export interface PhysicalState {  estimatedMassKg?: number;  estimatedDiameterM?: number;}export interface ObservabilityState {  visibility: 'visible' | 'not-visible' | 'cloaked';  scanState: 'unscanned' | 'scanned';}export interface TrajectoryDescriptor {  kind: 'static' | 'orbital-elements';  orbit?: { /_ existing orbit shape _/ };}
+
+export interface SpatialState {  solarSystemId: string;  frame: 'barycentric';  positionKm: Triple;  epochMs: number;}export interface MotionState {  velocityKmPerSec: Triple;  angularVelocityRadPerSec?: Triple;}export interface PhysicalState {  estimatedMassKg?: number;  estimatedDiameterM?: number;}export interface ObservabilityState {  visibility: 'visible' | 'not-visible' | 'cloaked';  scanState: 'unscanned' | 'scanned';}export interface TrajectoryDescriptor {  kind: 'static' | 'orbital-elements';  orbit?: { /* existing orbit shape */ };}
 Implementation Scope
 Core Entity Schemas (database/ORM models)
 
@@ -70,14 +73,14 @@ Ensure epoch consistency: all positions in same frame must share logical epoch
 Validate distance calculations if server-side filtering occurs (use canonical distanceKm() function from shared utilities)
 Test that market orbit data is correctly promoted into spatial for scene visibility queries
 Rollout Checklist
-Core models refactored and persisted
-All API responses updated
-Request validation enforces hard-cut
-Database migration script tested
-Socket contract docs updated
-Backend test fixtures updated to canonical shape
-E2E tests passing with new payload shape
-Documentation updated in server-message-contracts.md
+ Core models refactored and persisted
+ All API responses updated
+ Request validation enforces hard-cut
+ Database migration script tested
+ Socket contract docs updated
+ Backend test fixtures updated to canonical shape
+ E2E tests passing with new payload shape
+ Documentation updated in server-message-contracts.md
 Key Rules
 No fallback readers: Do not support legacy field names in backend code.
 One truth: Position is only in spatial.positionKm; it is never computed or inferred from other fields.
@@ -103,7 +106,6 @@ Let me break down what needs to be done:
 8. **Database Models** - Update schemas
 
 This is a complex, multi-step task that requires:
-
 - Understanding the current codebase structure
 - Identifying all files that need changes
 - Creating/updating model interfaces
@@ -115,7 +117,6 @@ This is a complex, multi-step task that requires:
 Let me start by exploring the codebase to understand the current structure and then create a plan.
 
 I should:
-
 1. Read the MONGODB_SCHEMA.md and MESSAGE_CONTRACT.md to understand current structure
 2. Check the spatial-model-architecture-decision.md (if it exists)
 3. Look at existing model files
@@ -129,7 +130,7 @@ Let me start by gathering context about the current state of the codebase.
 
 _**User (2026-05-05 23:32:50Z)**_
 
-consume this document https://github.com/qagwaai/laughing-octo-journey/blob/main/BACKEND_SPATIAL_CUTOVER.md and implement changes. use a selectable form to ask questions before implementing.
+consume this document https://github.com/qagwaai/laughing-octo-journey/blob/main/BACKEND_SPATIAL_CUTOVER.md and implement changes.  use a selectable form to ask questions before implementing.
 
 _**User (2026-05-05 23:38:09Z)**_
 
@@ -149,11 +150,11 @@ _**User (2026-05-05 23:40:10Z)**_
 Terminal output:
 
 Peter Girard@MINI-Gaming-G1 MINGW64 /c/Development/Projects/Github/solid-train (main)
-$ cd /c/Development/Projects/Github/solid-train && node -c src/db/models.js && echo "Schema syntax OK"
+$  cd /c/Development/Projects/Github/solid-train && node -c src/db/models.js && echo "Schema syntax OK"
 Schema syntax OK
 
 Peter Girard@MINI-Gaming-G1 MINGW64 /c/Development/Projects/Github/solid-train (main)
-$ cd /c/Development/Projects/Github/solid-train && npm test 2>&1 | head -100
+$  cd /c/Development/Projects/Github/solid-train && npm test 2>&1 | head -100
 
 > solid-train@1.0.0 test
 > node --test
@@ -256,7 +257,9 @@ $ cd /c/Development/Projects/Github/solid-train && npm test 2>&1 | head -100
 [handler] messageType=item-list-by-container-request player=PilotOne character=- sessionId=session-1
 
 Peter Girard@MINI-Gaming-G1 MINGW64 /c/Development/Projects/Github/solid-train (main)
-$ cd /c/Development/Projects/Github/solid-train && npm test 2>&1 | grep -A 5 "CelestialBodyUpsertMessageHandler\|CharacterAddMessageHandler" | head -50
+$  cd /c/Development/Projects/Github/solid-train && npm test 2>&1 | grep -A 5 "CelestialBodyUpsertMessageHandler\|CharacterAddMessageHandler" | head -50
+
+
 
 ---
 
@@ -327,13 +330,12 @@ _**Agent (copilot/auto)**_
 Let me plan what needs to be done:
 
 **Phase 3 - Market response contracts:**
-
 1. `market-list-message-handler.js`: emit `siteType`/`siteName` instead of `locationType`/`locationName`, emit `trajectory` instead of `orbit`, emit `spatial`
 2. `market-list-by-location-message-handler.js`: same renaming + emit `spatial` instead of `positionKm`, emit `trajectory` instead of `orbit`
 
 **Phase 4 - Inbound request validation:**
-
 - `ship-upsert-message-handler.js`: explicitly reject `location` or `kinematics` in request payload with clear error message
+
 
 - I also need to update the market tests to assert on the new field names instead of the old ones.
 
@@ -347,13 +349,13 @@ continue with any final phases
 
 _**Agent (copilot/auto)**_
 
-I’ll finish the remaining phases by doing two concrete items: clean up lingering legacy spatial schemas in the DB model layer (Phase 1 cleanup) and update
+I’ll finish the remaining phases by doing two concrete items: clean up lingering legacy spatial schemas in the DB model layer (Phase 1 cleanup) and update 
 
 ---
 
 _**User (2026-05-06 00:11:03Z)**_
 
-continue
+continue 
 
 ---
 
@@ -365,13 +367,11 @@ I’ll continue with a final cleanup pass by scanning for any remaining legacy `
 I found one remaining legacy mismatch: the “missing update payload” message still says `ship.location`/`ship.kinematics`. I’m going to align handler behavior and docs to `ship.spatial`/`ship.motion`, then run targeted tests.
 
 I’ve synced the last legacy message across handler, tests, and contract docs. Next I’ll run the ship-upsert test plus full-suite summary to confirm everything is green.
-
 </details></think>
 
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
-
 <summary>Tool use: **run_in_terminal**</summary>
 
 **Input:**
@@ -386,7 +386,6 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
-
 <summary>Tool use: **run_in_terminal**</summary>
 
 **Input:**
@@ -401,7 +400,6 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="search" data-tool-name="grep_search"><details>
-
 <summary>Tool use: **grep_search**</summary>
 
 **Input:**
@@ -415,7 +413,6 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="search" data-tool-name="grep_search"><details>
-
 <summary>Tool use: **grep_search**</summary>
 
 **Input:**
@@ -429,7 +426,6 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="read" data-tool-name="read_file"><details>
-
 <summary>Tool use: **read_file**</summary>
 
 **Input:**
@@ -443,7 +439,6 @@ _**Agent (copilot/auto)**_
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="write" data-tool-name="apply_patch"><details>
-
 <summary>Tool use: **apply_patch**</summary>
 
 **Input:**
@@ -498,12 +493,12 @@ _**Agent (copilot/auto)**_
 *** End Patch
 ```
 
+
 </details></tool-use>
 
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="write" data-tool-name="apply_patch"><details>
-
 <summary>Tool use: **apply_patch**</summary>
 
 **Input:**
@@ -523,12 +518,12 @@ _**Agent (copilot/auto)**_
 *** End Patch
 ```
 
+
 </details></tool-use>
 
 _**Agent (copilot/auto)**_
 
 <tool-use data-tool-type="write" data-tool-name="apply_patch"><details>
-
 <summary>Tool use: **apply_patch**</summary>
 
 **Input:**
@@ -547,10 +542,8 @@ _**Agent (copilot/auto)**_
    "playerName": "<canonical player name>",
    "characterId": "<character id>"
  }
-```
-
-\*\*\* End Patch
-
+ ```
+*** End Patch
 ```
 
 
@@ -558,7 +551,7 @@ _**Agent (copilot/auto)**_
 
 _**Agent (copilot/auto)**_
 
-I’ll continue with a final cleanup pass by scanning for any remaining legacy
+I’ll continue with a final cleanup pass by scanning for any remaining legacy 
 
 ---
 
@@ -759,7 +752,7 @@ Rename bodies → celestialBodies in the celestial-body-list-response example an
 _**Agent (copilot/auto)**_
 
 <think><details><summary>Thought Process</summary>
-The contract doc already has `celestialBodies` throughout. Let me check the ship-list response section for `shipName`:
+The contract doc already has `celestialBodies` throughout. Let me check the ship-list response section for `shipName`: 
 
 The contract document already uses `"name"` everywhere for ships and `celestialBodies` throughout. The doc was already fixed in a prior session. Let me verify the exact content around the ship-list-response success example and the celestial-body-list-response to confirm there are no hidden legacy occurrences:
 </details></think>
@@ -859,4 +852,3 @@ _**Agent (copilot/auto)**_
 The user wants to fix the two key name mismatches in SPATIAL_MODEL_RESPONSE_CONTRACTS.md:
 1. `shipName` → `name` in the ship-list-response example
 2. `bodies` → `celestialBodies` in the celestial-body-list-response example
-```

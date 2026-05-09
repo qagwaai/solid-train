@@ -9,6 +9,8 @@ const { createGameStateModelArtifacts } = require('./models/game-state-model');
 const { createShipModelArtifacts } = require('./models/ship-model');
 const { createCelestialModelArtifacts } = require('./models/celestial-model');
 const { createJumpGateModelArtifacts } = require('./models/jump-gate-model');
+const { createStarModelArtifacts } = require('./models/star-model');
+const { createSolarSystemModelArtifacts } = require('./models/solar-system-model');
 
 const { tripleSchema, shipKinematicsSchema, motionStateSchema, spatialStateSchema } =
   createSharedPrimitiveSchemas({ mongoose });
@@ -92,6 +94,8 @@ const { Player, playerSchema, characterSchema, creditLedgerEntrySchema } =
     missionSchema,
   });
 const { JumpGate, jumpGateSchema } = createJumpGateModelArtifacts({ mongoose });
+const { Star, starSchema } = createStarModelArtifacts({ mongoose });
+const { SolarSystem, solarSystemSchema } = createSolarSystemModelArtifacts({ mongoose });
 
 module.exports = {
   CelestialBody,
@@ -103,6 +107,10 @@ module.exports = {
   inventoryItemReferenceSchema,
   JumpGate,
   jumpGateSchema,
+  Star,
+  starSchema,
+  SolarSystem,
+  solarSystemSchema,
   Market,
   marketSchema,
   marketInventoryEntrySchema,

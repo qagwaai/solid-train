@@ -72,6 +72,14 @@ const {
 const { MarketLedgerListMessageHandler } = require('./handlers/market-ledger-list-message-handler');
 const { MarketBuyMessageHandler } = require('./handlers/market-buy-message-handler');
 const { MarketSellMessageHandler } = require('./handlers/market-sell-message-handler');
+const {
+  SolarSystemListMessageHandler,
+} = require('./handlers/solar-system-list-message-handler');
+const {
+  SolarSystemGetMessageHandler,
+} = require('./handlers/solar-system-get-message-handler');
+const { StarListMessageHandler } = require('./handlers/star-list-message-handler');
+const { StarGetMessageHandler } = require('./handlers/star-get-message-handler');
 const { registerSocketHandlers } = require('./handlers/socket-handler-registry');
 
 /**
@@ -147,6 +155,10 @@ function createServer(options = {}) {
   const marketLedgerListMessageHandler = new MarketLedgerListMessageHandler(messageHandlerContext);
   const marketBuyMessageHandler = new MarketBuyMessageHandler(messageHandlerContext);
   const marketSellMessageHandler = new MarketSellMessageHandler(messageHandlerContext);
+  const solarSystemListMessageHandler = new SolarSystemListMessageHandler(messageHandlerContext);
+  const solarSystemGetMessageHandler = new SolarSystemGetMessageHandler(messageHandlerContext);
+  const starListMessageHandler = new StarListMessageHandler(messageHandlerContext);
+  const starGetMessageHandler = new StarGetMessageHandler(messageHandlerContext);
 
   const server = http.createServer((req, res) => {
     if (req.url === '/health') {
@@ -204,6 +216,10 @@ function createServer(options = {}) {
       marketLedgerListMessageHandler,
       marketBuyMessageHandler,
       marketSellMessageHandler,
+      solarSystemListMessageHandler,
+      solarSystemGetMessageHandler,
+      starListMessageHandler,
+      starGetMessageHandler,
     });
 
     // Keep alias wiring explicit because it emits a different response event name.
@@ -255,11 +271,34 @@ async function startServer(options = {}) {
 
   await messageHandlerContext.initializeAsync({ seedDefaults: true });
 
+  // Best-effort persistence of HYG star + solar-system registry into Mongo so
+  // future deployments can query them directly. Failures are logged and ignored.
+  if (databaseService) {
+    try {
+      const { getHygStars } = require('./model/hyg-star-catalog');
+      const { getSolarSystemRegistry } = require('./model/solar-system-registry');
+      await databaseService.upsertStars(getHygStars());
+      await databaseService.upsertSolarSystems(getSolarSystemRegistry());
+      process.stdout.write('[server] HYG star + solar-system registry persisted\n');
+    } catch (registryError) {
+      process.stderr.write(
+        `[server] Failed to persist star/solar-system registry: ${registryError.message}\n`
+      );
+    }
+  }
+
   const celestialSeedResult = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
     solarSystemId: 'sol',
   });
   process.stdout.write(
     `[server] Celestial body seeding ${celestialSeedResult.success ? 'completed' : 'skipped'} for ${celestialSeedResult.solarSystemId}: ${celestialSeedResult.bodyCount}\n`
+  );
+
+  const alphaCentauriSeedResult = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
+    solarSystemId: 'alpha-centauri',
+  });
+  process.stdout.write(
+    `[server] Celestial body seeding ${alphaCentauriSeedResult.success ? 'completed' : 'skipped'} for ${alphaCentauriSeedResult.solarSystemId}: ${alphaCentauriSeedResult.bodyCount}\n`
   );
 
   const marketSeedResult = await messageHandlerContext.seedSolarSystemMarketsAsync({

@@ -2757,3 +2757,186 @@ Behavior notes:
 
 - Existing celestial body records that predate lifecycle expansion are treated as `state: active` by default.
 - For mission-scoped asteroid continuity, new records should include `missionId` (and optionally `missionInstanceId`).
+
+## Multi-System Support (HYG)
+
+The server supports multiple solar systems sourced from the HYG star catalog
+(https://codeberg.org/astronexus/hyg). A small fixture lives at
+`data/hyg-fixture.csv`; production deployments may replace it with a slice of
+the full HYG dataset.
+
+Two classes of system exist:
+
+- **Curated systems** — hand-built body catalogs (`sol`, `alpha-centauri`).
+- **Procedural systems** — bodies generated deterministically from a seed
+  derived from the primary star's HYG id. Star characteristics (spectral
+  class, luminosity, color index) drive habitable-zone scaling, planet count
+  distribution, and visualization color.
+
+The Alpha Centauri system is seeded at server startup with α Cen A (G2V),
+α Cen B (K1V), Proxima Centauri (M5.5Ve), and the confirmed/suspected planets
+Proxima b, c, d.
+
+### Event: `solar-system-list-request`
+
+- Request event: `solar-system-list-request`
+- Response event: `solar-system-list-response`
+
+#### Request Payload
+
+- `playerName` (required, non-empty string)
+- `sessionKey` (required)
+- `source` (optional, one of `curated`, `procedural`)
+- `maxDistanceParsec` (optional, finite number)
+- `search` (optional, case-insensitive substring matched against id, displayName, primary star name/spectral type)
+- `limit` (optional, positive integer; capped at 1000)
+- `requestId` (optional)
+
+#### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Solar system list retrieved successfully",
+  "playerName": "Pilot",
+  "solarSystems": [
+    {
+      "id": "sol",
+      "displayName": "Sol",
+      "hygSystemId": "sol",
+      "source": "curated",
+      "isMultiStar": false,
+      "starCount": 1,
+      "distanceParsec": 0.0000001,
+      "positionPc": { "x": 0, "y": 0, "z": 0 },
+      "primaryStar": {
+        "hygId": "0",
+        "spectralClass": "G",
+        "spectralType": "G2V",
+        "colorHex": "#ffedbc",
+        "luminositySolar": 1,
+        "massSolar": 0.96
+      }
+    }
+  ]
+}
+```
+
+### Event: `solar-system-get-request`
+
+- Request event: `solar-system-get-request`
+- Response event: `solar-system-get-response`
+
+#### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required)
+- `solarSystemId` (required, lowercase canonical id)
+- `asOf` (optional ISO timestamp; defaults to current server time)
+- `requestId` (optional)
+
+#### Success Response
+
+The `bodies` array contains all celestial bodies (stars, planets, moons,
+asteroids) belonging to the system; the `stars` array is a convenience filter
+of `bodies` where `bodyType === 'star'`. Each body includes the canonical
+spatial contract (`spatial.solarSystemId`, `spatial.frame`, `spatial.positionKm`,
+`spatial.epochMs`) and may include `visualization` (color hex / texture key),
+`physicalCatalog`, `orbitalElements`, and `planetType` for UI rendering.
+
+```json
+{
+  "success": true,
+  "message": "Solar system retrieved successfully",
+  "playerName": "Pilot",
+  "solarSystemId": "alpha-centauri",
+  "solarSystem": { "id": "alpha-centauri", "displayName": "Alpha Centauri", "isMultiStar": true, "starCount": 3 },
+  "stars": [ { "id": "alpha-centauri-star-primary", "bodyType": "star", "displayName": "Alpha Centauri A" } ],
+  "bodies": [ /* all bodies in the system */ ]
+}
+```
+
+#### Failure Responses
+
+- Unknown system: `success: false`, `message: "Unknown solar system"`.
+- Missing required fields: `success: false`, `message: "playerName and solarSystemId are required"`.
+
+### Event: `star-list-request`
+
+- Request event: `star-list-request`
+- Response event: `star-list-response`
+
+#### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required)
+- `systemId` (optional)
+- `spectralClass` (optional, single letter)
+- `maxDistanceParsec` (optional)
+- `limit` (optional; capped at 5000)
+- `requestId` (optional)
+
+#### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Star list retrieved successfully",
+  "playerName": "Pilot",
+  "stars": [
+    {
+      "hygId": "71456",
+      "hipId": "71683",
+      "properName": "Alpha Centauri A",
+      "spectralType": "G2V",
+      "spectralClass": "G",
+      "colorHex": "#fff2c0",
+      "luminositySolar": 1.519,
+      "massSolar": 0.96,
+      "distanceParsec": 1.3401,
+      "positionPc": { "x": -0.494, "y": -0.755, "z": -0.949 },
+      "systemId": "alpha-centauri",
+      "systemRole": "primary"
+    }
+  ]
+}
+```
+
+### Event: `star-get-request`
+
+- Request event: `star-get-request`
+- Response event: `star-get-response`
+
+#### Request Payload
+
+- `playerName` (required)
+- `sessionKey` (required)
+- `hygId` (required)
+- `requestId` (optional)
+
+#### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Star retrieved successfully",
+  "playerName": "Pilot",
+  "hygId": "70890",
+  "star": { "properName": "Proxima Centauri", "spectralClass": "M", "colorHex": "#ff7a55" }
+}
+```
+
+### Extended: `celestial-body-list-request`
+
+The existing `celestial-body-list-request` now supports two query modes:
+
+- **Radius query** (existing) — `positionKm` and `distanceKm` both supplied.
+  Returns bodies within the sphere with `distanceKm` per body.
+- **Whole-system query** (new) — both `positionKm` and `distanceKm` omitted.
+  Returns every body in the requested `solarSystemId`. Per-body `distanceKm`
+  is omitted in this mode. UI clients fetching a system for visualization
+  should use this mode (or `solar-system-get-request`).
+
+When neither all-radius parameters are present nor both omitted, the request
+fails with `message: "positionKm and distanceKm must both be supplied for radius queries; omit both for a whole-system listing"`.
+

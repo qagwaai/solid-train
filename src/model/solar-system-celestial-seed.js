@@ -1,14 +1,28 @@
 'use strict';
 
 const { SOL_SYSTEM_CATALOG, J2000_EPOCH } = require('./sol-system-catalog');
+const { ALPHA_CENTAURI_CATALOG } = require('./alpha-centauri-system-catalog');
+const { generateSystemBodies } = require('./procedural-system-generator');
+const { getHygSystems } = require('./hyg-star-catalog');
 
-const SOLAR_SYSTEM_CELESTIAL_SEED_VERSION = '2026-05-sol-catalog-v1';
+const SOLAR_SYSTEM_CELESTIAL_SEED_VERSION = '2026-05-multi-system-v1';
 const SOLAR_SYSTEM_CELESTIAL_SEED_STATE_KEY = 'solar-system-celestial-seed-state';
 
 const CATALOG_SOURCE_SCAN_ID = 'catalog';
 const CATALOG_CHARACTER_ID = 'system-catalog';
 
 const SOL_CATALOG_BY_ID = new Map(SOL_SYSTEM_CATALOG.map((entry) => [entry.id, entry]));
+const ALPHA_CENTAURI_CATALOG_BY_ID = new Map(
+  ALPHA_CENTAURI_CATALOG.map((entry) => [entry.id, entry])
+);
+
+/**
+ * Curated catalogs are looked up by canonical solar system id.
+ */
+const CURATED_CATALOGS = {
+  sol: { entries: SOL_SYSTEM_CATALOG, byId: SOL_CATALOG_BY_ID },
+  'alpha-centauri': { entries: ALPHA_CENTAURI_CATALOG, byId: ALPHA_CENTAURI_CATALOG_BY_ID },
+};
 
 /**
  * Solve Kepler's equation M = E - e * sin(E) for E using Newton-Raphson.
@@ -71,8 +85,13 @@ function computeRelativePositionKm(orbit, asOfMs) {
 /**
  * Walk parent chain to compute heliocentric position by recursively summing relative positions.
  * Roots (no parent) anchor at origin.
+ *
+ * @param {Object} catalogEntry
+ * @param {number} asOfMs
+ * @param {Map} cache - id -> position
+ * @param {Map} [catalogById] - catalog id -> entry; defaults to SOL_CATALOG_BY_ID for backwards compat.
  */
-function computeAbsolutePositionKm(catalogEntry, asOfMs, cache) {
+function computeAbsolutePositionKm(catalogEntry, asOfMs, cache, catalogById = SOL_CATALOG_BY_ID) {
   if (!catalogEntry) {
     return { x: 0, y: 0, z: 0 };
   }
@@ -80,9 +99,7 @@ function computeAbsolutePositionKm(catalogEntry, asOfMs, cache) {
     return cache.get(catalogEntry.id);
   }
 
-  const parent = catalogEntry.parentBodyId
-    ? SOL_CATALOG_BY_ID.get(catalogEntry.parentBodyId)
-    : null;
+  const parent = catalogEntry.parentBodyId ? catalogById.get(catalogEntry.parentBodyId) : null;
   // Sun and similar root bodies sit at the system barycenter (origin).
   if (!parent || !catalogEntry.orbit) {
     const origin = { x: 0, y: 0, z: 0 };
@@ -90,7 +107,7 @@ function computeAbsolutePositionKm(catalogEntry, asOfMs, cache) {
     return origin;
   }
 
-  const parentPos = computeAbsolutePositionKm(parent, asOfMs, cache);
+  const parentPos = computeAbsolutePositionKm(parent, asOfMs, cache, catalogById);
   const relative = computeRelativePositionKm(catalogEntry.orbit, asOfMs);
   const position = {
     x: parentPos.x + relative.x,
@@ -106,8 +123,16 @@ function computeAbsolutePositionKm(catalogEntry, asOfMs, cache) {
  * Mongoose CelestialBody schema. Provides minimal default composition so the
  * required-by-schema field is satisfied for non-asteroid bodies.
  */
-function buildCelestialBodyDocument(catalogEntry, asOfMs, asOfTimestamp, cache) {
-  const positionKm = computeAbsolutePositionKm(catalogEntry, asOfMs, cache);
+function buildCelestialBodyDocument(
+  catalogEntry,
+  asOfMs,
+  asOfTimestamp,
+  cache,
+  options = {}
+) {
+  const solarSystemId = options.solarSystemId || 'sol';
+  const catalogById = options.catalogById || SOL_CATALOG_BY_ID;
+  const positionKm = computeAbsolutePositionKm(catalogEntry, asOfMs, cache, catalogById);
   const composition = inferCatalogComposition(catalogEntry);
 
   return {
@@ -120,7 +145,7 @@ function buildCelestialBodyDocument(catalogEntry, asOfMs, asOfTimestamp, cache) 
     createdAt: asOfTimestamp,
     updatedAt: asOfTimestamp,
     spatial: {
-      solarSystemId: 'sol',
+      solarSystemId,
       frame: 'barycentric',
       positionKm,
       epochMs: asOfMs,
@@ -155,6 +180,9 @@ function buildCelestialBodyDocument(catalogEntry, asOfMs, asOfTimestamp, cache) 
     atmosphere: catalogEntry.atmosphere || null,
     discovery: catalogEntry.discovery || null,
     magnitudes: catalogEntry.magnitudes || null,
+    visualization: catalogEntry.visualization || null,
+    planetType: catalogEntry.planetType || null,
+    hygId: catalogEntry.hygId || null,
     isCatalogBody: true,
   };
 }
@@ -183,12 +211,16 @@ function inferCatalogComposition(catalogEntry) {
 
 /**
  * Build the seeded celestial body document set for the given solar system.
- * Currently only `sol` has a defined catalog; others return [].
+ *
+ * Dispatch order:
+ *   1. Curated catalog (sol, alpha-centauri) — uses hand-built body lists.
+ *   2. Procedural HYG-derived system — deterministic seeded RNG keyed by HYG id.
+ *   3. Unknown system — empty array (caller treats as UNSUPPORTED).
  */
 function buildSeededCelestialBodiesForSolarSystem(solarSystemId, asOfTimestamp) {
   const normalizedSystemId =
     typeof solarSystemId === 'string' ? solarSystemId.trim().toLowerCase() : '';
-  if (normalizedSystemId !== 'sol') {
+  if (!normalizedSystemId) {
     return [];
   }
 
@@ -196,10 +228,36 @@ function buildSeededCelestialBodiesForSolarSystem(solarSystemId, asOfTimestamp) 
     typeof asOfTimestamp === 'string' && asOfTimestamp.trim() ? asOfTimestamp.trim() : J2000_EPOCH;
   const asOfMs = Date.parse(timestamp);
   const safeAsOfMs = Number.isFinite(asOfMs) ? asOfMs : Date.parse(J2000_EPOCH);
-  const positionCache = new Map();
 
-  return SOL_SYSTEM_CATALOG.map((entry) =>
-    buildCelestialBodyDocument(entry, safeAsOfMs, timestamp, positionCache)
+  const curated = CURATED_CATALOGS[normalizedSystemId];
+  if (curated) {
+    const positionCache = new Map();
+    return curated.entries.map((entry) =>
+      buildCelestialBodyDocument(entry, safeAsOfMs, timestamp, positionCache, {
+        solarSystemId: normalizedSystemId,
+        catalogById: curated.byId,
+      })
+    );
+  }
+
+  // Procedural fallback for HYG-known systems.
+  const hygSystem = getHygSystems().find((entry) => entry.systemId === normalizedSystemId);
+  if (!hygSystem) {
+    return [];
+  }
+  const generated = generateSystemBodies({
+    solarSystemId: normalizedSystemId,
+    stars: hygSystem.stars,
+    asOfTimestamp: timestamp,
+  });
+  const proceduralEntries = [...generated.stars, ...generated.planets];
+  const proceduralById = new Map(proceduralEntries.map((entry) => [entry.id, entry]));
+  const positionCache = new Map();
+  return proceduralEntries.map((entry) =>
+    buildCelestialBodyDocument(entry, safeAsOfMs, timestamp, positionCache, {
+      solarSystemId: normalizedSystemId,
+      catalogById: proceduralById,
+    })
   );
 }
 

@@ -74,10 +74,27 @@ test('buildSeededCelestialBodiesForSolarSystem produces canonical-shape document
   );
 });
 
-test('buildSeededCelestialBodiesForSolarSystem returns empty for unsupported systems', () => {
-  assert.deepEqual(buildSeededCelestialBodiesForSolarSystem('alpha-centauri', SEED_TIMESTAMP), []);
+test('buildSeededCelestialBodiesForSolarSystem returns empty for unknown systems', () => {
+  assert.deepEqual(buildSeededCelestialBodiesForSolarSystem('not-a-real-system', SEED_TIMESTAMP), []);
   assert.deepEqual(buildSeededCelestialBodiesForSolarSystem('', SEED_TIMESTAMP), []);
   assert.deepEqual(buildSeededCelestialBodiesForSolarSystem(null, SEED_TIMESTAMP), []);
+});
+
+test('buildSeededCelestialBodiesForSolarSystem produces curated Alpha Centauri bodies', () => {
+  const seeded = buildSeededCelestialBodiesForSolarSystem('alpha-centauri', SEED_TIMESTAMP);
+  assert.ok(seeded.length >= 6, `expected >=6 bodies (3 stars + 3 planets), got ${seeded.length}`);
+  const stars = seeded.filter((b) => b.bodyType === 'star');
+  assert.equal(stars.length, 3);
+  const ids = seeded.map((b) => b.id);
+  assert.ok(ids.includes('alpha-centauri-star-primary'));
+  assert.ok(ids.includes('alpha-centauri-star-secondary'));
+  assert.ok(ids.includes('alpha-centauri-star-tertiary'));
+  assert.ok(ids.includes('alpha-centauri-proxima-b'));
+  assert.ok(seeded.every((b) => b.spatial?.solarSystemId === 'alpha-centauri'));
+  assert.ok(seeded.every((b) => b.spatial?.frame === 'barycentric'));
+  const proximaB = seeded.find((b) => b.id === 'alpha-centauri-proxima-b');
+  assert.equal(proximaB.bodyType, 'planet');
+  assert.equal(proximaB.parentBodyId, 'alpha-centauri-star-tertiary');
 });
 
 test('computeRelativePositionKm returns origin for null orbit', () => {

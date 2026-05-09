@@ -24,6 +24,10 @@ const { MARKET_INVENTORY_LIST_REQUEST_EVENT } = require('../model/market-invento
 const { MARKET_LEDGER_LIST_REQUEST_EVENT } = require('../model/market-ledger-list');
 const { MARKET_BUY_REQUEST_EVENT } = require('../model/market-buy');
 const { MARKET_SELL_REQUEST_EVENT } = require('../model/market-sell');
+const { SOLAR_SYSTEM_LIST_REQUEST_EVENT } = require('../model/solar-system-list');
+const { SOLAR_SYSTEM_GET_REQUEST_EVENT } = require('../model/solar-system-get');
+const { STAR_LIST_REQUEST_EVENT } = require('../model/star-list');
+const { STAR_GET_REQUEST_EVENT } = require('../model/star-get');
 
 // Central table for request-event to handler bindings used by server socket wiring.
 const SOCKET_HANDLER_REGISTRY = [
@@ -130,6 +134,26 @@ const SOCKET_HANDLER_REGISTRY = [
     event: MARKET_SELL_REQUEST_EVENT,
     handlerKey: 'marketSellMessageHandler',
     errorLabel: 'Market sell',
+  },
+  {
+    event: SOLAR_SYSTEM_LIST_REQUEST_EVENT,
+    handlerKey: 'solarSystemListMessageHandler',
+    errorLabel: 'Solar system list',
+  },
+  {
+    event: SOLAR_SYSTEM_GET_REQUEST_EVENT,
+    handlerKey: 'solarSystemGetMessageHandler',
+    errorLabel: 'Solar system get',
+  },
+  {
+    event: STAR_LIST_REQUEST_EVENT,
+    handlerKey: 'starListMessageHandler',
+    errorLabel: 'Star list',
+  },
+  {
+    event: STAR_GET_REQUEST_EVENT,
+    handlerKey: 'starGetMessageHandler',
+    errorLabel: 'Star get',
   },
 ];
 

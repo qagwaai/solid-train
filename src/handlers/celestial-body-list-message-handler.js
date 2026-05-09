@@ -87,10 +87,25 @@ class CelestialBodyListMessageHandler {
     const createdByCharacterId = this.context.toNonEmptyString(payload?.createdByCharacterId);
     const missionId = this.context.toNonEmptyString(payload?.missionId);
 
-    if (!playerName || !solarSystemId || !positionKm || distanceKm === null) {
+    if (!playerName || !solarSystemId) {
       return {
         success: false,
-        message: 'playerName, solarSystemId, positionKm, and distanceKm are required',
+        message: 'playerName and solarSystemId are required',
+        playerName,
+        solarSystemId,
+        celestialBodies: [],
+      };
+    }
+
+    // Allow whole-system queries when both positionKm and distanceKm are omitted.
+    const isWholeSystemQuery =
+      positionKm === null && distanceKm === null && payload?.distanceKm === undefined;
+
+    if (!isWholeSystemQuery && (!positionKm || distanceKm === null)) {
+      return {
+        success: false,
+        message:
+          'positionKm and distanceKm must both be supplied for radius queries; omit both for a whole-system listing',
         playerName,
         solarSystemId,
         celestialBodies: [],
@@ -125,6 +140,25 @@ class CelestialBodyListMessageHandler {
         playerName,
         solarSystemId,
         celestialBodies: [],
+      };
+    }
+
+    if (isWholeSystemQuery) {
+      const all = await this.context.getCelestialBodiesAsync({
+        solarSystemId,
+        stateValues: states,
+        createdByCharacterId: createdByCharacterId || undefined,
+        missionId: missionId || undefined,
+      });
+      const limited = limit ? all.slice(0, limit) : all;
+      return {
+        success: true,
+        message: limited.length
+          ? 'Celestial body list retrieved successfully'
+          : 'No celestial bodies found in solar system',
+        playerName: player.playerName,
+        solarSystemId,
+        celestialBodies: limited,
       };
     }
 

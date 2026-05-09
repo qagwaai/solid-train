@@ -709,3 +709,51 @@ After:
   "updatedAt": "2026-04-19T12:07:00.000Z"
 }
 ```
+
+## Multi-System Storage (HYG)
+
+Two collections back the multi-solar-system feature:
+
+- Collection: `stars` (root model `Star`) — HYG-derived star metadata.
+- Collection: `solar_systems` (root model `SolarSystem`) — registry of solar systems known to the server.
+
+Both are populated at server startup from `data/hyg-fixture.csv` and the in-memory registry in `src/model/solar-system-registry.js`. Procedural-system bodies are still stored in the existing `cb` collection (`CelestialBody`) and reference the system via `spatial.solarSystemId`.
+
+### Star (collection: stars)
+
+- `hygId` (string, unique, indexed) — primary key from the HYG dataset.
+- `hipId`, `hdId` (string, nullable, indexed) — Hipparcos / Henry Draper ids.
+- `properName` (string, nullable, indexed).
+- `raHours`, `decDeg` (numbers).
+- `distanceParsec` (number, indexed).
+- `apparentMagnitude`, `absoluteMagnitude` (numbers).
+- `spectralType` (full string, e.g. `G2V`).
+- `spectralClass` (`O|B|A|F|G|K|M|L|T|Y`, indexed) and `spectralSubclass` (number).
+- `colorIndexBv` (B-V color index) and `colorHex` (rendered CSS color).
+- `luminositySolar`, `massSolar`, `radiusSolar`, `radiusKm`, `massKg`.
+- `positionPc` (`{x,y,z}` in parsecs, galactic Cartesian).
+- `systemId` (string, indexed) — groups multi-star systems together.
+- `systemRole` (`primary | secondary | tertiary`).
+- `sourceCatalog` (string, default `hyg`).
+
+### SolarSystem (collection: solar_systems)
+
+- `id` (string, unique, indexed) — canonical lowercase id used throughout the spatial contract.
+- `displayName` (string).
+- `hygSystemId` (string, indexed).
+- `source` (`curated | procedural`, indexed).
+- `isMultiStar` (boolean), `starCount` (number).
+- `positionPc`, `distanceParsec` (indexed).
+- `primaryStar` — embedded summary of the primary star (hygId, properName, spectralClass, spectralType, colorHex, luminositySolar, massSolar, radiusSolar, absoluteMagnitude).
+- `generationSeed` (number, nullable) — deterministic procedural seed (defaults to primary HYG id).
+- `seedVersion`, `seededAt` (string, nullable).
+
+### Celestial body extensions
+
+The `cb` collection schema gains optional fields used by the UI viewer:
+
+- `planetType` (string, nullable).
+- `hygId` (string, nullable, indexed) — set on star bodies generated from HYG.
+- `visualization` — `{ colorHex, spectralClass, textureKey }`.
+
+Existing fields (`spatial`, `motion`, `physical`, `composition`, `state`, `bodyType`, `parentBodyId`, `orbitalElements`, `physicalCatalog`, `atmosphere`, `discovery`, `magnitudes`, `isCatalogBody`) are unchanged.
