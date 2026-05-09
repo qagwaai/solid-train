@@ -14,6 +14,9 @@ const MATERIAL_YIELD_MULTIPLIER_BY_RARITY = {
 const MAX_YIELD_QUANTITY = 100;
 
 class LaunchItemMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
@@ -367,6 +370,12 @@ class LaunchItemMessageHandler {
     };
   }
 
+  /**
+   * Validate launch payload, apply launch side effects, and emit launch-item-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('launch-item-request', payload);
 

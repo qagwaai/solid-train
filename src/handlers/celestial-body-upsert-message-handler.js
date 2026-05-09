@@ -9,6 +9,9 @@ const {
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CelestialBodyUpsertMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
@@ -147,6 +150,11 @@ class CelestialBodyUpsertMessageHandler {
     };
   }
 
+  /**
+   * Validate canonical celestial body payload and produce upsert response payload.
+   * @param {Object} payload
+   * @returns {Object}
+   */
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const celestialBody = this.normalizeCelestialBody(payload?.celestialBody);
@@ -228,6 +236,12 @@ class CelestialBodyUpsertMessageHandler {
     };
   }
 
+  /**
+   * Enforce session, persist celestial body update, and emit upsert response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('celestial-body-upsert-request', payload);
 

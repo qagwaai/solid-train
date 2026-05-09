@@ -4,10 +4,18 @@ const { CHARACTER_EDIT_RESPONSE_EVENT } = require('../model/character-edit');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CharacterEditMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate payload and produce base edit response.
+   * @param {Object} payload
+   * @returns {Object}
+   */
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
@@ -53,6 +61,12 @@ class CharacterEditMessageHandler {
     };
   }
 
+  /**
+   * Persist character name update, mirror it in joined-game state, and emit response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-edit', payload);
 
@@ -72,6 +86,7 @@ class CharacterEditMessageHandler {
         await this.context.updateCharacterAsync(payload?.playerName, payload?.characterId, {
           characterName: payload?.characterName,
         });
+        // Joined-game roster stores display names independently, so update both stores.
         this.context.renameJoinedCharacter(
           payload?.playerName,
           payload?.characterId,

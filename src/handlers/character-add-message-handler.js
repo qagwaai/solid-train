@@ -5,10 +5,18 @@ const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/ses
 const { DEFAULT_MISSION_STATUS, DEFAULT_STARTER_MISSION_ID } = require('../model/mission');
 
 class CharacterAddMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate payload and produce base character-add response payload.
+   * @param {Object} payload
+   * @returns {Object}
+   */
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterName = this.context.toNonEmptyString(payload?.characterName);
@@ -42,6 +50,12 @@ class CharacterAddMessageHandler {
     };
   }
 
+  /**
+   * Add a character and starter assets, then emit character-add-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-add-request', payload);
 
@@ -60,6 +74,7 @@ class CharacterAddMessageHandler {
       let createdItemIds = [];
 
       try {
+        // Starter cargo is created first so character ship inventory can reference concrete item ids.
         const createdAt = this.context.getCurrentTimestamp();
         const starterShipId = `${response.characterId}-ship-1`;
         const starterDroneId = `${starterShipId}-item-1`;

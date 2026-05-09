@@ -4,10 +4,18 @@ const { MARKET_LEDGER_LIST_RESPONSE_EVENT } = require('../model/market-ledger-li
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketLedgerListMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate ledger query and build paginated market ledger response.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const marketId = this.context.toNonEmptyString(payload?.marketId);
@@ -80,6 +88,12 @@ class MarketLedgerListMessageHandler {
     };
   }
 
+  /**
+   * Enforce session and emit market-ledger-list-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-ledger-list-request', payload);
 

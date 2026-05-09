@@ -4,10 +4,18 @@ const { MARKET_INVENTORY_LIST_RESPONSE_EVENT } = require('../model/market-invent
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketInventoryListMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate inventory query and build paginated market inventory response.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const marketId = this.context.toNonEmptyString(payload?.marketId);
@@ -73,6 +81,12 @@ class MarketInventoryListMessageHandler {
     };
   }
 
+  /**
+   * Enforce session and emit market-inventory-list-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-inventory-list-request', payload);
 

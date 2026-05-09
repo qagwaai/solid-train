@@ -1,5 +1,12 @@
 'use strict';
 
+/**
+ * Fetch markets, optionally filtered by solar system.
+ * @param {Object} ctx
+ * @param {Object} Market
+ * @param {{ solarSystemId?: string }} [query]
+ * @returns {Promise<Object[]>}
+ */
 async function getMarkets(ctx, Market, query = {}) {
   try {
     const solarSystemId = ctx.toNonEmptyString(query?.solarSystemId);

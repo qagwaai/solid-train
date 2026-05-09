@@ -2,6 +2,13 @@
 
 const { SOLAR_SYSTEM_MARKET_SEED_STATE_KEY } = require('../../model/solar-system-market-seed');
 
+/**
+ * Retrieve persisted market seed state for a solar system.
+ * @param {Object} ctx
+ * @param {Object} GameStateDocument
+ * @param {string} solarSystemId
+ * @returns {Promise<{ solarSystemId: string, seedVersion: string, seededAt: string }|null>}
+ */
 async function getSolarSystemMarketSeedState(ctx, GameStateDocument, solarSystemId) {
   try {
     const normalizedSolarSystemId = ctx.toNonEmptyString(solarSystemId).toLowerCase();
@@ -34,6 +41,15 @@ async function getSolarSystemMarketSeedState(ctx, GameStateDocument, solarSystem
   }
 }
 
+/**
+ * Persist market seed state for a solar system (replace-or-insert entry).
+ * @param {Object} ctx
+ * @param {Object} GameStateDocument
+ * @param {string} solarSystemId
+ * @param {string} seedVersion
+ * @param {string} seededAt
+ * @returns {Promise<Object|null>}
+ */
 async function setSolarSystemMarketSeedState(
   ctx,
   GameStateDocument,

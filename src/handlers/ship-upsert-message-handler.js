@@ -4,6 +4,9 @@ const { SHIP_UPSERT_RESPONSE_EVENT } = require('../model/ship-upsert');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class ShipUpsertMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
@@ -110,6 +113,11 @@ class ShipUpsertMessageHandler {
     return { overallStatus, summary, origin, updatedAt, systems };
   }
 
+  /**
+   * Validate ship-upsert payload and produce canonical response payload.
+   * @param {Object} payload
+   * @returns {Object}
+   */
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
@@ -285,6 +293,12 @@ class ShipUpsertMessageHandler {
     };
   }
 
+  /**
+   * Enforce session, persist ship update, and emit ship-upsert-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-upsert-request', payload);
 
@@ -302,6 +316,7 @@ class ShipUpsertMessageHandler {
     if (response.success) {
       try {
         const character = this.context.findCharacter(response.playerName, response.characterId);
+        // Replace only the targeted ship while preserving other ship entries.
         const nextShips = Array.isArray(character?.ships)
           ? character.ships.map((ship) => (ship.id === response.ship.id ? response.ship : ship))
           : [];

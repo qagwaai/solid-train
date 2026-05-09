@@ -1,5 +1,12 @@
 'use strict';
 
+/**
+ * Upsert celestial body by id, or by scan+creator+mission identity for mission-generated bodies.
+ * @param {Object} ctx
+ * @param {Object} CelestialBody
+ * @param {Object} celestialBodyData
+ * @returns {Promise<Object|null>}
+ */
 async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData) {
   try {
     const upsertQuery = ctx.toNonEmptyString(celestialBodyData?.id)
@@ -34,6 +41,13 @@ async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData) {
   }
 }
 
+/**
+ * Delete a celestial body by logical id.
+ * @param {Object} ctx
+ * @param {Object} CelestialBody
+ * @param {string} celestialBodyId
+ * @returns {Promise<boolean>}
+ */
 async function deleteCelestialBodyById(ctx, CelestialBody, celestialBodyId) {
   try {
     if (!celestialBodyId || typeof celestialBodyId !== 'string') {

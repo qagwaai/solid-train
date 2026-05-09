@@ -1,5 +1,16 @@
 'use strict';
 
+/**
+ * Read/query operations for globally persisted items.
+ */
+
+/**
+ * Fetch items by ids.
+ * @param {Object} ctx
+ * @param {Object} Item
+ * @param {string[]} itemIds
+ * @returns {Promise<Object[]>}
+ */
 async function getItemsByIds(ctx, Item, itemIds) {
   try {
     if (!Array.isArray(itemIds) || itemIds.length === 0) {
@@ -13,6 +24,14 @@ async function getItemsByIds(ctx, Item, itemIds) {
   }
 }
 
+/**
+ * Fetch items currently assigned to a specific container.
+ * @param {Object} ctx
+ * @param {Object} Item
+ * @param {string} containerType
+ * @param {string} containerId
+ * @returns {Promise<Object[]>}
+ */
 async function getItemsByContainer(ctx, Item, containerType, containerId) {
   try {
     return await Item.find({
@@ -25,6 +44,13 @@ async function getItemsByContainer(ctx, Item, containerType, containerId) {
   }
 }
 
+/**
+ * Find items within radius using DB bounds prefilter plus exact distance check.
+ * @param {Object} ctx
+ * @param {Object} Item
+ * @param {{ solarSystemId?: string, positionKm?: Object, distanceKm?: number, itemType?: string }} query
+ * @returns {Promise<Array<{ item: Object, distanceKm: number }>>}
+ */
 async function findItemsNearPosition(ctx, Item, query) {
   const solarSystemId = typeof query?.solarSystemId === 'string' ? query.solarSystemId.trim() : '';
   const positionKm = query?.positionKm;
@@ -61,6 +87,7 @@ async function findItemsNearPosition(ctx, Item, query) {
       boundsQuery.itemType = itemType;
     }
 
+    // Bounds query reduces candidate count before exact Euclidean distance filtering.
     const candidates = await Item.find(boundsQuery).lean();
 
     return candidates

@@ -4,6 +4,9 @@ const { ITEM_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../model/item-list-by-
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class ItemListByLocationMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
@@ -41,6 +44,11 @@ class ItemListByLocationMessageHandler {
     return value;
   }
 
+  /**
+   * Validate location query and fetch nearby items.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
@@ -123,6 +131,12 @@ class ItemListByLocationMessageHandler {
     };
   }
 
+  /**
+   * Enforce session and emit item-list-by-location-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-list-by-location-request', payload);
 

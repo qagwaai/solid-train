@@ -30,6 +30,9 @@ const STARTER_MISSION_ASTEROID_MATERIALS = [
 ];
 
 class MissionUpsertMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
@@ -91,6 +94,11 @@ class MissionUpsertMessageHandler {
     return unlocked;
   }
 
+  /**
+   * Validate payload and produce canonical mission upsert response payload.
+   * @param {Object} payload
+   * @returns {Object}
+   */
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
@@ -177,6 +185,13 @@ class MissionUpsertMessageHandler {
     );
   }
 
+  /**
+   * Add status-specific timestamps while preserving existing milestone values.
+   * @param {Object} mission
+   * @param {Object|undefined} existingMission
+   * @param {string} timestamp
+   * @returns {Object}
+   */
   enrichMissionTimestamps(mission, existingMission, timestamp) {
     const nextMission = {
       ...(existingMission || {}),
@@ -308,6 +323,12 @@ class MissionUpsertMessageHandler {
     );
   }
 
+  /**
+   * Persist mission state, apply unlock side effects, and emit mission-upsert-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('add-mission-request', payload);
 
@@ -338,6 +359,7 @@ class MissionUpsertMessageHandler {
           this.context.getCurrentTimestamp()
         );
 
+        // Primary mission write happens before unlock and starter-field side effects.
         await this.context.addOrUpdateMissionAsync(
           payload?.playerName,
           payload?.characterId,

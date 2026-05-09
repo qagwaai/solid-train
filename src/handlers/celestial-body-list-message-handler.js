@@ -5,6 +5,9 @@ const { CELESTIAL_BODY_STATE_VALUES } = require('../model/celestial-body-upsert'
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CelestialBodyListMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
@@ -62,6 +65,11 @@ class CelestialBodyListMessageHandler {
     return normalized;
   }
 
+  /**
+   * Validate location query and build celestial-body-list response.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
@@ -158,6 +166,12 @@ class CelestialBodyListMessageHandler {
     };
   }
 
+  /**
+   * Enforce session and emit celestial-body-list-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('celestial-body-list-request', payload);
 

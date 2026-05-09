@@ -3,10 +3,18 @@
 const { REGISTER_RESPONSE_EVENT } = require('../model/register');
 
 class RegisterMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate register payload shape and return a baseline response.
+   * @param {Object} payload
+   * @returns {Object}
+   */
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const email = this.context.toNonEmptyString(payload?.email);
@@ -25,6 +33,12 @@ class RegisterMessageHandler {
     };
   }
 
+  /**
+   * Register a player and emit register-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('register', payload);
 
@@ -45,6 +59,7 @@ class RegisterMessageHandler {
       };
 
       try {
+        // Keep duplicate-name check here so response stays deterministic across DB/in-memory modes.
         const existingPlayer = await this.context.getPlayerAsync(playerName);
         if (existingPlayer) {
           response.success = false;

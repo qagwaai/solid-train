@@ -4,6 +4,9 @@ const { MARKET_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../model/market-list
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketListByLocationMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
@@ -67,6 +70,11 @@ class MarketListByLocationMessageHandler {
     return normalized;
   }
 
+  /**
+   * Build location-aware market list response, including route and docking metadata.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
@@ -212,6 +220,12 @@ class MarketListByLocationMessageHandler {
     };
   }
 
+  /**
+   * Enforce session and emit market-list-by-location-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-list-by-location-request', payload);
 

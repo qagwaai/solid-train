@@ -21,6 +21,11 @@ class DatabaseService {
     this.log = options.log || ((line) => process.stdout.write(`${line}\n`));
   }
 
+  /**
+   * Normalize user-provided string input; returns empty string when invalid.
+   * @param {unknown} value
+   * @returns {string}
+   */
   toNonEmptyString(value) {
     if (typeof value !== 'string') {
       return '';
@@ -33,6 +38,11 @@ class DatabaseService {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
+  /**
+   * Build a case-insensitive player lookup that supports legacy records.
+   * @param {string} playerName
+   * @returns {Object|null}
+   */
   buildPlayerNameQuery(playerName) {
     const normalized = this.toNonEmptyString(playerName).toLowerCase();
     if (!normalized) {
@@ -48,6 +58,11 @@ class DatabaseService {
     };
   }
 
+  /**
+   * Check whether value is a finite number.
+   * @param {unknown} value
+   * @returns {boolean}
+   */
   isFiniteNumber(value) {
     return typeof value === 'number' && Number.isFinite(value);
   }
@@ -61,6 +76,11 @@ class DatabaseService {
     );
   }
 
+  /**
+   * Ensure embedded ship objects always persist shipName for compatibility.
+   * @param {Object} ship
+   * @returns {Object}
+   */
   normalizeCharacterShipForPersistence(ship) {
     if (!ship || typeof ship !== 'object') {
       return ship;

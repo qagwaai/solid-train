@@ -1,5 +1,11 @@
 'use strict';
 
+/**
+ * Resolve player from DB when available, then hydrate in-memory cache.
+ * @param {Object} ctx
+ * @param {string} playerName
+ * @returns {Promise<Object|null>}
+ */
 async function getPlayerAsync(ctx, playerName) {
   const player = await ctx.withDbOrNull('fetching player from DB', (databaseService) =>
     databaseService.getPlayerByName(playerName)
@@ -11,6 +17,12 @@ async function getPlayerAsync(ctx, playerName) {
   return ctx.getPlayer(playerName);
 }
 
+/**
+ * Resolve characters with DB-first semantics and update cache when found.
+ * @param {Object} ctx
+ * @param {string} playerName
+ * @returns {Promise<Object[]>}
+ */
 async function getCharactersAsync(ctx, playerName) {
   const characters = await ctx.withDbOrNull('fetching characters from DB', (databaseService) =>
     databaseService.getCharacters(playerName)
@@ -159,6 +171,12 @@ async function ensurePlayerLoadedAsync(ctx, playerName) {
   return player;
 }
 
+/**
+ * Session validation helper used by handlers to enforce authenticated operations.
+ * @param {Object} ctx
+ * @param {Object} payload
+ * @returns {Promise<boolean>}
+ */
 async function hasValidSessionAsync(ctx, payload) {
   const sessionKey = ctx.toNonEmptyString(payload?.sessionKey);
   if (!sessionKey) {

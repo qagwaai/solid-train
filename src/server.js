@@ -74,6 +74,11 @@ const { MarketBuyMessageHandler } = require('./handlers/market-buy-message-handl
 const { MarketSellMessageHandler } = require('./handlers/market-sell-message-handler');
 const { registerSocketHandlers } = require('./handlers/socket-handler-registry');
 
+/**
+ * Parse and validate a TCP port value.
+ * @param {string|undefined} value
+ * @returns {number}
+ */
 function resolvePort(value = process.env.PORT) {
   const parsed = Number.parseInt(value ?? '3000', 10);
 
@@ -84,6 +89,11 @@ function resolvePort(value = process.env.PORT) {
   return parsed;
 }
 
+/**
+ * Build server dependencies, bind socket handlers, and return runtime objects.
+ * @param {{ port?: string, databaseService?: Object|null }} [options]
+ * @returns {{ port: number, server: import('node:http').Server, io: import('socket.io').Server, messageHandlerContext: Object }}
+ */
 function createServer(options = {}) {
   const port = resolvePort(options.port);
   const registeredPlayers = new Map();
@@ -196,6 +206,7 @@ function createServer(options = {}) {
       marketSellMessageHandler,
     });
 
+    // Keep alias wiring explicit because it emits a different response event name.
     socket.on(MISSION_UPSERT_ALIAS_REQUEST_EVENT, (payload) => {
       missionUpsertMessageHandler
         .handle(socket, payload)
@@ -211,6 +222,11 @@ function createServer(options = {}) {
   return { port, server, io, messageHandlerContext };
 }
 
+/**
+ * Start the production server and optional MongoDB connection lifecycle.
+ * @param {{ port?: string, databaseService?: Object|null }} [options]
+ * @returns {Promise<{ port: number, server: import('node:http').Server, io: import('socket.io').Server, shutdown: Function, mongoConnection: Object, databaseService: Object|null, messageHandlerContext: Object }>}
+ */
 async function startServer(options = {}) {
   const mongoConnection = new MongoConnection({
     mongoUri: process.env.MONGODB_URI,

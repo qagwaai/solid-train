@@ -63,6 +63,9 @@ function buildDefaultInventoryEntry(catalogEntry) {
   };
 }
 
+/**
+ * Shared in-memory runtime context for handlers with optional DB-backed persistence.
+ */
 class MessageHandlerContext {
   constructor(options = {}) {
     this.registeredPlayers = options.registeredPlayers || new Map();
@@ -83,6 +86,11 @@ class MessageHandlerContext {
     this._seedDefaultsInitialized = false;
   }
 
+  /**
+   * One-time initialization gate for default cache seeding.
+   * @param {{ seedDefaults?: boolean }} [options]
+   * @returns {Promise<{ success: boolean, seededDefaults: boolean }>}
+   */
   async initializeAsync(options = {}) {
     const seedDefaults = options.seedDefaults !== false;
     if (!seedDefaults || this._seedDefaultsInitialized) {
@@ -108,6 +116,7 @@ class MessageHandlerContext {
     };
   }
 
+  // Preload market cache so read-only flows can run before DB-backed seeding occurs.
   seedDefaultMarkets() {
     const now = this.getCurrentTimestamp();
     const systemIds = ['sol', 'alpha-centauri', 'barnards-star'];
@@ -323,6 +332,12 @@ class MessageHandlerContext {
     return orbitalMath.calculateDistanceAu(this, fromPositionKm, toPositionKm);
   }
 
+  /**
+   * Execute a DB operation and rethrow on failure.
+   * @param {string} operationName
+   * @param {(databaseService: Object) => Promise<any>} operation
+   * @returns {Promise<any|null>}
+   */
   async withDb(operationName, operation) {
     if (!this.databaseService) {
       return null;
@@ -336,6 +351,12 @@ class MessageHandlerContext {
     }
   }
 
+  /**
+   * Execute a DB operation but return null on failure for cache-first read paths.
+   * @param {string} operationName
+   * @param {(databaseService: Object) => Promise<any>} operation
+   * @returns {Promise<any|null>}
+   */
   async withDbOrNull(operationName, operation) {
     if (!this.databaseService) {
       return null;

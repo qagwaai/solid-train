@@ -3,10 +3,18 @@
 const { LOGIN_FAILURE_REASONS, LOGIN_RESPONSE_EVENT } = require('../model/login');
 
 class LoginMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate required credentials and build immediate failure response when missing.
+   * @param {Object} payload
+   * @returns {Object|null}
+   */
   buildMissingCredentialsResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const password = this.context.toNonEmptyString(payload?.password);
@@ -22,6 +30,9 @@ class LoginMessageHandler {
     return null;
   }
 
+  /**
+   * @returns {{ success: boolean, message: string, reason: string }}
+   */
   buildUnknownPlayerResponse() {
     return {
       success: false,
@@ -30,6 +41,9 @@ class LoginMessageHandler {
     };
   }
 
+  /**
+   * @returns {{ success: boolean, message: string, reason: string }}
+   */
   buildPasswordMismatchResponse() {
     return {
       success: false,
@@ -38,6 +52,12 @@ class LoginMessageHandler {
     };
   }
 
+  /**
+   * Authenticate player, rotate session, and emit login-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('login', payload);
 
@@ -54,6 +74,7 @@ class LoginMessageHandler {
 
     let player = this.context.getPlayer(playerName);
     if (!player) {
+      // Reload from persistence so login works after process restarts.
       await this.context.getPlayerAsync(playerName);
       player = this.context.getPlayer(playerName);
     }

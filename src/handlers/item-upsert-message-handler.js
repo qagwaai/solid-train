@@ -8,6 +8,9 @@ const VALID_DAMAGE_STATUSES = ['intact', 'damaged', 'disabled', 'destroyed'];
 const VALID_CONTAINER_TYPES = ['ship', 'market'];
 
 class ItemUpsertMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
@@ -211,6 +214,12 @@ class ItemUpsertMessageHandler {
     };
   }
 
+  /**
+   * Create or update an item, sync ship inventory references, and emit item-upsert-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-upsert-request', payload);
 
@@ -271,6 +280,7 @@ class ItemUpsertMessageHandler {
           const items = await this.context.addItemsAsync([itemData]);
           response.item = items[0] || itemData;
         } else {
+          // Full update path keeps canonical item shape centralized in one place.
           response.item = (await this.context.updateItemAsync(itemId, itemData)) || itemData;
         }
 

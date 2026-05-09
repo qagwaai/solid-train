@@ -10,6 +10,9 @@ const MISSION_CATALOG_INDEX = new Map(
 );
 
 class MissionListMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
@@ -76,6 +79,11 @@ class MissionListMessageHandler {
     });
   }
 
+  /**
+   * Build mission-list response with optional status filtering and catalog ordering.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
@@ -140,6 +148,12 @@ class MissionListMessageHandler {
     );
   }
 
+  /**
+   * Enforce session and emit mission-list-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('list-missions-request', payload);
 

@@ -4,10 +4,18 @@ const { MARKET_BUY_RESPONSE_EVENT, MARKET_BUY_FAILURE_REASONS } = require('../mo
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketBuyMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate payload and execute buy transaction in context layer.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
@@ -37,6 +45,7 @@ class MarketBuyMessageHandler {
       };
     }
 
+    // Transaction orchestration lives in context so buy/sell handlers stay thin and symmetrical.
     const result = await this.context.executeMarketTransactionAsync({
       playerName,
       characterId,
@@ -66,6 +75,11 @@ class MarketBuyMessageHandler {
     };
   }
 
+  /**
+   * Map failure reasons to stable client-facing messages.
+   * @param {string} reason
+   * @returns {string}
+   */
   messageForReason(reason) {
     switch (reason) {
       case MARKET_BUY_FAILURE_REASONS.PLAYER_NOT_REGISTERED:
@@ -91,6 +105,12 @@ class MarketBuyMessageHandler {
     }
   }
 
+  /**
+   * Enforce session, execute buy flow, and emit market-buy-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-buy-request', payload);
 

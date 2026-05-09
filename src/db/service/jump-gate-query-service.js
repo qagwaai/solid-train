@@ -1,5 +1,12 @@
 'use strict';
 
+/**
+ * Load active jump gates for route graph construction.
+ * Returns [] when DB fallback is enabled or query fails to keep routing resilient.
+ * @param {Object} ctx
+ * @param {Object} JumpGate
+ * @returns {Promise<Object[]>}
+ */
 async function getJumpGatesAsync(ctx, JumpGate) {
   if (ctx.useInMemoryFallback) {
     return [];

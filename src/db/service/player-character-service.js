@@ -1,5 +1,17 @@
 'use strict';
 
+/**
+ * Player/character persistence operations used by DatabaseService.
+ * Functions return plain objects to keep handler-facing payloads serialization-safe.
+ */
+
+/**
+ * Create a player document after enforcing case-insensitive uniqueness.
+ * @param {Object} ctx
+ * @param {Object} Player
+ * @param {{ playerId: string, playerName: string, email: string, password: string, preferredLocale?: string }} playerData
+ * @returns {Promise<Object>}
+ */
 async function registerPlayer(ctx, Player, playerData) {
   try {
     const { playerId, playerName, email, password, preferredLocale = 'en' } = playerData;
@@ -29,6 +41,13 @@ async function registerPlayer(ctx, Player, playerData) {
   }
 }
 
+/**
+ * Lookup by normalized player name with legacy-document backfill.
+ * @param {Object} ctx
+ * @param {Object} Player
+ * @param {string} playerName
+ * @returns {Promise<Object|null>}
+ */
 async function getPlayerByName(ctx, Player, playerName) {
   try {
     const playerNameQuery = ctx.buildPlayerNameQuery(playerName);
@@ -157,6 +176,7 @@ async function updateCharacter(ctx, Player, playerName, characterId, updates) {
       return null;
     }
 
+    // Normalize embedded ship naming before persisting mixed legacy/current payloads.
     Object.assign(character, ctx.normalizeCharacterUpdatesForPersistence(updates));
     player.updatedAt = new Date();
     await player.save();

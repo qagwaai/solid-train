@@ -1,5 +1,16 @@
 'use strict';
 
+/**
+ * Write operations for globally persisted items.
+ */
+
+/**
+ * Insert one or more item documents.
+ * @param {Object} ctx
+ * @param {Object} Item
+ * @param {Object[]} itemsData
+ * @returns {Promise<Object[]>}
+ */
 async function addItems(ctx, Item, itemsData) {
   try {
     if (!Array.isArray(itemsData) || itemsData.length === 0) {
@@ -14,6 +25,13 @@ async function addItems(ctx, Item, itemsData) {
   }
 }
 
+/**
+ * Delete items by logical ids.
+ * @param {Object} ctx
+ * @param {Object} Item
+ * @param {string[]} itemIds
+ * @returns {Promise<void>}
+ */
 async function deleteItemsByIds(ctx, Item, itemIds) {
   try {
     if (!Array.isArray(itemIds) || itemIds.length === 0) {
@@ -27,6 +45,14 @@ async function deleteItemsByIds(ctx, Item, itemIds) {
   }
 }
 
+/**
+ * Update one item by logical id.
+ * @param {Object} ctx
+ * @param {Object} Item
+ * @param {string} itemId
+ * @param {Object} updates
+ * @returns {Promise<Object|null>}
+ */
 async function updateItemById(ctx, Item, itemId, updates) {
   try {
     const result = await Item.findOneAndUpdate(

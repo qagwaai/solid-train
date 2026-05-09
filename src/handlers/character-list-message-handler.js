@@ -4,10 +4,18 @@ const { CHARACTER_LIST_RESPONSE_EVENT } = require('../model/character-list');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CharacterListMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate payload and build character-list response.
+   * @param {Object} payload
+   * @returns {Object}
+   */
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
 
@@ -42,6 +50,12 @@ class CharacterListMessageHandler {
     };
   }
 
+  /**
+   * Enforce session, emit character-list-response, and return response payload.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-list-request', payload);
 

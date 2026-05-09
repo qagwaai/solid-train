@@ -4,6 +4,9 @@ const { MARKET_LIST_RESPONSE_EVENT } = require('../model/market-list');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketListMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
@@ -27,6 +30,11 @@ class MarketListMessageHandler {
     return kind === 'static' || kind === 'orbital-elements';
   }
 
+  /**
+   * Build market-list response and enforce canonical spatial/trajectory shape.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
@@ -97,6 +105,12 @@ class MarketListMessageHandler {
     };
   }
 
+  /**
+   * Enforce session and emit market-list-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-list-request', payload);
 

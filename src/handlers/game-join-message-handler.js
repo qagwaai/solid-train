@@ -4,10 +4,18 @@ const { GAME_JOIN_RESPONSE_EVENT } = require('../model/game-join');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class GameJoinMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate payload and produce base game-join response.
+   * @param {Object} payload
+   * @returns {Object}
+   */
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
@@ -51,6 +59,12 @@ class GameJoinMessageHandler {
     };
   }
 
+  /**
+   * Join an existing character to runtime game state and emit game-join-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('game-join', payload);
 
@@ -68,6 +82,7 @@ class GameJoinMessageHandler {
     if (response.success) {
       const character = this.context.findCharacter(payload?.playerName, payload?.characterId);
       if (character) {
+        // Join operation only mutates runtime game state; character data remains unchanged.
         this.context.joinCharacterToGame(payload?.playerName, character);
       }
     }

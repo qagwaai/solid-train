@@ -4,10 +4,18 @@ const { MARKET_SELL_RESPONSE_EVENT, MARKET_SELL_FAILURE_REASONS } = require('../
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketSellMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate payload and execute sell transaction in context layer.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
@@ -37,6 +45,7 @@ class MarketSellMessageHandler {
       };
     }
 
+    // Shared market transaction executor keeps buy/sell side effects aligned.
     const result = await this.context.executeMarketTransactionAsync({
       playerName,
       characterId,
@@ -66,6 +75,11 @@ class MarketSellMessageHandler {
     };
   }
 
+  /**
+   * Map failure reasons to stable client-facing messages.
+   * @param {string} reason
+   * @returns {string}
+   */
   messageForReason(reason) {
     switch (reason) {
       case MARKET_SELL_FAILURE_REASONS.PLAYER_NOT_REGISTERED:
@@ -89,6 +103,12 @@ class MarketSellMessageHandler {
     }
   }
 
+  /**
+   * Enforce session, execute sell flow, and emit market-sell-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-sell-request', payload);
 

@@ -1,5 +1,12 @@
 'use strict';
 
+/**
+ * Upsert a market by (marketId, solarSystemId).
+ * @param {Object} ctx
+ * @param {Object} Market
+ * @param {Object} marketData
+ * @returns {Promise<Object|null>}
+ */
 async function upsertMarket(ctx, Market, marketData) {
   try {
     const marketId = ctx.toNonEmptyString(marketData?.marketId);

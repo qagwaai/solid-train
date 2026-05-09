@@ -4,10 +4,18 @@ const { SHIP_LIST_RESPONSE_EVENT } = require('../model/ship-list');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class ShipListMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate payload and build ship list response for a character.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
@@ -46,6 +54,7 @@ class ShipListMessageHandler {
       };
     }
 
+    // Hydration resolves item references and normalized ship surface before returning to clients.
     const ships = Array.isArray(character.ships)
       ? await this.context.hydrateShipsAsync(character.ships)
       : [];
@@ -59,6 +68,12 @@ class ShipListMessageHandler {
     };
   }
 
+  /**
+   * Enforce session, emit ship-list-response, and return response payload.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-list-request', payload);
 

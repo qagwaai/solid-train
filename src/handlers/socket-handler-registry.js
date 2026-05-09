@@ -25,6 +25,7 @@ const { MARKET_LEDGER_LIST_REQUEST_EVENT } = require('../model/market-ledger-lis
 const { MARKET_BUY_REQUEST_EVENT } = require('../model/market-buy');
 const { MARKET_SELL_REQUEST_EVENT } = require('../model/market-sell');
 
+// Central table for request-event to handler bindings used by server socket wiring.
 const SOCKET_HANDLER_REGISTRY = [
   { event: REGISTER_EVENT, handlerKey: 'registerMessageHandler', errorLabel: 'Register' },
   { event: LOGIN_EVENT, handlerKey: 'loginMessageHandler', errorLabel: 'Login' },
@@ -132,6 +133,11 @@ const SOCKET_HANDLER_REGISTRY = [
   },
 ];
 
+/**
+ * Register all configured socket event handlers that are present in handlersByKey.
+ * @param {import('socket.io').Socket} socket
+ * @param {Record<string, { handle: Function }>} handlersByKey
+ */
 function registerSocketHandlers(socket, handlersByKey) {
   for (const entry of SOCKET_HANDLER_REGISTRY) {
     const handler = handlersByKey[entry.handlerKey];

@@ -6,10 +6,19 @@ const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/ses
 const VALID_CONTAINER_TYPES = ['ship', 'market'];
 
 class ItemListByContainerMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate container query, fetch matching items, and emit container list response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-list-by-container-request', payload);
 

@@ -4,10 +4,18 @@ const { CHARACTER_DELETE_RESPONSE_EVENT } = require('../model/character-delete')
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CharacterDeleteMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate payload and produce base delete response.
+   * @param {Object} payload
+   * @returns {Object}
+   */
   buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
@@ -49,6 +57,12 @@ class CharacterDeleteMessageHandler {
     };
   }
 
+  /**
+   * Delete character, detach from joined game state, and emit response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-delete-request', payload);
 
@@ -66,6 +80,7 @@ class CharacterDeleteMessageHandler {
     if (response.success) {
       try {
         await this.context.deleteCharacterAsync(payload?.playerName, payload?.characterId);
+        // Keep game membership state in sync with persisted character deletion.
         this.context.detachCharacterFromGame(payload?.playerName, payload?.characterId);
       } catch (error) {
         this.context.log(`[character-delete-handler] Failed to delete character: ${error.message}`);

@@ -1,5 +1,12 @@
 'use strict';
 
+/**
+ * Fetch a celestial body by logical id.
+ * @param {Object} ctx
+ * @param {Object} CelestialBody
+ * @param {string} celestialBodyId
+ * @returns {Promise<Object|null>}
+ */
 async function getCelestialBodyById(ctx, CelestialBody, celestialBodyId) {
   try {
     if (!celestialBodyId || typeof celestialBodyId !== 'string') {
@@ -14,6 +21,13 @@ async function getCelestialBodyById(ctx, CelestialBody, celestialBodyId) {
   }
 }
 
+/**
+ * Find celestial bodies in radius with optional creator/mission/state filters.
+ * @param {Object} ctx
+ * @param {Object} CelestialBody
+ * @param {{ solarSystemId?: string, positionKm?: Object, distanceKm?: number, createdByCharacterId?: string, missionId?: string, stateValues?: string[] }} query
+ * @returns {Promise<Array<{ celestialBody: Object, distanceKm: number }>>}
+ */
 async function findCelestialBodiesNearPosition(ctx, CelestialBody, query) {
   const solarSystemId = typeof query?.solarSystemId === 'string' ? query.solarSystemId.trim() : '';
   const positionKm = query?.positionKm;
@@ -65,6 +79,7 @@ async function findCelestialBodiesNearPosition(ctx, CelestialBody, query) {
       boundsQuery.state = { $in: stateValues };
     }
 
+    // Apply exact distance after bounds prefilter to keep query/index usage efficient.
     const candidates = await CelestialBody.find(boundsQuery).lean();
 
     return candidates
@@ -92,6 +107,13 @@ async function findCelestialBodiesNearPosition(ctx, CelestialBody, query) {
   }
 }
 
+/**
+ * List celestial bodies with optional filters.
+ * @param {Object} ctx
+ * @param {Object} CelestialBody
+ * @param {{ solarSystemId?: string, createdByCharacterId?: string, missionId?: string, stateValues?: string[] }} [query]
+ * @returns {Promise<Object[]>}
+ */
 async function getCelestialBodies(ctx, CelestialBody, query = {}) {
   try {
     const mongoQuery = {};

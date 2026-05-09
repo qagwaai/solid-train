@@ -7,10 +7,18 @@ const {
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketQuoteMessageHandler {
+  /**
+   * @param {Object} context
+   */
   constructor(context) {
     this.context = context;
   }
 
+  /**
+   * Validate quote request and build market quote response.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
@@ -81,6 +89,11 @@ class MarketQuoteMessageHandler {
     };
   }
 
+  /**
+   * Map quote failure reason codes to stable client-facing messages.
+   * @param {string} reason
+   * @returns {string}
+   */
   messageForReason(reason) {
     switch (reason) {
       case MARKET_QUOTE_FAILURE_REASONS.MARKET_NOT_FOUND:
@@ -100,6 +113,12 @@ class MarketQuoteMessageHandler {
     }
   }
 
+  /**
+   * Enforce session and emit market-quote-response.
+   * @param {import('socket.io').Socket} socket
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-quote-request', payload);
 
