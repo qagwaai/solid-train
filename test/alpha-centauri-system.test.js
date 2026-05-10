@@ -64,4 +64,7 @@ test('Alpha Centauri seeded snapshot exposes UI-grade fields per body', () => {
   assert.equal(proximaB.bodyType, 'planet');
   assert.equal(proximaB.parentBodyId, 'alpha-centauri-star-tertiary');
   assert.equal(proximaB.planetType, 'rocky');
+  // Planets orbiting a star must NOT carry anchorBodyId even in a multi-star system.
+  assert.equal(proximaB.orbitalElements?.anchorBodyId, undefined,
+    'Proxima b orbits a star; anchorBodyId must be absent');
 });

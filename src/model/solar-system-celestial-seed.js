@@ -175,7 +175,20 @@ function buildCelestialBodyDocument(
     bodyType: catalogEntry.bodyType,
     displayName: catalogEntry.displayName,
     parentBodyId: catalogEntry.parentBodyId || null,
-    orbitalElements: catalogEntry.orbit ? { ...catalogEntry.orbit } : null,
+    orbitalElements: (() => {
+      if (!catalogEntry.orbit) return null;
+      const orb = { ...catalogEntry.orbit };
+      // Add anchorBodyId when the orbit is centred on a non-star body (e.g. moons,
+      // sub-satellites). Planets orbiting a star do not need this field because
+      // clients can assume heliocentric / barycentric coordinates.
+      if (catalogEntry.parentBodyId) {
+        const parentEntry = catalogById.get(catalogEntry.parentBodyId);
+        if (parentEntry && parentEntry.bodyType !== 'star') {
+          orb.anchorBodyId = catalogEntry.parentBodyId;
+        }
+      }
+      return orb;
+    })(),
     physicalCatalog: catalogEntry.physical || null,
     atmosphere: catalogEntry.atmosphere || null,
     discovery: catalogEntry.discovery || null,

@@ -2844,6 +2844,34 @@ spatial contract (`spatial.solarSystemId`, `spatial.frame`, `spatial.positionKm`
 `spatial.epochMs`) and may include `visualization` (color hex / texture key),
 `physicalCatalog`, `orbitalElements`, and `planetType` for UI rendering.
 
+**`orbitalElements.anchorBodyId` rule** — When a body orbits a non-star parent
+(moons, sub-satellites, etc.) its `orbitalElements.semiMajorAxisKm` is measured
+relative to that parent, not to the system barycentre. In those cases
+`orbitalElements.anchorBodyId` is set to the `id` of the parent body as it
+appears in the same `bodies` array. Bodies that orbit a star directly (planets,
+dwarf planets) do **not** include `anchorBodyId`.
+
+Example — Luna:
+
+```json
+{
+  "id": "sol-luna",
+  "bodyType": "moon",
+  "parentBodyId": "sol-earth",
+  "orbitalElements": {
+    "anchorBodyId": "sol-earth",
+    "semiMajorAxisKm": 384400,
+    "eccentricity": 0.0549,
+    "inclinationDeg": 5.145,
+    "longitudeOfAscendingNodeDeg": 0,
+    "argumentOfPeriapsisDeg": 0,
+    "meanAnomalyAtEpochDeg": 0,
+    "orbitalPeriodSec": 2360591.5104,
+    "epoch": "2000-01-01T12:00:00.000Z"
+  }
+}
+```
+
 ```json
 {
   "success": true,
