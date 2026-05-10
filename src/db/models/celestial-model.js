@@ -60,6 +60,10 @@ function createCelestialModelArtifacts({
       meanAnomalyAtEpochDeg: { type: Number, required: true, default: 0 },
       orbitalPeriodSec: { type: Number, required: true, min: 1 },
       epoch: { type: String, required: true },
+      // Present on moons / sub-satellites only. Identifies the parent non-star
+      // body whose position is the origin for semiMajorAxisKm. Absent for bodies
+      // that orbit a star directly.
+      anchorBodyId: { type: String, default: null },
     },
     { _id: false }
   );
