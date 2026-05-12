@@ -43,6 +43,13 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
     if (!force && isCurrentVersion) {
       const persisted = await ctx.databaseService.getCelestialBodies({ solarSystemId });
       if (Array.isArray(persisted) && persisted.length > 0) {
+        // Clear any stale entries for this system before caching fresh data
+        for (const [key, value] of ctx.celestialBodiesById.entries()) {
+          if (value.spatial?.solarSystemId === solarSystemId) {
+            ctx.celestialBodiesById.delete(key);
+          }
+        }
+        
         for (const body of persisted) {
           const normalized = ctx.normalizeCelestialBody(body);
           ctx.celestialBodiesById.set(normalized.id, normalized);
@@ -69,6 +76,14 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
 
     const persisted = await ctx.databaseService.getCelestialBodies({ solarSystemId });
     const toCache = persisted.length > 0 ? persisted : bodies;
+    
+    // Clear any stale entries for this system before caching fresh data
+    for (const [key, value] of ctx.celestialBodiesById.entries()) {
+      if (value.spatial?.solarSystemId === solarSystemId) {
+        ctx.celestialBodiesById.delete(key);
+      }
+    }
+    
     for (const body of toCache) {
       const normalized = ctx.normalizeCelestialBody(body);
       ctx.celestialBodiesById.set(normalized.id, normalized);
@@ -83,6 +98,13 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
     };
   } catch (error) {
     ctx.log(`[context] Error seeding solar system celestial bodies: ${error.message}`);
+
+    // Clear any stale entries for this system before caching fresh data
+    for (const [key, value] of ctx.celestialBodiesById.entries()) {
+      if (value.spatial?.solarSystemId === solarSystemId) {
+        ctx.celestialBodiesById.delete(key);
+      }
+    }
 
     for (const body of bodies) {
       const normalized = ctx.normalizeCelestialBody(body);
@@ -195,7 +217,23 @@ async function getCelestialBodiesAsync(ctx, query = {}) {
       mergedById.set(normalizedCelestialBody.id, normalizedCelestialBody);
     }
 
-    return [...mergedById.values()];
+    const results = [...mergedById.values()];
+    
+    // Safety check: log if duplicates are somehow still present
+    const seenIds = new Set();
+    const duplicates = [];
+    for (const result of results) {
+      if (seenIds.has(result.id)) {
+        duplicates.push(result.id);
+      } else {
+        seenIds.add(result.id);
+      }
+    }
+    if (duplicates.length > 0) {
+      ctx.log(`[celestial-operations] WARNING: getCelestialBodiesAsync returned duplicate IDs: ${duplicates.join(', ')}`);
+    }
+    
+    return results;
   }
 
   return cacheMatches;
