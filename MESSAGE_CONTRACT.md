@@ -2809,6 +2809,10 @@ Proxima b, c, d.
       "starCount": 1,
       "distanceParsec": 0.0000001,
       "positionPc": { "x": 0, "y": 0, "z": 0 },
+      "planetCount": 8,
+      "moonCount": 146,
+      "asteroidCount": 5000,
+      "marketCount": 14,
       "primaryStar": {
         "hygId": "0",
         "spectralClass": "G",
@@ -2821,6 +2825,14 @@ Proxima b, c, d.
   ]
 }
 ```
+
+#### Response Fields
+
+- `planetCount` (optional, number) — count of planet-class bodies in the system
+- `moonCount` (optional, number) — count of moon-class bodies in the system
+- `asteroidCount` (optional, number) — count of asteroid-class bodies in the system
+- `marketCount` (optional, number) — count of active market stations in the system
+- All count fields are optional and omitted if data is not available or too expensive to compute inline. The client will display "—" for any missing value.
 
 ### Event: `solar-system-get-request`
 

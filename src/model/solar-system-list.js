@@ -25,6 +25,10 @@ const SOLAR_SYSTEM_LIST_RESPONSE_EVENT = 'solar-system-list-response';
  * @property {number|null} distanceParsec
  * @property {{x:number,y:number,z:number}} positionPc
  * @property {Object|null} primaryStar
+ * @property {number} [planetCount]
+ * @property {number} [moonCount]
+ * @property {number} [asteroidCount]
+ * @property {number} [marketCount]
  */
 
 /**

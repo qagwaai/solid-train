@@ -96,17 +96,56 @@ class SolarSystemListMessageHandler {
     filtered.sort((a, b) => (a.distanceParsec ?? Infinity) - (b.distanceParsec ?? Infinity));
     if (limit) filtered = filtered.slice(0, limit);
 
+    // Enrich each system with optional aggregate counts from the database
+    const enrichedSystems = await Promise.all(
+      filtered.map((system) => this.enrichSystemWithCounts(system))
+    );
+
     return this.attachRequestId(
       {
         success: true,
-        message: filtered.length
+        message: enrichedSystems.length
           ? 'Solar system list retrieved successfully'
           : 'No solar systems matched the query',
         playerName: player.playerName,
-        solarSystems: filtered,
+        solarSystems: enrichedSystems,
       },
       payload
     );
+  }
+
+  /**
+   * Enrich a solar system entry with optional count fields from the database.
+   * @param {Object} system
+   * @returns {Promise<Object>}
+   */
+  async enrichSystemWithCounts(system) {
+    const enriched = { ...system };
+
+    try {
+      // Get celestial bodies for this system and count by type
+      const bodies = await this.context.getCelestialBodiesAsync({
+        solarSystemId: system.id,
+      });
+
+      enriched.planetCount = bodies.filter((b) => b.bodyType === 'planet').length;
+      enriched.moonCount = bodies.filter((b) => b.bodyType === 'moon').length;
+      enriched.asteroidCount = bodies.filter((b) => b.bodyType === 'asteroid').length;
+
+      // Get markets for this system
+      const markets = await this.context.getMarketsAsync({
+        solarSystemId: system.id,
+      });
+
+      enriched.marketCount = markets.length;
+    } catch (error) {
+      // If enrichment fails, just return the system without the count fields
+      this.context.log(
+        `[solar-system-list] Failed to enrich counts for system ${system.id}: ${error.message}`
+      );
+    }
+
+    return enriched;
   }
 
   async handle(socket, payload) {
