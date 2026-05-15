@@ -252,6 +252,37 @@ function createCelestialModelArtifacts({
         ),
         default: null,
       },
+      clusterId: {
+        type: String,
+        default: null,
+        index: true,
+      },
+      clusterCenterKm: {
+        type: new mongoose.Schema(
+          {
+            x: { type: Number, required: true },
+            y: { type: Number, required: true },
+            z: { type: Number, required: true },
+          },
+          { _id: false }
+        ),
+        default: null,
+      },
+      localOffsetKm: {
+        type: new mongoose.Schema(
+          {
+            x: { type: Number, required: true },
+            y: { type: Number, required: true },
+            z: { type: Number, required: true },
+          },
+          { _id: false }
+        ),
+        default: null,
+      },
+      distanceFromClusterCenterKm: {
+        type: Number,
+        default: null,
+      },
     },
     {
       collection: 'cb',

@@ -641,6 +641,8 @@ function normalizeCelestialBody(ctx, celestialBody) {
   const spatial = normalizeSpatialState(ctx, source.spatial);
   const motion = normalizeMotionState(ctx, source.motion);
   const physical = normalizePhysicalState(ctx, source.physical);
+  const clusterCenterKm = normalizeTriple(ctx, source.clusterCenterKm);
+  const localOffsetKm = normalizeTriple(ctx, source.localOffsetKm);
 
   if (!spatial) {
     throw new Error(
@@ -692,6 +694,29 @@ function normalizeCelestialBody(ctx, celestialBody) {
     ...(source.atmosphere ? { atmosphere: source.atmosphere } : {}),
     ...(source.discovery ? { discovery: source.discovery } : {}),
     ...(source.magnitudes ? { magnitudes: source.magnitudes } : {}),
+    ...(source.planetType ? { planetType: toNonEmptyString(ctx, source.planetType) } : {}),
+    ...(source.hygId ? { hygId: toNonEmptyString(ctx, source.hygId) } : {}),
+    ...(source.visualization
+      ? {
+          visualization: {
+            ...(source.visualization.colorHex
+              ? { colorHex: toNonEmptyString(ctx, source.visualization.colorHex) }
+              : {}),
+            ...(source.visualization.spectralClass
+              ? { spectralClass: toNonEmptyString(ctx, source.visualization.spectralClass) }
+              : {}),
+            ...(source.visualization.textureKey
+              ? { textureKey: toNonEmptyString(ctx, source.visualization.textureKey) }
+              : {}),
+          },
+        }
+      : {}),
+    ...(source.clusterId ? { clusterId: toNonEmptyString(ctx, source.clusterId) } : {}),
+    ...(clusterCenterKm ? { clusterCenterKm } : {}),
+    ...(localOffsetKm ? { localOffsetKm } : {}),
+    ...(isFiniteNumber(ctx, source.distanceFromClusterCenterKm)
+      ? { distanceFromClusterCenterKm: source.distanceFromClusterCenterKm }
+      : {}),
     ...(source.isCatalogBody ? { isCatalogBody: true } : {}),
   };
 }

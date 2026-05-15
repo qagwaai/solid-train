@@ -248,6 +248,46 @@ test('MissionUpsertMessageHandler seeds first-target asteroid field on mission s
   assert.ok(seededField.every((body) => body.state === 'unscanned'));
   assert.ok(seededField.every((body) => body.missionId === 'first-target'));
   assert.ok(seededField.every((body) => body.sourceScanId));
+  assert.ok(seededField.every((body) => body.bodyType === 'asteroid'));
+  assert.ok(seededField.every((body) => typeof body.clusterId === 'string' && body.clusterId));
+  assert.ok(
+    seededField.every(
+      (body) =>
+        body.clusterCenterKm &&
+        body.clusterCenterKm.x === 0 &&
+        body.clusterCenterKm.y === 0 &&
+        body.clusterCenterKm.z === 0
+    )
+  );
+  assert.ok(
+    seededField.every(
+      (body) =>
+        body.localOffsetKm &&
+        body.localOffsetKm.x === body.spatial.positionKm.x &&
+        body.localOffsetKm.y === body.spatial.positionKm.y &&
+        body.localOffsetKm.z === body.spatial.positionKm.z
+    )
+  );
+  assert.ok(
+    seededField.every((body) => typeof body.distanceFromClusterCenterKm === 'number')
+  );
+  assert.ok(
+    seededField.every(
+      (body) =>
+        body.physicalCatalog &&
+        typeof body.physicalCatalog.estimatedDiameterM === 'number' &&
+        typeof body.physicalCatalog.estimatedMassKg === 'number' &&
+        typeof body.physicalCatalog.radiusKm === 'number'
+    )
+  );
+  assert.ok(
+    seededField.every(
+      (body) =>
+        body.visualization &&
+        typeof body.visualization.colorHex === 'string' &&
+        typeof body.visualization.textureKey === 'string'
+    )
+  );
 });
 
 test('MissionUpsertMessageHandler does not duplicate first-target asteroid field on repeated start', async () => {

@@ -16,6 +16,8 @@ const STARTER_MISSION_ASTEROID_STATE = 'unscanned';
 const STARTER_MISSION_ASTEROID_COUNT = 10;
 const STARTER_MISSION_ACTIVATION_STATUSES = new Set(['started', 'in-progress']);
 const MISSION_STATUS_SET = new Set(MISSION_STATUS_VALUES);
+const STARTER_MISSION_CLUSTER_ID = 'first-target-primary-cluster';
+const STARTER_MISSION_CLUSTER_CENTER_KM = Object.freeze({ x: 0, y: 0, z: 0 });
 const STARTER_MISSION_ASTEROID_MATERIALS = [
   { rarity: 'Common', material: 'Iron', textureColor: '#8f99a7' },
   { rarity: 'Common', material: 'Nickel-Iron', textureColor: '#8da6b3' },
@@ -241,6 +243,25 @@ class MissionUpsertMessageHandler {
     }
   }
 
+  calculateDistanceKmFromOrigin(positionKm) {
+    return Math.sqrt(
+      positionKm.x * positionKm.x + positionKm.y * positionKm.y + positionKm.z * positionKm.z
+    );
+  }
+
+  formatStarterAsteroidDisplayName(sequence) {
+    return `First Target Asteroid ${sequence}`;
+  }
+
+  buildStarterAsteroidTextureKey(materialProfile) {
+    const material = this.context
+      .toNonEmptyString(materialProfile?.material)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return material ? `asteroid-${material}` : 'asteroid-generic';
+  }
+
   createStarterMissionAsteroidField(parsed) {
     const missionId = DEFAULT_STARTER_MISSION_ID;
     const baseCharacterId = this.context.toNonEmptyString(parsed.characterId);
@@ -253,10 +274,24 @@ class MissionUpsertMessageHandler {
       const materialProfile =
         STARTER_MISSION_ASTEROID_MATERIALS[index % STARTER_MISSION_ASTEROID_MATERIALS.length];
       const sourceScanId = `sample-a${sequence}`;
+      const positionKm = {
+        x: Math.round(Math.cos(angle) * radiusKm),
+        y: Math.round(Math.sin(angle) * radiusKm),
+        z: Math.round((index - 4.5) * 12),
+      };
+      const localOffsetKm = {
+        x: positionKm.x - STARTER_MISSION_CLUSTER_CENTER_KM.x,
+        y: positionKm.y - STARTER_MISSION_CLUSTER_CENTER_KM.y,
+        z: positionKm.z - STARTER_MISSION_CLUSTER_CENTER_KM.z,
+      };
+      const estimatedDiameterM = 110 + index * 12;
+      const estimatedMassKg = 22000000000 + index * 3500000000;
 
       return {
         id: `cb-${baseCharacterId}-${missionId}-a${sequence}`,
         catalogId: `FIRST-TARGET-A${sequence}`,
+        bodyType: 'asteroid',
+        displayName: this.formatStarterAsteroidDisplayName(sequence),
         sourceScanId,
         createdByCharacterId: baseCharacterId,
         missionId,
@@ -266,13 +301,15 @@ class MissionUpsertMessageHandler {
         spatial: {
           solarSystemId: DEFAULT_SOLAR_SYSTEM_ID,
           frame: 'barycentric',
-          positionKm: {
-            x: Math.round(Math.cos(angle) * radiusKm),
-            y: Math.round(Math.sin(angle) * radiusKm),
-            z: Math.round((index - 4.5) * 12),
-          },
+          positionKm,
           epochMs: new Date(timestamp).getTime(),
         },
+        clusterId: `${STARTER_MISSION_CLUSTER_ID}-${baseCharacterId}`,
+        clusterCenterKm: { ...STARTER_MISSION_CLUSTER_CENTER_KM },
+        localOffsetKm,
+        distanceFromClusterCenterKm: Number(
+          this.calculateDistanceKmFromOrigin(localOffsetKm).toFixed(3)
+        ),
         motion: {
           velocityKmPerSec: {
             x: Number((Math.sin(angle) * 0.03).toFixed(4)),
@@ -286,8 +323,17 @@ class MissionUpsertMessageHandler {
           },
         },
         physical: {
-          estimatedMassKg: 22000000000 + index * 3500000000,
-          estimatedDiameterM: 110 + index * 12,
+          estimatedMassKg,
+          estimatedDiameterM,
+        },
+        physicalCatalog: {
+          estimatedMassKg,
+          estimatedDiameterM,
+          radiusKm: Number((estimatedDiameterM / 2000).toFixed(3)),
+        },
+        visualization: {
+          colorHex: materialProfile.textureColor,
+          textureKey: this.buildStarterAsteroidTextureKey(materialProfile),
         },
         observability: {
           visibility: 'visible',

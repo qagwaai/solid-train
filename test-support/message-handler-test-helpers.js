@@ -129,6 +129,21 @@ function createCelestialBody(overrides = {}) {
     destroyedReason: overrides.destroyedReason || null,
     debrisSeed: overrides.debrisSeed || null,
     debris: overrides.debris || [],
+    ...(overrides.bodyType ? { bodyType: overrides.bodyType } : {}),
+    ...(overrides.displayName ? { displayName: overrides.displayName } : {}),
+    ...(overrides.parentBodyId !== undefined ? { parentBodyId: overrides.parentBodyId } : {}),
+    ...(overrides.orbitalElements ? { orbitalElements: overrides.orbitalElements } : {}),
+    ...(overrides.physicalCatalog ? { physicalCatalog: overrides.physicalCatalog } : {}),
+    ...(overrides.atmosphere ? { atmosphere: overrides.atmosphere } : {}),
+    ...(overrides.discovery ? { discovery: overrides.discovery } : {}),
+    ...(overrides.magnitudes ? { magnitudes: overrides.magnitudes } : {}),
+    ...(overrides.visualization ? { visualization: overrides.visualization } : {}),
+    ...(overrides.clusterId ? { clusterId: overrides.clusterId } : {}),
+    ...(overrides.clusterCenterKm ? { clusterCenterKm: overrides.clusterCenterKm } : {}),
+    ...(overrides.localOffsetKm ? { localOffsetKm: overrides.localOffsetKm } : {}),
+    ...(overrides.distanceFromClusterCenterKm !== undefined
+      ? { distanceFromClusterCenterKm: overrides.distanceFromClusterCenterKm }
+      : {}),
   };
 }
 

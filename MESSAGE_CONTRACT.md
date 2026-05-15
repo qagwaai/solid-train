@@ -1,6 +1,6 @@
 ---
 Owner: Project Maintainers
-Last Verified: 2026-05-08
+Last Verified: 2026-05-15
 Status: Living
 ---
 
@@ -50,6 +50,17 @@ including required fields, response payloads, and edge-case behavior.
   - Location-filtered market responses include a `route` object per market (`in-system`, `gate-route`, or `no-route`).
   - `market-list-response` includes `distanceAu` computed from the solar system barycenter `{x:0,y:0,z:0}`.
   - Ships optionally include a `driveProfile` sub-document when the ship has a configured drive.
+  - In `solar-system-get-response`, asteroid records are viewer-canonicalized with:
+    - `bodyType: "asteroid"`
+    - `displayName`
+    - `physicalCatalog.{estimatedDiameterM, estimatedMassKg, radiusKm}`
+    - `visualization.{colorHex, textureKey}`
+  - Mission-generated asteroid records include cluster-aware spatial metadata:
+    - `clusterId` (string)
+    - `clusterCenterKm.{x,y,z}`
+    - `localOffsetKm.{x,y,z}` (relative to cluster center or anchor)
+    - optional `distanceFromClusterCenterKm`
+  - Backward compatibility is preserved: canonical spatial truth remains `spatial.positionKm` in barycentric frame.
 - Legacy fields are not canonical and are rejected at request boundaries where applicable:
   - `location`, `kinematics`, root `solarSystemId` on celestial body payloads.
   - `item.kinematics` on item payloads (use `item.spatial` and optional `item.motion`).
@@ -99,6 +110,12 @@ including required fields, response payloads, and edge-case behavior.
 - Ship drive profile:
   - positive: `ship-list-response` includes `ships[].driveProfile` when the ship has a configured drive
   - positive: `ships[].driveProfile` is `null` or absent when the ship has no configured drive
+- Solar-system asteroid canonicalization:
+  - positive: `solar-system-get-response` asteroid bodies include `bodyType: "asteroid"`, `displayName`, `physicalCatalog.{estimatedDiameterM, estimatedMassKg, radiusKm}`, and `visualization.{colorHex, textureKey}`
+  - positive: asteroid `spatial.positionKm` remains present and unchanged as barycentric coordinates
+- Mission asteroid cluster metadata:
+  - positive: mission-generated asteroids include `clusterId`, `clusterCenterKm`, and `localOffsetKm`
+  - positive: `distanceFromClusterCenterKm` is optional and present when available
 
 ## Event: `register`
 
@@ -2853,8 +2870,30 @@ The `bodies` array contains all celestial bodies (stars, planets, moons,
 asteroids) belonging to the system; the `stars` array is a convenience filter
 of `bodies` where `bodyType === 'star'`. Each body includes the canonical
 spatial contract (`spatial.solarSystemId`, `spatial.frame`, `spatial.positionKm`,
-`spatial.epochMs`) and may include `visualization` (color hex / texture key),
-`physicalCatalog`, `orbitalElements`, and `planetType` for UI rendering.
+`spatial.epochMs`) and may include `orbitalElements` and `planetType`.
+
+For asteroid records in `solar-system-get-response`, the server guarantees a
+viewer-native canonical shape:
+
+- `bodyType` is always `"asteroid"`
+- `displayName` is always present
+- `physicalCatalog` includes:
+  - `estimatedDiameterM`
+  - `estimatedMassKg`
+  - `radiusKm`
+- `visualization` includes:
+  - `colorHex`
+  - `textureKey`
+
+For mission-generated asteroids, cluster-aware metadata is included:
+
+- `clusterId` (string)
+- `clusterCenterKm.{x,y,z}`
+- `localOffsetKm.{x,y,z}`
+- optional `distanceFromClusterCenterKm`
+
+`spatial.positionKm` remains the canonical barycentric position for backwards
+compatibility and must be used by clients that rely on global-system rendering.
 
 **`orbitalElements.anchorBodyId` rule** — When a body orbits a non-star parent
 (moons, sub-satellites, etc.) its `orbitalElements.semiMajorAxisKm` is measured

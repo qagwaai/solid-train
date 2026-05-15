@@ -9,6 +9,7 @@ const { SOLAR_SYSTEM_GET_RESPONSE_EVENT } = require('../src/model/solar-system-g
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
+  createCelestialBody,
   createTestContext,
   seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
@@ -79,4 +80,65 @@ test('SolarSystemGetMessageHandler emits invalid session before query', async ()
 
   assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
   assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
+});
+
+test('SolarSystemGetMessageHandler returns canonical asteroid fields for mission-generated bodies', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
+  });
+
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'cb-mission-a1',
+      bodyType: 'asteroid',
+      missionId: 'first-target',
+      createdByCharacterId: 'character-1',
+      displayName: 'Starter Rock',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 111, y: -22, z: 7 },
+        epochMs: 1713360000000,
+      },
+      physical: {
+        estimatedMassKg: 15000000000,
+        estimatedDiameterM: 120,
+      },
+      clusterId: 'cluster-a',
+      clusterCenterKm: { x: 0, y: 0, z: 0 },
+      localOffsetKm: { x: 111, y: -22, z: 7 },
+      distanceFromClusterCenterKm: 113.376,
+      visualization: { colorHex: '#8f99a7', textureKey: 'asteroid-iron' },
+    })
+  );
+
+  const handler = new SolarSystemGetMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+  });
+
+  assert.equal(response.success, true);
+  const asteroid = response.bodies.find((body) => body.id === 'cb-mission-a1');
+  assert.ok(asteroid);
+  assert.equal(asteroid.bodyType, 'asteroid');
+  assert.equal(asteroid.displayName, 'Starter Rock');
+  assert.deepEqual(asteroid.spatial.positionKm, { x: 111, y: -22, z: 7 });
+  assert.deepEqual(asteroid.physicalCatalog, {
+    estimatedDiameterM: 120,
+    estimatedMassKg: 15000000000,
+    radiusKm: 0.06,
+  });
+  assert.deepEqual(asteroid.visualization, {
+    colorHex: '#8f99a7',
+    textureKey: 'asteroid-iron',
+  });
+  assert.equal(asteroid.clusterId, 'cluster-a');
+  assert.deepEqual(asteroid.clusterCenterKm, { x: 0, y: 0, z: 0 });
+  assert.deepEqual(asteroid.localOffsetKm, { x: 111, y: -22, z: 7 });
+  assert.equal(asteroid.distanceFromClusterCenterKm, 113.376);
 });
