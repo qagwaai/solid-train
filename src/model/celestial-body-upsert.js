@@ -14,16 +14,36 @@ const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
  */
 
 /**
- * @typedef {Object} CelestialBodyLocation
+ * @typedef {Object} SpatialState
+ * @property {string} solarSystemId
+ * @property {'barycentric'} frame
  * @property {Triple} positionKm
+ * @property {number} epochMs
  */
 
 /**
- * @typedef {Object} AsteroidKinematics
+ * @typedef {Object} MotionState
  * @property {Triple} velocityKmPerSec
- * @property {Triple} angularVelocityRadPerSec
- * @property {number} estimatedMassKg
- * @property {number} estimatedDiameterM
+ * @property {Triple} [angularVelocityRadPerSec]
+ */
+
+/**
+ * @typedef {Object} PhysicalState
+ * @property {number} [estimatedMassKg]
+ * @property {number} [estimatedDiameterM]
+ */
+
+/**
+ * @typedef {Object} ObservabilityState
+ * @property {'visible'|'not-visible'|'cloaked'} visibility
+ * @property {'unscanned'|'scanned'} scanState
+ */
+
+/**
+ * @typedef {Object} ClusterMetadata
+ * @property {string} [clusterId]
+ * @property {Triple} [clusterCenterKm]
+ * @property {Triple} [localOffsetKm]
  */
 
 /**
@@ -37,16 +57,20 @@ const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
  * @typedef {Object} CelestialBodyUpsertEntity
  * @property {string} [id]
  * @property {string} catalogId
- * @property {string} solarSystemId
  * @property {string} sourceScanId
  * @property {string} createdByCharacterId
  * @property {string} [missionId]
  * @property {string} [missionInstanceId]
  * @property {string} createdAt
  * @property {string} updatedAt
- * @property {CelestialBodyLocation} location
- * @property {AsteroidKinematics} kinematics
+ * @property {SpatialState} spatial
+ * @property {MotionState} [motion]
+ * @property {PhysicalState} [physical]
+ * @property {ObservabilityState} observability
  * @property {AsteroidMaterialProfile} [composition]
+ * @property {string} [clusterId]
+ * @property {Triple} [clusterCenterKm]
+ * @property {Triple} [localOffsetKm]
  * @property {'unscanned'|'active'|'destroyed'} [state]
  */
 

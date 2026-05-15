@@ -63,6 +63,26 @@ class CelestialBodyUpsertMessageHandler {
     );
   }
 
+  hasValidClusterMetadata(celestialBody) {
+    const clusterId = celestialBody?.clusterId;
+    const clusterCenterKm = celestialBody?.clusterCenterKm;
+    const localOffsetKm = celestialBody?.localOffsetKm;
+
+    if (clusterId !== undefined && !this.context.toNonEmptyString(clusterId)) {
+      return false;
+    }
+
+    if (clusterCenterKm !== undefined && !this.isTriple(clusterCenterKm)) {
+      return false;
+    }
+
+    if (localOffsetKm !== undefined && !this.isTriple(localOffsetKm)) {
+      return false;
+    }
+
+    return true;
+  }
+
   toSafeIdPart(value) {
     return this.context
       .toNonEmptyString(value)
@@ -146,6 +166,15 @@ class CelestialBodyUpsertMessageHandler {
             textureColor: this.context.toNonEmptyString(celestialBody.composition.textureColor),
           }
         : null,
+      ...(celestialBody?.clusterId !== undefined
+        ? { clusterId: this.context.toNonEmptyString(celestialBody.clusterId) }
+        : {}),
+      ...(celestialBody?.clusterCenterKm !== undefined
+        ? { clusterCenterKm: celestialBody.clusterCenterKm ? { ...celestialBody.clusterCenterKm } : null }
+        : {}),
+      ...(celestialBody?.localOffsetKm !== undefined
+        ? { localOffsetKm: celestialBody.localOffsetKm ? { ...celestialBody.localOffsetKm } : null }
+        : {}),
       state: this.normalizeState(celestialBody?.state),
     };
   }
@@ -199,6 +228,7 @@ class CelestialBodyUpsertMessageHandler {
       !celestialBody.updatedAt ||
       !this.hasValidSpatial(celestialBody.spatial) ||
       !this.hasValidObservability(celestialBody.observability) ||
+      !this.hasValidClusterMetadata(celestialBody) ||
       !hasValidState ||
       (requiresComposition && !this.hasValidComposition(celestialBody.composition)) ||
       (celestialBody.composition && !this.hasValidComposition(celestialBody.composition))

@@ -121,6 +121,36 @@ test('CelestialBodyUpsertMessageHandler supports unscanned mission-seeded astero
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
 });
 
+test('CelestialBodyUpsertMessageHandler accepts optional cluster metadata', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ScannerOne',
+    sessionKey: 'session-1',
+    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
+  });
+
+  const handler = new CelestialBodyUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'scannerone',
+    sessionKey: 'session-1',
+    celestialBody: createCelestialBody({
+      id: 'cb-cluster-1',
+      createdByCharacterId: 'character-1',
+      clusterId: 'mission-first-target-cluster-1',
+      clusterCenterKm: { x: 0, y: 0, z: 0 },
+      localOffsetKm: { x: 125, y: -40, z: 12 },
+    }),
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.celestialBody.clusterId, 'mission-first-target-cluster-1');
+  assert.deepEqual(response.celestialBody.clusterCenterKm, { x: 0, y: 0, z: 0 });
+  assert.deepEqual(response.celestialBody.localOffsetKm, { x: 125, y: -40, z: 12 });
+  assert.equal(socket.events[0].eventName, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
+});
+
 test('CelestialBodyUpsertMessageHandler rejects legacy location field', async () => {
   const context = createTestContext();
   seedPlayer(context, {

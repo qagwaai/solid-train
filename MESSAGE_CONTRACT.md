@@ -961,6 +961,9 @@ Possible `reason` values:
     - `rarity` (one of `Common`, `Uncommon`, `Rare`, `Exotic`)
     - `material` (string)
     - `textureColor` (string)
+  - `clusterId` (optional string; stable cluster identifier for mission-generated asteroid grouping)
+  - `clusterCenterKm.x|y|z` (optional numbers; barycentric cluster centroid)
+  - `localOffsetKm.x|y|z` (optional numbers; precomputed local offset from `clusterCenterKm`)
   - `state` (optional; one of `unscanned`, `active`, `destroyed`; defaults to `active`)
 
 ### Success Response
@@ -1002,6 +1005,9 @@ Possible `reason` values:
       "material": "Nickel-Iron",
       "textureColor": "#8df7b2"
     },
+    "clusterId": "mission-first-target-cluster-1",
+    "clusterCenterKm": { "x": 0, "y": 0, "z": 0 },
+    "localOffsetKm": { "x": 1, "y": 2, "z": 3 },
     "state": "unscanned"
   }
 }
@@ -1019,6 +1025,9 @@ Possible `reason` values:
     "sourceScanId": "sample-a3",
     "state": "unscanned",
     "missionId": "first-target",
+    "clusterId": "mission-first-target-cluster-1",
+    "clusterCenterKm": { "x": 0, "y": 0, "z": 0 },
+    "localOffsetKm": { "x": 250, "y": 0, "z": -54 },
     "composition": {
       "material": "Iron",
       "rarity": "Common",
