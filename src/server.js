@@ -7,34 +7,10 @@ const { randomUUID } = require('node:crypto');
 const { Server } = require('socket.io');
 const { MongoConnection } = require('./db/connection');
 const { DatabaseService } = require('./db/service');
-const { REGISTER_EVENT } = require('./model/register');
-const { LOGIN_EVENT } = require('./model/login');
-const { CHARACTER_LIST_REQUEST_EVENT } = require('./model/character-list');
-const { CHARACTER_ADD_REQUEST_EVENT } = require('./model/character-add');
-const { CHARACTER_DELETE_REQUEST_EVENT } = require('./model/character-delete');
-const { CHARACTER_EDIT_REQUEST_EVENT } = require('./model/character-edit');
-const { SHIP_LIST_REQUEST_EVENT } = require('./model/ship-list');
-const { SHIP_UPSERT_REQUEST_EVENT } = require('./model/ship-upsert');
-const { GAME_JOIN_REQUEST_EVENT } = require('./model/game-join');
 const {
-  MISSION_UPSERT_REQUEST_EVENT,
   MISSION_UPSERT_ALIAS_REQUEST_EVENT,
   MISSION_UPSERT_ALIAS_RESPONSE_EVENT,
 } = require('./model/mission-upsert');
-const { CELESTIAL_BODY_UPSERT_REQUEST_EVENT } = require('./model/celestial-body-upsert');
-const { CELESTIAL_BODY_LIST_REQUEST_EVENT } = require('./model/celestial-body-list');
-const { MISSION_LIST_REQUEST_EVENT } = require('./model/mission-list');
-const { ITEM_UPSERT_REQUEST_EVENT } = require('./model/item-upsert');
-const { ITEM_LIST_BY_CONTAINER_REQUEST_EVENT } = require('./model/item-list-by-container');
-const { ITEM_LIST_BY_LOCATION_REQUEST_EVENT } = require('./model/item-list-by-location');
-const { LAUNCH_ITEM_REQUEST_EVENT } = require('./model/launch-item');
-const { MARKET_LIST_REQUEST_EVENT } = require('./model/market-list');
-const { MARKET_LIST_BY_LOCATION_REQUEST_EVENT } = require('./model/market-list-by-location');
-const { MARKET_QUOTE_REQUEST_EVENT } = require('./model/market-quote');
-const { MARKET_INVENTORY_LIST_REQUEST_EVENT } = require('./model/market-inventory-list');
-const { MARKET_LEDGER_LIST_REQUEST_EVENT } = require('./model/market-ledger-list');
-const { MARKET_BUY_REQUEST_EVENT } = require('./model/market-buy');
-const { MARKET_SELL_REQUEST_EVENT } = require('./model/market-sell');
 const { MessageHandlerContext } = require('./handlers/message-handler-context');
 const { RegisterMessageHandler } = require('./handlers/register-message-handler');
 const { LoginMessageHandler } = require('./handlers/login-message-handler');
@@ -99,7 +75,7 @@ function resolvePort(value = process.env.PORT) {
 
 /**
  * Build server dependencies, bind socket handlers, and return runtime objects.
- * @param {{ port?: string, databaseService?: Object|null }} [options]
+ * @param {{ port?: string, databaseService?: Object|null, initializeContext?: boolean }} [options]
  * @returns {{ port: number, server: import('node:http').Server, io: import('socket.io').Server, messageHandlerContext: Object }}
  */
 function createServer(options = {}) {
@@ -116,9 +92,11 @@ function createServer(options = {}) {
     databaseService: options.databaseService || null,
     createId: randomUUID,
   });
-  messageHandlerContext.initializeAsync({ seedDefaults: true }).catch((error) => {
-    process.stderr.write(`[server] Context initialization failed: ${error.message}\n`);
-  });
+  if (options.initializeContext !== false) {
+    messageHandlerContext.initializeAsync({ seedDefaults: true }).catch((error) => {
+      process.stderr.write(`[server] Context initialization failed: ${error.message}\n`);
+    });
+  }
   const registerMessageHandler = new RegisterMessageHandler(messageHandlerContext);
   const loginMessageHandler = new LoginMessageHandler(messageHandlerContext);
   const characterListMessageHandler = new CharacterListMessageHandler(messageHandlerContext);
@@ -267,6 +245,7 @@ async function startServer(options = {}) {
   const { port, server, io, messageHandlerContext } = createServer({
     ...options,
     databaseService,
+    initializeContext: false,
   });
 
   await messageHandlerContext.initializeAsync({ seedDefaults: true });

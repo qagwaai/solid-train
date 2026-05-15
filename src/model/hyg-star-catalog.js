@@ -29,7 +29,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const PARSEC_KM = 3.0856775814913673e13;
+const PARSEC_KM = 3.085677581491367e13;
 const SOLAR_MASS_KG = 1.98892e30;
 const SOLAR_RADIUS_KM = 695700;
 
@@ -65,6 +65,7 @@ function colorHexFromBv(bv) {
   }
   const clamped = Math.max(-0.4, Math.min(2.0, bv));
   // Piecewise linear interpolation across known anchor points.
+  /** @type {Array<[number, [number, number, number]]>} */
   const anchors = [
     [-0.4, [155, 188, 255]], // O5: blue
     [0.0, [200, 215, 255]], // A0: blue-white
@@ -77,7 +78,9 @@ function colorHexFromBv(bv) {
     [2.0, [255, 100, 70]], // late-M / L: red
   ];
 
+  /** @type {[number, [number, number, number]]} */
   let prev = anchors[0];
+  /** @type {[number, [number, number, number]]} */
   let next = anchors[anchors.length - 1];
   for (let i = 1; i < anchors.length; i += 1) {
     if (clamped <= anchors[i][0]) {

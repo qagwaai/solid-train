@@ -38,6 +38,17 @@ class MessageHandlerContext {
     this._gateGraph = null;
     this._seedDefaultsInitialized = false;
   }
+
+  /**
+   * Initialize seeded runtime defaults (markets, registry caches, etc).
+   * This explicit method exists for static tooling; delegated methods remain
+   * attached below for runtime parity with other context capabilities.
+   * @param {Object} [options]
+   * @returns {Promise<Object>}
+   */
+  initializeAsync(options = {}) {
+    return contextBootstrapService.initializeAsync(this, options);
+  }
 }
 
 function defineDelegatedMethods(prototype, service, methodNames) {

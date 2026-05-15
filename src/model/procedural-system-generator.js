@@ -149,14 +149,21 @@ function orbitalPeriodSecFromAu(semiMajorAxisAu, starMassKg) {
  * @param {Array<Object>} options.stars - HYG star records belonging to the system
  * @param {string} options.asOfTimestamp
  * @param {number} [options.seed] - optional explicit seed (defaults to first star's hygId)
- * @returns {{ stars: Array, planets: Array }}
+ * @returns {{ stars: Array, planets: Array, asOfTimestamp: string, seed: number, seedVersion: string, habitableZoneCenterAu: number }}
  */
 function generateSystemBodies(options) {
   const solarSystemId = String(options.solarSystemId || '').toLowerCase();
   const asOfTimestamp = options.asOfTimestamp || J2000_EPOCH;
   const stars = Array.isArray(options.stars) ? options.stars : [];
   if (stars.length === 0 || !solarSystemId) {
-    return { stars: [], planets: [] };
+    return {
+      stars: [],
+      planets: [],
+      asOfTimestamp,
+      seed: 0,
+      seedVersion: PROCEDURAL_SEED_VERSION,
+      habitableZoneCenterAu: 0,
+    };
   }
 
   const primary = stars[0];
@@ -303,6 +310,7 @@ function generateSystemBodies(options) {
 }
 
 function romanNumeral(n) {
+  /** @type {Array<[string, number]>} */
   const map = [
     ['M', 1000],
     ['CM', 900],
