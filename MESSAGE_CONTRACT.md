@@ -6,6 +6,69 @@ Status: Living
 
 # Stellar Socket Message Contract
 
+## Canonical Item System and Contract
+
+### Canonical Item List
+
+All item types (craftable, raw materials, buyable, etc.) are defined in a single canonical source of truth, loaded from CSVs and exposed by the server. This canonical item list is used for:
+- Validating all item upsert and creation requests (`item-upsert-request`)
+- Populating market inventory and item-related endpoints
+- Ensuring contract stability for all item-related payloads
+
+#### REST Endpoint: `GET /items`
+
+The canonical item list is available to clients via a REST endpoint:
+
+```
+GET /items
+```
+
+**Response:**
+
+```json
+{
+  "items": [
+    {
+      "itemType": "expendable-dart-drone",
+      "displayName": "Expendable Dart Drone",
+      "category": "craftable", // or "raw-material", "buyable", etc.
+      "rarity": "Common", // when applicable
+      // ...other canonical item fields
+    },
+    // ...
+  ]
+}
+```
+
+The list is authoritative. All itemType values in contract payloads must match an entry in this list.
+
+### ItemType Validation
+
+All item upsert and creation requests (`item-upsert-request`) are validated against the canonical item list:
+- If `itemType` is not present in the canonical list, the request is rejected with `success: false` and a message indicating the itemType is invalid.
+- This ensures that only valid, contract-defined items can be created or updated.
+
+### Contract Stability
+
+- The canonical item list is versioned and updated only by maintainers.
+- Clients should consume the `/items` endpoint to obtain the current authoritative list of items and their properties.
+- All item-related contract payloads (market, inventory, upsert, etc.) reference itemType and displayName values from this canonical list.
+
+### Example: Invalid itemType Upsert
+
+```json
+{
+  "success": false,
+  "message": "itemType is not recognized in canonical item list",
+  "playerName": "<canonical player name>"
+}
+```
+
+### See Also
+- [src/model/canonical-items.js] — canonical item list implementation
+- [src/handlers/items-contract.js] — REST endpoint for canonical items
+- [src/handlers/item-upsert-message-handler.js] — itemType validation logic
+
 This document describes all Socket.IO message types handled by this server,
 including required fields, response payloads, and edge-case behavior.
 

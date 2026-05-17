@@ -1,7 +1,9 @@
 'use strict';
 
+
 const { ITEM_UPSERT_RESPONSE_EVENT } = require('../model/item-upsert');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const { getItemByType } = require('../model/canonical-items');
 
 const VALID_STATES = ['contained', 'deployed', 'destroyed'];
 const VALID_DAMAGE_STATUSES = ['intact', 'damaged', 'disabled', 'destroyed'];
@@ -106,9 +108,18 @@ class ItemUpsertMessageHandler {
     const itemType = this.context.toNonEmptyString(itemPayload.itemType);
     const displayName = this.context.toNonEmptyString(itemPayload.displayName);
 
+
+    // Validate itemType against canonical items
+    const canonicalItem = itemType ? getItemByType(itemType) : null;
     if (isCreating && (!itemType || !displayName)) {
       return {
         error: 'item.itemType and item.displayName are required to create an item',
+        playerName: player.playerName,
+      };
+    }
+    if (itemType && !canonicalItem) {
+      return {
+        error: `itemType '${itemType}' is not a recognized item in the canonical item list`,
         playerName: player.playerName,
       };
     }

@@ -1,0 +1,22 @@
+Rarity,Material,Primary Use,Mining Requirement,Typical Location
+Common,Carbon,"Structural frames, basic plating",Basic Mining Laser (Tier 1),Asteroid Belts
+Common,Iron,"Structural frames, basic plating",Basic Mining Laser (Tier 1),Asteroid Belts
+Common,Copper,"Power conduits, basic wiring",Basic Mining Laser (Tier 1),Rocky Planetoids
+Common,Magnesium,Lightweight structural flares,Basic Mining Laser (Tier 1),Surface Crusts
+Common,Nickel,"Circuitry, low-tier drone shells",Basic Mining Laser (Tier 1),Moons
+Common,Silicon,"Circuitry, low-tier drone shells",Basic Mining Laser (Tier 1),
+Uncommon,Lithium,High-density battery cells,Pulse Drill (Tier 2),Brine Flats
+Uncommon,Mercury,Ion engine propellant,Pulse Drill (Tier 2),Liquid Pockets (Low-Temp)
+Uncommon,Chromium,Anti-corrosive coatings,Pulse Drill (Tier 2),Metallic Asteroids
+Uncommon,Tungsten,Heat-resistant plating,Heavy Pulse Drill (Tier 2),High-Gravity Planets
+Uncommon,Titanium,Lightweight drone armor,Pulse Drill (Tier 2),Volcanic Moons
+Rare,Silver,"Precision sensors, AI signals",Thermal Beam (Tier 3),Glacial / Icy Asteroids
+Rare,Cobalt,"Magnetic stabilizers, AI cores",Thermal Beam (Tier 3),Blue Nebula Clouds
+Rare,Palladium,"Fuel cells, catalyst systems",Thermal Beam (Tier 3),Frozen Tundra Worlds
+Rare,Uranium,Fission cores (mid-tier),Radiation-Shielded Drill (Tier 3),Radioactive Zones
+Exotic,Iridium,Extreme impact shielding,Plasma Extractor (Tier 4),Impact Craters
+Exotic,Platinum,High-end conductors (Lvl 15+),Plasma Extractor (Tier 4),Deep Core Deposits
+Exotic,Gold,High-end conductors (Lvl 15+),Plasma Extractor (Tier 4),Deep Core Deposits
+Exotic,Rhodium,Reflective shielding / Stealth,Plasma Extractor (Tier 4),White Dwarf Remnants
+Exotic,Antimony,Level 25+ Synthesis,Plasma Extractor (Tier 4),Super-dense Planetoids
+Exotic,Unobtainium,Ultimate-tier units,Dark Matter Siphon (Tier 5),Event Horizon Clusters

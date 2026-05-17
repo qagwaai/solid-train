@@ -3,6 +3,7 @@
 require('dotenv').config();
 
 const http = require('node:http');
+const express = require('express');
 const { randomUUID } = require('node:crypto');
 const { Server } = require('socket.io');
 const { MongoConnection } = require('./db/connection');
@@ -138,16 +139,18 @@ function createServer(options = {}) {
   const starListMessageHandler = new StarListMessageHandler(messageHandlerContext);
   const starGetMessageHandler = new StarGetMessageHandler(messageHandlerContext);
 
-  const server = http.createServer((req, res) => {
-    if (req.url === '/health') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok' }));
-      return;
-    }
 
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Stellar Socket.IO server is running.');
+  // Express app for REST endpoints
+  const app = express();
+  // Health check endpoint
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
   });
+  // Canonical items endpoint
+  app.use(require('./handlers/items-contract'));
+
+  // Create HTTP server from Express app
+  const server = http.createServer(app);
 
   const io = new Server(server, {
     cors: {

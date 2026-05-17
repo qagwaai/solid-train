@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "character-add-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "characterName", "characterId"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "playerName": { "type": "string" },
+    "characterName": { "type": "string" },
+    "characterId": { "type": "string" }
+  }
+}

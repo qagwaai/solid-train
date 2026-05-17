@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "celestial-body-upsert-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "celestialBody"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "celestialBody": { "type": "object" }
+  }
+}

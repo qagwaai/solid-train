@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-buy-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "marketId", "solarSystemId", "characterId", "itemId", "quantity"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "marketId": { "type": "string" },
+    "solarSystemId": { "type": "string" },
+    "characterId": { "type": "string" },
+    "itemId": { "type": "string" },
+    "quantity": { "type": "integer" },
+    "requestId": { "type": "string" },
+    "transactionId": { "type": "string" }
+  }
+}

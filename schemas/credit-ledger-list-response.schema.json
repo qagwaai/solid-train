@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "credit-ledger-list-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "entries", "total", "offset", "limit"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "playerName": { "type": "string" },
+    "entries": { "type": "array" },
+    "total": { "type": "integer" },
+    "offset": { "type": "integer" },
+    "limit": { "type": "integer" }
+  }
+}

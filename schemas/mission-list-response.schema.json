@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "mission-list-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "characterId", "missions"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "playerName": { "type": "string" },
+    "characterId": { "type": "string" },
+    "missions": { "type": "array" },
+    "requestId": { "type": "string" }
+  }
+}

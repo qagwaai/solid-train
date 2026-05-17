@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "login-request",
+  "type": "object",
+  "required": ["playerName", "password"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "password": { "type": "string" },
+    "locale": { "type": "string" }
+  }
+}

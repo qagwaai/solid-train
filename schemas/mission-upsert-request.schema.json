@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "mission-upsert-request",
+  "type": "object",
+  "required": ["playerName", "characterId", "missionId", "sessionKey", "status"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "characterId": { "type": "string" },
+    "missionId": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "status": { "type": "string" },
+    "statusDetail": { "type": "string" },
+    "requestId": { "type": "string" }
+  }
+}

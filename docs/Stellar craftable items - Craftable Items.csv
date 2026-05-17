@@ -1,0 +1,28 @@
+Level,Item Name,Category,Dependent Materials,Dependent Items
+1,Scavenger Dart,Unit,"Iron Ore, Carbon",None
+2,Extruder Tool,Tool,"Iron, Copper Ore",None
+2,Basic Filter,Tool,"Nickel, Carbon",None
+3,Filter Frame,Structural,"Iron, Nickel",Extruder Tool
+3,Induction Forge,Infrastructure,"Iron, Magnesium",Filter Frame
+4,Iron / Nickel Ingot,Refined,Iron / Nickel Ore,Induction Forge
+5,Arc Welder,Tool,"Copper, Magnesium","Induction Forge, Copper Wiring"
+6,Steel Ingot,Alloy,"Iron Ingot, Carbon",Induction Forge
+6,Chemical Mixer,Infrastructure,"Glass, Nickel","Basic Filter, Forge"
+7,Silver Contact,Component,"Silver, Copper","Extruder Tool, Induction Forge"
+8,Logic Chip (T1),Component,"Silicon, Wiring","Silver Contact, Acid Etchant"
+9,Fuel Synth Module,Infrastructure,"Lithium, Mercury",Chemical Mixer
+11,Hydrazine,Fuel (Liquid),"Nitrogen, Hydrogen","Chemical Mixer, Fuel Synth"
+12,Cooling Unit,Infrastructure,"Aluminum, Copper","Arc Welder, Chemical Mixer"
+13,Heat Sink,Component,"Copper, Magnesium","Extruder Tool, Cooling Unit"
+15,Heavy Hauler,Unit,Reinforced Plate,"Hydrazine, Containment Unit"
+18,Lithography Kit,Infrastructure,"Silver, Glass","Precision Nozzle, Logic Chip (T1)"
+20,Ion Engine Core,Component,"Mercury, Silver","Fuel Synth, Heat Sink"
+22,Nano Lathe,Infrastructure,"Silver, Palladium","Lithography Kit, Arc Welder"
+25,AI Processor (T2),Component,"Cobalt, Gold","Nano Lathe, Silver Contact"
+28,Shield Platform,Unit,"Cobalt, Chromium","Reinforced Plate, AI Processor"
+30,Fusion Reactor,Module,"Uranium, Palladium","Fuel Synth, Cooling Unit"
+32,Advanced Heat Sink,Component,"Tungsten, Rhodium","Nano Lathe, Cooling Unit"
+35,Precision Fabricator,Infrastructure,"Rhodium, Gold","Nano Lathe, Lithography Kit"
+40,Synthesis Engine,Infrastructure,"Antimony, Platinum","Dark Matter Refiner, Neural Link"
+45,Warp Drive,Module,"Gold, Iridium","Synthesis Engine, Advanced Heat Sink"
+50,The Hive-Mind,Capital Unit,All Exotic Mats,"Warp Drive, Precision Fabricator"

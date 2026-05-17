@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "credit-ledger-list-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "characterId": { "type": "string" },
+    "startAt": { "type": "string", "format": "date-time" },
+    "endAt": { "type": "string", "format": "date-time" },
+    "offset": { "type": "integer" },
+    "limit": { "type": "integer" }
+  }
+}

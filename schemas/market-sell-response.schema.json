@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-sell-response",
+  "type": "object",
+  "required": ["success", "message", "requestId", "transaction"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "requestId": { "type": "string" },
+    "transaction": { "type": "object" }
+  }
+}

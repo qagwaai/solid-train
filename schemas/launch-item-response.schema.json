@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "launch-item-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "characterId", "shipId", "targetCelestialBodyId", "hotkey", "itemId", "itemType", "launchedItem", "resolution"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "playerName": { "type": "string" },
+    "characterId": { "type": "string" },
+    "shipId": { "type": "string" },
+    "targetCelestialBodyId": { "type": "string" },
+    "hotkey": { "type": "integer" },
+    "itemId": { "type": "string" },
+    "itemType": { "type": "string" },
+    "launchedItem": { "type": "object" },
+    "resolution": { "type": "object" }
+  }
+}

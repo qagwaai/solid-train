@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-inventory-list-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "marketId", "solarSystemId"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "marketId": { "type": "string" },
+    "solarSystemId": { "type": "string" },
+    "offset": { "type": "integer" },
+    "limit": { "type": "integer" }
+  }
+}

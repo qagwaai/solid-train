@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game-leave-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "requestId": { "type": "string" }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "star-get-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "hygId"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "hygId": { "type": "string" },
+    "requestId": { "type": "string" }
+  }
+}

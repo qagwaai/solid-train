@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-list-by-location-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "solarSystemId", "positionKm", "distanceAu"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "solarSystemId": { "type": "string" },
+    "positionKm": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "distanceAu": { "type": "number" },
+    "limit": { "type": "integer" },
+    "locationTypes": { "type": "array", "items": { "type": "string" } }
+  }
+}

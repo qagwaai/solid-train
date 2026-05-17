@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "star-list-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "systemId": { "type": "string" },
+    "spectralClass": { "type": "string" },
+    "maxDistanceParsec": { "type": "number" },
+    "limit": { "type": "integer" },
+    "requestId": { "type": "string" }
+  }
+}

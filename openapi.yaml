@@ -1,0 +1,938 @@
+openapi: 3.0.3
+info:
+  title: Stellar API and Message Contract
+  version: 2.0.0
+  description: >
+    Machine-readable contract for HTTP endpoints and Socket.IO message payloads.
+    Socket operations are modeled as virtual POST operations under /socket/* so the
+    contract can be consumed by tooling that expects OpenAPI.
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Utility
+  - name: Items
+  - name: Auth
+  - name: Character
+  - name: Ship
+  - name: Mission
+  - name: Celestial
+  - name: Market
+  - name: Context
+  - name: SolarSystem
+  - name: Stars
+  - name: Ledger
+  - name: Game
+  - name: Realtime
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      tags: [Utility]
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /items:
+    get:
+      summary: Get canonical item list
+      operationId: getItems
+      tags: [Items]
+      responses:
+        '200':
+          description: Canonical item list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Item'
+
+  /socket/register:
+    post:
+      summary: register
+      operationId: socketRegister
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: register-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        default:
+          description: error-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /socket/login:
+    post:
+      summary: login
+      operationId: socketLogin
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: login-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        default:
+          description: error-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /socket/character-add:
+    post:
+      summary: character-add-request
+      operationId: socketCharacterAdd
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterAddRequest'
+      responses:
+        '200':
+          description: character-add-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterAddResponse'
+
+  /socket/character-delete:
+    post:
+      summary: character-delete-request
+      operationId: socketCharacterDelete
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterDeleteRequest'
+      responses:
+        '200':
+          description: character-delete-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterDeleteResponse'
+
+  /socket/character-edit:
+    post:
+      summary: character-edit-request
+      operationId: socketCharacterEdit
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterEditRequest'
+      responses:
+        '200':
+          description: character-edit-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterEditResponse'
+
+  /socket/character-list:
+    post:
+      summary: character-list-request
+      operationId: socketCharacterList
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterListRequest'
+      responses:
+        '200':
+          description: character-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterListResponse'
+
+  /socket/ship-list:
+    post:
+      summary: ship-list-request
+      operationId: socketShipList
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipListRequest'
+      responses:
+        '200':
+          description: ship-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipListResponse'
+
+  /socket/ship-upsert:
+    post:
+      summary: ship-upsert-request
+      operationId: socketShipUpsert
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipUpsertRequest'
+      responses:
+        '200':
+          description: ship-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipUpsertResponse'
+
+  /socket/mission-list:
+    post:
+      summary: mission-list-request
+      operationId: socketMissionList
+      tags: [Mission]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MissionListRequest'
+      responses:
+        '200':
+          description: mission-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionListResponse'
+
+  /socket/mission-upsert:
+    post:
+      summary: mission-upsert-request
+      operationId: socketMissionUpsert
+      tags: [Mission]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MissionUpsertRequest'
+      responses:
+        '200':
+          description: mission-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionUpsertResponse'
+
+  /socket/add-mission:
+    post:
+      summary: add-mission-request
+      operationId: socketAddMission
+      tags: [Mission]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MissionUpsertRequest'
+      responses:
+        '200':
+          description: add-mission-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionUpsertResponse'
+
+  /socket/celestial-body-list:
+    post:
+      summary: celestial-body-list-request
+      operationId: socketCelestialBodyList
+      tags: [Celestial]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CelestialBodyListRequest'
+      responses:
+        '200':
+          description: celestial-body-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CelestialBodyListResponse'
+
+  /socket/celestial-body-upsert:
+    post:
+      summary: celestial-body-upsert-request
+      operationId: socketCelestialBodyUpsert
+      tags: [Celestial]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CelestialBodyUpsertRequest'
+      responses:
+        '200':
+          description: celestial-body-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CelestialBodyUpsertResponse'
+
+  /socket/item-list-by-container:
+    post:
+      summary: item-list-by-container-request
+      operationId: socketItemListByContainer
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemListByContainerRequest'
+      responses:
+        '200':
+          description: item-list-by-container-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemListByContainerResponse'
+
+  /socket/item-list-by-location:
+    post:
+      summary: item-list-by-location-request
+      operationId: socketItemListByLocation
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemListByLocationRequest'
+      responses:
+        '200':
+          description: item-list-by-location-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemListByLocationResponse'
+
+  /socket/item-upsert:
+    post:
+      summary: item-upsert-request
+      operationId: socketItemUpsert
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemUpsertRequest'
+      responses:
+        '200':
+          description: item-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemUpsertResponse'
+
+  /socket/launch-item:
+    post:
+      summary: launch-item-request
+      operationId: socketLaunchItem
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchItemRequest'
+      responses:
+        '200':
+          description: launch-item-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaunchItemResponse'
+
+  /socket/market-buy:
+    post:
+      summary: market-buy-request
+      operationId: socketMarketBuy
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketBuyRequest'
+      responses:
+        '200':
+          description: market-buy-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketBuyResponse'
+
+  /socket/market-inventory-list:
+    post:
+      summary: market-inventory-list-request
+      operationId: socketMarketInventoryList
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketInventoryListRequest'
+      responses:
+        '200':
+          description: market-inventory-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketInventoryListResponse'
+
+  /socket/market-ledger-list:
+    post:
+      summary: market-ledger-list-request
+      operationId: socketMarketLedgerList
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketLedgerListRequest'
+      responses:
+        '200':
+          description: market-ledger-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketLedgerListResponse'
+
+  /socket/market-list:
+    post:
+      summary: market-list-request
+      operationId: socketMarketList
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketListRequest'
+      responses:
+        '200':
+          description: market-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListResponse'
+
+  /socket/market-list-by-location:
+    post:
+      summary: market-list-by-location-request
+      operationId: socketMarketListByLocation
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketListByLocationRequest'
+      responses:
+        '200':
+          description: market-list-by-location-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListByLocationResponse'
+
+  /socket/market-quote:
+    post:
+      summary: market-quote-request
+      operationId: socketMarketQuote
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketQuoteRequest'
+      responses:
+        '200':
+          description: market-quote-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketQuoteResponse'
+
+  /socket/market-sell:
+    post:
+      summary: market-sell-request
+      operationId: socketMarketSell
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketSellRequest'
+      responses:
+        '200':
+          description: market-sell-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketSellResponse'
+
+  /socket/context-distance:
+    post:
+      summary: context-distance-request
+      operationId: socketContextDistance
+      tags: [Context]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextDistanceRequest'
+      responses:
+        '200':
+          description: context-distance-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextDistanceResponse'
+
+  /socket/context-routing:
+    post:
+      summary: context-routing-request
+      operationId: socketContextRouting
+      tags: [Context]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextRoutingRequest'
+      responses:
+        '200':
+          description: context-routing-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextRoutingResponse'
+
+  /socket/solar-system-get:
+    post:
+      summary: solar-system-get-request
+      operationId: socketSolarSystemGet
+      tags: [SolarSystem]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolarSystemGetRequest'
+      responses:
+        '200':
+          description: solar-system-get-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolarSystemGetResponse'
+
+  /socket/solar-system-list:
+    post:
+      summary: solar-system-list-request
+      operationId: socketSolarSystemList
+      tags: [SolarSystem]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolarSystemListRequest'
+      responses:
+        '200':
+          description: solar-system-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolarSystemListResponse'
+
+  /socket/star-get:
+    post:
+      summary: star-get-request
+      operationId: socketStarGet
+      tags: [Stars]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StarGetRequest'
+      responses:
+        '200':
+          description: star-get-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StarGetResponse'
+
+  /socket/star-list:
+    post:
+      summary: star-list-request
+      operationId: socketStarList
+      tags: [Stars]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StarListRequest'
+      responses:
+        '200':
+          description: star-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StarListResponse'
+
+  /socket/credit-ledger-list:
+    post:
+      summary: credit-ledger-list-request
+      operationId: socketCreditLedgerList
+      tags: [Ledger]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditLedgerListRequest'
+      responses:
+        '200':
+          description: credit-ledger-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditLedgerListResponse'
+
+  /socket/game-join:
+    post:
+      summary: game-join-request
+      operationId: socketGameJoin
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameJoinRequest'
+      responses:
+        '200':
+          description: game-join-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameJoinResponse'
+
+  /socket/game-leave:
+    post:
+      summary: game-leave-request
+      operationId: socketGameLeave
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameLeaveRequest'
+      responses:
+        '200':
+          description: game-leave-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameLeaveResponse'
+
+  /socket/game-state:
+    post:
+      summary: game-state
+      operationId: socketGameState
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameState'
+      responses:
+        '200':
+          description: game-state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameState'
+
+  /socket/ping:
+    post:
+      summary: ping-request
+      operationId: socketPing
+      tags: [Realtime]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PingRequest'
+      responses:
+        '200':
+          description: pong-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PongResponse'
+
+  /socket/message:
+    post:
+      summary: message
+      operationId: socketMessage
+      tags: [Realtime]
+      description: Generic relay message; the server rebroadcasts with sender socket id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+      responses:
+        '200':
+          description: message broadcast envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /socket/welcome:
+    get:
+      summary: welcome
+      operationId: socketWelcome
+      tags: [Realtime]
+      description: Event emitted automatically by the server when a socket connects.
+      responses:
+        '200':
+          description: welcome event payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WelcomeEvent'
+
+  /socket/invalid-session:
+    get:
+      summary: invalid-session
+      operationId: socketInvalidSession
+      tags: [Realtime]
+      description: Event emitted for session-protected requests when session validation fails.
+      responses:
+        '200':
+          description: invalid-session event payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidSessionResponse'
+
+components:
+  schemas:
+    CelestialBodyListRequest:
+      $ref: './schemas/celestial-body-list-request.schema.json'
+    CelestialBodyListResponse:
+      $ref: './schemas/celestial-body-list-response.schema.json'
+    CelestialBodyUpsertRequest:
+      $ref: './schemas/celestial-body-upsert-request.schema.json'
+    CelestialBodyUpsertResponse:
+      $ref: './schemas/celestial-body-upsert-response.schema.json'
+    CharacterAddRequest:
+      $ref: './schemas/character-add-request.schema.json'
+    CharacterAddResponse:
+      $ref: './schemas/character-add-response.schema.json'
+    CharacterDeleteRequest:
+      $ref: './schemas/character-delete-request.schema.json'
+    CharacterDeleteResponse:
+      $ref: './schemas/character-delete-response.schema.json'
+    CharacterEditRequest:
+      $ref: './schemas/character-edit-request.schema.json'
+    CharacterEditResponse:
+      $ref: './schemas/character-edit-response.schema.json'
+    CharacterListRequest:
+      $ref: './schemas/character-list-request.schema.json'
+    CharacterListResponse:
+      $ref: './schemas/character-list-response.schema.json'
+    ContextDistanceRequest:
+      $ref: './schemas/context-distance-request.schema.json'
+    ContextDistanceResponse:
+      $ref: './schemas/context-distance-response.schema.json'
+    ContextRoutingRequest:
+      $ref: './schemas/context-routing-request.schema.json'
+    ContextRoutingResponse:
+      $ref: './schemas/context-routing-response.schema.json'
+    CreditLedgerListRequest:
+      $ref: './schemas/credit-ledger-list-request.schema.json'
+    CreditLedgerListResponse:
+      $ref: './schemas/credit-ledger-list-response.schema.json'
+    ErrorResponse:
+      $ref: './schemas/error-response.schema.json'
+    GameJoinRequest:
+      $ref: './schemas/game-join-request.schema.json'
+    GameJoinResponse:
+      $ref: './schemas/game-join-response.schema.json'
+    GameLeaveRequest:
+      $ref: './schemas/game-leave-request.schema.json'
+    GameLeaveResponse:
+      $ref: './schemas/game-leave-response.schema.json'
+    GameState:
+      $ref: './schemas/game-state.schema.json'
+    Heartbeat:
+      $ref: './schemas/heartbeat.schema.json'
+    Item:
+      $ref: './schemas/item.schema.json'
+    ItemListByContainerRequest:
+      $ref: './schemas/item-list-by-container-request.schema.json'
+    ItemListByContainerResponse:
+      $ref: './schemas/item-list-by-container-response.schema.json'
+    ItemListByLocationRequest:
+      $ref: './schemas/item-list-by-location-request.schema.json'
+    ItemListByLocationResponse:
+      $ref: './schemas/item-list-by-location-response.schema.json'
+    ItemUpsertRequest:
+      $ref: './schemas/item-upsert-request.schema.json'
+    ItemUpsertResponse:
+      $ref: './schemas/item-upsert-response.schema.json'
+    InvalidSessionResponse:
+      $ref: './schemas/invalid-session-response.schema.json'
+    LaunchItemRequest:
+      $ref: './schemas/launch-item-request.schema.json'
+    LaunchItemResponse:
+      $ref: './schemas/launch-item-response.schema.json'
+    LoginRequest:
+      $ref: './schemas/login-request.schema.json'
+    LoginResponse:
+      $ref: './schemas/login-response.schema.json'
+    MarketBuyRequest:
+      $ref: './schemas/market-buy-request.schema.json'
+    MarketBuyResponse:
+      $ref: './schemas/market-buy-response.schema.json'
+    MarketInventoryListRequest:
+      $ref: './schemas/market-inventory-list-request.schema.json'
+    MarketInventoryListResponse:
+      $ref: './schemas/market-inventory-list-response.schema.json'
+    MarketLedgerListRequest:
+      $ref: './schemas/market-ledger-list-request.schema.json'
+    MarketLedgerListResponse:
+      $ref: './schemas/market-ledger-list-response.schema.json'
+    MarketListByLocationRequest:
+      $ref: './schemas/market-list-by-location-request.schema.json'
+    MarketListByLocationResponse:
+      $ref: './schemas/market-list-by-location-response.schema.json'
+    MarketListRequest:
+      $ref: './schemas/market-list-request.schema.json'
+    MarketListResponse:
+      $ref: './schemas/market-list-response.schema.json'
+    MarketQuoteRequest:
+      $ref: './schemas/market-quote-request.schema.json'
+    MarketQuoteResponse:
+      $ref: './schemas/market-quote-response.schema.json'
+    MessageRequest:
+      $ref: './schemas/message-request.schema.json'
+    MessageResponse:
+      $ref: './schemas/message-response.schema.json'
+    MarketSellRequest:
+      $ref: './schemas/market-sell-request.schema.json'
+    MarketSellResponse:
+      $ref: './schemas/market-sell-response.schema.json'
+    MissionListRequest:
+      $ref: './schemas/mission-list-request.schema.json'
+    MissionListResponse:
+      $ref: './schemas/mission-list-response.schema.json'
+    MissionUpsertRequest:
+      $ref: './schemas/mission-upsert-request.schema.json'
+    MissionUpsertResponse:
+      $ref: './schemas/mission-upsert-response.schema.json'
+    PingRequest:
+      $ref: './schemas/ping-request.schema.json'
+    PongResponse:
+      $ref: './schemas/pong-response.schema.json'
+    RegisterRequest:
+      $ref: './schemas/register-request.schema.json'
+    RegisterResponse:
+      $ref: './schemas/register-response.schema.json'
+    ShipListRequest:
+      $ref: './schemas/ship-list-request.schema.json'
+    ShipListResponse:
+      $ref: './schemas/ship-list-response.schema.json'
+    ShipUpsertRequest:
+      $ref: './schemas/ship-upsert-request.schema.json'
+    ShipUpsertResponse:
+      $ref: './schemas/ship-upsert-response.schema.json'
+    StarGetRequest:
+      $ref: './schemas/star-get-request.schema.json'
+    StarGetResponse:
+      $ref: './schemas/star-get-response.schema.json'
+    StarListRequest:
+      $ref: './schemas/star-list-request.schema.json'
+    StarListResponse:
+      $ref: './schemas/star-list-response.schema.json'
+    SolarSystemGetRequest:
+      $ref: './schemas/solar-system-get-request.schema.json'
+    SolarSystemGetResponse:
+      $ref: './schemas/solar-system-get-response.schema.json'
+    SolarSystemListRequest:
+      $ref: './schemas/solar-system-list-request.schema.json'
+    SolarSystemListResponse:
+      $ref: './schemas/solar-system-list-response.schema.json'
+    UnknownMessage:
+      $ref: './schemas/unknown-message.schema.json'
+    WelcomeEvent:
+      $ref: './schemas/welcome-event.schema.json'

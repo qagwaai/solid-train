@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-list-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "solarSystemId", "markets"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "playerName": { "type": "string" },
+    "solarSystemId": { "type": "string" },
+    "markets": { "type": "array" }
+  }
+}

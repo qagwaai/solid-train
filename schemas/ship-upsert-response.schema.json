@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ship-upsert-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "characterId", "ship"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "playerName": { "type": "string" },
+    "characterId": { "type": "string" },
+    "ship": { "type": "object" }
+  }
+}

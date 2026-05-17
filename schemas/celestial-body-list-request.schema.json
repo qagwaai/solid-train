@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "celestial-body-list-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "solarSystemId", "positionKm", "distanceKm"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "solarSystemId": { "type": "string" },
+    "positionKm": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "distanceKm": { "type": "number" },
+    "limit": { "type": "integer" },
+    "states": { "type": "array", "items": { "type": "string" } },
+    "createdByCharacterId": { "type": "string" },
+    "missionId": { "type": "string" }
+  }
+}
