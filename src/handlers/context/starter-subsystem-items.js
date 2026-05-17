@@ -1,6 +1,6 @@
 'use strict';
 
-const COLD_BOOT_STARTER_MODEL = 'scavenger pod';
+const COLD_BOOT_STARTER_MODELS = new Set(['scavenger pod', 'scavenger-pod']);
 const COLD_BOOT_ORIGIN = 'cold-boot-scripted';
 
 const COLD_BOOT_STARTER_SUBSYSTEMS = [
@@ -22,13 +22,18 @@ function isColdBootStarterShip(ctx, ship) {
   const normalizedModel = ctx.toNonEmptyString(ship?.model).toLowerCase();
   const normalizedOrigin = ctx.toNonEmptyString(ship?.damageProfile?.origin).toLowerCase();
 
-  return normalizedModel === COLD_BOOT_STARTER_MODEL && normalizedOrigin === COLD_BOOT_ORIGIN;
+  return COLD_BOOT_STARTER_MODELS.has(normalizedModel) && normalizedOrigin === COLD_BOOT_ORIGIN;
 }
 
 function resolveOwningPlayerId(ctx, options, existingItems) {
   const fromOptions = ctx.toNonEmptyString(options?.owningPlayerId);
   if (fromOptions) {
     return fromOptions;
+  }
+
+  const fromPlayerName = ctx.toNonEmptyString(options?.playerName);
+  if (fromPlayerName) {
+    return fromPlayerName;
   }
 
   const fromExisting = Array.isArray(existingItems)
@@ -44,6 +49,11 @@ function resolveOwningCharacterId(ctx, options, existingItems) {
   const fromOptions = ctx.toNonEmptyString(options?.owningCharacterId);
   if (fromOptions) {
     return fromOptions;
+  }
+
+  const fromCharacterId = ctx.toNonEmptyString(options?.characterId);
+  if (fromCharacterId) {
+    return fromCharacterId;
   }
 
   const fromExisting = Array.isArray(existingItems)

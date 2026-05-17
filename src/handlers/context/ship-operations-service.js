@@ -17,6 +17,8 @@ async function hydrateShipAsync(ctx, ship, options = {}) {
   const containedItems = normalizedShip.id
     ? await ctx.getItemsByContainerAsync('ship', normalizedShip.id, {
         ship: normalizedShip,
+        playerName: options.playerName,
+        characterId: options.characterId,
         owningPlayerId: options.owningPlayerId,
         owningCharacterId: options.owningCharacterId,
       })
@@ -26,6 +28,8 @@ async function hydrateShipAsync(ctx, ship, options = {}) {
     ...referencedItems,
     ...containedItems,
   ], {
+    playerName: options.playerName,
+    characterId: options.characterId,
     owningPlayerId: options.owningPlayerId,
     owningCharacterId: options.owningCharacterId,
   });

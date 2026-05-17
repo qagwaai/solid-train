@@ -335,6 +335,8 @@ class ShipUpsertMessageHandler {
     if (response.success && response.ship) {
       const player = this.context.getPlayer(response.playerName);
       response.ship = await this.context.hydrateShipAsync(response.ship, {
+        playerName: response.playerName,
+        characterId: response.characterId,
         owningPlayerId: this.context.toNonEmptyString(player?.playerId),
         owningCharacterId: response.characterId,
       });

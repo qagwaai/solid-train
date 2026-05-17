@@ -743,3 +743,115 @@ test('ShipListMessageHandler does not backfill subsystem items for non-cold-boot
   assert.deepEqual(response.ships[0].inventory, []);
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
+
+test('ShipListMessageHandler backfills for legacy model value scavenger-pod', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'LegacyModelPilot',
+    playerId: 'player-legacy-model',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Starter',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'scavenger-pod',
+            tier: 1,
+            createdAt: '2026-04-17T00:00:00.000Z',
+            inventory: [],
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            damageProfile: {
+              overallStatus: 'damaged',
+              summary: 'Starter cold boot damage profile',
+              origin: 'cold-boot-scripted',
+              updatedAt: '2026-04-17T00:00:00.000Z',
+              systems: [],
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'LegacyModelPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+  });
+
+  assert.equal(response.success, true);
+  const itemTypes = response.ships[0].inventory.map((item) => item.itemType).sort();
+  assert.deepEqual(itemTypes, [
+    'power-distribution-bus',
+    'propulsion-manifold',
+    'sensor-array',
+  ]);
+  assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
+});
+
+test('ShipListMessageHandler backfilled subsystem rows have non-empty ownership without playerId', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'NoPlayerIdPilot',
+    playerId: '',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Starter',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'Scavenger Pod',
+            tier: 1,
+            createdAt: '2026-04-17T00:00:00.000Z',
+            inventory: [],
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            damageProfile: {
+              overallStatus: 'damaged',
+              summary: 'Starter cold boot damage profile',
+              origin: 'cold-boot-scripted',
+              updatedAt: '2026-04-17T00:00:00.000Z',
+              systems: [],
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'NoPlayerIdPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+  });
+
+  assert.equal(response.success, true);
+  const subsystemItems = response.ships[0].inventory.filter((item) =>
+    ['propulsion-manifold', 'sensor-array', 'power-distribution-bus'].includes(item.itemType)
+  );
+  assert.equal(subsystemItems.length, 3);
+  assert.ok(subsystemItems.every((item) => typeof item.owningPlayerId === 'string' && item.owningPlayerId.length > 0));
+  assert.ok(subsystemItems.every((item) => typeof item.owningCharacterId === 'string' && item.owningCharacterId.length > 0));
+  assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
+});
