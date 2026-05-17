@@ -4,6 +4,44 @@
 
 const craftableItems = [
   // All craftable items from CSV
+  {
+    itemType: '3d-printer',
+    displayName: '3D Printer',
+    description: 'Use raw materials to print objects',
+    category: 'Tool',
+    tier: 1,
+    rarity: 'Common',
+    craftingRequirements: [],
+    dependentItems: [],
+    buyPrice: null,
+    sellPrice: null,
+  },
+  {
+    itemType: 'conduit-seals',
+    displayName: 'Conduit Seals',
+    description: 'Conduit sealing',
+    category: 'Repair',
+    tier: 1,
+    rarity: 'Common',
+    craftingRequirements: [],
+    dependentItems: [],
+    buyPrice: null,
+    sellPrice: null,
+  },
+  {
+    itemType: 'expendable-dart-drone',
+    displayName: 'Expendable Dart Drone',
+    description: 'One shot mining tool',
+    category: 'Mining',
+    tier: 1,
+    rarity: 'Common',
+    craftingRequirements: [
+      { material: 'Iron', quantity: 1 },
+    ],
+    dependentItems: [],
+    buyPrice: null,
+    sellPrice: null,
+  },
   { itemType: 'scavenger-dart', displayName: 'Scavenger Dart', description: '', category: 'Unit', tier: 1, rarity: 'Common', craftingRequirements: [ { material: 'Iron Ore', quantity: 1 }, { material: 'Carbon', quantity: 1 } ], dependentItems: [], buyPrice: null, sellPrice: null },
   {
     itemType: 'hull-patch-kit',
@@ -62,6 +100,16 @@ const craftableItems = [
 
 const rawMaterials = [
   // All raw materials from CSV
+  {
+    itemType: 'polymer',
+    displayName: 'Polymer',
+    description: 'Used to manufacture other items',
+    rarity: 'Common',
+    miningRequirement: null,
+    typicalLocation: null,
+    buyPrice: null,
+    sellPrice: null,
+  },
   { itemType: 'carbon', displayName: 'Carbon', description: 'Structural frames, basic plating', rarity: 'Common', miningRequirement: 'Basic Mining Laser (Tier 1)', typicalLocation: 'Asteroid Belts', buyPrice: null, sellPrice: null },
   { itemType: 'iron', displayName: 'Iron', description: 'Structural frames, basic plating', rarity: 'Common', miningRequirement: 'Basic Mining Laser (Tier 1)', typicalLocation: 'Asteroid Belts', buyPrice: null, sellPrice: null },
   { itemType: 'copper', displayName: 'Copper', description: 'Power conduits, basic wiring', rarity: 'Common', miningRequirement: 'Basic Mining Laser (Tier 1)', typicalLocation: 'Rocky Planetoids', buyPrice: null, sellPrice: null },
