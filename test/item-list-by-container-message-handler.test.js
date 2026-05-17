@@ -335,3 +335,76 @@ test('ItemListByContainerMessageHandler does not backfill subsystem items for no
   assert.deepEqual(response.items, []);
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT);
 });
+
+test('ItemListByContainerMessageHandler does not duplicate existing starter subsystem rows', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ColdBootPilot',
+    playerId: 'player-cold-boot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Starter',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'Scavenger Pod',
+            tier: 1,
+            createdAt: '2026-04-17T00:00:00.000Z',
+            inventory: [],
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            damageProfile: {
+              overallStatus: 'damaged',
+              summary: 'Starter cold boot damage profile',
+              origin: 'cold-boot-scripted',
+              updatedAt: '2026-04-17T00:00:00.000Z',
+              systems: [],
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  seedItems(context, [
+    createItem({
+      id: 'ship-1-starter-propulsion-manifold',
+      itemType: 'propulsion-manifold',
+      displayName: 'Propulsion Manifold',
+      launchable: false,
+      damageStatus: 'damaged',
+      container: { containerType: 'ship', containerId: 'ship-1' },
+      owningPlayerId: 'player-cold-boot',
+      owningCharacterId: 'character-1',
+      spatial: null,
+    }),
+  ]);
+
+  const handler = new ItemListByContainerMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ColdBootPilot',
+    sessionKey: 'session-1',
+    containerType: 'ship',
+    containerId: 'ship-1',
+  });
+
+  assert.equal(response.success, true);
+  const subsystemItems = response.items.filter((item) =>
+    ['propulsion-manifold', 'sensor-array', 'power-distribution-bus'].includes(item.itemType)
+  );
+  assert.equal(subsystemItems.length, 3);
+
+  const propulsionItems = subsystemItems.filter((item) => item.itemType === 'propulsion-manifold');
+  assert.equal(propulsionItems.length, 1);
+  assert.equal(propulsionItems[0].id, 'ship-1-starter-propulsion-manifold');
+  assert.equal(socket.events[0].eventName, ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT);
+});

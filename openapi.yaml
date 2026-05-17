@@ -242,6 +242,94 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ShipListResponse'
+              examples:
+                coldBootStarterShipInventory:
+                  summary: Cold-boot Scavenger Pod includes damaged subsystem ShipItems
+                  value:
+                    success: true
+                    message: Ship list retrieved successfully
+                    playerName: ColdBootPilot
+                    characterId: character-1
+                    ships:
+                      - id: ship-1
+                        name: Scavenger Pod
+                        status: null
+                        model: Scavenger Pod
+                        tier: 1
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        inventory:
+                          - id: ship-1-starter-propulsion-manifold
+                            itemType: propulsion-manifold
+                            displayName: Propulsion Manifold
+                            launchable: false
+                            state: contained
+                            damageStatus: damaged
+                            container:
+                              containerType: ship
+                              containerId: ship-1
+                            owningPlayerId: player-cold-boot
+                            owningCharacterId: character-1
+                            spatial: null
+                            createdAt: '2026-04-17T00:00:00.000Z'
+                            updatedAt: '2026-04-17T00:00:00.000Z'
+                          - id: ship-1-starter-sensor-array
+                            itemType: sensor-array
+                            displayName: Sensor Array
+                            launchable: false
+                            state: contained
+                            damageStatus: damaged
+                            container:
+                              containerType: ship
+                              containerId: ship-1
+                            owningPlayerId: player-cold-boot
+                            owningCharacterId: character-1
+                            spatial: null
+                            createdAt: '2026-04-17T00:00:00.000Z'
+                            updatedAt: '2026-04-17T00:00:00.000Z'
+                          - id: ship-1-starter-power-distribution-bus
+                            itemType: power-distribution-bus
+                            displayName: Power Distribution Bus
+                            launchable: false
+                            state: contained
+                            damageStatus: damaged
+                            container:
+                              containerType: ship
+                              containerId: ship-1
+                            owningPlayerId: player-cold-boot
+                            owningCharacterId: character-1
+                            spatial: null
+                            createdAt: '2026-04-17T00:00:00.000Z'
+                            updatedAt: '2026-04-17T00:00:00.000Z'
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 0
+                            y: 0
+                            z: 0
+                          epochMs: 0
+                        launchable: true
+                        damageProfile:
+                          overallStatus: damaged
+                          summary: Starter cold boot damage profile
+                          origin: cold-boot-scripted
+                          updatedAt: '2026-04-17T00:00:00.000Z'
+                          systems:
+                            - code: propulsion-manifold
+                              label: Propulsion Manifold
+                              severity: major
+                              summary: Offline
+                              repairPriority: 1
+                            - code: sensor-array
+                              label: Sensor Array
+                              severity: major
+                              summary: Degraded
+                              repairPriority: 2
+                            - code: power-distribution-bus
+                              label: Power Distribution Bus
+                              severity: major
+                              summary: Unstable
+                              repairPriority: 3
 
   /socket/ship-upsert:
     post:
@@ -388,6 +476,58 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ItemListByContainerResponse'
+              examples:
+                coldBootStarterShipContainer:
+                  summary: Same subsystem ShipItems are returned for ship container inventory
+                  value:
+                    success: true
+                    message: Items retrieved successfully
+                    playerName: ColdBootPilot
+                    containerType: ship
+                    containerId: ship-1
+                    items:
+                      - id: ship-1-starter-propulsion-manifold
+                        itemType: propulsion-manifold
+                        displayName: Propulsion Manifold
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+                      - id: ship-1-starter-sensor-array
+                        itemType: sensor-array
+                        displayName: Sensor Array
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+                      - id: ship-1-starter-power-distribution-bus
+                        itemType: power-distribution-bus
+                        displayName: Power Distribution Bus
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
 
   /socket/item-list-by-location:
     post:
