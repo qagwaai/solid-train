@@ -1716,6 +1716,11 @@ Prerequisite graph:
 - Returned `ships` list is a defensive copy of server state.
 - `driveProfile` is included on each ship when the ship has a configured drive; it is `null` or absent otherwise.
 - All `driveProfile` numeric fields (`rangeAu`, `cruiseSpeedAuPerHour`, `fuelCostPerAu`) must be positive and finite; invalid profiles are silently dropped (field omitted or `null`).
+- Cold-boot starter ship inventory is server-authoritative:
+  - For ships with `model: "Scavenger Pod"` and `damageProfile.origin: "cold-boot-scripted"`, `ships[].inventory` includes these subsystem items as canonical ShipItems when not already persisted: `propulsion-manifold`, `sensor-array`, `power-distribution-bus`.
+  - Backfilled subsystem items are returned as contained ship inventory (`state: "contained"`, `damageStatus: "damaged"`, `container.containerType: "ship"`, `container.containerId: <ship id>`, `spatial: null`, `launchable: false`).
+  - Subsystem item ids are deterministic per ship: `<shipId>-starter-<itemType>`.
+  - Non-cold-boot ships are not modified.
 
 ## Event: `ship-upsert-request`
 
@@ -2526,6 +2531,7 @@ Same shape as create; `message` is `"Item updated successfully"`.
 - Returns all items whose `container.containerType` and `container.containerId` match exactly.
 - Items without a matching container (e.g. deployed items) are not returned.
 - When a DB connection is available, the query is run against the `items` collection. Otherwise the in-memory cache is filtered.
+- For `containerType: "ship"`, cold-boot starter Scavenger Pods are backfilled in response with the same canonical subsystem items described in `ship-list-response` when missing in persistence, so `ship-list` and `item-list-by-container` remain consistent.
 
 ## Event: `item-list-by-location-request`
 

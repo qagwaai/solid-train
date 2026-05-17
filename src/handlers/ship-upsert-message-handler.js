@@ -333,7 +333,11 @@ class ShipUpsertMessageHandler {
     }
 
     if (response.success && response.ship) {
-      response.ship = await this.context.hydrateShipAsync(response.ship);
+      const player = this.context.getPlayer(response.playerName);
+      response.ship = await this.context.hydrateShipAsync(response.ship, {
+        owningPlayerId: this.context.toNonEmptyString(player?.playerId),
+        owningCharacterId: response.characterId,
+      });
     }
 
     socket.emit(SHIP_UPSERT_RESPONSE_EVENT, response);

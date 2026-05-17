@@ -623,3 +623,123 @@ test('ShipListMessageHandler omits driveProfile when profile fields are invalid'
   assert.equal(response.success, true);
   assert.equal('driveProfile' in response.ships[0], false);
 });
+
+test('ShipListMessageHandler backfills cold-boot starter subsystem inventory items for Scavenger Pod', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ColdBootPilot',
+    playerId: 'player-cold-boot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Starter',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'Scavenger Pod',
+            tier: 1,
+            createdAt: '2026-04-17T00:00:00.000Z',
+            inventory: [],
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            damageProfile: {
+              overallStatus: 'damaged',
+              summary: 'Starter cold boot damage profile',
+              origin: 'cold-boot-scripted',
+              updatedAt: '2026-04-17T00:00:00.000Z',
+              systems: [],
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ColdBootPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+  });
+
+  assert.equal(response.success, true);
+  const inventory = response.ships[0].inventory;
+  assert.equal(inventory.length, 3);
+
+  const byType = new Map(inventory.map((item) => [item.itemType, item]));
+  for (const itemType of ['propulsion-manifold', 'sensor-array', 'power-distribution-bus']) {
+    assert.ok(byType.has(itemType));
+    const item = byType.get(itemType);
+    assert.equal(item.id, `ship-1-starter-${itemType}`);
+    assert.equal(item.state, 'contained');
+    assert.equal(item.damageStatus, 'damaged');
+    assert.equal(item.launchable, false);
+    assert.deepEqual(item.container, {
+      containerType: 'ship',
+      containerId: 'ship-1',
+    });
+    assert.equal(item.spatial, null);
+    assert.equal(item.owningPlayerId, 'player-cold-boot');
+    assert.equal(item.owningCharacterId, 'character-1');
+  }
+
+  assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
+});
+
+test('ShipListMessageHandler does not backfill subsystem items for non-cold-boot ships', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'CombatPilot',
+    playerId: 'player-combat',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Veteran',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'Scavenger Pod',
+            tier: 1,
+            inventory: [],
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            damageProfile: {
+              overallStatus: 'damaged',
+              summary: 'Combat damage profile',
+              origin: 'combat',
+              updatedAt: '2026-04-17T00:00:00.000Z',
+              systems: [],
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'CombatPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+  });
+
+  assert.equal(response.success, true);
+  assert.deepEqual(response.ships[0].inventory, []);
+  assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
+});

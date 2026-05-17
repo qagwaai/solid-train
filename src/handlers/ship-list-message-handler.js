@@ -56,7 +56,10 @@ class ShipListMessageHandler {
 
     // Hydration resolves item references and normalized ship surface before returning to clients.
     const ships = Array.isArray(character.ships)
-      ? await this.context.hydrateShipsAsync(character.ships)
+      ? await this.context.hydrateShipsAsync(character.ships, {
+          owningPlayerId: this.context.toNonEmptyString(player.playerId),
+          owningCharacterId: characterId,
+        })
       : [];
 
     return {

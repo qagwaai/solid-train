@@ -66,7 +66,10 @@ class ItemListByContainerMessageHandler {
 
     let items;
     try {
-      items = await this.context.getItemsByContainerAsync(containerType, containerId);
+      items = await this.context.getItemsByContainerAsync(containerType, containerId, {
+        playerName: player.playerName,
+        owningPlayerId: this.context.toNonEmptyString(player.playerId),
+      });
     } catch (error) {
       this.context.log(`[item-list-by-container-handler] Failed to fetch items: ${error.message}`);
       const response = {

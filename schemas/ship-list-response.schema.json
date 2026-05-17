@@ -8,6 +8,99 @@
     "message": { "type": "string" },
     "playerName": { "type": "string" },
     "characterId": { "type": "string" },
-    "ships": { "type": "array" }
+    "ships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "model", "tier", "inventory", "spatial", "launchable"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "status": { "type": ["string", "null"] },
+          "model": { "type": "string" },
+          "tier": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "createdAt": { "type": ["string", "null"], "format": "date-time" },
+          "inventory": {
+            "type": "array",
+            "items": { "$ref": "./item.schema.json" }
+          },
+          "spatial": {
+            "type": "object",
+            "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+            "properties": {
+              "solarSystemId": { "type": "string" },
+              "frame": { "type": "string", "enum": ["barycentric"] },
+              "positionKm": {
+                "type": "object",
+                "required": ["x", "y", "z"],
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" },
+                  "z": { "type": "number" }
+                }
+              },
+              "epochMs": { "type": "number" }
+            }
+          },
+          "motion": {
+            "type": "object",
+            "required": ["velocityKmPerSec"],
+            "properties": {
+              "velocityKmPerSec": {
+                "type": "object",
+                "required": ["x", "y", "z"],
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" },
+                  "z": { "type": "number" }
+                }
+              }
+            }
+          },
+          "launchable": { "type": "boolean" },
+          "damageProfile": {
+            "type": ["object", "null"],
+            "required": ["overallStatus", "summary", "origin", "updatedAt", "systems"],
+            "properties": {
+              "overallStatus": {
+                "type": "string",
+                "enum": ["intact", "damaged", "disabled", "destroyed"]
+              },
+              "summary": { "type": "string" },
+              "origin": {
+                "type": "string",
+                "enum": ["cold-boot-scripted", "combat", "wear", "unknown"]
+              },
+              "updatedAt": { "type": "string", "format": "date-time" },
+              "systems": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["code", "label", "severity", "summary", "repairPriority"],
+                  "properties": {
+                    "code": { "type": "string" },
+                    "label": { "type": "string" },
+                    "severity": { "type": "string", "enum": ["minor", "major", "critical"] },
+                    "summary": { "type": "string" },
+                    "repairPriority": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "driveProfile": {
+            "type": "object",
+            "required": ["id", "name", "rangeAu", "cruiseSpeedAuPerHour", "fuelCostPerAu"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "rangeAu": { "type": "number", "exclusiveMinimum": 0 },
+              "cruiseSpeedAuPerHour": { "type": "number", "exclusiveMinimum": 0 },
+              "fuelCostPerAu": { "type": "number", "exclusiveMinimum": 0 }
+            }
+          }
+        }
+      }
+    }
   }
 }

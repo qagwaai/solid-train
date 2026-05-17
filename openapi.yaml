@@ -206,6 +206,27 @@ paths:
   /socket/ship-list:
     post:
       summary: ship-list-request
+      description: |
+        Returns canonical ship payloads for a character.
+
+        Cold-boot starter ships are server-authoritative for damaged starter subsystems.
+        For ships where `model` is `Scavenger Pod` and `damageProfile.origin` is
+        `cold-boot-scripted`, the server includes these subsystem records as real
+        `ShipItem` entries in `ships[].inventory` when missing from persistence:
+        - `propulsion-manifold`
+        - `sensor-array`
+        - `power-distribution-bus`
+
+        Backfilled subsystem items are contained ship inventory with canonical item shape:
+        - `state: contained`
+        - `damageStatus: damaged`
+        - `container.containerType: ship`
+        - `container.containerId: <ship id>`
+        - `spatial: null`
+        - `launchable: false`
+
+        Item ids are deterministic per ship: `<shipId>-starter-<itemType>`.
+        Non-cold-boot ships are not injected.
       operationId: socketShipList
       tags: [Ship]
       requestBody:
@@ -339,6 +360,19 @@ paths:
   /socket/item-list-by-container:
     post:
       summary: item-list-by-container-request
+      description: |
+        Returns canonical item payloads whose `container` matches the requested
+        `containerType` and `containerId`.
+
+        For `containerType: ship`, cold-boot starter Scavenger Pods use the same
+        server-authoritative subsystem backfill behavior as `ship-list`.
+        When persisted rows are missing, these items are included in the response:
+        - `propulsion-manifold`
+        - `sensor-array`
+        - `power-distribution-bus`
+
+        This keeps `ship-list` and `item-list-by-container` consistent for starter
+        ship inventory consumption.
       operationId: socketItemListByContainer
       tags: [Items]
       requestBody:

@@ -1,5 +1,64 @@
 'use strict';
 
+const { buildBackfilledSubsystemItems } = require('./starter-subsystem-items');
+
+async function resolveShipContainerOwnerContextAsync(ctx, containerType, containerId, options = {}) {
+  if (containerType !== 'ship') {
+    return {
+      ship: null,
+      owningPlayerId: ctx.toNonEmptyString(options.owningPlayerId) || null,
+      owningCharacterId: ctx.toNonEmptyString(options.owningCharacterId) || null,
+    };
+  }
+
+  const explicitShip = options.ship ? ctx.normalizeShip(options.ship) : null;
+  if (explicitShip) {
+    return {
+      ship: explicitShip,
+      owningPlayerId: ctx.toNonEmptyString(options.owningPlayerId) || null,
+      owningCharacterId: ctx.toNonEmptyString(options.owningCharacterId) || null,
+    };
+  }
+
+  const playerName = ctx.toNonEmptyString(options.playerName);
+  if (!playerName) {
+    return {
+      ship: null,
+      owningPlayerId: ctx.toNonEmptyString(options.owningPlayerId) || null,
+      owningCharacterId: ctx.toNonEmptyString(options.owningCharacterId) || null,
+    };
+  }
+
+  if (typeof ctx.databaseService?.getCharacters === 'function') {
+    await ctx.getCharactersAsync(playerName);
+  }
+  const normalizedPlayerName = ctx.normalizePlayerName(playerName);
+  const player = ctx.getPlayer(playerName);
+  const characters = ctx.getCharacters(normalizedPlayerName);
+
+  for (const character of characters) {
+    const ships = Array.isArray(character?.ships) ? character.ships : [];
+    const matchingShip = ships.find((ship) => ctx.toNonEmptyString(ship?.id) === containerId);
+    if (matchingShip) {
+      return {
+        ship: ctx.normalizeShip(matchingShip),
+        owningPlayerId:
+          ctx.toNonEmptyString(options.owningPlayerId) || ctx.toNonEmptyString(player?.playerId) || null,
+        owningCharacterId:
+          ctx.toNonEmptyString(options.owningCharacterId) ||
+          ctx.toNonEmptyString(character?.id) ||
+          null,
+      };
+    }
+  }
+
+  return {
+    ship: null,
+    owningPlayerId: ctx.toNonEmptyString(options.owningPlayerId) || ctx.toNonEmptyString(player?.playerId) || null,
+    owningCharacterId: ctx.toNonEmptyString(options.owningCharacterId) || null,
+  };
+}
+
 function getItem(ctx, itemId) {
   const normalizedItemId = ctx.toNonEmptyString(itemId);
 
@@ -111,7 +170,7 @@ async function updateItemAsync(ctx, itemId, updates) {
   return updatedItem;
 }
 
-async function getItemsByContainerAsync(ctx, containerType, containerId) {
+async function getItemsByContainerAsync(ctx, containerType, containerId, options = {}) {
   const normalizedContainerType = ctx.toNonEmptyString(containerType);
   const normalizedContainerId = ctx.toNonEmptyString(containerId);
 
@@ -143,10 +202,41 @@ async function getItemsByContainerAsync(ctx, containerType, containerId) {
       mergedById.set(item.id, item);
     }
 
+    const ownerContext = await resolveShipContainerOwnerContextAsync(
+      ctx,
+      normalizedContainerType,
+      normalizedContainerId,
+      options
+    );
+    const backfilledItems = ownerContext.ship
+      ? buildBackfilledSubsystemItems(ctx, ownerContext.ship, [...mergedById.values()], {
+          owningPlayerId: ownerContext.owningPlayerId,
+          owningCharacterId: ownerContext.owningCharacterId,
+        })
+      : [];
+
+    for (const item of backfilledItems) {
+      mergedById.set(item.id, item);
+    }
+
     return [...mergedById.values()];
   }
 
-  return cachedMatches.map((item) => ctx.normalizeItem(item));
+  const normalizedCachedMatches = cachedMatches.map((item) => ctx.normalizeItem(item));
+  const ownerContext = await resolveShipContainerOwnerContextAsync(
+    ctx,
+    normalizedContainerType,
+    normalizedContainerId,
+    options
+  );
+  const backfilledItems = ownerContext.ship
+    ? buildBackfilledSubsystemItems(ctx, ownerContext.ship, normalizedCachedMatches, {
+        owningPlayerId: ownerContext.owningPlayerId,
+        owningCharacterId: ownerContext.owningCharacterId,
+      })
+    : [];
+
+  return [...normalizedCachedMatches, ...backfilledItems];
 }
 
 async function syncShipInventoryReferenceForItemAsync(ctx, playerName, previousItem, nextItem) {
