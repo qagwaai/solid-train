@@ -58,6 +58,24 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Item'
+                example:
+                  items:
+                    - itemType: hull-patch-kit
+                      displayName: Hull Patch Kit
+                      description: Structural repair kit for hull breach patching and restoring ship integrity. Required for the Scavenger Pod repair mission step.
+                      category: Repair
+                      tier: 1
+                      rarity: Common
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      requiredMaterials:
+                        - material: Iron
+                          quantity: 1
+                          acceptedItemTypes:
+                            - iron
+                            - iron-ore
+                            - iron-raw-material
 
   /socket/register:
     post:

@@ -23,6 +23,23 @@ describe('canonical-items.js', () => {
     assert.equal(carbon.miningRequirement, 'Basic Mining Laser (Tier 1)');
   });
 
+  it('should include hull-patch-kit with required mission defaults', () => {
+    const hullPatchKit = getItemByType('hull-patch-kit');
+    assert(hullPatchKit, 'hull-patch-kit should exist');
+    assert.equal(hullPatchKit.displayName, 'Hull Patch Kit');
+    assert.equal(hullPatchKit.tier, 1);
+    assert.equal(hullPatchKit.launchable, false);
+    assert.equal(hullPatchKit.state, 'contained');
+    assert.equal(hullPatchKit.damageStatus, 'intact');
+    assert(Array.isArray(hullPatchKit.requiredMaterials));
+    assert.equal(hullPatchKit.requiredMaterials.length, 1);
+    assert.deepEqual(hullPatchKit.requiredMaterials[0], {
+      material: 'Iron',
+      quantity: 1,
+      acceptedItemTypes: ['iron', 'iron-ore', 'iron-raw-material'],
+    });
+  });
+
   it('should return null for unknown itemType', () => {
     const unknown = getItemByType('not-a-real-item');
     assert.equal(unknown, null);

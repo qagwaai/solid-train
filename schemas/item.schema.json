@@ -7,6 +7,25 @@
     "id": { "type": ["string", "null"] },
     "itemType": { "type": "string" },
     "displayName": { "type": "string" },
+    "description": { "type": ["string", "null"] },
+    "category": { "type": ["string", "null"] },
+    "tier": { "type": ["integer", "null"] },
+    "rarity": { "type": ["string", "null"] },
+    "requiredMaterials": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "material": { "type": "string" },
+          "quantity": { "type": "number" },
+          "acceptedItemTypes": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["material", "quantity"]
+      }
+    },
     "state": { "type": "string", "enum": ["contained", "deployed", "destroyed"] },
     "damageStatus": { "type": "string", "enum": ["intact", "damaged", "disabled", "destroyed"] },
     "container": {

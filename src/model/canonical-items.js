@@ -5,6 +5,33 @@
 const craftableItems = [
   // All craftable items from CSV
   { itemType: 'scavenger-dart', displayName: 'Scavenger Dart', description: '', category: 'Unit', tier: 1, rarity: 'Common', craftingRequirements: [ { material: 'Iron Ore', quantity: 1 }, { material: 'Carbon', quantity: 1 } ], dependentItems: [], buyPrice: null, sellPrice: null },
+  {
+    itemType: 'hull-patch-kit',
+    displayName: 'Hull Patch Kit',
+    description: 'Structural repair kit for hull breach patching and restoring ship integrity. Required for the Scavenger Pod repair mission step.',
+    category: 'Repair',
+    tier: 1,
+    rarity: 'Common',
+    launchable: false,
+    state: 'contained',
+    damageStatus: 'intact',
+    requiredMaterials: [
+      {
+        material: 'Iron',
+        quantity: 1,
+        acceptedItemTypes: ['iron', 'iron-ore', 'iron-raw-material'],
+      },
+    ],
+    craftingRequirements: [
+      {
+        material: 'Iron',
+        quantity: 1,
+      },
+    ],
+    dependentItems: [],
+    buyPrice: null,
+    sellPrice: null,
+  },
   { itemType: 'extruder-tool', displayName: 'Extruder Tool', description: '', category: 'Tool', tier: 2, rarity: 'Common', craftingRequirements: [ { material: 'Iron', quantity: 1 }, { material: 'Copper Ore', quantity: 1 } ], dependentItems: [], buyPrice: null, sellPrice: null },
   { itemType: 'basic-filter', displayName: 'Basic Filter', description: '', category: 'Tool', tier: 2, rarity: 'Common', craftingRequirements: [ { material: 'Nickel', quantity: 1 }, { material: 'Carbon', quantity: 1 } ], dependentItems: [], buyPrice: null, sellPrice: null },
   { itemType: 'filter-frame', displayName: 'Filter Frame', description: '', category: 'Structural', tier: 3, rarity: 'Common', craftingRequirements: [ { material: 'Iron', quantity: 1 }, { material: 'Nickel', quantity: 1 } ], dependentItems: ['extruder-tool'], buyPrice: null, sellPrice: null },
