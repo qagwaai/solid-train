@@ -78,6 +78,68 @@ class CharacterAddMessageHandler {
         const createdAt = this.context.getCurrentTimestamp();
         const starterShipId = `${response.characterId}-ship-1`;
         const starterDroneId = `${starterShipId}-item-1`;
+        const owningPlayerId =
+          this.context.toNonEmptyString(this.context.getPlayer(response.playerName)?.playerId) ||
+          this.context.toNonEmptyString(response.playerName);
+        const starterSubsystemItems = [
+          {
+            id: `${starterShipId}-starter-propulsion-manifold`,
+            itemType: 'propulsion-manifold',
+            displayName: 'Propulsion Manifold',
+            state: 'contained',
+            damageStatus: 'damaged',
+            launchable: false,
+            container: {
+              containerType: 'ship',
+              containerId: starterShipId,
+            },
+            owningPlayerId,
+            owningCharacterId: response.characterId,
+            spatial: null,
+            createdAt,
+            updatedAt: createdAt,
+            destroyedAt: null,
+            destroyedReason: null,
+          },
+          {
+            id: `${starterShipId}-starter-sensor-array`,
+            itemType: 'sensor-array',
+            displayName: 'Sensor Array',
+            state: 'contained',
+            damageStatus: 'damaged',
+            launchable: false,
+            container: {
+              containerType: 'ship',
+              containerId: starterShipId,
+            },
+            owningPlayerId,
+            owningCharacterId: response.characterId,
+            spatial: null,
+            createdAt,
+            updatedAt: createdAt,
+            destroyedAt: null,
+            destroyedReason: null,
+          },
+          {
+            id: `${starterShipId}-starter-power-distribution-bus`,
+            itemType: 'power-distribution-bus',
+            displayName: 'Power Distribution Bus',
+            state: 'contained',
+            damageStatus: 'damaged',
+            launchable: false,
+            container: {
+              containerType: 'ship',
+              containerId: starterShipId,
+            },
+            owningPlayerId,
+            owningCharacterId: response.characterId,
+            spatial: null,
+            createdAt,
+            updatedAt: createdAt,
+            destroyedAt: null,
+            destroyedReason: null,
+          },
+        ];
         const starterItems = [
           {
             id: starterDroneId,
@@ -89,9 +151,7 @@ class CharacterAddMessageHandler {
               containerType: 'ship',
               containerId: starterShipId,
             },
-            owningPlayerId: this.context.toNonEmptyString(
-              this.context.getPlayer(response.playerName)?.playerId
-            ),
+            owningPlayerId,
             owningCharacterId: response.characterId,
             spatial: null,
             createdAt,
@@ -99,6 +159,7 @@ class CharacterAddMessageHandler {
             destroyedAt: null,
             destroyedReason: null,
           },
+          ...starterSubsystemItems,
         ];
 
         await this.context.addItemsAsync(starterItems);
@@ -119,6 +180,18 @@ class CharacterAddMessageHandler {
                 {
                   itemId: starterDroneId,
                   itemType: 'expendable-dart-drone',
+                },
+                {
+                  itemId: `${starterShipId}-starter-propulsion-manifold`,
+                  itemType: 'propulsion-manifold',
+                },
+                {
+                  itemId: `${starterShipId}-starter-sensor-array`,
+                  itemType: 'sensor-array',
+                },
+                {
+                  itemId: `${starterShipId}-starter-power-distribution-bus`,
+                  itemType: 'power-distribution-bus',
                 },
               ],
               spatial: {

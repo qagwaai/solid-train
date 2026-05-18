@@ -1,7 +1,7 @@
 'use strict';
 
-
 const { ITEM_UPSERT_RESPONSE_EVENT } = require('../model/item-upsert');
+const { UPSERT_ITEM_RESPONSE_EVENT } = require('../model/item-upsert');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { getItemByType } = require('../model/canonical-items');
 
@@ -233,6 +233,24 @@ class ItemUpsertMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-upsert-request', payload);
+    const correlationId =
+      this.context.toNonEmptyString(payload?.correlationId) ||
+      this.context.toNonEmptyString(payload?.requestId) ||
+      this.context.toNonEmptyString(payload?.messageId) ||
+      '-';
+
+    const incomingItemId = this.context.toNonEmptyString(payload?.item?.id);
+    const incomingItemType = this.context.toNonEmptyString(payload?.item?.itemType);
+    const incomingState = this.context.toNonEmptyString(payload?.item?.state);
+    if (
+      incomingItemType === 'hull-patch-kit' ||
+      incomingState === 'destroyed' ||
+      this.context.toNonEmptyString(payload?.item?.destroyedAt)
+    ) {
+      this.context.log(
+        `[item-upsert-diag] incoming correlationId=${correlationId} player=${this.context.toNonEmptyString(payload?.playerName) || '-'} itemId=${incomingItemId || '-'} itemType=${incomingItemType || '-'} state=${incomingState || '-'} containerType=${this.context.toNonEmptyString(payload?.item?.container?.containerType) || 'null'} containerId=${this.context.toNonEmptyString(payload?.item?.container?.containerId) || 'null'}`
+      );
+    }
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -295,13 +313,35 @@ class ItemUpsertMessageHandler {
           response.item = (await this.context.updateItemAsync(itemId, itemData)) || itemData;
         }
 
-        await this.context.syncShipInventoryReferenceForItemAsync(
-          parsed.playerName,
-          existing,
-          response.item
-        );
+        try {
+          await this.context.syncShipInventoryReferenceForItemAsync(
+            parsed.playerName,
+            existing,
+            response.item,
+            {
+              correlationId,
+            }
+          );
+        } catch (syncError) {
+          // Item persistence succeeded; do not fail item-upsert when ship reference sync races.
+          this.context.log(
+            `[item-upsert-diag] inventory-sync-warning correlationId=${correlationId} player=${parsed.playerName} itemId=${response.item?.id || '-'} itemType=${response.item?.itemType || '-'} error=${syncError.message}`
+          );
+        }
+
+        if (
+          response.item?.itemType === 'hull-patch-kit' ||
+          response.item?.state === 'destroyed' ||
+          response.item?.destroyedAt
+        ) {
+          this.context.log(
+            `[item-upsert-diag] persisted correlationId=${correlationId} player=${parsed.playerName} itemId=${response.item?.id || '-'} itemType=${response.item?.itemType || '-'} state=${response.item?.state || '-'} damageStatus=${response.item?.damageStatus || '-'} containerType=${this.context.toNonEmptyString(response.item?.container?.containerType) || 'null'} containerId=${this.context.toNonEmptyString(response.item?.container?.containerId) || 'null'} destroyedAt=${this.context.toNonEmptyString(response.item?.destroyedAt) || 'null'}`
+          );
+        }
       } catch (error) {
-        this.context.log(`[item-upsert-handler] Failed to upsert item: ${error.message}`);
+        this.context.log(
+          `[item-upsert-handler] Failed to upsert item: correlationId=${correlationId} error=${error.message}`
+        );
         response.success = false;
         response.message = 'Failed to upsert item: database error';
         delete response.item;
@@ -309,6 +349,7 @@ class ItemUpsertMessageHandler {
     }
 
     socket.emit(ITEM_UPSERT_RESPONSE_EVENT, response);
+    socket.emit(UPSERT_ITEM_RESPONSE_EVENT, response);
     return response;
   }
 }

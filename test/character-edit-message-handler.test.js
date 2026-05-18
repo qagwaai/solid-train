@@ -117,3 +117,40 @@ test('CharacterEditMessageHandler updates joined game participant name', async (
   });
   assert.equal(participant.characterName, 'RenamedInGame');
 });
+
+test('CharacterEditMessageHandler retries DB version conflict once and succeeds', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'RetryPilot',
+    sessionKey: 'session-1',
+    characters: [{ id: 'character-1', characterName: 'OldName' }],
+  });
+
+  let updateCharacterCallCount = 0;
+  context.databaseService = {
+    async updateCharacter() {
+      updateCharacterCallCount += 1;
+      if (updateCharacterCallCount === 1) {
+        throw new Error(
+          'No matching document found for id "player-doc" version 6 modifiedPaths "characters"'
+        );
+      }
+      return null;
+    },
+  };
+
+  const handler = new CharacterEditMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'RetryPilot',
+    sessionKey: 'session-1',
+    characterId: 'character-1',
+    characterName: 'NewName',
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(updateCharacterCallCount, 2);
+  assert.equal(context.getCharacters('retrypilot')[0].characterName, 'NewName');
+  assert.equal(socket.events[0].eventName, CHARACTER_EDIT_RESPONSE_EVENT);
+});

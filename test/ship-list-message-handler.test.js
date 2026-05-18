@@ -361,7 +361,7 @@ test('ShipListMessageHandler hydrates inventory from cache when DB item lookup r
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
 
-test('ShipListMessageHandler includes ship-contained items beyond inventory references', async () => {
+test('ShipListMessageHandler does not project unreferenced ship-contained items', async () => {
   const context = createTestContext();
   seedItems(context, [
     {
@@ -440,9 +440,9 @@ test('ShipListMessageHandler includes ship-contained items beyond inventory refe
   });
 
   assert.equal(response.success, true);
-  assert.equal(response.ships[0].inventory.length, 2);
+  assert.equal(response.ships[0].inventory.length, 1);
   assert.ok(response.ships[0].inventory.some((item) => item.id === 'item-ref'));
-  assert.ok(response.ships[0].inventory.some((item) => item.id === 'item-extra'));
+  assert.ok(!response.ships[0].inventory.some((item) => item.id === 'item-extra'));
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
 
@@ -853,5 +853,98 @@ test('ShipListMessageHandler backfilled subsystem rows have non-empty ownership 
   assert.equal(subsystemItems.length, 3);
   assert.ok(subsystemItems.every((item) => typeof item.owningPlayerId === 'string' && item.owningPlayerId.length > 0));
   assert.ok(subsystemItems.every((item) => typeof item.owningCharacterId === 'string' && item.owningCharacterId.length > 0));
+  assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
+});
+
+test('ShipListMessageHandler excludes destroyed items from projected ship inventory even when references are stale', async () => {
+  const context = createTestContext();
+  seedItems(context, [
+    {
+      id: 'item-hull-kit',
+      itemType: 'hull-patch-kit',
+      displayName: 'Hull Patch Kit',
+      state: 'destroyed',
+      damageStatus: 'destroyed',
+      container: null,
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: '2026-04-17T00:00:00.000Z',
+      destroyedReason: 'consumed-by:repair',
+      launchable: false,
+    },
+    {
+      id: 'item-drone',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1',
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+    },
+  ]);
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            model: 'Scavenger Pod',
+            tier: 1,
+            createdAt: '2026-04-17T00:00:00.000Z',
+            inventory: [
+              {
+                itemId: 'item-hull-kit',
+                itemType: 'hull-patch-kit',
+              },
+              {
+                itemId: 'item-drone',
+                itemType: 'expendable-dart-drone',
+              },
+            ],
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.ships[0].inventory.length, 1);
+  assert.equal(response.ships[0].inventory[0].id, 'item-drone');
+  assert.equal(
+    response.ships[0].inventory.some((item) => item.itemType === 'hull-patch-kit'),
+    false
+  );
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });

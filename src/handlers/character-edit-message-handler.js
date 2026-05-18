@@ -69,6 +69,11 @@ class CharacterEditMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-edit', payload);
+    const correlationId =
+      this.context.toNonEmptyString(payload?.correlationId) ||
+      this.context.toNonEmptyString(payload?.requestId) ||
+      this.context.toNonEmptyString(payload?.messageId) ||
+      '-';
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -85,6 +90,8 @@ class CharacterEditMessageHandler {
       try {
         await this.context.updateCharacterAsync(payload?.playerName, payload?.characterId, {
           characterName: payload?.characterName,
+        }, {
+          correlationId,
         });
         // Joined-game roster stores display names independently, so update both stores.
         this.context.renameJoinedCharacter(
@@ -93,7 +100,9 @@ class CharacterEditMessageHandler {
           payload?.characterName
         );
       } catch (error) {
-        this.context.log(`[character-edit-handler] Failed to edit character: ${error.message}`);
+        this.context.log(
+          `[character-edit-handler] Failed to edit character: correlationId=${correlationId} error=${error.message}`
+        );
         response.success = false;
         response.message = 'Failed to edit character: database error';
       }

@@ -14,6 +14,7 @@ const { CELESTIAL_BODY_UPSERT_REQUEST_EVENT } = require('../model/celestial-body
 const { CELESTIAL_BODY_LIST_REQUEST_EVENT } = require('../model/celestial-body-list');
 const { MISSION_LIST_REQUEST_EVENT } = require('../model/mission-list');
 const { ITEM_UPSERT_REQUEST_EVENT } = require('../model/item-upsert');
+const { UPSERT_ITEM_REQUEST_EVENT } = require('../model/item-upsert');
 const { ITEM_LIST_BY_CONTAINER_REQUEST_EVENT } = require('../model/item-list-by-container');
 const { ITEM_LIST_BY_LOCATION_REQUEST_EVENT } = require('../model/item-list-by-location');
 const { LAUNCH_ITEM_REQUEST_EVENT } = require('../model/launch-item');
@@ -84,6 +85,11 @@ const SOCKET_HANDLER_REGISTRY = [
     event: ITEM_UPSERT_REQUEST_EVENT,
     handlerKey: 'itemUpsertMessageHandler',
     errorLabel: 'Item upsert',
+  },
+  {
+    event: UPSERT_ITEM_REQUEST_EVENT,
+    handlerKey: 'itemUpsertMessageHandler',
+    errorLabel: 'Item upsert (legacy alias)',
   },
   {
     event: ITEM_LIST_BY_CONTAINER_REQUEST_EVENT,

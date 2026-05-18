@@ -2,6 +2,24 @@
 
 const { buildBackfilledSubsystemItems } = require('./starter-subsystem-items');
 
+async function persistBackfilledItemsAsync(ctx, backfilledItems) {
+  const normalizedBackfilledItems = Array.isArray(backfilledItems)
+    ? backfilledItems.filter((item) => Boolean(item?.id))
+    : [];
+
+  if (normalizedBackfilledItems.length === 0) {
+    return;
+  }
+
+  for (const item of normalizedBackfilledItems) {
+    ctx.itemsById.set(item.id, ctx.normalizeItem(item));
+  }
+
+  await ctx.withDbOrNull('persisting cold-boot starter subsystem items', (databaseService) =>
+    databaseService.addItems(normalizedBackfilledItems)
+  );
+}
+
 async function resolveShipContainerOwnerContextAsync(ctx, containerType, containerId, options = {}) {
   if (containerType !== 'ship') {
     return {
@@ -117,6 +135,15 @@ async function getItemsByIdsAsync(ctx, itemIds) {
 async function addItemsAsync(ctx, items) {
   const normalizedItems = cacheItems(ctx, items);
 
+  const createdHullPatchItems = normalizedItems.filter(
+    (item) => ctx.toNonEmptyString(item?.itemType) === 'hull-patch-kit'
+  );
+  if (createdHullPatchItems.length > 0) {
+    ctx.log(
+      `[item-lifecycle-diag] hull-patch-kit-created ids=${createdHullPatchItems.map((item) => item.id).join(',')} owningCharacterIds=${createdHullPatchItems.map((item) => ctx.toNonEmptyString(item.owningCharacterId) || '-').join(',')} containerIds=${createdHullPatchItems.map((item) => ctx.toNonEmptyString(item?.container?.containerId) || 'null').join(',')}`
+    );
+  }
+
   try {
     await ctx.withDb('adding items in DB', (databaseService) =>
       databaseService.addItems(normalizedItems)
@@ -163,6 +190,12 @@ async function updateItemAsync(ctx, itemId, updates) {
   const updatedItem = ctx.normalizeItem({ ...existing, ...updates });
   ctx.itemsById.set(normalizedItemId, updatedItem);
 
+  if (ctx.toNonEmptyString(updatedItem?.itemType) === 'hull-patch-kit') {
+    ctx.log(
+      `[item-lifecycle-diag] hull-patch-kit-updated id=${updatedItem.id} state=${ctx.toNonEmptyString(updatedItem.state) || '-'} damageStatus=${ctx.toNonEmptyString(updatedItem.damageStatus) || '-'} containerType=${ctx.toNonEmptyString(updatedItem?.container?.containerType) || 'null'} containerId=${ctx.toNonEmptyString(updatedItem?.container?.containerId) || 'null'} destroyedReason=${ctx.toNonEmptyString(updatedItem.destroyedReason) || 'null'}`
+    );
+  }
+
   await ctx.withDbOrNull('updating item in DB', (databaseService) =>
     databaseService.updateItemById(normalizedItemId, updatedItem)
   );
@@ -192,6 +225,14 @@ async function getItemsByContainerAsync(ctx, containerType, containerId, options
 
   if (Array.isArray(itemsFromDb)) {
     const dbItems = cacheItems(ctx, itemsFromDb);
+    const dbHullPatchItems = dbItems.filter(
+      (item) => ctx.toNonEmptyString(item?.itemType) === 'hull-patch-kit'
+    );
+    if (dbHullPatchItems.length > 0) {
+      ctx.log(
+        `[item-lifecycle-diag] hull-patch-kit-fetched-by-container containerType=${normalizedContainerType} containerId=${normalizedContainerId} ids=${dbHullPatchItems.map((item) => item.id).join(',')} states=${dbHullPatchItems.map((item) => ctx.toNonEmptyString(item.state) || '-').join(',')}`
+      );
+    }
     const mergedById = new Map();
 
     for (const item of cachedMatches) {
@@ -212,8 +253,12 @@ async function getItemsByContainerAsync(ctx, containerType, containerId, options
       ? buildBackfilledSubsystemItems(ctx, ownerContext.ship, [...mergedById.values()], {
           owningPlayerId: ownerContext.owningPlayerId,
           owningCharacterId: ownerContext.owningCharacterId,
+          playerName: options.playerName,
+          characterId: options.characterId,
         })
       : [];
+
+    await persistBackfilledItemsAsync(ctx, backfilledItems);
 
     for (const item of backfilledItems) {
       mergedById.set(item.id, item);
@@ -233,14 +278,66 @@ async function getItemsByContainerAsync(ctx, containerType, containerId, options
     ? buildBackfilledSubsystemItems(ctx, ownerContext.ship, normalizedCachedMatches, {
         owningPlayerId: ownerContext.owningPlayerId,
         owningCharacterId: ownerContext.owningCharacterId,
+        playerName: options.playerName,
+        characterId: options.characterId,
       })
     : [];
+
+  await persistBackfilledItemsAsync(ctx, backfilledItems);
 
   return [...normalizedCachedMatches, ...backfilledItems];
 }
 
-async function syncShipInventoryReferenceForItemAsync(ctx, playerName, previousItem, nextItem) {
+async function syncShipInventoryReferenceForItemAsync(
+  ctx,
+  playerName,
+  previousItem,
+  nextItem,
+  options = {}
+) {
+  const isCharacterVersionConflictError = (error) => {
+    const message = ctx.toNonEmptyString(error?.message).toLowerCase();
+    if (!message) {
+      return false;
+    }
+
+    return message.includes('no matching document found') && message.includes('version');
+  };
+
+  const computeNextShips = (ships, characterId, shouldAttachToShip, nextShipId, nextItem) => {
+    let changed = false;
+    const nextShips = ships.map((ship) => {
+      const inventory = Array.isArray(ship.inventory) ? ship.inventory : [];
+      const filteredInventory = inventory.filter((entry) => entry?.itemId !== nextItem.id);
+      const wasRemoved = filteredInventory.length !== inventory.length;
+
+      let nextInventory = filteredInventory;
+      if (shouldAttachToShip && characterId === nextItem.owningCharacterId && ship.id === nextShipId) {
+        nextInventory = [
+          ...filteredInventory,
+          {
+            itemId: nextItem.id,
+            itemType: nextItem.itemType,
+          },
+        ];
+      }
+
+      if (wasRemoved || nextInventory.length !== inventory.length) {
+        changed = true;
+        return {
+          ...ship,
+          inventory: nextInventory,
+        };
+      }
+
+      return ship;
+    });
+
+    return { nextShips, changed };
+  };
+
   const canonicalPlayerName = ctx.toNonEmptyString(playerName);
+  const correlationId = ctx.toNonEmptyString(options?.correlationId) || '-';
   if (!canonicalPlayerName || !nextItem?.id) {
     return;
   }
@@ -262,49 +359,66 @@ async function syncShipInventoryReferenceForItemAsync(ctx, playerName, previousI
   );
 
   for (const characterId of candidateCharacterIds) {
-    const character = ctx.findCharacter(canonicalPlayerName, characterId);
-    if (!character) {
-      continue;
-    }
+    let attemptsUsed = 0;
+    let attemptsRemaining = 2;
 
-    const ships = Array.isArray(character.ships) ? character.ships : [];
-    let changed = false;
-
-    const nextShips = ships.map((ship) => {
-      const inventory = Array.isArray(ship.inventory) ? ship.inventory : [];
-      const filteredInventory = inventory.filter((entry) => entry?.itemId !== nextItem.id);
-      const wasRemoved = filteredInventory.length !== inventory.length;
-
-      let nextInventory = filteredInventory;
-      if (
-        shouldAttachToShip &&
-        characterId === normalizedNextCharacterId &&
-        ship.id === normalizedNextShipId
-      ) {
-        nextInventory = [
-          ...filteredInventory,
-          {
-            itemId: nextItem.id,
-            itemType: normalizedNextItemType,
-          },
-        ];
+    while (attemptsRemaining > 0) {
+      attemptsUsed += 1;
+      const character = ctx.findCharacter(canonicalPlayerName, characterId);
+      if (!character) {
+        break;
       }
 
-      if (wasRemoved || nextInventory.length !== inventory.length) {
-        changed = true;
-        return {
-          ...ship,
-          inventory: nextInventory,
-        };
+      const ships = Array.isArray(character.ships) ? character.ships : [];
+      const { nextShips, changed } = computeNextShips(
+        ships,
+        characterId,
+        shouldAttachToShip,
+        normalizedNextShipId,
+        {
+          id: nextItem.id,
+          itemType: normalizedNextItemType,
+          owningCharacterId: normalizedNextCharacterId,
+        }
+      );
+
+      if (!changed) {
+        break;
       }
 
-      return ship;
-    });
+      try {
+        await ctx.updateCharacterAsync(canonicalPlayerName, characterId, {
+          ships: nextShips,
+        }, {
+          correlationId,
+        });
 
-    if (changed) {
-      await ctx.updateCharacterAsync(canonicalPlayerName, characterId, {
-        ships: nextShips,
-      });
+        if (attemptsUsed > 1) {
+          ctx.log(
+            `[inventory-sync] recovered correlationId=${correlationId} player=${canonicalPlayerName} characterId=${characterId} itemId=${nextItem.id} attempts=${attemptsUsed}`
+          );
+        }
+        break;
+      } catch (error) {
+        attemptsRemaining -= 1;
+        if (isCharacterVersionConflictError(error)) {
+          if (attemptsRemaining > 0) {
+            ctx.log(
+              `[inventory-sync] version-conflict correlationId=${correlationId} player=${canonicalPlayerName} characterId=${characterId} itemId=${nextItem.id} action=retry attemptsUsed=${attemptsUsed} error=${error.message}`
+            );
+            await ctx.getCharactersAsync(canonicalPlayerName);
+            continue;
+          }
+
+          // Avoid failing item lifecycle operations when only embedded ship refs race.
+          ctx.log(
+            `[inventory-sync] version-conflict correlationId=${correlationId} player=${canonicalPlayerName} characterId=${characterId} itemId=${nextItem.id} action=skip-final-sync`
+          );
+          break;
+        }
+
+        throw error;
+      }
     }
   }
 }

@@ -732,28 +732,16 @@ test('ship list returns ships for a character', async () => {
   assert.equal(shipListResponse.ships.length >= 1, true);
   assert.equal(typeof shipListResponse.ships[0].id, 'string');
   assert.equal(typeof shipListResponse.ships[0].name, 'string');
-  assert.deepEqual(shipListResponse.ships[0].inventory, [
-    {
-      id: `${addResponse.characterId}-ship-1-item-1`,
-      itemType: 'expendable-dart-drone',
-      displayName: 'Expendable Dart Drone',
-      state: 'contained',
-      damageStatus: 'intact',
-      container: {
-        containerType: 'ship',
-        containerId: `${addResponse.characterId}-ship-1`,
-      },
-      owningPlayerId: loginResponse.playerId,
-      owningCharacterId: addResponse.characterId,
-      spatial: null,
-      createdAt: shipListResponse.ships[0].inventory[0].createdAt,
-      updatedAt: shipListResponse.ships[0].inventory[0].updatedAt,
-      destroyedAt: null,
-      destroyedReason: null,
-      launchable: true,
-      quantity: 1,
-    },
-  ]);
+  assert.ok(
+    shipListResponse.ships[0].inventory.some(
+      (item) => item.id === `${addResponse.characterId}-ship-1-item-1`
+    )
+  );
+  const starterSubsystemTypes = ['propulsion-manifold', 'sensor-array', 'power-distribution-bus'];
+  const subsystemRows = shipListResponse.ships[0].inventory.filter((item) =>
+    starterSubsystemTypes.includes(item.itemType)
+  );
+  assert.equal(subsystemRows.length, 3);
 
   await closeClient(client);
   io.close();

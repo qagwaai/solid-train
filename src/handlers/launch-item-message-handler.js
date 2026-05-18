@@ -78,7 +78,7 @@ class LaunchItemMessageHandler {
     return hash >>> 0;
   }
 
-  async consumeLaunchedItem(parsed, now) {
+  async consumeLaunchedItem(parsed, now, correlationId = '-') {
     const updatedItem = await this.context.updateItemAsync(parsed.itemId, {
       state: 'destroyed',
       container: null,
@@ -105,9 +105,16 @@ class LaunchItemMessageHandler {
         })
       : [];
 
-    await this.context.updateCharacterAsync(parsed.player.playerName, parsed.characterId, {
-      ships: nextShips,
-    });
+    await this.context.updateCharacterAsync(
+      parsed.player.playerName,
+      parsed.characterId,
+      {
+        ships: nextShips,
+      },
+      {
+        correlationId,
+      }
+    );
 
     return (
       updatedItem || {
@@ -239,10 +246,10 @@ class LaunchItemMessageHandler {
     };
   }
 
-  async resolveLaunch(parsed) {
+  async resolveLaunch(parsed, correlationId = '-') {
     const now = this.context.getCurrentTimestamp();
     const launchSeed = this.computeLaunchSeed(parsed);
-    const launchedItem = await this.consumeLaunchedItem(parsed, now);
+    const launchedItem = await this.consumeLaunchedItem(parsed, now, correlationId);
 
     if (parsed.itemType !== EXPENDABLE_DART_DRONE_ITEM_TYPE) {
       return {
@@ -344,9 +351,16 @@ class LaunchItemMessageHandler {
         })
       : [];
 
-    await this.context.updateCharacterAsync(parsed.player.playerName, parsed.characterId, {
-      ships: nextShipsWithYield,
-    });
+    await this.context.updateCharacterAsync(
+      parsed.player.playerName,
+      parsed.characterId,
+      {
+        ships: nextShipsWithYield,
+      },
+      {
+        correlationId,
+      }
+    );
 
     return {
       success: true,
@@ -378,6 +392,11 @@ class LaunchItemMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('launch-item-request', payload);
+    const correlationId =
+      this.context.toNonEmptyString(payload?.correlationId) ||
+      this.context.toNonEmptyString(payload?.requestId) ||
+      this.context.toNonEmptyString(payload?.messageId) ||
+      '-';
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -405,7 +424,7 @@ class LaunchItemMessageHandler {
       return response;
     }
 
-    const response = await this.resolveLaunch(parsed);
+    const response = await this.resolveLaunch(parsed, correlationId);
     socket.emit(LAUNCH_ITEM_RESPONSE_EVENT, response);
     return response;
   }

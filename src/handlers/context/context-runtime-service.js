@@ -33,9 +33,14 @@ function logHandlerMessage(ctx, messageType, payload) {
     ctx.toNonEmptyString(payload?.characterName) ||
     '-';
   const sessionId = ctx.toNonEmptyString(payload?.sessionKey) || '-';
+  const correlationId =
+    ctx.toNonEmptyString(payload?.correlationId) ||
+    ctx.toNonEmptyString(payload?.requestId) ||
+    ctx.toNonEmptyString(payload?.messageId) ||
+    '-';
 
   ctx.log(
-    `[handler] messageType=${messageType} player=${player} character=${character} sessionId=${sessionId}`
+    `[handler] messageType=${messageType} player=${player} character=${character} sessionId=${sessionId} correlationId=${correlationId}`
   );
 }
 

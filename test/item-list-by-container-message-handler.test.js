@@ -408,3 +408,73 @@ test('ItemListByContainerMessageHandler does not duplicate existing starter subs
   assert.equal(propulsionItems[0].id, 'ship-1-starter-propulsion-manifold');
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT);
 });
+
+test('ItemListByContainerMessageHandler persists backfilled starter subsystem rows to DB when available', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ColdBootPilot',
+    playerId: 'player-cold-boot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Starter',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'Scavenger Pod',
+            tier: 1,
+            createdAt: '2026-04-17T00:00:00.000Z',
+            inventory: [],
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            damageProfile: {
+              overallStatus: 'damaged',
+              summary: 'Starter cold boot damage profile',
+              origin: 'cold-boot-scripted',
+              updatedAt: '2026-04-17T00:00:00.000Z',
+              systems: [],
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  let persistedItems = [];
+  context.databaseService = {
+    async getItemsByContainer() {
+      return [];
+    },
+    async addItems(items) {
+      persistedItems = Array.isArray(items) ? items : [];
+      return persistedItems;
+    },
+  };
+
+  const handler = new ItemListByContainerMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ColdBootPilot',
+    sessionKey: 'session-1',
+    containerType: 'ship',
+    containerId: 'ship-1',
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.items.length, 3);
+  assert.equal(persistedItems.length, 3);
+  const persistedTypes = persistedItems.map((item) => item.itemType).sort();
+  assert.deepEqual(persistedTypes, [
+    'power-distribution-bus',
+    'propulsion-manifold',
+    'sensor-array',
+  ]);
+  assert.equal(socket.events[0].eventName, ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT);
+});

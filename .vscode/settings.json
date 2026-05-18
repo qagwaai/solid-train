@@ -47,6 +47,26 @@
     "/^cd /c/Development/Projects/Github/solid-train && node --test$/": {
       "approve": true,
       "matchCommandLine": true
+    },
+    "/^node --test test/ship-upsert-message-handler\\.test\\.js --test-reporter=spec \\| tail -n 10$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^node --test test/ship-upsert-message-handler\\.test\\.js --test-reporter=tap \\| grep -E \"\\^# \\(pass\\|fail\\) \"$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^node --test test/ship-upsert-message-handler\\.test\\.js --test-reporter=spec \\| \\(grep -v \"\\\\\\[\" \\|\\| true\\)$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^node --test test/ship-upsert-message-handler\\.test\\.js --test-reporter=spec$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^node --test test/ship-upsert-message-handler\\.test\\.js --test-reporter=spec && node --test test/ship-list-message-handler\\.test\\.js --test-reporter=spec && node --test test/item-upsert-message-handler\\.test\\.js --test-reporter=spec$/": {
+      "approve": true,
+      "matchCommandLine": true
     }
   },
   "specstory.cloudSync.enabled": "never"

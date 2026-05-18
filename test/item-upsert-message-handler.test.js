@@ -3,7 +3,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { ItemUpsertMessageHandler } = require('../src/handlers/item-upsert-message-handler');
-const { ITEM_UPSERT_RESPONSE_EVENT } = require('../src/model/item-upsert');
+const {
+  ITEM_UPSERT_RESPONSE_EVENT,
+  UPSERT_ITEM_RESPONSE_EVENT,
+} = require('../src/model/item-upsert');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
@@ -329,4 +332,202 @@ test('ItemUpsertMessageHandler adds created ship-contained items to ship invento
   assert.equal(character.ships[0].inventory.length, 1);
   assert.equal(character.ships[0].inventory[0].itemId, response.item.id);
   assert.equal(character.ships[0].inventory[0].itemType, response.item.itemType);
+});
+
+test('ItemUpsertMessageHandler emits legacy upsert-item-response alias for compatibility', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+
+  const handler = new ItemUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    item: createItemPayload({ id: '' }),
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
+  assert.equal(socket.events[1].eventName, UPSERT_ITEM_RESPONSE_EVENT);
+});
+
+test('ItemUpsertMessageHandler keeps success when inventory reference sync hits DB version conflict', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            inventory: [
+              {
+                itemId: 'item-1',
+                itemType: 'hull-patch-kit',
+              },
+            ],
+            createdAt: '2026-04-17T00:00:00.000Z',
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+          },
+        ],
+      },
+    ],
+  });
+  seedItems(context, [
+    createExistingItem({
+      itemType: 'hull-patch-kit',
+      displayName: 'Hull Patch Kit',
+      launchable: false,
+      owningPlayerId: 'player-1',
+      owningCharacterId: 'character-1',
+      container: { containerType: 'ship', containerId: 'ship-1' },
+    }),
+  ]);
+
+  context.databaseService = {
+    async updateCharacter() {
+      throw new Error(
+        'No matching document found for id "player-doc" version 6 modifiedPaths "characters"'
+      );
+    },
+    async updateItemById() {
+      return null;
+    },
+  };
+
+  const handler = new ItemUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    item: {
+      id: 'item-1',
+      state: 'destroyed',
+      damageStatus: 'destroyed',
+      container: null,
+      destroyedReason: 'consumed-by:repair',
+    },
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.item.id, 'item-1');
+  assert.equal(response.item.state, 'destroyed');
+  assert.equal(response.item.damageStatus, 'destroyed');
+  assert.equal(response.item.container, null);
+  assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
+  assert.equal(socket.events[1].eventName, UPSERT_ITEM_RESPONSE_EVENT);
+});
+
+test('ItemUpsertMessageHandler retries inventory reference sync once after DB version conflict', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            inventory: [
+              {
+                itemId: 'item-1',
+                itemType: 'hull-patch-kit',
+              },
+            ],
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
+  });
+  seedItems(context, [
+    createExistingItem({
+      itemType: 'hull-patch-kit',
+      displayName: 'Hull Patch Kit',
+      launchable: false,
+      owningPlayerId: 'player-1',
+      owningCharacterId: 'character-1',
+      container: { containerType: 'ship', containerId: 'ship-1' },
+    }),
+  ]);
+
+  let getCharactersCallCount = 0;
+  let updateCharacterCallCount = 0;
+  context.databaseService = {
+    async getCharacters() {
+      getCharactersCallCount += 1;
+      return [
+        {
+          id: 'character-1',
+          characterName: 'RangerOne',
+          ships: [
+            {
+              id: 'ship-1',
+              shipName: 'Scout Ship',
+              inventory: [
+                {
+                  itemId: 'item-1',
+                  itemType: 'hull-patch-kit',
+                },
+              ],
+              createdAt: '2026-04-17T00:00:00.000Z',
+              spatial: {
+                solarSystemId: 'sol',
+                frame: 'barycentric',
+                positionKm: { x: 0, y: 0, z: 0 },
+                epochMs: 0,
+              },
+            },
+          ],
+        },
+      ];
+    },
+    async updateCharacter() {
+      updateCharacterCallCount += 1;
+      if (updateCharacterCallCount === 1) {
+        throw new Error(
+          'No matching document found for id "player-doc" version 6 modifiedPaths "characters"'
+        );
+      }
+      return null;
+    },
+    async updateItemById() {
+      return null;
+    },
+  };
+
+  const handler = new ItemUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    item: {
+      id: 'item-1',
+      state: 'destroyed',
+      damageStatus: 'destroyed',
+      container: null,
+      destroyedReason: 'consumed-by:repair',
+    },
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(updateCharacterCallCount, 2);
+  assert.equal(getCharactersCallCount, 1);
+  assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
+  assert.equal(socket.events[1].eventName, UPSERT_ITEM_RESPONSE_EVENT);
 });

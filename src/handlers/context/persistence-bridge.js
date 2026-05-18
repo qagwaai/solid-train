@@ -82,10 +82,45 @@ async function deleteCharacterAsync(ctx, playerName, characterId) {
   ctx.setCharacters(normalizedPlayerName, filtered);
 }
 
-async function updateCharacterAsync(ctx, playerName, characterId, updates) {
-  await ctx.withDb('updating character in DB', (databaseService) =>
-    databaseService.updateCharacter(playerName, characterId, updates)
-  );
+async function updateCharacterAsync(ctx, playerName, characterId, updates, options = {}) {
+  const isVersionConflict = (error) => {
+    const message = ctx.toNonEmptyString(error?.message).toLowerCase();
+    return message.includes('no matching document found') && message.includes('version');
+  };
+  const correlationId = ctx.toNonEmptyString(options?.correlationId) || '-';
+
+  let attemptsUsed = 0;
+  let attemptsRemaining = 2;
+  while (attemptsRemaining > 0) {
+    attemptsUsed += 1;
+    try {
+      await ctx.withDb('updating character in DB', (databaseService) =>
+        databaseService.updateCharacter(playerName, characterId, updates)
+      );
+
+      if (attemptsUsed > 1) {
+        ctx.log(
+          `[concurrency] update-character-recovered correlationId=${correlationId} player=${ctx.toNonEmptyString(playerName) || '-'} characterId=${ctx.toNonEmptyString(characterId) || '-'} attempts=${attemptsUsed}`
+        );
+      }
+      break;
+    } catch (error) {
+      attemptsRemaining -= 1;
+      if (attemptsRemaining > 0 && isVersionConflict(error)) {
+        ctx.log(
+          `[concurrency] update-character-conflict correlationId=${correlationId} player=${ctx.toNonEmptyString(playerName) || '-'} characterId=${ctx.toNonEmptyString(characterId) || '-'} action=retry attemptsUsed=${attemptsUsed} error=${error.message}`
+        );
+        continue;
+      }
+
+      if (isVersionConflict(error)) {
+        ctx.log(
+          `[concurrency] update-character-conflict correlationId=${correlationId} player=${ctx.toNonEmptyString(playerName) || '-'} characterId=${ctx.toNonEmptyString(characterId) || '-'} action=fail attemptsUsed=${attemptsUsed} error=${error.message}`
+        );
+      }
+      throw error;
+    }
+  }
 
   const character = ctx.findCharacter(playerName, characterId);
   if (character) {

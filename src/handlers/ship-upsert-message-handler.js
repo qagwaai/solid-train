@@ -51,6 +51,34 @@ class ShipUpsertMessageHandler {
     };
   }
 
+  normalizeInventoryReferences(inventory) {
+    if (!Array.isArray(inventory)) {
+      return null;
+    }
+
+    const references = [];
+    for (const entry of inventory) {
+      const fromCanonical = this.context.normalizeInventoryItemReference(entry);
+      if (fromCanonical) {
+        references.push(fromCanonical);
+        continue;
+      }
+
+      const fromHydrated = this.context.normalizeInventoryItemReference({
+        itemId: this.context.toNonEmptyString(entry?.id),
+        itemType: this.context.toNonEmptyString(entry?.itemType),
+      });
+      if (fromHydrated) {
+        references.push(fromHydrated);
+        continue;
+      }
+
+      return null;
+    }
+
+    return references;
+  }
+
   normalizeDamageProfile(raw) {
     const overallStatus = raw?.overallStatus;
     if (!['intact', 'damaged', 'disabled', 'destroyed'].includes(overallStatus)) {
@@ -113,6 +141,100 @@ class ShipUpsertMessageHandler {
     return { overallStatus, summary, origin, updatedAt, systems };
   }
 
+  isRepairTransition(existingShip, nextShip, hasDamageProfilePatch) {
+    if (!hasDamageProfilePatch) {
+      return false;
+    }
+
+    const previousStatus = this.context
+      .toNonEmptyString(existingShip?.damageProfile?.overallStatus)
+      .toLowerCase();
+    const nextStatus = this.context
+      .toNonEmptyString(nextShip?.damageProfile?.overallStatus)
+      .toLowerCase();
+
+    return nextStatus === 'intact' && previousStatus !== 'intact';
+  }
+
+  async consumeRepairHullPatchKitIfNeeded({
+    response,
+    existingShip,
+    hasInventoryPatch,
+    hasDamageProfilePatch,
+    correlationId,
+  }) {
+    if (hasInventoryPatch) {
+      return;
+    }
+
+    if (!this.isRepairTransition(existingShip, response.ship, hasDamageProfilePatch)) {
+      return;
+    }
+
+    const currentInventory = Array.isArray(response.ship?.inventory) ? response.ship.inventory : [];
+    const hullPatchIndex = currentInventory.findIndex(
+      (entry) => this.context.toNonEmptyString(entry?.itemType) === 'hull-patch-kit'
+    );
+
+    if (hullPatchIndex < 0) {
+      this.context.log(
+        `[ship-upsert-diag] repair-auto-consume correlationId=${correlationId} player=${response.playerName} characterId=${response.characterId} shipId=${response.ship.id} action=no-kit-found`
+      );
+      return;
+    }
+
+    const hullPatchRef = currentInventory[hullPatchIndex];
+    const hullPatchItemId = this.context.toNonEmptyString(hullPatchRef?.itemId);
+    const nextInventory = [
+      ...currentInventory.slice(0, hullPatchIndex),
+      ...currentInventory.slice(hullPatchIndex + 1),
+    ];
+    response.ship.inventory = nextInventory;
+
+    this.context.log(
+      `[ship-upsert-diag] repair-auto-consume correlationId=${correlationId} player=${response.playerName} characterId=${response.characterId} shipId=${response.ship.id} consumedItemId=${hullPatchItemId || '-'} action=remove-inventory-ref`
+    );
+
+    if (!hullPatchItemId) {
+      return;
+    }
+
+    const [existingItem] = await this.context.getItemsByIdsAsync([hullPatchItemId]);
+    if (!existingItem) {
+      this.context.log(
+        `[ship-upsert-diag] repair-auto-consume correlationId=${correlationId} player=${response.playerName} characterId=${response.characterId} shipId=${response.ship.id} consumedItemId=${hullPatchItemId} action=item-not-found`
+      );
+      return;
+    }
+
+    const now = this.context.getCurrentTimestamp();
+    const updatedItem = await this.context.updateItemAsync(hullPatchItemId, {
+      state: 'destroyed',
+      damageStatus: 'destroyed',
+      container: null,
+      destroyedAt: existingItem.destroyedAt || now,
+      destroyedReason: existingItem.destroyedReason || 'consumed-by:repair',
+      updatedAt: now,
+    });
+
+    if (updatedItem) {
+      try {
+        await this.context.syncShipInventoryReferenceForItemAsync(
+          response.playerName,
+          existingItem,
+          updatedItem,
+          {
+            correlationId,
+          }
+        );
+      } catch (error) {
+        this.context.log(
+          `[ship-upsert-diag] repair-auto-consume correlationId=${correlationId} player=${response.playerName} characterId=${response.characterId} shipId=${response.ship.id} consumedItemId=${hullPatchItemId} action=sync-warning error=${error.message}`
+        );
+      }
+    }
+  }
+
   /**
    * Validate ship-upsert payload and produce canonical response payload.
    * @param {Object} payload
@@ -127,6 +249,7 @@ class ShipUpsertMessageHandler {
       this.context.toNonEmptyString(payload?.ship?.name);
     const statusRaw = payload?.ship?.status;
     const hasStatusKey = payload?.ship != null && 'status' in payload.ship;
+    const hasInventoryKey = payload?.ship != null && 'inventory' in payload.ship;
     const hasDamageProfileKey = payload?.ship != null && 'damageProfile' in payload.ship;
     const model = this.context.toNonEmptyString(payload?.ship?.model);
     const tierPayload = payload?.ship?.tier;
@@ -145,6 +268,10 @@ class ShipUpsertMessageHandler {
         ? Boolean(payload.ship.launchable)
         : null
       : null;
+
+    const inventoryReferences = hasInventoryKey
+      ? this.normalizeInventoryReferences(payload?.ship?.inventory)
+      : undefined;
 
     if (!playerName || !characterId || !shipId) {
       return {
@@ -173,10 +300,29 @@ class ShipUpsertMessageHandler {
       };
     }
 
-    if (!hasSpatial && !hasMotion && !model && !hasTier && !hasStatusKey && !hasDamageProfileKey) {
+    if (
+      !hasSpatial &&
+      !hasMotion &&
+      !model &&
+      !hasTier &&
+      !hasStatusKey &&
+      !hasDamageProfileKey &&
+      !hasInventoryKey
+    ) {
       return {
         success: false,
-        message: 'ship.spatial, ship.motion, ship.model, and/or ship.tier is required',
+        message:
+          'ship.spatial, ship.motion, ship.model, ship.inventory, and/or ship.tier is required',
+        playerName,
+        characterId,
+      };
+    }
+
+    if (hasInventoryKey && inventoryReferences === null) {
+      return {
+        success: false,
+        message:
+          'ship.inventory must be an array of item references ({ itemId, itemType }) or hydrated item rows ({ id, itemType })',
         playerName,
         characterId,
       };
@@ -271,6 +417,7 @@ class ShipUpsertMessageHandler {
       tier: tier !== null ? tier : existingShip.tier,
       spatial: spatial || existingShip.spatial,
       motion: hasMotion ? motion || null : existingShip.motion,
+      inventory: hasInventoryKey ? inventoryReferences : existingShip.inventory,
       launchable:
         hasLaunchable && launchable !== null
           ? launchable
@@ -301,6 +448,34 @@ class ShipUpsertMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-upsert-request', payload);
+    const correlationId =
+      this.context.toNonEmptyString(payload?.correlationId) ||
+      this.context.toNonEmptyString(payload?.requestId) ||
+      this.context.toNonEmptyString(payload?.messageId) ||
+      '-';
+    const hasInventoryPatch = payload?.ship != null && 'inventory' in payload.ship;
+    const hasDamageProfilePatch = payload?.ship != null && 'damageProfile' in payload.ship;
+
+    if (Array.isArray(payload?.ship?.inventory)) {
+      const incomingInventoryIds = payload.ship.inventory
+        .map((entry) => this.context.toNonEmptyString(entry?.itemId || entry?.id))
+        .filter((value) => Boolean(value));
+      const inventoryPatchPayload = payload.ship.inventory.map((entry) => ({
+        itemId: this.context.toNonEmptyString(entry?.itemId),
+        id: this.context.toNonEmptyString(entry?.id),
+        itemType: this.context.toNonEmptyString(entry?.itemType),
+      }));
+      this.context.log(
+        `[ship-upsert-diag] incoming correlationId=${correlationId} player=${this.context.toNonEmptyString(payload?.playerName) || '-'} characterId=${this.context.toNonEmptyString(payload?.characterId) || '-'} shipId=${this.context.toNonEmptyString(payload?.ship?.id) || '-'} hasInventoryPatch=${hasInventoryPatch} inventoryItemIds=${incomingInventoryIds.join(',') || '-'}`
+      );
+      this.context.log(
+        `[ship-upsert-diag] incoming-patch correlationId=${correlationId} shipId=${this.context.toNonEmptyString(payload?.ship?.id) || '-'} inventoryPatchPayload=${JSON.stringify(inventoryPatchPayload)}`
+      );
+    } else {
+      this.context.log(
+        `[ship-upsert-diag] incoming correlationId=${correlationId} player=${this.context.toNonEmptyString(payload?.playerName) || '-'} characterId=${this.context.toNonEmptyString(payload?.characterId) || '-'} shipId=${this.context.toNonEmptyString(payload?.ship?.id) || '-'} hasInventoryPatch=${hasInventoryPatch} inventoryItemIds=-`
+      );
+    }
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -316,16 +491,61 @@ class ShipUpsertMessageHandler {
     if (response.success) {
       try {
         const character = this.context.findCharacter(response.playerName, response.characterId);
+        const existingShip = Array.isArray(character?.ships)
+          ? character.ships.find((ship) => ship.id === response.ship.id)
+          : null;
+
+        await this.consumeRepairHullPatchKitIfNeeded({
+          response,
+          existingShip,
+          hasInventoryPatch,
+          hasDamageProfilePatch,
+          correlationId,
+        });
+
         // Replace only the targeted ship while preserving other ship entries.
         const nextShips = Array.isArray(character?.ships)
           ? character.ships.map((ship) => (ship.id === response.ship.id ? response.ship : ship))
           : [];
+        const previousShip = existingShip;
+        const previousInventoryIds = Array.isArray(previousShip?.inventory)
+          ? previousShip.inventory
+              .map((entry) => this.context.toNonEmptyString(entry?.itemId))
+              .filter((value) => Boolean(value))
+          : [];
+        const prePersistShip = nextShips.find((ship) => ship.id === response.ship.id);
+        const prePersistInventoryIds = Array.isArray(prePersistShip?.inventory)
+          ? prePersistShip.inventory
+              .map((entry) => this.context.toNonEmptyString(entry?.itemId))
+              .filter((value) => Boolean(value))
+          : [];
+        this.context.log(
+          `[ship-upsert-diag] pre-persist correlationId=${correlationId} player=${response.playerName} characterId=${response.characterId} shipId=${response.ship.id} hasInventoryPatch=${hasInventoryPatch} previousInventoryItemIds=${previousInventoryIds.join(',') || '-'} prePersistInventoryItemIds=${prePersistInventoryIds.join(',') || '-'}`
+        );
 
         await this.context.updateCharacterAsync(response.playerName, response.characterId, {
           ships: nextShips,
+        }, {
+          correlationId,
         });
+
+        await this.context.getCharactersAsync(response.playerName);
+        const refreshedCharacter = this.context.findCharacter(response.playerName, response.characterId);
+        const persistedShip = Array.isArray(refreshedCharacter?.ships)
+          ? refreshedCharacter.ships.find((ship) => ship.id === response.ship.id)
+          : null;
+        const persistedInventoryIds = Array.isArray(persistedShip?.inventory)
+          ? persistedShip.inventory
+              .map((entry) => this.context.toNonEmptyString(entry?.itemId))
+              .filter((value) => Boolean(value))
+          : [];
+        this.context.log(
+          `[ship-upsert-diag] persisted correlationId=${correlationId} player=${response.playerName} characterId=${response.characterId} shipId=${response.ship.id} hasInventoryPatch=${hasInventoryPatch} inventoryItemIds=${persistedInventoryIds.join(',') || '-'}`
+        );
       } catch (error) {
-        this.context.log(`[ship-upsert-handler] Failed to upsert ship: ${error.message}`);
+        this.context.log(
+          `[ship-upsert-handler] Failed to upsert ship: correlationId=${correlationId} error=${error.message}`
+        );
         response.success = false;
         response.message = 'Failed to update ship: database error';
         delete response.ship;
@@ -335,6 +555,7 @@ class ShipUpsertMessageHandler {
     if (response.success && response.ship) {
       const player = this.context.getPlayer(response.playerName);
       response.ship = await this.context.hydrateShipAsync(response.ship, {
+        correlationId,
         playerName: response.playerName,
         characterId: response.characterId,
         owningPlayerId: this.context.toNonEmptyString(player?.playerId),

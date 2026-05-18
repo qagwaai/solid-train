@@ -100,8 +100,8 @@ async function deleteCharacterAsync(ctx, playerName, characterId) {
   return persistenceBridge.deleteCharacterAsync(ctx, playerName, characterId);
 }
 
-async function updateCharacterAsync(ctx, playerName, characterId, updates) {
-  return persistenceBridge.updateCharacterAsync(ctx, playerName, characterId, updates);
+async function updateCharacterAsync(ctx, playerName, characterId, updates, options = {}) {
+  return persistenceBridge.updateCharacterAsync(ctx, playerName, characterId, updates, options);
 }
 
 async function addShipAsync(ctx, playerName, characterId, shipData) {

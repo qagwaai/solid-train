@@ -169,8 +169,117 @@ test('ShipUpsertMessageHandler rejects missing location and kinematics update', 
   assert.equal(response.success, false);
   assert.equal(
     response.message,
-    'ship.spatial, ship.motion, ship.model, and/or ship.tier is required'
+    'ship.spatial, ship.motion, ship.model, ship.inventory, and/or ship.tier is required'
   );
+  assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
+});
+
+test('ShipUpsertMessageHandler applies provided ship.inventory references', async () => {
+  const context = createTestContext();
+  seedItems(context, [
+    {
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1',
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+    },
+    {
+      id: 'item-2',
+      itemType: 'hull-patch-kit',
+      displayName: 'Hull Patch Kit',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1',
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+      launchable: false,
+    },
+  ]);
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            model: 'Scavenger Pod',
+            tier: 1,
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            inventory: [
+              {
+                itemId: 'item-1',
+                itemType: 'expendable-dart-drone',
+              },
+              {
+                itemId: 'item-2',
+                itemType: 'hull-patch-kit',
+              },
+            ],
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: {
+      id: 'ship-1',
+      inventory: [
+        {
+          itemId: 'item-1',
+          itemType: 'expendable-dart-drone',
+        },
+      ],
+    },
+  });
+
+  assert.equal(response.success, true);
+  assert.ok(response.ship.inventory.some((item) => item.id === 'item-1'));
+  assert.ok(!response.ship.inventory.some((item) => item.id === 'item-2'));
+
+  const character = context.findCharacter('ShipPilot', 'character-1');
+  assert.deepEqual(character.ships[0].inventory, [
+    {
+      itemId: 'item-1',
+      itemType: 'expendable-dart-drone',
+    },
+  ]);
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });
 
@@ -418,6 +527,121 @@ test('ShipUpsertMessageHandler ship-list returns persisted status and damageProf
   assert.equal(listResponse.success, true);
   assert.equal(listResponse.ships[0].status, 'docked');
   assert.equal(listResponse.ships[0].damageProfile.overallStatus, 'damaged');
+});
+
+test('ShipUpsertMessageHandler repair transition consumes hull patch kit when inventory patch is omitted', async () => {
+  const context = createTestContext();
+  seedItems(context, [
+    {
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1',
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+    },
+    {
+      id: 'item-hpk-1',
+      itemType: 'hull-patch-kit',
+      displayName: 'Hull Patch Kit',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1',
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+      launchable: false,
+    },
+  ]);
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            status: 'docked',
+            damageProfile: createDamageProfile(),
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            inventory: [
+              {
+                itemId: 'item-1',
+                itemType: 'expendable-dart-drone',
+              },
+              {
+                itemId: 'item-hpk-1',
+                itemType: 'hull-patch-kit',
+              },
+            ],
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: {
+      id: 'ship-1',
+      damageProfile: {
+        overallStatus: 'intact',
+        summary: 'Fully repaired',
+        origin: 'wear',
+        updatedAt: '2026-04-28T10:00:00.000Z',
+        systems: [],
+      },
+    },
+  });
+
+  assert.equal(response.success, true);
+  assert.ok(response.ship.inventory.some((item) => item.id === 'item-1'));
+  assert.ok(!response.ship.inventory.some((item) => item.id === 'item-hpk-1'));
+
+  const character = context.findCharacter('ShipPilot', 'character-1');
+  assert.deepEqual(character.ships[0].inventory, [
+    {
+      itemId: 'item-1',
+      itemType: 'expendable-dart-drone',
+    },
+  ]);
+
+  const [hullPatch] = await context.getItemsByIdsAsync(['item-hpk-1']);
+  assert.equal(hullPatch.state, 'destroyed');
+  assert.equal(hullPatch.damageStatus, 'destroyed');
+  assert.equal(hullPatch.container, null);
+  assert.equal(hullPatch.destroyedReason, 'consumed-by:repair');
 });
 
 test('ShipUpsertMessageHandler partial upsert without damageProfile preserves existing', async () => {

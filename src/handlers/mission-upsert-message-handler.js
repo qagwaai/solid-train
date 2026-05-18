@@ -377,6 +377,36 @@ class MissionUpsertMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('add-mission-request', payload);
+    const correlationId =
+      this.context.toNonEmptyString(payload?.correlationId) ||
+      this.context.toNonEmptyString(payload?.requestId) ||
+      this.context.toNonEmptyString(payload?.messageId) ||
+      '-';
+
+    const logCharacterShipInventorySnapshot = (phase, playerName, characterId) => {
+      const character = this.context.findCharacter(playerName, characterId);
+      const ships = Array.isArray(character?.ships) ? character.ships : [];
+      const shipInventorySnapshots = ships.map((ship) => {
+        const inventory = Array.isArray(ship?.inventory) ? ship.inventory : [];
+        const inventoryItemIds = inventory
+          .map((entry) => this.context.toNonEmptyString(entry?.itemId))
+          .filter((value) => Boolean(value));
+        const hullPatchItemIds = inventory
+          .filter((entry) => this.context.toNonEmptyString(entry?.itemType) === 'hull-patch-kit')
+          .map((entry) => this.context.toNonEmptyString(entry?.itemId))
+          .filter((value) => Boolean(value));
+
+        return {
+          shipId: this.context.toNonEmptyString(ship?.id) || '-',
+          inventoryItemIds,
+          hullPatchItemIds,
+        };
+      });
+
+      this.context.log(
+        `[mission-upsert-diag] phase=${phase} correlationId=${correlationId} player=${this.context.toNonEmptyString(playerName) || '-'} characterId=${this.context.toNonEmptyString(characterId) || '-'} shipInventories=${JSON.stringify(shipInventorySnapshots)}`
+      );
+    };
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -391,6 +421,8 @@ class MissionUpsertMessageHandler {
 
     if (response.success) {
       try {
+        logCharacterShipInventorySnapshot('before-mission-upsert', payload?.playerName, payload?.characterId);
+
         const existingMissions = await this.context.getMissionsAsync(
           payload?.playerName,
           payload?.characterId
@@ -424,6 +456,8 @@ class MissionUpsertMessageHandler {
           status: response.mission.status,
           characterId: response.characterId,
         });
+
+        logCharacterShipInventorySnapshot('after-mission-upsert', payload?.playerName, payload?.characterId);
 
         response.mission = this.formatMissionForResponse(missionWithTimestamps);
       } catch (error) {

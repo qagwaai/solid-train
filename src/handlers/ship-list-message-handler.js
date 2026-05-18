@@ -19,6 +19,11 @@ class ShipListMessageHandler {
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);
+    const correlationId =
+      this.context.toNonEmptyString(payload?.correlationId) ||
+      this.context.toNonEmptyString(payload?.requestId) ||
+      this.context.toNonEmptyString(payload?.messageId) ||
+      '-';
 
     if (!playerName || !characterId) {
       return {
@@ -59,6 +64,7 @@ class ShipListMessageHandler {
       ? await this.context.hydrateShipsAsync(character.ships, {
           playerName: player.playerName,
           characterId,
+          correlationId,
           owningPlayerId: this.context.toNonEmptyString(player.playerId),
           owningCharacterId: characterId,
         })
