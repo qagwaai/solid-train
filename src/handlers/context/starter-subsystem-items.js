@@ -1,5 +1,7 @@
 'use strict';
 
+const { ITEM_STATE, ITEM_DAMAGE_STATUS, ITEM_CONTAINER_TYPE } = require('../../model/canonical-items');
+
 const COLD_BOOT_STARTER_MODELS = new Set(['scavenger pod', 'scavenger-pod']);
 const COLD_BOOT_ORIGIN = 'cold-boot-scripted';
 
@@ -91,10 +93,10 @@ function buildBackfilledSubsystemItems(ctx, ship, existingItems, options = {}) {
       itemType: subsystem.itemType,
       displayName: subsystem.displayName,
       launchable: false,
-      state: 'contained',
-      damageStatus: 'damaged',
+      state: ITEM_STATE.CONTAINED,
+      damageStatus: ITEM_DAMAGE_STATUS.DAMAGED,
       container: {
-        containerType: 'ship',
+        containerType: ITEM_CONTAINER_TYPE.SHIP,
         containerId: ship.id,
       },
       owningPlayerId,

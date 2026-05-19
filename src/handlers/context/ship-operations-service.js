@@ -1,6 +1,7 @@
 'use strict';
 
 const orbitalMath = require('./orbital-math');
+const { ITEM_STATE, ITEM_CONTAINER_TYPE } = require('../../model/canonical-items');
 const {
   COLD_BOOT_STARTER_SUBSYSTEMS,
   buildBackfilledSubsystemItems,
@@ -15,11 +16,14 @@ function isProjectedShipInventoryItem(shipId, item) {
     return false;
   }
 
-  if (item.state === 'destroyed') {
+  if (item.state === ITEM_STATE.DESTROYED) {
     return false;
   }
 
-  return item.container?.containerType === 'ship' && item.container?.containerId === shipId;
+  return (
+    item.container?.containerType === ITEM_CONTAINER_TYPE.SHIP &&
+    item.container?.containerId === shipId
+  );
 }
 
 function getShipPositionKm(ctx, ship) {
@@ -34,7 +38,7 @@ async function hydrateShipAsync(ctx, ship, options = {}) {
   const inventoryItemIds = inventoryReferences.map((reference) => reference.itemId);
   const referencedItems = await ctx.getItemsByIdsAsync(inventoryItemIds);
   const containedItems = normalizedShip.id
-    ? await ctx.getItemsByContainerAsync('ship', normalizedShip.id, {
+    ? await ctx.getItemsByContainerAsync(ITEM_CONTAINER_TYPE.SHIP, normalizedShip.id, {
         ship: normalizedShip,
         playerName: options.playerName,
         characterId: options.characterId,

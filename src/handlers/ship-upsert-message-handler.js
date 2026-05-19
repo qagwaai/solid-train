@@ -2,6 +2,11 @@
 
 const { SHIP_UPSERT_RESPONSE_EVENT } = require('../model/ship-upsert');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const {
+  ITEM_STATE,
+  ITEM_DAMAGE_STATUS,
+  ITEM_DAMAGE_STATUS_VALUES,
+} = require('../model/canonical-items');
 
 class ShipUpsertMessageHandler {
   /**
@@ -81,7 +86,7 @@ class ShipUpsertMessageHandler {
 
   normalizeDamageProfile(raw) {
     const overallStatus = raw?.overallStatus;
-    if (!['intact', 'damaged', 'disabled', 'destroyed'].includes(overallStatus)) {
+    if (!ITEM_DAMAGE_STATUS_VALUES.includes(overallStatus)) {
       return {
         error: 'damageProfile.overallStatus must be one of: intact, damaged, disabled, destroyed',
       };
@@ -153,7 +158,10 @@ class ShipUpsertMessageHandler {
       .toNonEmptyString(nextShip?.damageProfile?.overallStatus)
       .toLowerCase();
 
-    return nextStatus === 'intact' && previousStatus !== 'intact';
+    return (
+      nextStatus === ITEM_DAMAGE_STATUS.INTACT &&
+      previousStatus !== ITEM_DAMAGE_STATUS.INTACT
+    );
   }
 
   async consumeRepairHullPatchKitIfNeeded({
@@ -209,8 +217,8 @@ class ShipUpsertMessageHandler {
 
     const now = this.context.getCurrentTimestamp();
     const updatedItem = await this.context.updateItemAsync(hullPatchItemId, {
-      state: 'destroyed',
-      damageStatus: 'destroyed',
+      state: ITEM_STATE.DESTROYED,
+      damageStatus: ITEM_DAMAGE_STATUS.DESTROYED,
       container: null,
       destroyedAt: existingItem.destroyedAt || now,
       destroyedReason: existingItem.destroyedReason || 'consumed-by:repair',

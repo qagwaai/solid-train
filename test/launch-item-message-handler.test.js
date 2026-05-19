@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { LaunchItemMessageHandler } = require('../src/handlers/launch-item-message-handler');
+const { ITEM_STATE, ITEM_DAMAGE_STATUS } = require('../src/model/canonical-items');
 const { LAUNCH_ITEM_RESPONSE_EVENT } = require('../src/model/launch-item');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
@@ -32,8 +33,8 @@ function createSeedItem(overrides = {}) {
     id: 'item-1',
     itemType: 'expendable-dart-drone',
     displayName: 'Expendable Dart Drone',
-    state: 'contained',
-    damageStatus: 'intact',
+    state: ITEM_STATE.CONTAINED,
+    damageStatus: ITEM_DAMAGE_STATUS.INTACT,
     container: { containerType: 'ship', containerId: 'ship-1' },
     owningPlayerId: 'player-seeded',
     owningCharacterId: 'character-1',

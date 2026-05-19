@@ -3,6 +3,7 @@
 const { CHARACTER_ADD_RESPONSE_EVENT } = require('../model/character-add');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { DEFAULT_MISSION_STATUS, DEFAULT_STARTER_MISSION_ID } = require('../model/mission');
+const { ITEM_STATE, ITEM_DAMAGE_STATUS, ITEM_CONTAINER_TYPE } = require('../model/canonical-items');
 
 class CharacterAddMessageHandler {
   /**
@@ -86,11 +87,11 @@ class CharacterAddMessageHandler {
             id: `${starterShipId}-starter-propulsion-manifold`,
             itemType: 'propulsion-manifold',
             displayName: 'Propulsion Manifold',
-            state: 'contained',
-            damageStatus: 'damaged',
+            state: ITEM_STATE.CONTAINED,
+            damageStatus: ITEM_DAMAGE_STATUS.DAMAGED,
             launchable: false,
             container: {
-              containerType: 'ship',
+              containerType: ITEM_CONTAINER_TYPE.SHIP,
               containerId: starterShipId,
             },
             owningPlayerId,
@@ -105,11 +106,11 @@ class CharacterAddMessageHandler {
             id: `${starterShipId}-starter-sensor-array`,
             itemType: 'sensor-array',
             displayName: 'Sensor Array',
-            state: 'contained',
-            damageStatus: 'damaged',
+            state: ITEM_STATE.CONTAINED,
+            damageStatus: ITEM_DAMAGE_STATUS.DAMAGED,
             launchable: false,
             container: {
-              containerType: 'ship',
+              containerType: ITEM_CONTAINER_TYPE.SHIP,
               containerId: starterShipId,
             },
             owningPlayerId,
@@ -124,11 +125,11 @@ class CharacterAddMessageHandler {
             id: `${starterShipId}-starter-power-distribution-bus`,
             itemType: 'power-distribution-bus',
             displayName: 'Power Distribution Bus',
-            state: 'contained',
-            damageStatus: 'damaged',
+            state: ITEM_STATE.CONTAINED,
+            damageStatus: ITEM_DAMAGE_STATUS.DAMAGED,
             launchable: false,
             container: {
-              containerType: 'ship',
+              containerType: ITEM_CONTAINER_TYPE.SHIP,
               containerId: starterShipId,
             },
             owningPlayerId,
@@ -145,10 +146,10 @@ class CharacterAddMessageHandler {
             id: starterDroneId,
             itemType: 'expendable-dart-drone',
             displayName: 'Expendable Dart Drone',
-            state: 'contained',
-            damageStatus: 'intact',
+            state: ITEM_STATE.CONTAINED,
+            damageStatus: ITEM_DAMAGE_STATUS.INTACT,
             container: {
-              containerType: 'ship',
+              containerType: ITEM_CONTAINER_TYPE.SHIP,
               containerId: starterShipId,
             },
             owningPlayerId,

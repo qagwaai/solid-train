@@ -8,9 +8,53 @@
     "itemType": { "type": "string" },
     "displayName": { "type": "string" },
     "description": { "type": ["string", "null"] },
-    "category": { "type": ["string", "null"] },
+    "category": {
+      "type": ["string", "null"],
+      "enum": [
+        "tool",
+        "repair",
+        "mining",
+        "unit",
+        "subsystem",
+        "structural",
+        "infrastructure",
+        "refined",
+        "alloy",
+        "component",
+        "fuel",
+        "module",
+        "capital-unit",
+        "manufactured-component",
+        "raw-material",
+        null
+      ]
+    },
     "tier": { "type": ["integer", "null"] },
-    "rarity": { "type": ["string", "null"] },
+    "rarity": {
+      "type": ["string", "null"],
+      "enum": ["common", "uncommon", "rare", "exotic", null]
+    },
+    "stackable": { "type": ["boolean", "null"] },
+    "massKg": { "type": ["number", "null"] },
+    "volumeM3": { "type": ["number", "null"] },
+    "baseValueCredits": { "type": ["number", "null"] },
+    "fabrication": {
+      "type": ["object", "null"],
+      "properties": {
+        "durationMs": { "type": "number" },
+        "requiredMaterials": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "itemType": { "type": "string" },
+              "quantity": { "type": "number" }
+            },
+            "required": ["itemType", "quantity"]
+          }
+        }
+      }
+    },
     "requiredMaterials": {
       "type": ["array", "null"],
       "items": {
@@ -78,5 +122,30 @@
     "launchable": { "type": ["boolean", "null"] },
     "createdAt": { "type": ["string", "null"], "format": "date-time" },
     "updatedAt": { "type": ["string", "null"], "format": "date-time" }
-  }
+  },
+  "examples": [
+    {
+      "itemType": "conduit-seals",
+      "displayName": "Conduit Seals",
+      "description": "Pressure-rated sealing sleeves for rerouting damaged ship conduits and stabilizing subsystem junctions.",
+      "category": "manufactured-component",
+      "tier": 1,
+      "rarity": "common",
+      "stackable": true,
+      "massKg": 2,
+      "volumeM3": 0.02,
+      "baseValueCredits": 250,
+      "launchable": false,
+      "state": "contained",
+      "damageStatus": "intact",
+      "container": null,
+      "fabrication": {
+        "durationMs": 600000,
+        "requiredMaterials": [
+          { "itemType": "copper", "quantity": 2 },
+          { "itemType": "polymer", "quantity": 1 }
+        ]
+      }
+    }
+  ]
 }

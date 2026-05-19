@@ -3,11 +3,18 @@
 const { ITEM_UPSERT_RESPONSE_EVENT } = require('../model/item-upsert');
 const { UPSERT_ITEM_RESPONSE_EVENT } = require('../model/item-upsert');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
-const { getItemByType } = require('../model/canonical-items');
+const {
+  getItemByType,
+  ITEM_CONTAINER_TYPE_VALUES,
+  ITEM_STATE,
+  ITEM_DAMAGE_STATUS,
+  ITEM_STATE_VALUES,
+  ITEM_DAMAGE_STATUS_VALUES,
+} = require('../model/canonical-items');
 
-const VALID_STATES = ['contained', 'deployed', 'destroyed'];
-const VALID_DAMAGE_STATUSES = ['intact', 'damaged', 'disabled', 'destroyed'];
-const VALID_CONTAINER_TYPES = ['ship', 'market'];
+const VALID_STATES = ITEM_STATE_VALUES;
+const VALID_DAMAGE_STATUSES = ITEM_DAMAGE_STATUS_VALUES;
+const VALID_CONTAINER_TYPES = ITEM_CONTAINER_TYPE_VALUES;
 
 class ItemUpsertMessageHandler {
   /**
@@ -244,7 +251,7 @@ class ItemUpsertMessageHandler {
     const incomingState = this.context.toNonEmptyString(payload?.item?.state);
     if (
       incomingItemType === 'hull-patch-kit' ||
-      incomingState === 'destroyed' ||
+      incomingState === ITEM_STATE.DESTROYED ||
       this.context.toNonEmptyString(payload?.item?.destroyedAt)
     ) {
       this.context.log(
@@ -273,7 +280,7 @@ class ItemUpsertMessageHandler {
         const itemId = parsed.id || this.context.createId();
         const existing = parsed.existingItem;
 
-        const resolvedState = parsed.state || existing?.state || 'contained';
+        const resolvedState = parsed.state || existing?.state || ITEM_STATE.CONTAINED;
         const resolvedSpatial = parsed.hasSpatial ? parsed.spatial : (existing?.spatial ?? null);
         const resolvedMotion = parsed.hasMotion ? parsed.motion : (existing?.motion ?? null);
         const itemData = {
@@ -281,7 +288,8 @@ class ItemUpsertMessageHandler {
           itemType: parsed.itemType || existing?.itemType || '',
           displayName: parsed.displayName || existing?.displayName || '',
           state: resolvedState,
-          damageStatus: parsed.damageStatus || existing?.damageStatus || 'intact',
+          damageStatus:
+            parsed.damageStatus || existing?.damageStatus || ITEM_DAMAGE_STATUS.INTACT,
           container: parsed.hasContainer ? parsed.container : (existing?.container ?? null),
           spatial: resolvedSpatial,
           ...(resolvedMotion ? { motion: resolvedMotion } : {}),
@@ -289,7 +297,7 @@ class ItemUpsertMessageHandler {
           owningCharacterId: parsed.owningCharacterId || existing?.owningCharacterId || '',
           destroyedAt:
             parsed.destroyedAt ||
-            (resolvedState === 'destroyed' && !existing?.destroyedAt ? now : null) ||
+            (resolvedState === ITEM_STATE.DESTROYED && !existing?.destroyedAt ? now : null) ||
             existing?.destroyedAt ||
             null,
           destroyedReason: parsed.destroyedReason || existing?.destroyedReason || null,
@@ -331,7 +339,7 @@ class ItemUpsertMessageHandler {
 
         if (
           response.item?.itemType === 'hull-patch-kit' ||
-          response.item?.state === 'destroyed' ||
+          response.item?.state === ITEM_STATE.DESTROYED ||
           response.item?.destroyedAt
         ) {
           this.context.log(

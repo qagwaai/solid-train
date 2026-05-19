@@ -1,5 +1,13 @@
 'use strict';
 
+const {
+  ITEM_STATE,
+  ITEM_DAMAGE_STATUS,
+  ITEM_CONTAINER_TYPE_VALUES,
+  ITEM_STATE_VALUES,
+  ITEM_DAMAGE_STATUS_VALUES,
+} = require('../../model/canonical-items');
+
 function createItemModelArtifacts({
   mongoose,
   shipKinematicsSchema,
@@ -24,7 +32,7 @@ function createItemModelArtifacts({
     {
       containerType: {
         type: String,
-        enum: ['ship', 'market'],
+        enum: ITEM_CONTAINER_TYPE_VALUES,
         required: true,
       },
       containerId: {
@@ -54,16 +62,16 @@ function createItemModelArtifacts({
       },
       state: {
         type: String,
-        enum: ['contained', 'deployed', 'destroyed'],
+        enum: ITEM_STATE_VALUES,
         required: true,
-        default: 'contained',
+        default: ITEM_STATE.CONTAINED,
         index: true,
       },
       damageStatus: {
         type: String,
-        enum: ['intact', 'damaged', 'disabled', 'destroyed'],
+        enum: ITEM_DAMAGE_STATUS_VALUES,
         required: true,
-        default: 'intact',
+        default: ITEM_DAMAGE_STATUS.INTACT,
       },
       container: {
         type: itemContainerSchema,

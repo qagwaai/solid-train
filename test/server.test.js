@@ -172,6 +172,50 @@ test('server health endpoint responds with ok JSON payload', async () => {
   }
 });
 
+test('GET /items includes canonical conduit-seals catalog item', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  try {
+    const response = await httpGetJson(`http://127.0.0.1:${port}/items`);
+    assert.equal(response.statusCode, 200);
+
+    const parsed = JSON.parse(response.body);
+    assert.ok(Array.isArray(parsed.items));
+
+    const conduitSeals = parsed.items.find((item) => item.itemType === 'conduit-seals');
+    assert.ok(conduitSeals);
+    assert.equal(conduitSeals.displayName, 'Conduit Seals');
+    assert.equal(
+      conduitSeals.description,
+      'Pressure-rated sealing sleeves for rerouting damaged ship conduits and stabilizing subsystem junctions.'
+    );
+    assert.equal(conduitSeals.tier, 1);
+    assert.equal(conduitSeals.launchable, false);
+    assert.equal(conduitSeals.state, 'contained');
+    assert.equal(conduitSeals.damageStatus, 'intact');
+    assert.equal(conduitSeals.container, null);
+    assert.equal(conduitSeals.category, 'manufactured-component');
+    assert.equal(conduitSeals.rarity, 'common');
+    assert.equal(conduitSeals.stackable, true);
+    assert.equal(conduitSeals.massKg, 2);
+    assert.equal(conduitSeals.volumeM3, 0.02);
+    assert.equal(conduitSeals.baseValueCredits, 250);
+    assert.deepEqual(conduitSeals.fabrication, {
+      durationMs: 600000,
+      requiredMaterials: [
+        { itemType: 'copper', quantity: 2 },
+        { itemType: 'polymer', quantity: 1 },
+      ],
+    });
+
+    assert.equal(parsed.items.filter((item) => item.itemType === 'conduit-seals').length, 1);
+  } finally {
+    io.close();
+    server.close();
+  }
+});
+
 test('server serves OpenAPI yaml and Swagger UI from the same process', async () => {
   const { server, io } = createServer();
   const port = await listen(server);

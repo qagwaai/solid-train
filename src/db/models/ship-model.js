@@ -1,5 +1,7 @@
 'use strict';
 
+const { ITEM_DAMAGE_STATUS_VALUES } = require('../../model/canonical-items');
+
 function createShipModelArtifacts({
   mongoose,
   inventoryItemReferenceSchema,
@@ -37,7 +39,7 @@ function createShipModelArtifacts({
     {
       overallStatus: {
         type: String,
-        enum: ['intact', 'damaged', 'disabled', 'destroyed'],
+        enum: ITEM_DAMAGE_STATUS_VALUES,
         required: true,
       },
       summary: {

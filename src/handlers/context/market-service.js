@@ -1,5 +1,11 @@
 'use strict';
 
+const {
+  ITEM_STATE,
+  ITEM_DAMAGE_STATUS,
+  ITEM_CONTAINER_TYPE,
+} = require('../../model/canonical-items');
+
 const { MARKET_CATALOG, MARKET_CATALOG_BY_ID } = require('../../model/market-catalog');
 const { computeMidpointPrice } = require('../../model/market-pricing');
 const {
@@ -440,7 +446,9 @@ async function getCharacterTradeItemsAsync(ctx, playerName, characterId, itemId)
 
   const ships = Array.isArray(character.ships) ? character.ships : [];
   const containers = await Promise.all(
-    ships.map((ship) => ctx.getItemsByContainerAsync('ship', ctx.toNonEmptyString(ship.id)))
+    ships.map((ship) =>
+      ctx.getItemsByContainerAsync(ITEM_CONTAINER_TYPE.SHIP, ctx.toNonEmptyString(ship.id))
+    )
   );
 
   return containers
@@ -449,7 +457,7 @@ async function getCharacterTradeItemsAsync(ctx, playerName, characterId, itemId)
     .filter(
       (item) =>
         item.owningCharacterId === characterId &&
-        item.state === 'contained' &&
+        item.state === ITEM_STATE.CONTAINED &&
         item.itemType === itemId
     );
 }
@@ -534,10 +542,10 @@ async function addTradeItemToCharacterAsync(ctx, player, character, itemId, quan
     id: `${character.id}-${normalizedItemId}-${ctx.createId()}`,
     itemType: normalizedItemId,
     displayName: catalogEntry?.displayName || normalizedItemId,
-    state: 'contained',
-    damageStatus: 'intact',
+    state: ITEM_STATE.CONTAINED,
+    damageStatus: ITEM_DAMAGE_STATUS.INTACT,
     container: {
-      containerType: 'ship',
+      containerType: ITEM_CONTAINER_TYPE.SHIP,
       containerId: targetShipId,
     },
     owningPlayerId: ctx.toNonEmptyString(player.playerId),

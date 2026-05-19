@@ -67,7 +67,8 @@
     "/^node --test test/ship-upsert-message-handler\\.test\\.js --test-reporter=spec && node --test test/ship-list-message-handler\\.test\\.js --test-reporter=spec && node --test test/item-upsert-message-handler\\.test\\.js --test-reporter=spec$/": {
       "approve": true,
       "matchCommandLine": true
-    }
+    },
+    "winpty": true
   },
   "specstory.cloudSync.enabled": "never"
 }

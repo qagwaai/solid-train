@@ -2,8 +2,9 @@
 
 const { ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT } = require('../model/item-list-by-container');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const { ITEM_CONTAINER_TYPE_VALUES } = require('../model/canonical-items');
 
-const VALID_CONTAINER_TYPES = ['ship', 'market'];
+const VALID_CONTAINER_TYPES = ITEM_CONTAINER_TYPE_VALUES;
 
 class ItemListByContainerMessageHandler {
   /**

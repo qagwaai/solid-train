@@ -2,6 +2,11 @@
 
 const { LAUNCH_ITEM_RESPONSE_EVENT } = require('../model/launch-item');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const {
+  ITEM_STATE,
+  ITEM_DAMAGE_STATUS,
+  ITEM_CONTAINER_TYPE,
+} = require('../model/canonical-items');
 
 const EXPENDABLE_DART_DRONE_ITEM_TYPE = 'expendable-dart-drone';
 const HOTKEY_VALUES = new Set([1, 2, 3, 4, 5]);
@@ -80,7 +85,7 @@ class LaunchItemMessageHandler {
 
   async consumeLaunchedItem(parsed, now, correlationId = '-') {
     const updatedItem = await this.context.updateItemAsync(parsed.itemId, {
-      state: 'destroyed',
+      state: ITEM_STATE.DESTROYED,
       container: null,
       launchable: false,
       destroyedAt: parsed.item.destroyedAt || now,
@@ -119,7 +124,7 @@ class LaunchItemMessageHandler {
     return (
       updatedItem || {
         ...parsed.item,
-        state: 'destroyed',
+        state: ITEM_STATE.DESTROYED,
         launchable: false,
         destroyedAt: parsed.item.destroyedAt || now,
         destroyedReason: `expended-on-target:${parsed.targetCelestialBodyId}`,
@@ -214,7 +219,7 @@ class LaunchItemMessageHandler {
       };
     }
 
-    if (item.state === 'destroyed') {
+    if (item.state === ITEM_STATE.DESTROYED) {
       return {
         error: 'Launch item is destroyed',
         playerName: player.playerName,
@@ -289,10 +294,10 @@ class LaunchItemMessageHandler {
         itemType,
         displayName: `${entry.material} (Raw Material)`,
         quantity: entry.quantity,
-        state: 'contained',
-        damageStatus: 'intact',
+        state: ITEM_STATE.CONTAINED,
+        damageStatus: ITEM_DAMAGE_STATUS.INTACT,
         container: {
-          containerType: 'ship',
+          containerType: ITEM_CONTAINER_TYPE.SHIP,
           containerId: parsed.shipId,
         },
         owningPlayerId: parsed.player.playerId,
@@ -318,7 +323,7 @@ class LaunchItemMessageHandler {
 
     const destroyedTarget = {
       ...parsed.targetCelestialBody,
-      state: 'destroyed',
+      state: ITEM_STATE.DESTROYED,
       destroyedAt: now,
       destroyedReason: `impacted-by:${parsed.itemType}`,
       updatedAt: now,

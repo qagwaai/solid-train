@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
+const { ITEM_STATE, ITEM_DAMAGE_STATUS } = require('../src/model/canonical-items');
 
 let mongoHarness = null;
 
@@ -11,8 +12,8 @@ function createItem(overrides = {}) {
     id: overrides.id || 'item-1',
     itemType: overrides.itemType || 'iron',
     displayName: overrides.displayName || 'Iron',
-    state: overrides.state || 'contained',
-    damageStatus: overrides.damageStatus || 'intact',
+    state: overrides.state || ITEM_STATE.CONTAINED,
+    damageStatus: overrides.damageStatus || ITEM_DAMAGE_STATUS.INTACT,
     container: overrides.container || { containerType: 'ship', containerId: 'ship-1' },
     owningPlayerId: overrides.owningPlayerId || 'player-1',
     owningCharacterId: overrides.owningCharacterId || 'character-1',
