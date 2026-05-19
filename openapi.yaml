@@ -419,6 +419,9 @@ paths:
         Inventory patch semantics:
         - When `ship.inventory` is present, the server applies the provided inventory
           patch for the target ship.
+        - Each `ship.inventory` entry may be either:
+          - a reference row: `{ itemId, itemType }`
+          - a hydrated row: `{ id, itemType, ... }` (the server derives `itemId` from `id`)
         - When `ship.inventory` is omitted, the server preserves the ship's existing
           inventory references.
       operationId: socketShipUpsert
@@ -431,7 +434,7 @@ paths:
               $ref: '#/components/schemas/ShipUpsertRequest'
             examples:
               inventoryPatchApplied:
-                summary: Inventory patch is applied when ship.inventory is present
+                summary: Inventory patch using reference rows
                 value:
                   playerName: TestPilot
                   characterId: character-1
@@ -441,6 +444,20 @@ paths:
                     inventory:
                       - itemId: hull-patch-kit-1
                         itemType: hull-patch-kit
+              inventoryPatchWithHydratedItems:
+                summary: Inventory patch using hydrated item rows
+                value:
+                  playerName: TestPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  ship:
+                    id: ship-1
+                    inventory:
+                      - id: hull-patch-kit-1
+                        itemType: hull-patch-kit
+                        displayName: Hull Patch Kit
+                        state: contained
+                        damageStatus: intact
               inventoryPreservedWhenOmitted:
                 summary: Existing inventory is preserved when ship.inventory is omitted
                 value:

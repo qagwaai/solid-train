@@ -283,6 +283,114 @@ test('ShipUpsertMessageHandler applies provided ship.inventory references', asyn
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
 });
 
+test('ShipUpsertMessageHandler accepts hydrated ship.inventory rows with id and itemType', async () => {
+  const context = createTestContext();
+  seedItems(context, [
+    {
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1',
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+    },
+    {
+      id: 'item-2',
+      itemType: 'hull-patch-kit',
+      displayName: 'Hull Patch Kit',
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1',
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+      launchable: false,
+    },
+  ]);
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            model: 'Scavenger Pod',
+            tier: 1,
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            inventory: [
+              {
+                itemId: 'item-1',
+                itemType: 'expendable-dart-drone',
+              },
+              {
+                itemId: 'item-2',
+                itemType: 'hull-patch-kit',
+              },
+            ],
+            createdAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    ship: {
+      id: 'ship-1',
+      inventory: [
+        {
+          id: 'item-1',
+          itemType: 'expendable-dart-drone',
+          displayName: 'Expendable Dart Drone',
+          state: 'contained',
+        },
+      ],
+    },
+  });
+
+  assert.equal(response.success, true);
+  const character = context.findCharacter('ShipPilot', 'character-1');
+  assert.deepEqual(character.ships[0].inventory, [
+    {
+      itemId: 'item-1',
+      itemType: 'expendable-dart-drone',
+    },
+  ]);
+  assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
+});
+
 test('ShipUpsertMessageHandler emits invalid session before mutation', async () => {
   const context = createTestContext();
   seedPlayer(context, {
