@@ -419,9 +419,8 @@ paths:
         Inventory patch semantics:
         - When `ship.inventory` is present, the server applies the provided inventory
           patch for the target ship.
-        - Each `ship.inventory` entry may be either:
-          - a reference row: `{ itemId, itemType }`
-          - a hydrated row: `{ id, itemType, ... }` (the server derives `itemId` from `id`)
+        - Inventory entries must be canonical ShipItem objects with at least
+          `id`, `itemType`, and `displayName`.
         - When `ship.inventory` is omitted, the server preserves the ship's existing
           inventory references.
       operationId: socketShipUpsert
@@ -447,17 +446,6 @@ paths:
                         displayName: Hull Patch Kit
                         state: contained
                         damageStatus: intact
-              inventoryPatchWithReferenceRows:
-                summary: Inventory patch using abbreviated reference rows
-                value:
-                  playerName: TestPilot
-                  characterId: character-1
-                  sessionKey: session-123
-                  ship:
-                    id: ship-1
-                    inventory:
-                      - itemId: hull-patch-kit-1
-                        itemType: hull-patch-kit
               inventoryPreservedWhenOmitted:
                 summary: Existing inventory is preserved when ship.inventory is omitted
                 value:

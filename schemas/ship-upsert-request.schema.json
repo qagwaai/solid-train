@@ -13,28 +13,16 @@
       "properties": {
         "inventory": {
           "type": "array",
-          "description": "Optional inventory patch for the target ship. Presence indicates patch intent; omission preserves the current ship inventory references. Each entry may be either an inventory reference ({ itemId, itemType }) or a hydrated item payload ({ id, itemType, ... }).",
+          "description": "Optional inventory patch for the target ship. Presence indicates patch intent; omission preserves the current ship inventory references. Each entry must be a canonical ShipItem object with at least id, itemType, and displayName.",
           "items": {
-            "oneOf": [
-              {
-                "type": "object",
-                "required": ["itemId", "itemType"],
-                "properties": {
-                  "itemId": { "type": "string" },
-                  "itemType": { "type": "string" }
-                },
-                "additionalProperties": true
-              },
-              {
-                "type": "object",
-                "required": ["id", "itemType"],
-                "properties": {
-                  "id": { "type": "string" },
-                  "itemType": { "type": "string" }
-                },
-                "additionalProperties": true
-              }
-            ]
+            "type": "object",
+            "required": ["id", "itemType", "displayName"],
+            "properties": {
+              "id": { "type": "string" },
+              "itemType": { "type": "string" },
+              "displayName": { "type": "string" }
+            },
+            "additionalProperties": true
           }
         },
         "damageProfile": {
