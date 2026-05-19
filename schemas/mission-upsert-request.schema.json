@@ -6,10 +6,22 @@
   "properties": {
     "playerName": { "type": "string" },
     "characterId": { "type": "string" },
-    "missionId": { "type": "string" },
+    "missionId": {
+      "type": "string",
+      "description": "Canonical mission id. Must be one of the mission ids known to the server mission catalog."
+    },
     "sessionKey": { "type": "string" },
-    "status": { "type": "string" },
-    "statusDetail": { "type": "string" },
-    "requestId": { "type": "string" }
+    "status": {
+      "type": "string",
+      "description": "Mission lifecycle status. Supported values are available, started, in-progress, failed, completed, locked, abandoned, paused, and turned-in."
+    },
+    "statusDetail": {
+      "type": "string",
+      "description": "Optional freeform detail preserved with the mission status update."
+    },
+    "requestId": {
+      "type": "string",
+      "description": "Optional request correlation id echoed in the response when provided."
+    }
   }
 }

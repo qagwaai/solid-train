@@ -9,9 +9,22 @@
     "marketId": { "type": "string" },
     "solarSystemId": { "type": "string" },
     "characterId": { "type": "string" },
-    "itemId": { "type": "string" },
-    "quantity": { "type": "integer" },
-    "requestId": { "type": "string" },
-    "transactionId": { "type": "string" }
+    "itemId": {
+      "type": "string",
+      "description": "Catalog or market inventory item id. The server normalizes matching case-insensitively."
+    },
+    "quantity": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Requested buy quantity. Must be a positive integer."
+    },
+    "requestId": {
+      "type": "string",
+      "description": "Optional caller correlation id echoed in the response."
+    },
+    "transactionId": {
+      "type": "string",
+      "description": "Optional caller-supplied transaction id. If omitted, the server creates one."
+    }
   }
 }

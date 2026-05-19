@@ -2,14 +2,229 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "solar-system-get-response",
   "type": "object",
-  "required": ["success", "message", "playerName", "solarSystemId", "bodies", "stars"],
+  "definitions": {
+    "vector3": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "primaryStarSummary": {
+      "type": ["object", "null"],
+      "properties": {
+        "hygId": { "type": "string" },
+        "spectralClass": { "type": "string" },
+        "spectralType": { "type": ["string", "null"] },
+        "colorHex": { "type": "string" },
+        "colorIndexBv": { "type": ["number", "null"] },
+        "luminositySolar": { "type": ["number", "null"] },
+        "massSolar": { "type": "number" },
+        "radiusSolar": { "type": "number" },
+        "absoluteMagnitude": { "type": ["number", "null"] },
+        "properName": { "type": ["string", "null"] }
+      },
+      "required": [
+        "hygId",
+        "spectralClass",
+        "spectralType",
+        "colorHex",
+        "colorIndexBv",
+        "luminositySolar",
+        "massSolar",
+        "radiusSolar",
+        "absoluteMagnitude",
+        "properName"
+      ]
+    },
+    "solarSystemSummary": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "displayName": { "type": "string" },
+        "hygSystemId": { "type": "string" },
+        "source": { "type": "string", "enum": ["curated", "procedural"] },
+        "isMultiStar": { "type": "boolean" },
+        "positionPc": { "$ref": "#/definitions/vector3" },
+        "distanceParsec": { "type": ["number", "null"] },
+        "primaryStar": { "$ref": "#/definitions/primaryStarSummary" },
+        "starCount": { "type": "integer" },
+        "generationSeed": { "type": ["integer", "null"] },
+        "planetCount": { "type": "integer" },
+        "moonCount": { "type": "integer" },
+        "asteroidCount": { "type": "integer" },
+        "marketCount": { "type": "integer" }
+      },
+      "required": [
+        "id",
+        "displayName",
+        "hygSystemId",
+        "source",
+        "isMultiStar",
+        "positionPc",
+        "distanceParsec",
+        "primaryStar",
+        "starCount",
+        "generationSeed"
+      ]
+    },
+    "spatialState": {
+      "type": "object",
+      "properties": {
+        "solarSystemId": { "type": "string" },
+        "frame": { "type": "string", "enum": ["barycentric"] },
+        "positionKm": { "$ref": "#/definitions/vector3" },
+        "epochMs": { "type": "number" }
+      },
+      "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
+    },
+    "motionState": {
+      "type": ["object", "null"],
+      "properties": {
+        "velocityKmPerSec": { "$ref": "#/definitions/vector3" },
+        "angularVelocityRadPerSec": { "$ref": "#/definitions/vector3" }
+      }
+    },
+    "physicalState": {
+      "type": ["object", "null"],
+      "properties": {
+        "estimatedMassKg": { "type": ["number", "null"] },
+        "estimatedDiameterM": { "type": ["number", "null"] }
+      }
+    },
+    "observabilityState": {
+      "type": "object",
+      "properties": {
+        "visibility": { "type": "string", "enum": ["visible", "not-visible", "cloaked"] },
+        "scanState": { "type": "string", "enum": ["unscanned", "scanned"] }
+      },
+      "required": ["visibility", "scanState"]
+    },
+    "compositionState": {
+      "type": ["object", "null"],
+      "properties": {
+        "rarity": { "type": "string", "enum": ["Common", "Uncommon", "Rare", "Exotic"] },
+        "material": { "type": "string" },
+        "textureColor": { "type": "string" }
+      },
+      "required": ["rarity", "material", "textureColor"]
+    },
+    "physicalCatalog": {
+      "type": ["object", "null"],
+      "properties": {
+        "estimatedDiameterM": { "type": ["number", "null"] },
+        "estimatedMassKg": { "type": ["number", "null"] },
+        "radiusKm": { "type": ["number", "null"] }
+      }
+    },
+    "visualization": {
+      "type": ["object", "null"],
+      "properties": {
+        "colorHex": { "type": "string" },
+        "spectralClass": { "type": "string" },
+        "textureKey": { "type": "string" }
+      }
+    },
+    "debrisEntry": {
+      "type": "object",
+      "properties": {
+        "material": { "type": "string" },
+        "rarity": { "type": "string" },
+        "quantity": { "type": "integer" },
+        "itemType": { "type": "string" }
+      },
+      "required": ["material", "rarity", "quantity", "itemType"]
+    },
+    "celestialBody": {
+      "type": "object",
+      "description": "Canonical celestial body payload with optional catalog enrichments.",
+      "properties": {
+        "id": { "type": "string" },
+        "catalogId": { "type": "string" },
+        "sourceScanId": { "type": "string" },
+        "createdByCharacterId": { "type": "string" },
+        "missionId": { "type": ["string", "null"] },
+        "missionInstanceId": { "type": ["string", "null"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "spatial": { "$ref": "#/definitions/spatialState" },
+        "motion": { "$ref": "#/definitions/motionState" },
+        "physical": { "$ref": "#/definitions/physicalState" },
+        "observability": { "$ref": "#/definitions/observabilityState" },
+        "composition": { "$ref": "#/definitions/compositionState" },
+        "state": { "type": "string", "enum": ["unscanned", "active", "destroyed"] },
+        "destroyedAt": { "type": ["string", "null"] },
+        "destroyedReason": { "type": ["string", "null"] },
+        "debrisSeed": { "type": ["integer", "null"] },
+        "debris": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/debrisEntry" }
+        },
+        "bodyType": { "type": "string" },
+        "displayName": { "type": "string" },
+        "parentBodyId": { "type": ["string", "null"] },
+        "orbitalElements": { "type": ["object", "null"], "additionalProperties": true },
+        "physicalCatalog": { "$ref": "#/definitions/physicalCatalog" },
+        "atmosphere": { "type": ["object", "null"], "additionalProperties": true },
+        "discovery": { "type": ["object", "null"], "additionalProperties": true },
+        "magnitudes": { "type": ["object", "null"], "additionalProperties": true },
+        "planetType": { "type": ["string", "null"] },
+        "hygId": { "type": ["string", "null"] },
+        "visualization": { "$ref": "#/definitions/visualization" },
+        "clusterId": { "type": "string" },
+        "clusterCenterKm": { "$ref": "#/definitions/vector3" },
+        "localOffsetKm": { "$ref": "#/definitions/vector3" },
+        "distanceFromClusterCenterKm": { "type": "number" },
+        "isCatalogBody": { "type": "boolean" }
+      },
+      "required": [
+        "id",
+        "catalogId",
+        "sourceScanId",
+        "createdByCharacterId",
+        "missionId",
+        "missionInstanceId",
+        "createdAt",
+        "updatedAt",
+        "spatial",
+        "observability",
+        "composition",
+        "state",
+        "destroyedAt",
+        "destroyedReason",
+        "debrisSeed",
+        "debris"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "required": ["success", "message", "playerName", "solarSystemId"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
     "playerName": { "type": "string" },
     "solarSystemId": { "type": "string" },
-    "bodies": { "type": "array" },
-    "stars": { "type": "array" },
-    "requestId": { "type": "string" }
+    "solarSystem": {
+      "$ref": "#/definitions/solarSystemSummary",
+      "description": "Present on successful solar system lookup responses."
+    },
+    "bodies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/celestialBody"
+      }
+    },
+    "stars": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/celestialBody"
+      }
+    },
+    "requestId": {
+      "type": "string",
+      "description": "Echoed caller correlation id when one was supplied on the request."
+    }
   }
 }

@@ -8,15 +8,21 @@
     "sessionKey": { "type": "string" },
     "item": {
       "type": "object",
+      "description": "Item create or partial update payload. For existing items, omitted fields preserve stored values. Explicit null clears item.container, item.spatial, or item.motion when those properties are present.",
       "required": ["itemType", "displayName"],
       "properties": {
         "id": { "type": ["string", "null"] },
         "itemType": { "type": "string" },
         "displayName": { "type": "string" },
-        "state": { "type": "string", "enum": ["contained", "deployed", "destroyed"] },
+        "state": {
+          "type": "string",
+          "enum": ["contained", "deployed", "destroyed"],
+          "description": "Canonical item state. Setting state to destroyed causes the server to populate destroyedAt if it is not already set."
+        },
         "damageStatus": { "type": "string", "enum": ["intact", "damaged", "disabled", "destroyed"] },
         "container": {
           "type": ["object", "null"],
+          "description": "Optional container patch. Provide null to clear the container association.",
           "properties": {
             "containerType": { "type": "string", "enum": ["ship", "market"] },
             "containerId": { "type": "string" }
@@ -25,6 +31,7 @@
         },
         "spatial": {
           "type": ["object", "null"],
+          "description": "Canonical spatial position. Provide null to clear spatial state. The legacy item.kinematics field is not accepted.",
           "properties": {
             "solarSystemId": { "type": "string" },
             "frame": { "type": "string", "enum": ["barycentric"] },
@@ -43,6 +50,7 @@
         },
         "motion": {
           "type": ["object", "null"],
+          "description": "Optional motion patch. Provide null to clear motion state.",
           "properties": {
             "velocityKmPerSec": {
               "type": "object",

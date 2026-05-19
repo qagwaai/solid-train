@@ -7,6 +7,9 @@
     "success": { "type": "boolean" },
     "message": { "type": "string" },
     "playerName": { "type": "string" },
-    "item": { "$ref": "./item.schema.json" }
+    "item": {
+      "$ref": "./item.schema.json",
+      "description": "Present on successful item upsert responses."
+    }
   }
 }

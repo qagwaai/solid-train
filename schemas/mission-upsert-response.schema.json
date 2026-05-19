@@ -2,13 +2,32 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "mission-upsert-response",
   "type": "object",
-  "required": ["success", "message", "playerName", "characterId", "mission"],
+  "required": ["success", "message", "playerName", "characterId"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
     "playerName": { "type": "string" },
     "characterId": { "type": "string" },
-    "mission": { "type": "object" },
-    "requestId": { "type": "string" }
+    "mission": {
+      "type": "object",
+      "description": "Present on successful mission upsert responses.",
+      "properties": {
+        "missionId": { "type": "string" },
+        "status": { "type": "string" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "inProgressAt": { "type": "string", "format": "date-time" },
+        "failedAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "failureReason": { "type": "string" },
+        "statusDetail": { "type": "string" }
+      },
+      "required": ["missionId", "status"],
+      "additionalProperties": false
+    },
+    "requestId": {
+      "type": "string",
+      "description": "Echoed caller correlation id when one was supplied on the request."
+    }
   }
 }

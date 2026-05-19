@@ -9,8 +9,15 @@
     "characterId": { "type": "string" },
     "shipId": { "type": "string" },
     "targetCelestialBodyId": { "type": "string" },
-    "hotkey": { "type": "integer" },
+    "hotkey": {
+      "type": "integer",
+      "enum": [1, 2, 3, 4, 5],
+      "description": "Launch slot hotkey. Must be one of the supported launch hotkeys 1 through 5."
+    },
     "itemId": { "type": "string" },
-    "itemType": { "type": "string" }
+    "itemType": {
+      "type": "string",
+      "description": "Expected persisted item type for the launched item. Must match the stored item record."
+    }
   }
 }

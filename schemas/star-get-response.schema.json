@@ -2,13 +2,82 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "star-get-response",
   "type": "object",
+  "definitions": {
+    "vector3Pc": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "starCatalogEntry": {
+      "type": "object",
+      "description": "Canonical HYG star catalog entry returned by star and solar system queries.",
+      "properties": {
+        "hygId": { "type": "string" },
+        "hipId": { "type": ["string", "null"] },
+        "hdId": { "type": ["string", "null"] },
+        "properName": { "type": ["string", "null"] },
+        "raHours": { "type": ["number", "null"] },
+        "decDeg": { "type": ["number", "null"] },
+        "distanceParsec": { "type": ["number", "null"] },
+        "apparentMagnitude": { "type": ["number", "null"] },
+        "absoluteMagnitude": { "type": ["number", "null"] },
+        "spectralType": { "type": ["string", "null"] },
+        "spectralClass": { "type": "string" },
+        "spectralSubclass": { "type": "number" },
+        "colorIndexBv": { "type": ["number", "null"] },
+        "colorHex": { "type": "string" },
+        "luminositySolar": { "type": ["number", "null"] },
+        "massSolar": { "type": "number" },
+        "radiusSolar": { "type": "number" },
+        "radiusKm": { "type": "number" },
+        "massKg": { "type": "number" },
+        "positionPc": { "$ref": "#/definitions/vector3Pc" },
+        "systemId": { "type": "string" },
+        "systemRole": { "type": "string" }
+      },
+      "required": [
+        "hygId",
+        "hipId",
+        "hdId",
+        "properName",
+        "raHours",
+        "decDeg",
+        "distanceParsec",
+        "apparentMagnitude",
+        "absoluteMagnitude",
+        "spectralType",
+        "spectralClass",
+        "spectralSubclass",
+        "colorIndexBv",
+        "colorHex",
+        "luminositySolar",
+        "massSolar",
+        "radiusSolar",
+        "radiusKm",
+        "massKg",
+        "positionPc",
+        "systemId",
+        "systemRole"
+      ]
+    }
+  },
   "required": ["success", "message", "playerName", "hygId"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
     "playerName": { "type": "string" },
     "hygId": { "type": "string" },
-    "star": { "type": "object" },
-    "requestId": { "type": "string" }
+    "star": {
+      "$ref": "#/definitions/starCatalogEntry",
+      "description": "Present on successful star lookup responses."
+    },
+    "requestId": {
+      "type": "string",
+      "description": "Echoed caller correlation id when one was supplied on the request."
+    }
   }
 }

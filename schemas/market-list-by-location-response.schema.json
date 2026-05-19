@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "market-list-by-location-response",
   "type": "object",
-  "required": ["success", "message", "playerName", "solarSystemId", "positionKm", "distanceAu", "markets"],
+  "required": ["success", "message", "playerName", "solarSystemId", "markets", "isDocked", "dockedMarketId"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
@@ -18,6 +18,49 @@
       "required": ["x", "y", "z"]
     },
     "distanceAu": { "type": "number" },
-    "markets": { "type": "array" }
+    "locationTypes": {
+      "type": ["array", "null"],
+      "items": { "type": "string" }
+    },
+    "isDocked": { "type": "boolean" },
+    "dockedMarketId": { "type": ["string", "null"] },
+    "markets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "marketId",
+          "solarSystemId",
+          "marketName",
+          "siteType",
+          "siteName",
+          "isStarterMarket",
+          "spatial",
+          "trajectory",
+          "distanceAu",
+          "route",
+          "isDocked",
+          "priceMultiplier",
+          "driftPercentPerHour",
+          "restockIntervalMinutes"
+        ],
+        "properties": {
+          "marketId": { "type": "string" },
+          "solarSystemId": { "type": "string" },
+          "marketName": { "type": "string" },
+          "siteType": { "type": "string" },
+          "siteName": { "type": "string" },
+          "isStarterMarket": { "type": "boolean" },
+          "spatial": { "type": ["object", "null"], "additionalProperties": true },
+          "trajectory": { "type": ["object", "null"], "additionalProperties": true },
+          "distanceAu": { "type": "number", "minimum": 0 },
+          "route": { "type": ["object", "null"], "additionalProperties": true },
+          "isDocked": { "type": "boolean" },
+          "priceMultiplier": { "type": "number" },
+          "driftPercentPerHour": { "type": "number" },
+          "restockIntervalMinutes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
   }
 }

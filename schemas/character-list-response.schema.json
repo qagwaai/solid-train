@@ -11,10 +11,12 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "characterName", "createdAt", "credits", "creditLedger", "ships", "inGame", "gameJoinedAt", "gameLastMessageReceivedAt"],
+        "description": "Character summary snapshot. Only id and characterName are guaranteed; additional canonical fields may be present.",
+        "required": ["id", "characterName"],
         "properties": {
           "id": { "type": "string" },
           "characterName": { "type": "string" },
+          "level": { "type": "number" },
           "createdAt": { "type": "string", "format": "date-time" },
           "credits": { "type": "number" },
           "creditLedger": { "type": "array" },
@@ -22,7 +24,8 @@
           "inGame": { "type": "boolean" },
           "gameJoinedAt": { "type": "string", "format": "date-time" },
           "gameLastMessageReceivedAt": { "type": "string", "format": "date-time" }
-        }
+        },
+        "additionalProperties": true
       }
     }
   }

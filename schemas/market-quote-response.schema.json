@@ -2,13 +2,34 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "market-quote-response",
   "type": "object",
-  "required": ["success", "message", "playerName", "characterId", "quote"],
+  "required": ["success", "message"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
     "playerName": { "type": "string" },
     "characterId": { "type": "string" },
-    "quote": { "type": "object" },
-    "requestId": { "type": "string" }
+    "quote": {
+      "type": "object",
+      "description": "Present on successful quote responses.",
+      "required": ["marketId", "solarSystemId", "itemId", "direction", "quantity", "unitPrice", "totalPrice", "displayName"],
+      "properties": {
+        "marketId": { "type": "string" },
+        "solarSystemId": { "type": "string" },
+        "itemId": { "type": "string" },
+        "direction": { "type": "string", "enum": ["buy", "sell"] },
+        "quantity": { "type": "integer", "minimum": 1 },
+        "unitPrice": { "type": "number" },
+        "totalPrice": { "type": "number" },
+        "displayName": { "type": "string" }
+      }
+    },
+    "requestId": {
+      "type": ["string", "null"],
+      "description": "Echoed caller correlation id when one was provided on the request."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Stable machine-readable failure reason when success is false."
+    }
   }
 }

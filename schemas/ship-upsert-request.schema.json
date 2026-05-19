@@ -7,6 +7,21 @@
     "playerName": { "type": "string" },
     "characterId": { "type": "string" },
     "sessionKey": { "type": "string" },
-    "ship": { "type": "object" }
+    "ship": {
+      "type": "object",
+      "description": "Partial ship patch object. Nested patch intent is determined by property presence. When ship.inventory is present, the server applies the provided inventory patch. When ship.inventory is omitted, the server preserves existing ship inventory references.",
+      "properties": {
+        "inventory": {
+          "type": "array",
+          "description": "Optional inventory patch for the target ship. Presence indicates patch intent; omission preserves the current ship inventory references.",
+          "items": { "type": "object" }
+        },
+        "damageProfile": {
+          "type": "object",
+          "description": "Optional damage profile patch. Presence indicates patch intent for damage profile fields."
+        }
+      },
+      "additionalProperties": true
+    }
   }
 }

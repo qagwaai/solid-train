@@ -19,7 +19,10 @@
           "status": { "type": ["string", "null"] },
           "model": { "type": "string" },
           "tier": { "type": "integer", "minimum": 1, "maximum": 10 },
-          "createdAt": { "type": ["string", "null"], "format": "date-time" },
+          "createdAt": {
+            "type": ["string", "null"],
+            "description": "Ship creation timestamp when available. May be an empty string for legacy or synthesized ship records."
+          },
           "inventory": {
             "type": "array",
             "items": { "$ref": "./item.schema.json" }
@@ -90,6 +93,7 @@
           },
           "driveProfile": {
             "type": "object",
+            "description": "Present only when the ship has a valid normalized drive profile.",
             "required": ["id", "name", "rangeAu", "cruiseSpeedAuPerHour", "fuelCostPerAu"],
             "properties": {
               "id": { "type": "string" },

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "market-inventory-list-response",
   "type": "object",
-  "required": ["success", "message", "playerName", "marketId", "solarSystemId", "marketName", "inventory", "total", "offset", "limit", "asOf"],
+  "required": ["success", "message", "inventory", "total", "offset", "limit"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
@@ -10,7 +10,28 @@
     "marketId": { "type": "string" },
     "solarSystemId": { "type": "string" },
     "marketName": { "type": "string" },
-    "inventory": { "type": "array" },
+    "reason": {
+      "type": "string",
+      "description": "Stable machine-readable failure reason when success is false."
+    },
+    "inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["itemId", "itemType", "displayName", "rarity", "stock", "maxStock", "restockPerInterval", "marketCanBuy", "marketCanSell"],
+        "properties": {
+          "itemId": { "type": "string" },
+          "itemType": { "type": "string" },
+          "displayName": { "type": "string" },
+          "rarity": { "type": "string" },
+          "stock": { "type": "integer", "minimum": 0 },
+          "maxStock": { "type": "integer", "minimum": 0 },
+          "restockPerInterval": { "type": "integer", "minimum": 0 },
+          "marketCanBuy": { "type": "boolean" },
+          "marketCanSell": { "type": "boolean" }
+        }
+      }
+    },
     "total": { "type": "integer" },
     "offset": { "type": "integer" },
     "limit": { "type": "integer" },

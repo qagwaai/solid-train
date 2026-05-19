@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "item-list-by-location-response",
   "type": "object",
-  "required": ["success", "message", "playerName", "solarSystemId", "positionKm", "distanceKm", "items"],
+  "required": ["success", "message", "playerName", "solarSystemId", "items"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
@@ -19,6 +19,20 @@
     },
     "distanceKm": { "type": "number" },
     "itemType": { "type": ["string", "null"] },
-    "items": { "type": "array" }
+    "items": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          { "$ref": "./item.schema.json" },
+          {
+            "type": "object",
+            "properties": {
+              "distanceKm": { "type": "number" }
+            },
+            "required": ["distanceKm"]
+          }
+        ]
+      }
+    }
   }
 }

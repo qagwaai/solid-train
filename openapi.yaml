@@ -187,6 +187,14 @@ paths:
   /socket/character-list:
     post:
       summary: character-list-request
+      description: |
+        Returns the current player's character summaries.
+
+        Response notes:
+        - The server returns a defensive copy of the current character list.
+        - `id` and `characterName` are the stable minimum fields on each character.
+        - Additional canonical fields such as ships, credit ledger, and joined-game
+          activity metadata may be present when available.
       operationId: socketCharacterList
       tags: [Character]
       requestBody:
@@ -202,6 +210,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CharacterListResponse'
+              examples:
+                minimalCharacterSummary:
+                  summary: Minimal successful response with stable summary fields
+                  value:
+                    success: true
+                    message: Character list retrieved successfully
+                    playerName: CharacterPilot
+                    characters:
+                      - id: character-1
+                        characterName: RangerOne
+                richCharacterSummary:
+                  summary: Character list may include ships, credits, and joined-game activity fields
+                  value:
+                    success: true
+                    message: Character list retrieved successfully
+                    playerName: ActivityPilot
+                    characters:
+                      - id: character-1
+                        characterName: RangerOne
+                        credits: 500
+                        inGame: true
+                        gameJoinedAt: '2026-04-17T00:00:00.000Z'
+                        gameLastMessageReceivedAt: '2026-04-17T00:15:00.000Z'
+                        ships:
+                          - id: ship-1
+                            model: Scavenger Pod
+                            tier: 1
+                failedCharacterList:
+                  summary: Failure returns an empty character list
+                  value:
+                    success: false
+                    message: Player is not registered
+                    playerName: GhostPilot
+                    characters: []
 
   /socket/ship-list:
     post:
@@ -272,6 +314,14 @@ paths:
                             spatial: null
                             createdAt: '2026-04-17T00:00:00.000Z'
                             updatedAt: '2026-04-17T00:00:00.000Z'
+                failedShipList:
+                  summary: Failure returns an empty ship list with player and character context
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: EdgePilot
+                    characterId: missing-character-id
+                    ships: []
                           - id: ship-1-starter-sensor-array
                             itemType: sensor-array
                             displayName: Sensor Array
@@ -334,6 +384,17 @@ paths:
   /socket/ship-upsert:
     post:
       summary: ship-upsert-request
+      description: |
+        Updates a ship for the active character.
+
+        `ship` is a partial patch object. Patch intent for nested sections is based on
+        property presence in the request payload.
+
+        Inventory patch semantics:
+        - When `ship.inventory` is present, the server applies the provided inventory
+          patch for the target ship.
+        - When `ship.inventory` is omitted, the server preserves the ship's existing
+          inventory references.
       operationId: socketShipUpsert
       tags: [Ship]
       requestBody:
@@ -342,6 +403,29 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ShipUpsertRequest'
+            examples:
+              inventoryPatchApplied:
+                summary: Inventory patch is applied when ship.inventory is present
+                value:
+                  playerName: TestPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  ship:
+                    id: ship-1
+                    inventory:
+                      - itemId: hull-patch-kit-1
+                        itemType: hull-patch-kit
+              inventoryPreservedWhenOmitted:
+                summary: Existing inventory is preserved when ship.inventory is omitted
+                value:
+                  playerName: TestPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  ship:
+                    id: ship-1
+                    damageProfile:
+                      hull:
+                        status: intact
       responses:
         '200':
           description: ship-upsert-response
@@ -349,6 +433,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ShipUpsertResponse'
+              examples:
+                successfulShipUpsert:
+                  summary: Successful ship upsert returns the updated ship payload
+                  value:
+                    success: true
+                    message: Ship updated successfully
+                    playerName: TestPilot
+                    characterId: character-1
+                    ship:
+                      id: ship-1
+                      model: Reaver Hauler
+                      tier: 2
+                failedShipUpsert:
+                  summary: Validation failure omits the ship payload
+                  value:
+                    success: false
+                    message: playerName, characterId, and ship.id are required
+                    playerName: TestPilot
+                    characterId: character-1
 
   /socket/mission-list:
     post:
@@ -372,6 +475,20 @@ paths:
   /socket/mission-upsert:
     post:
       summary: mission-upsert-request
+      description: |
+        Upserts mission progress for a character.
+
+        Accepted `status` values are the canonical mission lifecycle states handled by
+        the server: `available`, `started`, `in-progress`, `failed`, `completed`,
+        `locked`, `abandoned`, `paused`, and `turned-in`.
+
+        Behavior notes:
+        - The server preserves previously recorded milestone timestamps and adds the
+          timestamp for the newly reached lifecycle milestone.
+        - When a mission reaches an unlock source status such as `completed`, the
+          server may create newly unlocked missions with `status: available`.
+        - Starting the `first-target` mission also seeds its starter asteroid field.
+        - When `requestId` is provided, it is echoed in the response.
       operationId: socketMissionUpsert
       tags: [Mission]
       requestBody:
@@ -380,6 +497,24 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MissionUpsertRequest'
+            examples:
+              startMission:
+                summary: Start a mission and record its first lifecycle timestamp
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  missionId: first-target
+                  status: started
+                  sessionKey: session-123
+              completeMissionWithRequestId:
+                summary: Complete a mission and request response correlation
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  missionId: first-target
+                  status: completed
+                  requestId: req-123
+                  sessionKey: session-123
       responses:
         '200':
           description: mission-upsert-response
@@ -387,10 +522,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MissionUpsertResponse'
+              examples:
+                successfulMissionUpsert:
+                  summary: Successful mission upsert returns the mission snapshot and requestId when present
+                  value:
+                    success: true
+                    message: Mission recorded successfully
+                    playerName: MissionPilot
+                    characterId: character-1
+                    requestId: req-123
+                    mission:
+                      missionId: first-target
+                      status: started
+                      startedAt: '2026-05-18T00:00:00.000Z'
+                      updatedAt: '2026-05-18T00:00:00.000Z'
+                failedMissionUpsert:
+                  summary: Failure omits the mission payload but may still echo requestId
+                  value:
+                    success: false
+                    message: status must be one of: available, started, in-progress, failed, completed, locked, abandoned, paused, turned-in
+                    playerName: MissionPilot
+                    characterId: character-1
+                    requestId: req-123
 
   /socket/add-mission:
     post:
       summary: add-mission-request
+      description: |
+        Legacy alias for `mission-upsert-request`.
+
+        This endpoint accepts the same payload and has the same side effects as
+        `/socket/mission-upsert`.
       operationId: socketAddMission
       tags: [Mission]
       requestBody:
@@ -399,6 +561,15 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MissionUpsertRequest'
+            examples:
+              legacyAliasRequest:
+                summary: Legacy add-mission alias using the same mission upsert payload
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  missionId: first-target
+                  status: started
+                  sessionKey: session-123
       responses:
         '200':
           description: add-mission-response
@@ -410,6 +581,22 @@ paths:
   /socket/celestial-body-list:
     post:
       summary: celestial-body-list-request
+      description: |
+        Lists canonical celestial bodies in a solar system.
+
+        Query modes:
+        - Whole-system listing: omit both `positionKm` and `distanceKm`.
+        - Radius query: provide both `positionKm` and `distanceKm`.
+
+        Optional filters:
+        - `states` limits results to the provided canonical body states.
+        - `createdByCharacterId` and `missionId` narrow results to mission-generated
+          or character-scoped bodies.
+        - `limit` caps the number of returned bodies.
+
+        Response notes:
+        - Radius queries include `distanceKm` on each returned body.
+        - Whole-system listings omit per-body `distanceKm`.
       operationId: socketCelestialBodyList
       tags: [Celestial]
       requestBody:
@@ -418,6 +605,30 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CelestialBodyListRequest'
+            examples:
+              radiusQuery:
+                summary: Find nearby bodies around a point in space
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  solarSystemId: sol
+                  positionKm:
+                    x: 0
+                    y: 0
+                    z: 0
+                  distanceKm: 10
+                  limit: 2
+                  states:
+                    - unscanned
+                    - active
+              wholeSystemListing:
+                summary: List all bodies in a solar system without a radius filter
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  solarSystemId: sol
+                  createdByCharacterId: character-1
+                  missionId: first-target
       responses:
         '200':
           description: celestial-body-list-response
@@ -425,10 +636,177 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CelestialBodyListResponse'
+              examples:
+                successfulRadiusQuery:
+                  summary: Radius query returns nearest-first bodies with computed distance
+                  value:
+                    success: true
+                    message: Celestial body list retrieved successfully
+                    playerName: ScannerOne
+                    solarSystemId: sol
+                    positionKm:
+                      x: 0
+                      y: 0
+                      z: 0
+                    distanceKm: 10
+                    celestialBodies:
+                      - id: cb-near
+                        catalogId: catalog-001
+                        sourceScanId: scan-1
+                        createdByCharacterId: character-1
+                        missionId: first-target
+                        missionInstanceId: first-target:1
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: asteroid
+                        displayName: Starter Rock
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 5
+                            y: 0
+                            z: 0
+                          epochMs: 1715990400000
+                        motion: null
+                        physical:
+                          estimatedMassKg: 15000000000
+                          estimatedDiameterM: 120
+                        observability:
+                          visibility: visible
+                          scanState: scanned
+                        composition:
+                          rarity: Common
+                          material: Nickel-Iron
+                          textureColor: '#8f99a7'
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        physicalCatalog:
+                          estimatedDiameterM: 120
+                          estimatedMassKg: 15000000000
+                          radiusKm: 0.06
+                        visualization:
+                          colorHex: '#8f99a7'
+                          textureKey: asteroid-iron
+                        clusterId: cluster-a
+                        clusterCenterKm:
+                          x: 0
+                          y: 0
+                          z: 0
+                        localOffsetKm:
+                          x: 5
+                          y: 0
+                          z: 0
+                        distanceFromClusterCenterKm: 5
+                        distanceKm: 5
+                      - id: cb-mid
+                        catalogId: catalog-002
+                        sourceScanId: scan-2
+                        createdByCharacterId: character-1
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: asteroid
+                        displayName: Farther Rock
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 10
+                            y: 0
+                            z: 0
+                          epochMs: 1715990400000
+                        motion: null
+                        physical: null
+                        observability:
+                          visibility: visible
+                          scanState: unscanned
+                        composition: null
+                        state: unscanned
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        distanceKm: 10
+                successfulWholeSystemListing:
+                  summary: Whole-system listing omits query radius fields on each body
+                  value:
+                    success: true
+                    message: Celestial body list retrieved successfully
+                    playerName: ScannerOne
+                    solarSystemId: sol
+                    celestialBodies:
+                      - id: cb-sol-1
+                        catalogId: catalog-001
+                        sourceScanId: scan-1
+                        createdByCharacterId: character-1
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: planet
+                        displayName: Mercury
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 57900000
+                            y: 0
+                            z: 0
+                          epochMs: 1715990400000
+                        motion: null
+                        physical:
+                          estimatedMassKg: 3.3011e+23
+                          estimatedDiameterM: 4879400
+                        observability:
+                          visibility: visible
+                          scanState: scanned
+                        composition:
+                          rarity: Common
+                          material: silicate
+                          textureColor: '#8aa6c4'
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        parentBodyId: null
+                        planetType: rocky
+                        isCatalogBody: true
+                failedCelestialBodyList:
+                  summary: Invalid radius query returns an empty result set
+                  value:
+                    success: false
+                    message: positionKm and distanceKm must both be supplied for radius queries; omit both for a whole-system listing
+                    playerName: ScannerOne
+                    solarSystemId: sol
+                    celestialBodies: []
 
   /socket/celestial-body-upsert:
     post:
       summary: celestial-body-upsert-request
+      description: |
+        Creates or updates a canonical celestial body record.
+
+        `celestialBody` is a complete canonical payload, not a partial patch.
+
+        Identity rules:
+        - When `celestialBody.id` is present, the server upserts by that id.
+        - When `celestialBody.id` is omitted, the server derives a deterministic id
+          from `createdByCharacterId`, `missionId`, and `sourceScanId`. Persistence
+          also uses that composite identity for mission-generated bodies.
+
+        Validation and behavior notes:
+        - `celestialBody.spatial` must use canonical barycentric coordinates.
+        - `celestialBody.observability` is required.
+        - `celestialBody.composition` is required unless `celestialBody.state` is
+          `unscanned`.
+        - Legacy fields `location`, `kinematics`, and root `solarSystemId` are not
+          accepted.
       operationId: socketCelestialBodyUpsert
       tags: [Celestial]
       requestBody:
@@ -437,6 +815,61 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CelestialBodyUpsertRequest'
+            examples:
+              scannedBodyById:
+                summary: Upsert a scanned celestial body by explicit id
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  celestialBody:
+                    id: cb-1
+                    catalogId: asteroid-scan-1
+                    sourceScanId: scan-1
+                    createdByCharacterId: character-1
+                    missionId: first-target
+                    createdAt: '2026-05-17T00:00:00.000Z'
+                    updatedAt: '2026-05-17T00:00:00.000Z'
+                    spatial:
+                      solarSystemId: sol
+                      frame: barycentric
+                      positionKm:
+                        x: 1000
+                        y: 2000
+                        z: 3000
+                      epochMs: 1000000
+                    observability:
+                      visibility: visible
+                      scanState: scanned
+                    composition:
+                      rarity: Common
+                      material: Iron
+                      textureColor: '#8f99a7'
+                    state: active
+              unscannedMissionSeededBody:
+                summary: Mission-seeded unscanned body can omit composition and server-generate id
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  celestialBody:
+                    catalogId: asteroid-scan-2
+                    sourceScanId: sample-a3
+                    createdByCharacterId: character-1
+                    missionId: first-target
+                    createdAt: '2026-05-17T00:00:00.000Z'
+                    updatedAt: '2026-05-17T00:00:00.000Z'
+                    spatial:
+                      solarSystemId: sol
+                      frame: barycentric
+                      positionKm:
+                        x: 50
+                        y: 75
+                        z: -20
+                      epochMs: 1000000
+                    observability:
+                      visibility: visible
+                      scanState: unscanned
+                    composition: null
+                    state: unscanned
       responses:
         '200':
           description: celestial-body-upsert-response
@@ -444,6 +877,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CelestialBodyUpsertResponse'
+              examples:
+                successfulCelestialBodyUpsert:
+                  summary: Successful upsert returns the normalized celestial body payload
+                  value:
+                    success: true
+                    message: Celestial body recorded successfully
+                    playerName: ScannerOne
+                    celestialBody:
+                      id: cb-1
+                      catalogId: asteroid-scan-1
+                      sourceScanId: scan-1
+                      createdByCharacterId: character-1
+                      state: active
+                failedCelestialBodyUpsert:
+                  summary: Validation failure omits the celestialBody payload
+                  value:
+                    success: false
+                    message: playerName and a complete canonical celestialBody payload are required
+                    playerName: ScannerOne
 
   /socket/item-list-by-container:
     post:
@@ -532,6 +984,13 @@ paths:
   /socket/item-list-by-location:
     post:
       summary: item-list-by-location-request
+      description: |
+        Lists items near a barycentric position in a solar system.
+
+        Response notes:
+        - Success responses include query echo fields (`positionKm`, `distanceKm`, `itemType`).
+        - Failure responses omit query echo fields and return `items: []`.
+        - Each returned item includes computed `distanceKm` from the query position.
       operationId: socketItemListByLocation
       tags: [Items]
       requestBody:
@@ -547,10 +1006,69 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ItemListByLocationResponse'
+              examples:
+                successfulLocationList:
+                  summary: Nearby items are returned nearest-first with computed distance
+                  value:
+                    success: true
+                    message: Item list retrieved successfully
+                    playerName: PilotOne
+                    solarSystemId: sol
+                    positionKm:
+                      x: 0
+                      y: 0
+                      z: 0
+                    distanceKm: 10
+                    itemType: expendable-dart-drone
+                    items:
+                      - id: item-near
+                        itemType: expendable-dart-drone
+                        displayName: Expendable Dart Drone
+                        state: deployed
+                        damageStatus: intact
+                        container: null
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 3
+                            y: 4
+                            z: 0
+                          epochMs: 1000000
+                        motion:
+                          velocityKmPerSec:
+                            x: 0
+                            y: 0
+                            z: 0
+                        distanceKm: 5
+                failedLocationList:
+                  summary: Validation failure returns empty items and omits location echo fields
+                  value:
+                    success: false
+                    message: playerName, solarSystemId, positionKm, and distanceKm are required
+                    playerName: PilotOne
+                    solarSystemId: sol
+                    items: []
 
   /socket/item-upsert:
     post:
       summary: item-upsert-request
+      description: |
+        Creates a new item or updates an existing item.
+
+        `item` behaves as a partial update payload for existing records:
+        - Omitted fields preserve their existing values.
+        - Explicit `null` is significant for `item.container`, `item.spatial`, and
+          `item.motion` and clears those fields.
+
+        Behavior notes:
+        - Creating a new item requires `item.itemType` and `item.displayName`.
+        - `item.kinematics` is not accepted; use canonical `item.spatial` and
+          optional `item.motion`.
+        - Setting `item.state` to `destroyed` auto-populates `destroyedAt` when the
+          item does not already have one.
+        - Successful writes also attempt to synchronize ship inventory references for
+          items contained by ships.
       operationId: socketItemUpsert
       tags: [Items]
       requestBody:
@@ -559,6 +1077,38 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ItemUpsertRequest'
+            examples:
+              deployExistingItem:
+                summary: Deploy an existing item by clearing container and setting spatial state
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  item:
+                    id: item-1
+                    state: deployed
+                    container: null
+                    spatial:
+                      solarSystemId: sol
+                      frame: barycentric
+                      positionKm:
+                        x: 100
+                        y: 200
+                        z: 300
+                      epochMs: 1000000
+                    motion:
+                      velocityKmPerSec:
+                        x: 1
+                        y: 2
+                        z: 3
+              destroyExistingItem:
+                summary: Destroy an existing item and let the server stamp destroyedAt
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  item:
+                    id: item-1
+                    state: destroyed
+                    destroyedReason: hit by asteroid
       responses:
         '200':
           description: item-upsert-response
@@ -566,10 +1116,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ItemUpsertResponse'
+              examples:
+                successfulItemUpsert:
+                  summary: Successful upsert returns the created or updated item
+                  value:
+                    success: true
+                    message: Item updated successfully
+                    playerName: PilotOne
+                    item:
+                      id: item-1
+                      itemType: expendable-dart-drone
+                      displayName: Expendable Dart Drone
+                      state: deployed
+                failedItemUpsert:
+                  summary: Validation failure omits the item payload
+                  value:
+                    success: false
+                    message: item.state must be one of: contained, deployed, destroyed
+                    playerName: PilotOne
 
   /socket/launch-item:
     post:
       summary: launch-item-request
+      description: |
+        Launches a ship inventory item at a target celestial body.
+
+        Preconditions:
+        - `hotkey` must be one of `1` through `5`.
+        - The item must exist in the specified ship inventory.
+        - `itemType` must match the persisted item record.
+        - The item must be launchable and not already destroyed.
+        - The target celestial body must exist.
+
+        Success side effects:
+        - The launched item is consumed, marked `destroyed`, removed from ship inventory,
+          and made non-launchable.
+        - For `expendable-dart-drone`, the target is destroyed and raw material yield is
+          added to the ship inventory.
+        - Other launchable item types currently return success with `resolution.outcome`
+          set to `no-effect` after consuming the launched item.
       operationId: socketLaunchItem
       tags: [Items]
       requestBody:
@@ -578,6 +1163,29 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LaunchItemRequest'
+            examples:
+              destroyTargetWithDrone:
+                summary: Expendable dart drone destroys a target and yields raw materials
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  targetCelestialBodyId: cb-1
+                  hotkey: 3
+                  itemId: item-1
+                  itemType: expendable-dart-drone
+              noEffectLaunch:
+                summary: Unsupported launch item type is still consumed but has no target effect
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  targetCelestialBodyId: cb-1
+                  hotkey: 3
+                  itemId: item-2
+                  itemType: basic-mining-laser
       responses:
         '200':
           description: launch-item-response
@@ -585,10 +1193,77 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LaunchItemResponse'
+              examples:
+                successfulLaunch:
+                  summary: Successful expendable dart launch destroys the target and yields materials
+                  value:
+                    success: true
+                    message: Launch successful: target destroyed and materials yielded
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    targetCelestialBodyId: cb-1
+                    hotkey: 3
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+                    launchedItem:
+                      id: item-1
+                      itemType: expendable-dart-drone
+                      state: destroyed
+                      launchable: false
+                    resolution:
+                      outcome: target-destroyed
+                      targetDestroyed: true
+                      yieldedMaterials:
+                        - material: Nickel-Iron
+                          rarity: Rare
+                          quantity: 16
+                      yieldedItems:
+                        - id: generated-1
+                          itemType: raw-material-nickel-iron
+                          displayName: Nickel-Iron (Raw Material)
+                          quantity: 16
+                          state: contained
+                          container:
+                            containerType: ship
+                            containerId: ship-1
+                          launchable: false
+                      launchSeed: 123456789
+                failedLaunch:
+                  summary: Validation failure omits launch resolution fields
+                  value:
+                    success: false
+                    message: Target celestial body does not exist
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    targetCelestialBodyId: cb-missing
+                    hotkey: 3
+                    itemId: item-1
+                    itemType: expendable-dart-drone
 
   /socket/market-buy:
     post:
       summary: market-buy-request
+      description: |
+        Executes a market buy transaction for a character.
+
+        Preconditions:
+        - `quantity` must be a positive integer.
+        - The player, character, market, and catalog item must exist.
+        - The market must sell the requested item.
+        - The character must have sufficient credits.
+        - The market must have sufficient stock.
+        - The character must have at least one ship to receive purchased cargo.
+
+        Success side effects:
+        - Market stock is decremented.
+        - A trade item stack is added to the character inventory.
+        - Character and market ledger entries are appended.
+
+        Correlation:
+        - `requestId` is echoed in success and failure responses when provided.
+        - `transactionId` may be supplied by the caller; otherwise the server creates one.
       operationId: socketMarketBuy
       tags: [Market]
       requestBody:
@@ -597,6 +1272,30 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MarketBuyRequest'
+            examples:
+              buyIron:
+                summary: Buy a tradeable market item into ship cargo
+                value:
+                  requestId: buy-1
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  quantity: 3
+              buyWithCallerTransactionId:
+                summary: Provide a caller-generated transaction id for downstream correlation
+                value:
+                  requestId: buy-2
+                  transactionId: tx-123
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iridium
+                  quantity: 1
       responses:
         '200':
           description: market-buy-response
@@ -604,6 +1303,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketBuyResponse'
+              examples:
+                successfulBuy:
+                  summary: Successful market buy returns transaction metadata
+                  value:
+                    success: true
+                    message: Market buy transaction completed
+                    requestId: buy-1
+                    transaction:
+                      transactionId: tx-123
+                      requestId: buy-1
+                      marketId: sol-ceres-exchange
+                      solarSystemId: sol
+                      characterId: character-1
+                      itemId: iron
+                      direction: buy
+                      quantity: 3
+                      unitPrice: 10
+                      totalPrice: 30
+                      timestamp: '2026-05-18T00:00:00.000Z'
+                      characterCredits: 1970
+                      marketStock: 47
+                insufficientCredits:
+                  summary: Failure response omits transaction and reports a stable reason code
+                  value:
+                    success: false
+                    message: Insufficient credits for purchase
+                    requestId: buy-2
+                    reason: INSUFFICIENT_CREDITS
 
   /socket/market-inventory-list:
     post:
@@ -623,6 +1350,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketInventoryListResponse'
+              examples:
+                successfulInventoryList:
+                  summary: Successful market inventory query returns paged inventory rows
+                  value:
+                    success: true
+                    message: Market inventory retrieved successfully
+                    playerName: MarketPilot
+                    marketId: sol-ceres-exchange
+                    solarSystemId: sol
+                    marketName: Ceres Exchange
+                    inventory:
+                      - itemId: iron
+                        itemType: iron
+                        displayName: Iron
+                        rarity: Common
+                        stock: 50
+                        maxStock: 100
+                        restockPerInterval: 5
+                        marketCanBuy: true
+                        marketCanSell: true
+                    total: 1
+                    offset: 0
+                    limit: 50
+                    asOf: '2026-05-18T00:00:00.000Z'
+                failedInventoryList:
+                  summary: Failure keeps pagination fields and returns empty inventory
+                  value:
+                    success: false
+                    message: Market was not found
+                    reason: MARKET_NOT_FOUND
+                    inventory: []
+                    total: 0
+                    offset: 0
+                    limit: 50
 
   /socket/market-ledger-list:
     post:
@@ -642,6 +1403,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketLedgerListResponse'
+              examples:
+                successfulLedgerList:
+                  summary: Successful market ledger query returns paged transaction entries
+                  value:
+                    success: true
+                    message: Market ledger retrieved successfully
+                    playerName: MarketPilot
+                    marketId: sol-ceres-exchange
+                    solarSystemId: sol
+                    requestId: ledger-list-1
+                    entries:
+                      - transactionId: tx-123
+                        requestId: rq-ledger-1
+                        characterId: character-1
+                        itemId: iron
+                        direction: buy
+                        quantity: 2
+                        unitPrice: 10
+                        totalPrice: 20
+                        timestamp: '2026-05-18T00:00:00.000Z'
+                        reversalOfTransactionId: null
+                    total: 1
+                    offset: 0
+                    limit: 50
+                failedLedgerList:
+                  summary: Failure keeps pagination fields and returns empty entries
+                  value:
+                    success: false
+                    message: Market was not found
+                    reason: MARKET_NOT_FOUND
+                    requestId: ledger-list-2
+                    entries: []
+                    total: 0
+                    offset: 0
+                    limit: 50
 
   /socket/market-list:
     post:
@@ -661,6 +1457,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketListResponse'
+              examples:
+                successfulMarketList:
+                  summary: Successful market list returns canonical market projections
+                  value:
+                    success: true
+                    message: Market list retrieved successfully
+                    playerName: MarketPilot
+                    solarSystemId: sol
+                    markets:
+                      - marketId: sol-ceres-exchange
+                        solarSystemId: sol
+                        marketName: Ceres Exchange
+                        siteType: station
+                        siteName: Ceres Main
+                        isStarterMarket: true
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 413000
+                            y: 0
+                            z: 0
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0.002761
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                failedMarketList:
+                  summary: Canonical-shape validation failure returns an empty markets array
+                  value:
+                    success: false
+                    message: MarketList: market 'broken-market' has invalid canonical spatial/trajectory fields
+                    playerName: MarketPilot
+                    solarSystemId: sol
+                    markets: []
 
   /socket/market-list-by-location:
     post:
@@ -680,6 +1513,56 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketListByLocationResponse'
+              examples:
+                successfulLocalMarketList:
+                  summary: Successful local market query returns nearest-first markets and docking status
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: MarketPilot
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - station
+                    isDocked: true
+                    dockedMarketId: market-near
+                    markets:
+                      - marketId: market-near
+                        solarSystemId: sol
+                        marketName: Near Market
+                        siteType: station
+                        siteName: Ceres Main
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 100
+                            y: 0
+                            z: 0
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0
+                        route: {}
+                        isDocked: true
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                failedLocalMarketList:
+                  summary: Validation failure omits derived location fields and returns empty markets
+                  value:
+                    success: false
+                    message: playerName, solarSystemId, positionKm, and distanceAu are required
+                    playerName: MarketPilot
+                    solarSystemId: sol
+                    markets: []
+                    isDocked: false
+                    dockedMarketId: null
 
   /socket/market-quote:
     post:
@@ -699,10 +1582,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketQuoteResponse'
+              examples:
+                successfulQuote:
+                  summary: Successful quote returns normalized pricing details
+                  value:
+                    success: true
+                    message: Market quote retrieved successfully
+                    playerName: MarketPilot
+                    characterId: character-1
+                    requestId: rq-1
+                    quote:
+                      marketId: sol-ceres-exchange
+                      solarSystemId: sol
+                      itemId: iron
+                      direction: buy
+                      quantity: 5
+                      unitPrice: 10
+                      totalPrice: 50
+                      displayName: Iron
+                failedQuote:
+                  summary: Failure omits quote and returns a stable reason code
+                  value:
+                    success: false
+                    message: direction must be buy or sell
+                    requestId: rq-invalid-direction-1
+                    reason: INVALID_DIRECTION
 
   /socket/market-sell:
     post:
       summary: market-sell-request
+      description: |
+        Executes a market sell transaction for a character.
+
+        Preconditions:
+        - `quantity` must be a positive integer.
+        - The player, character, market, and catalog item must exist.
+        - The market must buy the requested item.
+        - The character must own enough tradeable quantity to sell.
+
+        Success side effects:
+        - Character inventory quantity is decremented or removed.
+        - Market stock is incremented.
+        - Character and market ledger entries are appended.
+
+        Correlation:
+        - `requestId` is echoed in success and failure responses when provided.
+        - `transactionId` may be supplied by the caller; otherwise the server creates one.
       operationId: socketMarketSell
       tags: [Market]
       requestBody:
@@ -711,6 +1636,30 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MarketSellRequest'
+            examples:
+              sellIron:
+                summary: Sell owned trade cargo back to the market
+                value:
+                  requestId: sell-1
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  quantity: 4
+              sellWithCallerTransactionId:
+                summary: Provide a caller-generated transaction id for sell-side reconciliation
+                value:
+                  requestId: sell-2
+                  transactionId: tx-456
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  quantity: 1
       responses:
         '200':
           description: market-sell-response
@@ -718,6 +1667,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketSellResponse'
+              examples:
+                successfulSell:
+                  summary: Successful market sell returns transaction metadata
+                  value:
+                    success: true
+                    message: Market sell transaction completed
+                    requestId: sell-1
+                    transaction:
+                      transactionId: tx-456
+                      requestId: sell-1
+                      marketId: sol-ceres-exchange
+                      solarSystemId: sol
+                      characterId: character-1
+                      itemId: iron
+                      direction: sell
+                      quantity: 4
+                      unitPrice: 10
+                      totalPrice: 40
+                      timestamp: '2026-05-18T00:00:00.000Z'
+                      characterCredits: 540
+                      marketStock: 64
+                insufficientQuantity:
+                  summary: Failure response omits transaction and reports a stable reason code
+                  value:
+                    success: false
+                    message: Insufficient item quantity to sell
+                    requestId: sell-2
+                    reason: INSUFFICIENT_ITEM_QUANTITY
 
   /socket/context-distance:
     post:
@@ -760,6 +1737,14 @@ paths:
   /socket/solar-system-get:
     post:
       summary: solar-system-get-request
+      description: |
+        Resolves a solar system by id, seeds its canonical celestial bodies on demand,
+        and returns both the system summary and its materialized bodies.
+
+        Response notes:
+        - `solarSystem`, `stars`, and `bodies` are present on success.
+        - Mission-generated asteroids are normalized into canonical asteroid viewer shape.
+        - Failure responses omit `solarSystem`, `stars`, and `bodies`.
       operationId: socketSolarSystemGet
       tags: [SolarSystem]
       requestBody:
@@ -775,10 +1760,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SolarSystemGetResponse'
+              examples:
+                successfulSolarSystemGet:
+                  summary: Successful system lookup returns summary, stars, and bodies
+                  value:
+                    success: true
+                    message: Solar system retrieved successfully
+                    playerName: PilotOne
+                    solarSystemId: alpha-centauri
+                    solarSystem:
+                      id: alpha-centauri
+                      displayName: Alpha Centauri
+                      isMultiStar: true
+                    stars:
+                      - id: alpha-centauri-a
+                        bodyType: star
+                    bodies:
+                      - id: alpha-centauri-a
+                        bodyType: star
+                      - id: planet-1
+                        bodyType: planet
+                    requestId: req-1
+                failedSolarSystemGet:
+                  summary: Unknown systems return a failure payload without body arrays
+                  value:
+                    success: false
+                    message: Unknown solar system
+                    playerName: PilotOne
+                    solarSystemId: not-a-system
+                    requestId: req-1
 
   /socket/solar-system-list:
     post:
       summary: solar-system-list-request
+      description: |
+        Returns solar systems from the registry, optionally filtered by source,
+        search text, and maximum distance.
+
+        Response notes:
+        - Systems are sorted by increasing distance.
+        - Optional count fields such as `planetCount`, `moonCount`, `asteroidCount`,
+          and `marketCount` are included when enrichment succeeds.
+        - Failure responses return an empty `solarSystems` array.
       operationId: socketSolarSystemList
       tags: [SolarSystem]
       requestBody:
@@ -794,10 +1817,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SolarSystemListResponse'
+              examples:
+                successfulSolarSystemList:
+                  summary: Successful registry query returns enriched solar system summaries
+                  value:
+                    success: true
+                    message: Solar system list retrieved successfully
+                    playerName: PilotOne
+                    requestId: req-42
+                    solarSystems:
+                      - id: sol
+                        displayName: Sol
+                        source: curated
+                        distanceParsec: 0
+                        planetCount: 2
+                        moonCount: 1
+                        asteroidCount: 1
+                        marketCount: 2
+                failedSolarSystemList:
+                  summary: Invalid source values return failure with an empty system list
+                  value:
+                    success: false
+                    message: source must be one of: curated, procedural
+                    playerName: PilotOne
+                    solarSystems: []
 
   /socket/star-get:
     post:
       summary: star-get-request
+      description: |
+        Returns a single HYG catalog star by `hygId`.
+
+        Response notes:
+        - `star` is present only on success.
+        - Failure responses still echo `hygId` and `requestId` when provided.
       operationId: socketStarGet
       tags: [Stars]
       requestBody:
@@ -813,10 +1866,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StarGetResponse'
+              examples:
+                successfulStarGet:
+                  summary: Successful lookup returns the HYG star payload
+                  value:
+                    success: true
+                    message: Star retrieved successfully
+                    playerName: PilotOne
+                    hygId: '70890'
+                    star:
+                      hygId: '70890'
+                      properName: Proxima Centauri
+                      systemId: alpha-centauri
+                      spectralClass: M
+                    requestId: req-1
+                failedStarGet:
+                  summary: Missing or unknown stars return failure without a star payload
+                  value:
+                    success: false
+                    message: Star not found
+                    playerName: PilotOne
+                    hygId: no-such-id
+                    requestId: req-1
 
   /socket/star-list:
     post:
       summary: star-list-request
+      description: |
+        Returns HYG catalog stars, optionally filtered by system, spectral class,
+        and maximum distance.
+
+        Response notes:
+        - Results are sorted by increasing `distanceParsec`.
+        - `stars` is always present and is empty on failures or empty matches.
       operationId: socketStarList
       tags: [Stars]
       requestBody:
@@ -832,6 +1914,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StarListResponse'
+              examples:
+                successfulStarList:
+                  summary: Successful list query returns stars sorted by distance
+                  value:
+                    success: true
+                    message: Star list retrieved successfully
+                    playerName: PilotOne
+                    requestId: req-2
+                    stars:
+                      - hygId: '70890'
+                        properName: Proxima Centauri
+                        systemId: alpha-centauri
+                        spectralClass: M
+                        distanceParsec: 1.301
+                emptyStarList:
+                  summary: No matches is still a successful query with an empty list
+                  value:
+                    success: true
+                    message: No stars matched the query
+                    playerName: PilotOne
+                    stars: []
 
   /socket/credit-ledger-list:
     post:
