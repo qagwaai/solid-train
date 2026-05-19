@@ -434,18 +434,7 @@ paths:
               $ref: '#/components/schemas/ShipUpsertRequest'
             examples:
               inventoryPatchApplied:
-                summary: Inventory patch using reference rows
-                value:
-                  playerName: TestPilot
-                  characterId: character-1
-                  sessionKey: session-123
-                  ship:
-                    id: ship-1
-                    inventory:
-                      - itemId: hull-patch-kit-1
-                        itemType: hull-patch-kit
-              inventoryPatchWithHydratedItems:
-                summary: Inventory patch using hydrated item rows
+                summary: Inventory patch using canonical ShipItem rows
                 value:
                   playerName: TestPilot
                   characterId: character-1
@@ -458,6 +447,17 @@ paths:
                         displayName: Hull Patch Kit
                         state: contained
                         damageStatus: intact
+              inventoryPatchWithReferenceRows:
+                summary: Inventory patch using abbreviated reference rows
+                value:
+                  playerName: TestPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  ship:
+                    id: ship-1
+                    inventory:
+                      - itemId: hull-patch-kit-1
+                        itemType: hull-patch-kit
               inventoryPreservedWhenOmitted:
                 summary: Existing inventory is preserved when ship.inventory is omitted
                 value:
