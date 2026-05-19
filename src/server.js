@@ -3,9 +3,11 @@
 require('dotenv').config();
 
 const http = require('node:http');
+const path = require('node:path');
 const express = require('express');
 const { randomUUID } = require('node:crypto');
 const { Server } = require('socket.io');
+const swaggerUi = require('swagger-ui-express');
 const { MongoConnection } = require('./db/connection');
 const { DatabaseService } = require('./db/service');
 const {
@@ -142,6 +144,27 @@ function createServer(options = {}) {
 
   // Express app for REST endpoints
   const app = express();
+  const openApiSpecPath = path.resolve(__dirname, '..', 'openapi.yaml');
+  const schemaDirPath = path.resolve(__dirname, '..', 'schemas');
+
+  app.get('/openapi.yaml', (req, res) => {
+    res.sendFile(openApiSpecPath);
+  });
+
+  // Expose schema files so external $ref values in openapi.yaml can resolve.
+  app.use('/schemas', express.static(schemaDirPath));
+
+  app.use(
+    '/docs',
+    swaggerUi.serve,
+    swaggerUi.setup(null, {
+      swaggerOptions: {
+        url: '/openapi.yaml',
+      },
+      explorer: true,
+    })
+  );
+
   // Health check endpoint
   app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
@@ -292,6 +315,7 @@ async function startServer(options = {}) {
 
   server.listen(port, () => {
     process.stdout.write(`Stellar Socket.IO server listening on port ${port}\n`);
+    process.stdout.write(`[server] Swagger UI available at http://localhost:${port}/docs/\n`);
   });
 
   const shutdown = async () => {

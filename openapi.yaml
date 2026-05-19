@@ -314,14 +314,6 @@ paths:
                             spatial: null
                             createdAt: '2026-04-17T00:00:00.000Z'
                             updatedAt: '2026-04-17T00:00:00.000Z'
-                failedShipList:
-                  summary: Failure returns an empty ship list with player and character context
-                  value:
-                    success: false
-                    message: Character is not in player list
-                    playerName: EdgePilot
-                    characterId: missing-character-id
-                    ships: []
                           - id: ship-1-starter-sensor-array
                             itemType: sensor-array
                             displayName: Sensor Array
@@ -380,6 +372,14 @@ paths:
                               severity: major
                               summary: Unstable
                               repairPriority: 3
+                failedShipList:
+                  summary: Failure returns an empty ship list with player and character context
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: EdgePilot
+                    characterId: missing-character-id
+                    ships: []
 
   /socket/ship-upsert:
     post:
@@ -540,7 +540,7 @@ paths:
                   summary: Failure omits the mission payload but may still echo requestId
                   value:
                     success: false
-                    message: status must be one of: available, started, in-progress, failed, completed, locked, abandoned, paused, turned-in
+                    message: 'status must be one of: available, started, in-progress, failed, completed, locked, abandoned, paused, turned-in'
                     playerName: MissionPilot
                     characterId: character-1
                     requestId: req-123
@@ -1132,7 +1132,7 @@ paths:
                   summary: Validation failure omits the item payload
                   value:
                     success: false
-                    message: item.state must be one of: contained, deployed, destroyed
+                    message: 'item.state must be one of: contained, deployed, destroyed'
                     playerName: PilotOne
 
   /socket/launch-item:
@@ -1198,7 +1198,7 @@ paths:
                   summary: Successful expendable dart launch destroys the target and yields materials
                   value:
                     success: true
-                    message: Launch successful: target destroyed and materials yielded
+                    message: 'Launch successful: target destroyed and materials yielded'
                     playerName: PilotOne
                     characterId: character-1
                     shipId: ship-1
@@ -1490,7 +1490,7 @@ paths:
                   summary: Canonical-shape validation failure returns an empty markets array
                   value:
                     success: false
-                    message: MarketList: market 'broken-market' has invalid canonical spatial/trajectory fields
+                    message: "MarketList: market 'broken-market' has invalid canonical spatial/trajectory fields"
                     playerName: MarketPilot
                     solarSystemId: sol
                     markets: []
@@ -1838,7 +1838,7 @@ paths:
                   summary: Invalid source values return failure with an empty system list
                   value:
                     success: false
-                    message: source must be one of: curated, procedural
+                    message: 'source must be one of: curated, procedural'
                     playerName: PilotOne
                     solarSystems: []
 

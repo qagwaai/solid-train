@@ -56,6 +56,8 @@ npx cross-env MONGODB_URI=mongodb://localhost:27017/my-db node src/server.js
 
 - `GET /` - basic status text
 - `GET /health` - JSON health response
+- `GET /openapi.yaml` - OpenAPI source document
+- `GET /docs` - Swagger UI served by the same Node/Express process
 
 ## Socket.IO events
 

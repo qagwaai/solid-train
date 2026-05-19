@@ -172,6 +172,31 @@ test('server health endpoint responds with ok JSON payload', async () => {
   }
 });
 
+test('server serves OpenAPI yaml and Swagger UI from the same process', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  try {
+    const openApiResponse = await httpGetJson(`http://127.0.0.1:${port}/openapi.yaml`);
+    assert.equal(openApiResponse.statusCode, 200);
+    assert.match(openApiResponse.body, /openapi\s*:/i);
+
+    const schemaResponse = await httpGetJson(`http://127.0.0.1:${port}/schemas/item.schema.json`);
+    assert.equal(schemaResponse.statusCode, 200);
+    assert.match(schemaResponse.body, /"title"\s*:\s*"item"/i);
+
+    const docsResponse = await httpGetJson(`http://127.0.0.1:${port}/docs`);
+    assert.equal(docsResponse.statusCode, 301);
+
+    const docsIndexResponse = await httpGetJson(`http://127.0.0.1:${port}/docs/`);
+    assert.equal(docsIndexResponse.statusCode, 200);
+    assert.match(docsIndexResponse.body, /SwaggerUIBundle|swagger-ui/i);
+  } finally {
+    io.close();
+    server.close();
+  }
+});
+
 test('server broadcasts generic message payload to connected clients', async () => {
   const { server, io } = createServer();
   const port = await listen(server);
