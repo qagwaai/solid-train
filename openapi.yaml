@@ -47,10 +47,22 @@ paths:
       description: |
         Returns the backend canonical item catalog used by clients for item discovery.
 
+        `/items` returns canonical catalog item definitions, not live runtime item
+        instances. These records are keyed by `itemType` and may not include runtime
+        instance identifiers (`id`). Use instance-bearing endpoints for live item
+        records.
+
         Canonical naming note:
         - Conduit seals uses `itemType: conduit-seals` (no aliases).
+        - Conduit seals fabrication uses canonical material `itemType: polymer`
+          (not `polymer-resin`).
         - Fabrication requirements use `fabrication.requiredMaterials[]` with canonical
           `itemType` identifiers.
+        - Clients should always use canonical `itemType` values from
+          `fabrication.requiredMaterials[].itemType` for lookup/comparison.
+        - Legacy aliases may be accepted by specific runtime workflows for backward
+          compatibility, but alias resolution is not a global contract guarantee unless
+          explicitly documented by that endpoint.
         - Some runtime/internal workflows may attach legacy `requiredMaterials` matching
           metadata (for example `acceptedItemTypes`), but clients should treat
           `fabrication.requiredMaterials` as the primary contract field.
@@ -67,7 +79,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Item'
+                      $ref: '#/components/schemas/CatalogItemDefinition'
                 example:
                   items:
                     - itemType: conduit-seals
@@ -2115,6 +2127,8 @@ paths:
 
 components:
   schemas:
+    CatalogItemDefinition:
+      $ref: './schemas/catalog-item-definition.schema.json'
     CelestialBodyListRequest:
       $ref: './schemas/celestial-body-list-request.schema.json'
     CelestialBodyListResponse:

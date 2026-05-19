@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "catalog-item-definition",
+  "description": "Canonical catalog item definition returned by /items. Catalog entries are keyed by itemType and may omit runtime instance id.",
+  "type": "object",
+  "required": ["itemType", "displayName"],
+  "properties": {
+    "itemType": { "type": "string" },
+    "displayName": { "type": "string" },
+    "description": { "type": ["string", "null"] },
+    "category": {
+      "type": ["string", "null"],
+      "enum": [
+        "tool",
+        "repair",
+        "mining",
+        "unit",
+        "subsystem",
+        "structural",
+        "infrastructure",
+        "refined",
+        "alloy",
+        "component",
+        "fuel",
+        "module",
+        "capital-unit",
+        "manufactured-component",
+        "raw-material",
+        null
+      ]
+    },
+    "tier": { "type": ["integer", "null"] },
+    "rarity": {
+      "type": ["string", "null"],
+      "enum": ["common", "uncommon", "rare", "exotic", null]
+    },
+    "stackable": { "type": ["boolean", "null"] },
+    "massKg": { "type": ["number", "null"] },
+    "volumeM3": { "type": ["number", "null"] },
+    "baseValueCredits": { "type": ["number", "null"] },
+    "fabrication": {
+      "type": ["object", "null"],
+      "properties": {
+        "durationMs": { "type": "number" },
+        "requiredMaterials": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "itemType": { "type": "string" },
+              "quantity": { "type": "number" }
+            },
+            "required": ["itemType", "quantity"]
+          }
+        }
+      }
+    },
+    "state": { "type": ["string", "null"], "enum": ["contained", "deployed", "destroyed", null] },
+    "damageStatus": { "type": ["string", "null"], "enum": ["intact", "damaged", "disabled", "destroyed", null] },
+    "container": {
+      "type": ["object", "null"],
+      "properties": {
+        "containerType": { "type": "string", "enum": ["ship", "market"] },
+        "containerId": { "type": "string" }
+      },
+      "required": ["containerType", "containerId"]
+    },
+    "launchable": { "type": ["boolean", "null"] }
+  },
+  "additionalProperties": true
+}

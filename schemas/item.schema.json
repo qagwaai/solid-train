@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "item",
+  "description": "Canonical item payload for runtime item records. For catalog definitions returned by /items, use CatalogItemDefinition. Client-facing material requirements are defined only by fabrication.requiredMaterials[].itemType.",
   "type": "object",
   "required": ["itemType", "displayName"],
   "properties": {
@@ -43,6 +44,7 @@
       "properties": {
         "durationMs": { "type": "number" },
         "requiredMaterials": {
+          "description": "Canonical material requirements for crafting/comparison. Clients should use requiredMaterials[].itemType values for lookups.",
           "type": "array",
           "items": {
             "type": "object",
@@ -53,21 +55,6 @@
             "required": ["itemType", "quantity"]
           }
         }
-      }
-    },
-    "requiredMaterials": {
-      "type": ["array", "null"],
-      "items": {
-        "type": "object",
-        "properties": {
-          "material": { "type": "string" },
-          "quantity": { "type": "number" },
-          "acceptedItemTypes": {
-            "type": "array",
-            "items": { "type": "string" }
-          }
-        },
-        "required": ["material", "quantity"]
       }
     },
     "state": { "type": "string", "enum": ["contained", "deployed", "destroyed"] },
