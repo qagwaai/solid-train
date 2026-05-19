@@ -52,6 +52,9 @@ paths:
         instance identifiers (`id`). Use instance-bearing endpoints for live item
         records.
 
+        **Canonical material contract:** Clients must use `fabrication.requiredMaterials[].itemType`
+        as the authoritative material reference for lookup, comparison, and validation.
+
         Canonical naming note:
         - Conduit seals uses `itemType: conduit-seals` (no aliases).
         - Conduit seals fabrication uses canonical material `itemType: polymer`
