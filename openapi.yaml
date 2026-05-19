@@ -49,6 +49,11 @@ paths:
 
         Canonical naming note:
         - Conduit seals uses `itemType: conduit-seals` (no aliases).
+        - Fabrication requirements use `fabrication.requiredMaterials[]` with canonical
+          `itemType` identifiers.
+        - Some runtime/internal workflows may attach legacy `requiredMaterials` matching
+          metadata (for example `acceptedItemTypes`), but clients should treat
+          `fabrication.requiredMaterials` as the primary contract field.
       operationId: getItems
       tags: [Items]
       responses:
@@ -95,13 +100,11 @@ paths:
                       launchable: false
                       state: contained
                       damageStatus: intact
-                      requiredMaterials:
-                        - material: Iron
-                          quantity: 1
-                          acceptedItemTypes:
-                            - iron
-                            - iron-ore
-                            - iron-raw-material
+                      fabrication:
+                        durationMs: 300000
+                        requiredMaterials:
+                          - itemType: iron
+                            quantity: 1
 
   /socket/register:
     post:
