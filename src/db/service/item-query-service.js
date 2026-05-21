@@ -68,6 +68,7 @@ async function findItemsNearPosition(ctx, Item, query) {
 
   try {
     const boundsQuery = {
+      state: 'deployed',
       'spatial.solarSystemId': solarSystemId,
       'spatial.positionKm.x': {
         $gte: positionKm.x - distanceKm,

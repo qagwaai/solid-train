@@ -39,6 +39,7 @@
         },
         "yieldedItems": {
           "type": "array",
+          "description": "For first-target mission launches, yielded items are returned as deployed debris with canonical spatial coordinates.",
           "items": {
             "type": "object",
             "additionalProperties": true

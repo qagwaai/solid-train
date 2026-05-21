@@ -83,6 +83,42 @@ class LaunchItemMessageHandler {
     return hash >>> 0;
   }
 
+  createSeededRandom(seed) {
+    let state = seed >>> 0;
+    return () => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 4294967296;
+    };
+  }
+
+  buildDebrisSpatial(targetCelestialBody, launchSeed, index, now) {
+    const targetSpatial = targetCelestialBody?.spatial;
+    const targetPositionKm = targetSpatial?.positionKm;
+    if (!this.context.isTriple(targetPositionKm)) {
+      return null;
+    }
+
+    const random = this.createSeededRandom((launchSeed + (index + 1) * 2654435761) >>> 0);
+    const radiusKm = 0.02 + random() * 0.06;
+    const theta = random() * Math.PI * 2;
+    const phi = Math.acos(2 * random() - 1);
+
+    const offsetX = radiusKm * Math.sin(phi) * Math.cos(theta);
+    const offsetY = radiusKm * Math.sin(phi) * Math.sin(theta);
+    const offsetZ = radiusKm * Math.cos(phi);
+
+    return {
+      solarSystemId: targetSpatial.solarSystemId,
+      frame: 'barycentric',
+      positionKm: {
+        x: targetPositionKm.x + offsetX,
+        y: targetPositionKm.y + offsetY,
+        z: targetPositionKm.z + offsetZ,
+      },
+      epochMs: Date.parse(now),
+    };
+  }
+
   async consumeLaunchedItem(parsed, now, correlationId = '-') {
     const updatedItem = await this.context.updateItemAsync(parsed.itemId, {
       state: ITEM_STATE.DESTROYED,
@@ -254,6 +290,7 @@ class LaunchItemMessageHandler {
   async resolveLaunch(parsed, correlationId = '-') {
     const now = this.context.getCurrentTimestamp();
     const launchSeed = this.computeLaunchSeed(parsed);
+    const shouldDeployDebris = parsed.targetCelestialBody?.missionId === 'first-target';
     const launchedItem = await this.consumeLaunchedItem(parsed, now, correlationId);
 
     if (parsed.itemType !== EXPENDABLE_DART_DRONE_ITEM_TYPE) {
@@ -286,23 +323,30 @@ class LaunchItemMessageHandler {
       },
     ];
 
-    const yieldedItemsToCreate = yieldedMaterials.map((entry) => {
+    const yieldedItemsToCreate = yieldedMaterials.map((entry, index) => {
       const itemType = this.toRawMaterialItemType(entry.material);
+      const spatial = shouldDeployDebris
+        ? this.buildDebrisSpatial(parsed.targetCelestialBody, launchSeed, index, now)
+        : null;
+      const isDeployedDebris = Boolean(spatial);
 
       return {
         id: this.context.createId(),
         itemType,
         displayName: `${entry.material} (Raw Material)`,
         quantity: entry.quantity,
-        state: ITEM_STATE.CONTAINED,
+        state: isDeployedDebris ? ITEM_STATE.DEPLOYED : ITEM_STATE.CONTAINED,
         damageStatus: ITEM_DAMAGE_STATUS.INTACT,
-        container: {
-          containerType: ITEM_CONTAINER_TYPE.SHIP,
-          containerId: parsed.shipId,
-        },
+        container: isDeployedDebris
+          ? null
+          : {
+              containerType: ITEM_CONTAINER_TYPE.SHIP,
+              containerId: parsed.shipId,
+            },
         owningPlayerId: parsed.player.playerId,
         owningCharacterId: parsed.characterId,
-        spatial: null,
+        spatial,
+        motion: null,
         destroyedAt: null,
         destroyedReason: null,
         launchable: false,
@@ -333,10 +377,7 @@ class LaunchItemMessageHandler {
 
     await this.context.addOrUpdateCelestialBodyAsync(destroyedTarget);
 
-    const refreshedCharacter = this.context.findCharacter(
-      parsed.player.playerName,
-      parsed.characterId
-    );
+    const refreshedCharacter = this.context.findCharacter(parsed.player.playerName, parsed.characterId);
     const nextShipsWithYield = Array.isArray(refreshedCharacter?.ships)
       ? refreshedCharacter.ships.map((ship) => {
           if (ship.id !== parsed.shipId) {
@@ -344,10 +385,12 @@ class LaunchItemMessageHandler {
           }
 
           const existingInventory = Array.isArray(ship.inventory) ? ship.inventory : [];
-          const yieldedReferences = yieldedItems.map((item) => ({
-            itemId: item.id,
-            itemType: item.itemType,
-          }));
+          const yieldedReferences = yieldedItems
+            .filter((item) => item.state === ITEM_STATE.CONTAINED)
+            .map((item) => ({
+              itemId: item.id,
+              itemType: item.itemType,
+            }));
 
           return {
             ...ship,

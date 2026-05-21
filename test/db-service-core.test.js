@@ -282,6 +282,7 @@ test('DatabaseService findItemsNearPosition filters candidates by exact spherica
     assert.equal(results.length, 1);
     assert.equal(results[0].item.id, 'item-near');
     assert.equal(results[0].distanceKm, 10);
+    assert.equal(capturedQuery.state, 'deployed');
     assert.equal(capturedQuery['spatial.solarSystemId'], 'sol');
     assert.equal(capturedQuery.itemType, 'iron');
   } finally {

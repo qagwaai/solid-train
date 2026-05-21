@@ -1036,6 +1036,10 @@ paths:
       description: |
         Lists items near a barycentric position in a solar system.
 
+        Query behavior:
+        - Only deployed items with canonical `spatial` coordinates are eligible.
+        - Legacy `kinematics` is not used for selection.
+
         Response notes:
         - Success responses include query echo fields (`positionKm`, `distanceKm`, `itemType`).
         - Failure responses omit query echo fields and return `items: []`.
@@ -1201,7 +1205,8 @@ paths:
         - The launched item is consumed, marked `destroyed`, removed from ship inventory,
           and made non-launchable.
         - For `expendable-dart-drone`, the target is destroyed and raw material yield is
-          added to the ship inventory.
+          spawned as deployed debris for `first-target` mission targets.
+        - Outside `first-target`, raw material yield is added to ship inventory as contained cargo.
         - Other launchable item types currently return success with `resolution.outcome`
           set to `no-effect` after consuming the launched item.
       operationId: socketLaunchItem
@@ -1272,10 +1277,16 @@ paths:
                           itemType: raw-material-nickel-iron
                           displayName: Nickel-Iron (Raw Material)
                           quantity: 16
-                          state: contained
-                          container:
-                            containerType: ship
-                            containerId: ship-1
+                          state: deployed
+                          container: null
+                          spatial:
+                            solarSystemId: sol
+                            frame: barycentric
+                            positionKm:
+                              x: 100.01
+                              y: 200.02
+                              z: 299.98
+                            epochMs: 1715990400000
                           launchable: false
                       launchSeed: 123456789
                 failedLaunch:

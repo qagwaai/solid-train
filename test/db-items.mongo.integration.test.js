@@ -57,7 +57,13 @@ test('Items Mongo round-trip: add, read, query, update, and delete', async () =>
   const service = mongoHarness.databaseService;
 
   const inserted = await service.addItems([
-    createItem({ id: 'item-1', itemType: 'iron', quantity: 2 }),
+    createItem({
+      id: 'item-1',
+      itemType: 'iron',
+      quantity: 2,
+      state: ITEM_STATE.DEPLOYED,
+      container: null,
+    }),
     createItem({
       id: 'item-2',
       itemType: 'copper',

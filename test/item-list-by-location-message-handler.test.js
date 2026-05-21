@@ -22,18 +22,13 @@ function createDeployedItem(overrides = {}) {
     state: 'deployed',
     damageStatus: 'intact',
     container: null,
-    kinematics: {
-      position: { x: 0, y: 0, z: 0 },
-      velocity: { x: 0, y: 0, z: 0 },
-      reference: {
-        solarSystemId: 'sol',
-        referenceKind: 'barycentric',
-        referenceBodyId: null,
-        distanceUnit: 'km',
-        velocityUnit: 'km/s',
-        epochMs: 1000000,
-      },
+    spatial: {
+      solarSystemId: 'sol',
+      frame: 'barycentric',
+      positionKm: { x: 0, y: 0, z: 0 },
+      epochMs: 1000000,
     },
+    motion: null,
     owningPlayerId: 'player-1',
     owningCharacterId: 'character-1',
     destroyedAt: null,
@@ -57,47 +52,29 @@ test('ItemListByLocationMessageHandler returns nearest-first items with computed
   seedItems(context, [
     createDeployedItem({
       id: 'item-near',
-      kinematics: {
-        position: { x: 3, y: 4, z: 0 },
-        velocity: { x: 0, y: 0, z: 0 },
-        reference: {
-          solarSystemId: 'sol',
-          referenceKind: 'barycentric',
-          referenceBodyId: null,
-          distanceUnit: 'km',
-          velocityUnit: 'km/s',
-          epochMs: 1000000,
-        },
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 3, y: 4, z: 0 },
+        epochMs: 1000000,
       },
     }),
     createDeployedItem({
       id: 'item-mid',
-      kinematics: {
-        position: { x: 0, y: 6, z: 8 },
-        velocity: { x: 0, y: 0, z: 0 },
-        reference: {
-          solarSystemId: 'sol',
-          referenceKind: 'barycentric',
-          referenceBodyId: null,
-          distanceUnit: 'km',
-          velocityUnit: 'km/s',
-          epochMs: 1000000,
-        },
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 0, y: 6, z: 8 },
+        epochMs: 1000000,
       },
     }),
     createDeployedItem({
       id: 'item-far',
-      kinematics: {
-        position: { x: 100, y: 0, z: 0 },
-        velocity: { x: 0, y: 0, z: 0 },
-        reference: {
-          solarSystemId: 'sol',
-          referenceKind: 'barycentric',
-          referenceBodyId: null,
-          distanceUnit: 'km',
-          velocityUnit: 'km/s',
-          epochMs: 1000000,
-        },
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 100, y: 0, z: 0 },
+        epochMs: 1000000,
       },
     }),
   ]);
@@ -125,27 +102,26 @@ test('ItemListByLocationMessageHandler returns nearest-first items with computed
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_LOCATION_RESPONSE_EVENT);
 });
 
-test('ItemListByLocationMessageHandler returns all states (contained, deployed, destroyed)', async () => {
+test('ItemListByLocationMessageHandler returns deployed items only', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
 
-  const kinematics = {
-    position: { x: 1, y: 0, z: 0 },
-    velocity: { x: 0, y: 0, z: 0 },
-    reference: {
-      solarSystemId: 'sol',
-      referenceKind: 'barycentric',
-      referenceBodyId: null,
-      distanceUnit: 'km',
-      velocityUnit: 'km/s',
-      epochMs: 1000000,
-    },
+  const spatial = {
+    solarSystemId: 'sol',
+    frame: 'barycentric',
+    positionKm: { x: 1, y: 0, z: 0 },
+    epochMs: 1000000,
   };
 
   seedItems(context, [
-    createDeployedItem({ id: 'item-deployed', state: 'deployed', kinematics }),
-    createDeployedItem({ id: 'item-contained', state: 'contained', kinematics }),
-    createDeployedItem({ id: 'item-destroyed', state: 'destroyed', kinematics }),
+    createDeployedItem({ id: 'item-deployed', state: 'deployed', spatial }),
+    createDeployedItem({
+      id: 'item-contained',
+      state: 'contained',
+      container: { containerType: 'ship', containerId: 'ship-1' },
+      spatial,
+    }),
+    createDeployedItem({ id: 'item-destroyed', state: 'destroyed', spatial }),
   ]);
 
   const handler = new ItemListByLocationMessageHandler(context);
@@ -160,9 +136,9 @@ test('ItemListByLocationMessageHandler returns all states (contained, deployed, 
   });
 
   assert.equal(response.success, true);
-  assert.equal(response.items.length, 3);
-  const states = response.items.map((i) => i.state).sort();
-  assert.deepEqual(states, ['contained', 'deployed', 'destroyed']);
+  assert.equal(response.items.length, 1);
+  assert.equal(response.items[0].id, 'item-deployed');
+  assert.equal(response.items[0].state, 'deployed');
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_LOCATION_RESPONSE_EVENT);
 });
 
@@ -170,22 +146,16 @@ test('ItemListByLocationMessageHandler filters by itemType when provided', async
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
 
-  const kinematics = {
-    position: { x: 1, y: 0, z: 0 },
-    velocity: { x: 0, y: 0, z: 0 },
-    reference: {
-      solarSystemId: 'sol',
-      referenceKind: 'barycentric',
-      referenceBodyId: null,
-      distanceUnit: 'km',
-      velocityUnit: 'km/s',
-      epochMs: 1000000,
-    },
+  const spatial = {
+    solarSystemId: 'sol',
+    frame: 'barycentric',
+    positionKm: { x: 1, y: 0, z: 0 },
+    epochMs: 1000000,
   };
 
   seedItems(context, [
-    createDeployedItem({ id: 'item-drone', itemType: 'expendable-dart-drone', kinematics }),
-    createDeployedItem({ id: 'item-shield', itemType: 'shield-module', kinematics }),
+    createDeployedItem({ id: 'item-drone', itemType: 'expendable-dart-drone', spatial }),
+    createDeployedItem({ id: 'item-shield', itemType: 'shield-module', spatial }),
   ]);
 
   const handler = new ItemListByLocationMessageHandler(context);
@@ -214,17 +184,11 @@ test('ItemListByLocationMessageHandler excludes items from other solar systems',
   seedItems(context, [
     createDeployedItem({
       id: 'item-other-system',
-      kinematics: {
-        position: { x: 1, y: 0, z: 0 },
-        velocity: { x: 0, y: 0, z: 0 },
-        reference: {
-          solarSystemId: 'alt-system',
-          referenceKind: 'barycentric',
-          referenceBodyId: null,
-          distanceUnit: 'km',
-          velocityUnit: 'km/s',
-          epochMs: 1000000,
-        },
+      spatial: {
+        solarSystemId: 'alt-system',
+        frame: 'barycentric',
+        positionKm: { x: 1, y: 0, z: 0 },
+        epochMs: 1000000,
       },
     }),
   ]);
@@ -246,11 +210,42 @@ test('ItemListByLocationMessageHandler excludes items from other solar systems',
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_LOCATION_RESPONSE_EVENT);
 });
 
-test('ItemListByLocationMessageHandler excludes items without kinematics', async () => {
+test('ItemListByLocationMessageHandler excludes items without spatial', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
 
-  seedItems(context, [createDeployedItem({ id: 'item-no-kinematics', kinematics: null })]);
+  seedItems(context, [createDeployedItem({ id: 'item-no-spatial', spatial: null })]);
+
+  const handler = new ItemListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceKm: 100,
+  });
+
+  assert.equal(response.success, true);
+  assert.deepEqual(response.items, []);
+  assert.equal(socket.events[0].eventName, ITEM_LIST_BY_LOCATION_RESPONSE_EVENT);
+});
+
+test('ItemListByLocationMessageHandler excludes items with legacy kinematics only', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+
+  seedItems(context, [
+    {
+      ...createDeployedItem({ id: 'item-legacy-only' }),
+      spatial: null,
+      kinematics: {
+        position: { x: 1, y: 0, z: 0 },
+        velocity: { x: 0, y: 0, z: 0 },
+      },
+    },
+  ]);
 
   const handler = new ItemListByLocationMessageHandler(context);
   const socket = createMockSocket();
@@ -340,17 +335,11 @@ test('ItemListByLocationMessageHandler merges cache results when DB query return
   seedItems(context, [
     createDeployedItem({
       id: 'item-cache-only',
-      kinematics: {
-        position: { x: 1, y: 0, z: 0 },
-        velocity: { x: 0, y: 0, z: 0 },
-        reference: {
-          solarSystemId: 'sol',
-          referenceKind: 'barycentric',
-          referenceBodyId: null,
-          distanceUnit: 'km',
-          velocityUnit: 'km/s',
-          epochMs: 1000000,
-        },
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 1, y: 0, z: 0 },
+        epochMs: 1000000,
       },
     }),
   ]);

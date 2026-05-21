@@ -444,6 +444,10 @@ async function getItemsNearPositionAsync(ctx, query) {
   const cacheResults = Array.from(ctx.itemsById.values())
     .map((item) => ctx.normalizeItem(item))
     .filter((item) => {
+      if (item.state !== 'deployed') {
+        return false;
+      }
+
       if (item.spatial?.solarSystemId !== solarSystemId) {
         return false;
       }
