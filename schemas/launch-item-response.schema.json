@@ -39,10 +39,53 @@
         },
         "yieldedItems": {
           "type": "array",
-          "description": "For first-target mission launches, yielded items are returned as deployed debris with canonical spatial coordinates.",
+          "description": "Yielded items from target-destroyed launches are deployed debris with canonical spatial coordinates and motion vectors.",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "allOf": [
+              { "$ref": "./item.schema.json" },
+              {
+                "type": "object",
+                "required": ["id", "itemType", "displayName", "quantity", "state", "container", "spatial", "motion", "launchable"],
+                "properties": {
+                  "quantity": { "type": "number" },
+                  "state": { "type": "string", "enum": ["deployed"] },
+                  "container": { "type": "null" },
+                  "spatial": {
+                    "type": "object",
+                    "properties": {
+                      "solarSystemId": { "type": "string" },
+                      "frame": { "type": "string", "enum": ["barycentric"] },
+                      "positionKm": {
+                        "type": "object",
+                        "properties": {
+                          "x": { "type": "number" },
+                          "y": { "type": "number" },
+                          "z": { "type": "number" }
+                        },
+                        "required": ["x", "y", "z"]
+                      },
+                      "epochMs": { "type": "number" }
+                    },
+                    "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
+                  },
+                  "motion": {
+                    "type": "object",
+                    "properties": {
+                      "velocityKmPerSec": {
+                        "type": "object",
+                        "properties": {
+                          "x": { "type": "number" },
+                          "y": { "type": "number" },
+                          "z": { "type": "number" }
+                        },
+                        "required": ["x", "y", "z"]
+                      }
+                    },
+                    "required": ["velocityKmPerSec"]
+                  }
+                }
+              }
+            ]
           }
         },
         "targetCelestialBody": {

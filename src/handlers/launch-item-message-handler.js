@@ -99,7 +99,7 @@ class LaunchItemMessageHandler {
     }
 
     const random = this.createSeededRandom((launchSeed + (index + 1) * 2654435761) >>> 0);
-    const radiusKm = 0.02 + random() * 0.06;
+    const radiusKm = 10 + random() * 40;
     const theta = random() * Math.PI * 2;
     const phi = Math.acos(2 * random() - 1);
 
@@ -116,6 +116,21 @@ class LaunchItemMessageHandler {
         z: targetPositionKm.z + offsetZ,
       },
       epochMs: Date.parse(now),
+    };
+  }
+
+  buildDebrisMotion(launchSeed, index) {
+    const random = this.createSeededRandom((launchSeed + (index + 1) * 1597334677) >>> 0);
+    const speed = 0.005 + random() * 0.02;
+    const theta = random() * Math.PI * 2;
+    const phi = Math.acos(2 * random() - 1);
+
+    return {
+      velocityKmPerSec: {
+        x: speed * Math.sin(phi) * Math.cos(theta),
+        y: speed * Math.sin(phi) * Math.sin(theta),
+        z: speed * Math.cos(phi),
+      },
     };
   }
 
@@ -290,7 +305,7 @@ class LaunchItemMessageHandler {
   async resolveLaunch(parsed, correlationId = '-') {
     const now = this.context.getCurrentTimestamp();
     const launchSeed = this.computeLaunchSeed(parsed);
-    const shouldDeployDebris = parsed.targetCelestialBody?.missionId === 'first-target';
+    const shouldDeployDebris = true;
     const launchedItem = await this.consumeLaunchedItem(parsed, now, correlationId);
 
     if (parsed.itemType !== EXPENDABLE_DART_DRONE_ITEM_TYPE) {
@@ -329,6 +344,7 @@ class LaunchItemMessageHandler {
         ? this.buildDebrisSpatial(parsed.targetCelestialBody, launchSeed, index, now)
         : null;
       const isDeployedDebris = Boolean(spatial);
+      const motion = isDeployedDebris ? this.buildDebrisMotion(launchSeed, index) : null;
 
       return {
         id: this.context.createId(),
@@ -346,7 +362,7 @@ class LaunchItemMessageHandler {
         owningPlayerId: parsed.player.playerId,
         owningCharacterId: parsed.characterId,
         spatial,
-        motion: null,
+        motion,
         destroyedAt: null,
         destroyedReason: null,
         launchable: false,

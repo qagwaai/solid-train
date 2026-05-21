@@ -1205,8 +1205,8 @@ paths:
         - The launched item is consumed, marked `destroyed`, removed from ship inventory,
           and made non-launchable.
         - For `expendable-dart-drone`, the target is destroyed and raw material yield is
-          spawned as deployed debris for `first-target` mission targets.
-        - Outside `first-target`, raw material yield is added to ship inventory as contained cargo.
+          spawned as deployed debris near the target with canonical `spatial` and
+          deterministic `motion` vectors.
         - Other launchable item types currently return success with `resolution.outcome`
           set to `no-effect` after consuming the launched item.
       operationId: socketLaunchItem
@@ -1283,10 +1283,15 @@ paths:
                             solarSystemId: sol
                             frame: barycentric
                             positionKm:
-                              x: 100.01
-                              y: 200.02
-                              z: 299.98
+                              x: 112.6
+                              y: 184.3
+                              z: 327.9
                             epochMs: 1715990400000
+                          motion:
+                            velocityKmPerSec:
+                              x: 0.01
+                              y: -0.007
+                              z: 0.004
                           launchable: false
                       launchSeed: 123456789
                 failedLaunch:

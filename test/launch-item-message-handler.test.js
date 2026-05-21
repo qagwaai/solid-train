@@ -147,6 +147,8 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   assert.equal(response.resolution.yieldedItems[0].container, null);
   assert.ok(response.resolution.yieldedItems[0].spatial);
   assert.equal(response.resolution.yieldedItems[0].spatial.solarSystemId, 'sol');
+  assert.ok(response.resolution.yieldedItems[0].motion);
+  assert.ok(response.resolution.yieldedItems[0].motion.velocityKmPerSec);
   assert.equal(response.resolution.launchSeed >= 0, true);
   assert.equal(response.launchedItem.state, 'destroyed');
   assert.equal(response.launchedItem.launchable, false);
@@ -166,6 +168,13 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   assert.equal(materialItems[0].state, 'deployed');
   assert.equal(materialItems[0].container, null);
   assert.ok(materialItems[0].spatial);
+  assert.ok(materialItems[0].motion);
+
+  const targetPosition = createSeedTarget().spatial.positionKm;
+  const debrisPosition = materialItems[0].spatial.positionKm;
+  const distanceFromTarget = context.calculateDistanceKm(targetPosition, debrisPosition);
+  assert.equal(distanceFromTarget >= 10, true);
+  assert.equal(distanceFromTarget <= 50, true);
 
   const target = context.getCelestialBody('cb-1');
   assert.equal(target.state, 'destroyed');
@@ -176,7 +185,7 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   assert.equal(socket.events[0].eventName, LAUNCH_ITEM_RESPONSE_EVENT);
 });
 
-test('LaunchItemMessageHandler keeps yielded materials contained outside first-target mission', async () => {
+test('LaunchItemMessageHandler deploys yielded materials for non-first-target missions', async () => {
   const context = createTestContext();
   seedLaunchScenario(context);
 
@@ -190,14 +199,13 @@ test('LaunchItemMessageHandler keeps yielded materials contained outside first-t
 
   assert.equal(response.success, true);
   assert.equal(response.resolution.yieldedItems.length, 1);
-  assert.equal(response.resolution.yieldedItems[0].state, 'contained');
-  assert.ok(response.resolution.yieldedItems[0].container);
-  assert.equal(response.resolution.yieldedItems[0].container.containerType, 'ship');
-  assert.equal(response.resolution.yieldedItems[0].container.containerId, 'ship-1');
+  assert.equal(response.resolution.yieldedItems[0].state, 'deployed');
+  assert.equal(response.resolution.yieldedItems[0].container, null);
+  assert.ok(response.resolution.yieldedItems[0].spatial);
+  assert.ok(response.resolution.yieldedItems[0].motion);
 
   const character = context.findCharacter('PilotOne', 'character-1');
-  assert.equal(character.ships[0].inventory.length, 1);
-  assert.equal(character.ships[0].inventory[0].itemType, 'raw-material-nickel-iron');
+  assert.equal(character.ships[0].inventory.length, 0);
   assert.equal(socket.events[0].eventName, LAUNCH_ITEM_RESPONSE_EVENT);
 });
 
