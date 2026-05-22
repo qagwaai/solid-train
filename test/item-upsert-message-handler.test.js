@@ -68,6 +68,7 @@ test('ItemUpsertMessageHandler creates a new item when id not in cache', async (
   assert.equal(response.playerName, 'PilotOne');
   assert.ok(response.item.id, 'item should have an id');
   assert.equal(response.item.itemType, 'expendable-dart-drone');
+  assert.equal(response.item.tier, 1);
   assert.equal(response.item.displayName, 'Expendable Dart Drone');
   assert.equal(response.item.state, 'contained');
   assert.equal(response.item.damageStatus, 'intact');
@@ -93,6 +94,7 @@ test('ItemUpsertMessageHandler updates an existing item', async () => {
   assert.equal(response.success, true);
   assert.equal(response.message, 'Item updated successfully');
   assert.equal(response.item.id, 'item-1');
+  assert.equal(response.item.tier, 1);
   assert.equal(response.item.state, 'deployed');
   assert.equal(response.item.damageStatus, 'damaged');
   assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
@@ -128,6 +130,7 @@ test('ItemUpsertMessageHandler deploys an item (clears container, sets kinematic
 
   assert.equal(response.success, true);
   assert.equal(response.item.state, 'deployed');
+  assert.equal(response.item.tier, 1);
   assert.equal(response.item.container, null);
   assert.ok(response.item.spatial, 'spatial should be set');
   assert.equal(response.item.spatial.solarSystemId, 'sol');
@@ -155,6 +158,7 @@ test('ItemUpsertMessageHandler destroys an item and auto-populates destroyedAt',
 
   assert.equal(response.success, true);
   assert.equal(response.item.state, 'destroyed');
+  assert.equal(response.item.tier, 1);
   assert.equal(response.item.destroyedAt, '2026-04-17T00:00:00.000Z');
   assert.equal(response.item.destroyedReason, 'hit by asteroid');
   assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
@@ -332,6 +336,7 @@ test('ItemUpsertMessageHandler adds created ship-contained items to ship invento
   assert.equal(character.ships[0].inventory.length, 1);
   assert.equal(character.ships[0].inventory[0].itemId, response.item.id);
   assert.equal(character.ships[0].inventory[0].itemType, response.item.itemType);
+  assert.equal(response.item.tier, 1);
 });
 
 test('ItemUpsertMessageHandler emits legacy upsert-item-response alias for compatibility', async () => {

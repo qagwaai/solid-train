@@ -1220,6 +1220,7 @@ paths:
                       id: item-1
                       itemType: expendable-dart-drone
                       displayName: Expendable Dart Drone
+                      tier: 1
                       state: deployed
                 failedItemUpsert:
                   summary: Validation failure omits the item payload
@@ -1303,6 +1304,7 @@ paths:
                     launchedItem:
                       id: item-1
                       itemType: expendable-dart-drone
+                      tier: 1
                       state: destroyed
                       launchable: false
                     resolution:
@@ -1316,6 +1318,7 @@ paths:
                         - id: generated-1
                           itemType: raw-material-nickel-iron
                           displayName: Nickel-Iron (Raw Material)
+                          tier: 3
                           quantity: 16
                           state: deployed
                           container: null

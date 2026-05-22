@@ -143,6 +143,7 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   assert.equal(response.resolution.yieldedMaterials[0].quantity, 16);
   assert.equal(response.resolution.yieldedItems.length, 1);
   assert.equal(response.resolution.yieldedItems[0].quantity, 16);
+  assert.equal(response.resolution.yieldedItems[0].tier, 3);
   assert.equal(response.resolution.yieldedItems[0].state, 'deployed');
   assert.equal(response.resolution.yieldedItems[0].container, null);
   assert.ok(response.resolution.yieldedItems[0].spatial);
@@ -164,6 +165,7 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   const materialItems = await context.getItemsByIdsAsync(materialItemIds);
   assert.equal(materialItems.length, 1);
   assert.equal(materialItems[0].itemType, 'raw-material-nickel-iron');
+  assert.equal(materialItems[0].tier, 3);
   assert.equal(materialItems[0].quantity, 16);
   assert.equal(materialItems[0].state, 'deployed');
   assert.equal(materialItems[0].container, null);
@@ -199,6 +201,7 @@ test('LaunchItemMessageHandler deploys yielded materials for non-first-target mi
 
   assert.equal(response.success, true);
   assert.equal(response.resolution.yieldedItems.length, 1);
+  assert.equal(response.resolution.yieldedItems[0].tier, 3);
   assert.equal(response.resolution.yieldedItems[0].state, 'deployed');
   assert.equal(response.resolution.yieldedItems[0].container, null);
   assert.ok(response.resolution.yieldedItems[0].spatial);

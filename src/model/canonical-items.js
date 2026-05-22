@@ -51,6 +51,13 @@ const ITEM_STATE_VALUES = Object.freeze(Object.values(ITEM_STATE));
 const ITEM_DAMAGE_STATUS_VALUES = Object.freeze(Object.values(ITEM_DAMAGE_STATUS));
 const ITEM_CONTAINER_TYPE_VALUES = Object.freeze(Object.values(ITEM_CONTAINER_TYPE));
 
+const DEFAULT_TIER_BY_RARITY = Object.freeze({
+  [ITEM_RARITY.COMMON]: 1,
+  [ITEM_RARITY.UNCOMMON]: 2,
+  [ITEM_RARITY.RARE]: 3,
+  [ITEM_RARITY.EXOTIC]: 4,
+});
+
 const CATEGORY_ALIASES = Object.freeze({
   'fuel-liquid': ITEM_CATEGORY.FUEL,
 });
@@ -93,10 +100,19 @@ function normalizeCategory(rawCategory, fallbackCategory = null) {
 }
 
 function normalizeCatalogItem(item, options = {}) {
+  const rarity = normalizeRarity(item.rarity);
+  const category = normalizeCategory(item.category, options.defaultCategory);
+  const tier = Number.isInteger(item.tier)
+    ? item.tier
+    : category === ITEM_CATEGORY.RAW_MATERIAL && rarity
+      ? DEFAULT_TIER_BY_RARITY[rarity] || null
+      : null;
+
   return {
     ...item,
-    rarity: normalizeRarity(item.rarity),
-    category: normalizeCategory(item.category, options.defaultCategory),
+    rarity,
+    category,
+    tier,
   };
 }
 
@@ -250,6 +266,7 @@ const craftableItemsSource = [
   { itemType: 'cooling-unit', displayName: 'Cooling Unit', description: '', category: ITEM_CATEGORY.INFRASTRUCTURE, tier: 12, rarity: ITEM_RARITY.UNCOMMON, craftingRequirements: [ { material: 'Aluminum', quantity: 1 }, { material: 'Copper', quantity: 1 } ], dependentItems: ['arc-welder', 'chemical-mixer'], buyPrice: null, sellPrice: null },
   { itemType: 'heat-sink', displayName: 'Heat Sink', description: '', category: ITEM_CATEGORY.COMPONENT, tier: 13, rarity: ITEM_RARITY.UNCOMMON, craftingRequirements: [ { material: 'Copper', quantity: 1 }, { material: 'Magnesium', quantity: 1 } ], dependentItems: ['extruder-tool', 'cooling-unit'], buyPrice: null, sellPrice: null },
   { itemType: 'heavy-hauler', displayName: 'Heavy Hauler', description: '', category: ITEM_CATEGORY.UNIT, tier: 15, rarity: ITEM_RARITY.UNCOMMON, craftingRequirements: [ { material: 'Reinforced Plate', quantity: 1 } ], dependentItems: ['hydrazine', 'containment-unit'], buyPrice: null, sellPrice: null },
+  { itemType: 'basic-mining-laser', displayName: 'Basic Mining Laser', description: '', category: ITEM_CATEGORY.TOOL, tier: 2, rarity: ITEM_RARITY.COMMON, craftingRequirements: [ { material: 'Nickel', quantity: 1 }, { material: 'Copper', quantity: 1 } ], dependentItems: [], buyPrice: null, sellPrice: null },
   { itemType: 'lithography-kit', displayName: 'Lithography Kit', description: '', category: ITEM_CATEGORY.INFRASTRUCTURE, tier: 18, rarity: ITEM_RARITY.RARE, craftingRequirements: [ { material: 'Silver', quantity: 1 }, { material: 'Glass', quantity: 1 } ], dependentItems: ['precision-nozzle', 'logic-chip-t1'], buyPrice: null, sellPrice: null },
   { itemType: 'ion-engine-core', displayName: 'Ion Engine Core', description: '', category: ITEM_CATEGORY.COMPONENT, tier: 20, rarity: ITEM_RARITY.RARE, craftingRequirements: [ { material: 'Mercury', quantity: 1 }, { material: 'Silver', quantity: 1 } ], dependentItems: ['fuel-synth', 'heat-sink'], buyPrice: null, sellPrice: null },
   { itemType: 'nano-lathe', displayName: 'Nano Lathe', description: '', category: ITEM_CATEGORY.INFRASTRUCTURE, tier: 22, rarity: ITEM_RARITY.EXOTIC, craftingRequirements: [ { material: 'Silver', quantity: 1 }, { material: 'Palladium', quantity: 1 } ], dependentItems: ['lithography-kit', 'arc-welder'], buyPrice: null, sellPrice: null },
@@ -295,6 +312,7 @@ const rawMaterialsSource = [
   { itemType: 'gold', displayName: 'Gold', description: 'High-end conductors (Lvl 15+)', rarity: ITEM_RARITY.EXOTIC, miningRequirement: 'Plasma Extractor (Tier 4)', typicalLocation: 'Deep Core Deposits', buyPrice: null, sellPrice: null },
   { itemType: 'rhodium', displayName: 'Rhodium', description: 'Reflective shielding / Stealth', rarity: ITEM_RARITY.EXOTIC, miningRequirement: 'Plasma Extractor (Tier 4)', typicalLocation: 'White Dwarf Remnants', buyPrice: null, sellPrice: null },
   { itemType: 'antimony', displayName: 'Antimony', description: 'Level 25+ Synthesis', rarity: ITEM_RARITY.EXOTIC, miningRequirement: 'Plasma Extractor (Tier 4)', typicalLocation: 'Super-dense Planetoids', buyPrice: null, sellPrice: null },
+  { itemType: 'raw-material-nickel-iron', displayName: 'Nickel-Iron (Raw Material)', description: 'Composite raw material yielded from asteroid launch debris.', rarity: ITEM_RARITY.RARE, miningRequirement: null, typicalLocation: null, buyPrice: null, sellPrice: null },
   { itemType: 'unobtainium', displayName: 'Unobtainium', description: 'Ultimate-tier units', rarity: ITEM_RARITY.EXOTIC, miningRequirement: 'Dark Matter Siphon (Tier 5)', typicalLocation: 'Event Horizon Clusters', buyPrice: null, sellPrice: null },
 ];
 

@@ -19,6 +19,7 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
       id: 'item-1',
       itemType: 'expendable-dart-drone',
       displayName: 'Expendable Dart Drone',
+      tier: 1,
       state: 'contained',
       damageStatus: 'intact',
       container: {
@@ -93,6 +94,7 @@ test('ShipListMessageHandler returns ships for a player character', async () => 
           id: 'item-1',
           itemType: 'expendable-dart-drone',
           displayName: 'Expendable Dart Drone',
+          tier: 1,
           state: 'contained',
           damageStatus: 'intact',
           container: {
@@ -179,6 +181,7 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
       id: 'item-1',
       itemType: 'expendable-dart-drone',
       displayName: 'Expendable Dart Drone',
+          tier: 1,
       state: 'contained',
       damageStatus: 'intact',
       container: {
@@ -256,6 +259,7 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
       id: 'item-1',
       itemType: 'expendable-dart-drone',
       displayName: 'Expendable Dart Drone',
+      tier: 1,
       state: 'contained',
       damageStatus: 'intact',
       container: {
@@ -679,6 +683,7 @@ test('ShipListMessageHandler backfills cold-boot starter subsystem inventory ite
     assert.ok(byType.has(itemType));
     const item = byType.get(itemType);
     assert.equal(item.id, `ship-1-starter-${itemType}`);
+    assert.equal(item.tier, 1);
     assert.equal(item.state, 'contained');
     assert.equal(item.damageStatus, 'damaged');
     assert.equal(item.launchable, false);
@@ -798,6 +803,7 @@ test('ShipListMessageHandler backfills for legacy model value scavenger-pod', as
     'sensor-array',
     'ship-tractor-beam',
   ]);
+  assert.equal(response.ships[0].inventory.every((item) => item.tier === 1), true);
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
 
@@ -852,6 +858,7 @@ test('ShipListMessageHandler backfilled subsystem rows have non-empty ownership 
     ['propulsion-manifold', 'sensor-array', 'power-distribution-bus', 'ship-tractor-beam'].includes(item.itemType)
   );
   assert.equal(subsystemItems.length, 4);
+  assert.equal(subsystemItems.every((item) => item.tier === 1), true);
   assert.ok(subsystemItems.every((item) => typeof item.owningPlayerId === 'string' && item.owningPlayerId.length > 0));
   assert.ok(subsystemItems.every((item) => typeof item.owningCharacterId === 'string' && item.owningCharacterId.length > 0));
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);

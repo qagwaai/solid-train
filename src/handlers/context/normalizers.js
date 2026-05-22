@@ -1,5 +1,7 @@
 'use strict';
 
+const { getItemByType } = require('../../model/canonical-items');
+
 const { MARKET_CATALOG, MARKET_CATALOG_BY_ID } = require('../../model/market-catalog');
 
 const SUPPORTED_LOCALES = new Set(['en', 'it']);
@@ -525,6 +527,17 @@ function convertLegacyItemKinematics(ctx, kinematics) {
 
 function normalizeItem(ctx, item) {
   const source = toPlainObject(ctx, item) || {};
+  const itemType = toNonEmptyString(ctx, source.itemType);
+  const canonicalItem = itemType ? getItemByType(itemType) : null;
+
+  if (!canonicalItem) {
+    throw new Error(`Unsupported runtime item type: ${itemType || '(missing itemType)'}`);
+  }
+
+  if (!Number.isInteger(canonicalItem.tier) || canonicalItem.tier < 1) {
+    throw new Error(`Canonical item tier is missing for itemType: ${itemType}`);
+  }
+
   const normalizedContainer = source.container
     ? {
         containerType: toNonEmptyString(ctx, source.container.containerType),
@@ -546,8 +559,9 @@ function normalizeItem(ctx, item) {
   return {
     ...rest,
     id: toNonEmptyString(ctx, source.id),
-    itemType: toNonEmptyString(ctx, source.itemType),
+    itemType,
     displayName: toNonEmptyString(ctx, source.displayName),
+    tier: canonicalItem.tier,
     state: toNonEmptyString(ctx, source.state),
     damageStatus: toNonEmptyString(ctx, source.damageStatus),
     container: normalizedContainer,
