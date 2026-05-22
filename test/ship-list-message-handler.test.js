@@ -672,10 +672,10 @@ test('ShipListMessageHandler backfills cold-boot starter subsystem inventory ite
 
   assert.equal(response.success, true);
   const inventory = response.ships[0].inventory;
-  assert.equal(inventory.length, 3);
+  assert.equal(inventory.length, 4);
 
   const byType = new Map(inventory.map((item) => [item.itemType, item]));
-  for (const itemType of ['propulsion-manifold', 'sensor-array', 'power-distribution-bus']) {
+  for (const itemType of ['propulsion-manifold', 'sensor-array', 'power-distribution-bus', 'ship-tractor-beam']) {
     assert.ok(byType.has(itemType));
     const item = byType.get(itemType);
     assert.equal(item.id, `ship-1-starter-${itemType}`);
@@ -796,6 +796,7 @@ test('ShipListMessageHandler backfills for legacy model value scavenger-pod', as
     'power-distribution-bus',
     'propulsion-manifold',
     'sensor-array',
+    'ship-tractor-beam',
   ]);
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
@@ -848,9 +849,9 @@ test('ShipListMessageHandler backfilled subsystem rows have non-empty ownership 
 
   assert.equal(response.success, true);
   const subsystemItems = response.ships[0].inventory.filter((item) =>
-    ['propulsion-manifold', 'sensor-array', 'power-distribution-bus'].includes(item.itemType)
+    ['propulsion-manifold', 'sensor-array', 'power-distribution-bus', 'ship-tractor-beam'].includes(item.itemType)
   );
-  assert.equal(subsystemItems.length, 3);
+  assert.equal(subsystemItems.length, 4);
   assert.ok(subsystemItems.every((item) => typeof item.owningPlayerId === 'string' && item.owningPlayerId.length > 0));
   assert.ok(subsystemItems.every((item) => typeof item.owningCharacterId === 'string' && item.owningCharacterId.length > 0));
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);

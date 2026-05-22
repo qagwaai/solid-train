@@ -18,6 +18,10 @@ const COLD_BOOT_STARTER_SUBSYSTEMS = [
     itemType: 'power-distribution-bus',
     displayName: 'Power Distribution Bus',
   },
+  {
+    itemType: 'ship-tractor-beam',
+    displayName: 'Tractor Beam',
+  },
 ];
 
 function isColdBootStarterShip(ctx, ship) {

@@ -120,6 +120,16 @@ paths:
                         requiredMaterials:
                           - itemType: iron
                             quantity: 1
+                    - itemType: ship-tractor-beam
+                      displayName: Tractor Beam
+                      description: Ship utility subsystem used for close-range salvage retrieval and object towing.
+                      category: subsystem
+                      tier: 1
+                      rarity: common
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      container: null
 
   /socket/register:
     post:
@@ -302,6 +312,7 @@ paths:
         - `propulsion-manifold`
         - `sensor-array`
         - `power-distribution-bus`
+        - `ship-tractor-beam`
 
         Backfilled subsystem items are contained ship inventory with canonical item shape:
         - `state: contained`
@@ -375,6 +386,20 @@ paths:
                           - id: ship-1-starter-power-distribution-bus
                             itemType: power-distribution-bus
                             displayName: Power Distribution Bus
+                            launchable: false
+                            state: contained
+                            damageStatus: damaged
+                            container:
+                              containerType: ship
+                              containerId: ship-1
+                            owningPlayerId: player-cold-boot
+                            owningCharacterId: character-1
+                            spatial: null
+                            createdAt: '2026-04-17T00:00:00.000Z'
+                            updatedAt: '2026-04-17T00:00:00.000Z'
+                          - id: ship-1-starter-ship-tractor-beam
+                            itemType: ship-tractor-beam
+                            displayName: Tractor Beam
                             launchable: false
                             state: contained
                             damageStatus: damaged
@@ -959,6 +984,7 @@ paths:
         - `propulsion-manifold`
         - `sensor-array`
         - `power-distribution-bus`
+        - `ship-tractor-beam`
 
         This keeps `ship-list` and `item-list-by-container` consistent for starter
         ship inventory consumption.
@@ -1018,6 +1044,20 @@ paths:
                       - id: ship-1-starter-power-distribution-bus
                         itemType: power-distribution-bus
                         displayName: Power Distribution Bus
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+                      - id: ship-1-starter-ship-tractor-beam
+                        itemType: ship-tractor-beam
+                        displayName: Tractor Beam
                         launchable: false
                         state: contained
                         damageStatus: damaged

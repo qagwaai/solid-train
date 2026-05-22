@@ -63,6 +63,10 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
           itemId: 'player-1-ship-1-starter-power-distribution-bus',
           itemType: 'power-distribution-bus',
         },
+        {
+          itemId: 'player-1-ship-1-starter-ship-tractor-beam',
+          itemType: 'ship-tractor-beam',
+        },
       ],
       status: null,
       spatial: {
@@ -121,6 +125,26 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
     id: 'player-1-ship-1-starter-propulsion-manifold',
     itemType: 'propulsion-manifold',
     displayName: 'Propulsion Manifold',
+    state: 'contained',
+    damageStatus: 'damaged',
+    container: {
+      containerType: 'ship',
+      containerId: 'player-1-ship-1',
+    },
+    owningPlayerId: 'player-seeded',
+    owningCharacterId: 'player-1',
+    spatial: null,
+    createdAt: '2026-04-17T00:00:00.000Z',
+    updatedAt: '2026-04-17T00:00:00.000Z',
+    destroyedAt: null,
+    destroyedReason: null,
+    launchable: false,
+    quantity: 1,
+  });
+  assert.deepEqual(context.getItem('player-1-ship-1-starter-ship-tractor-beam'), {
+    id: 'player-1-ship-1-starter-ship-tractor-beam',
+    itemType: 'ship-tractor-beam',
+    displayName: 'Tractor Beam',
     state: 'contained',
     damageStatus: 'damaged',
     container: {

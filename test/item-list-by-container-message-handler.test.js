@@ -263,10 +263,10 @@ test('ItemListByContainerMessageHandler backfills cold-boot starter subsystem it
   });
 
   assert.equal(response.success, true);
-  assert.equal(response.items.length, 3);
+  assert.equal(response.items.length, 4);
 
   const byType = new Map(response.items.map((item) => [item.itemType, item]));
-  for (const itemType of ['propulsion-manifold', 'sensor-array', 'power-distribution-bus']) {
+  for (const itemType of ['propulsion-manifold', 'sensor-array', 'power-distribution-bus', 'ship-tractor-beam']) {
     assert.ok(byType.has(itemType));
     const item = byType.get(itemType);
     assert.equal(item.id, `ship-1-starter-${itemType}`);
@@ -399,9 +399,9 @@ test('ItemListByContainerMessageHandler does not duplicate existing starter subs
 
   assert.equal(response.success, true);
   const subsystemItems = response.items.filter((item) =>
-    ['propulsion-manifold', 'sensor-array', 'power-distribution-bus'].includes(item.itemType)
+    ['propulsion-manifold', 'sensor-array', 'power-distribution-bus', 'ship-tractor-beam'].includes(item.itemType)
   );
-  assert.equal(subsystemItems.length, 3);
+  assert.equal(subsystemItems.length, 4);
 
   const propulsionItems = subsystemItems.filter((item) => item.itemType === 'propulsion-manifold');
   assert.equal(propulsionItems.length, 1);
@@ -468,13 +468,14 @@ test('ItemListByContainerMessageHandler persists backfilled starter subsystem ro
   });
 
   assert.equal(response.success, true);
-  assert.equal(response.items.length, 3);
-  assert.equal(persistedItems.length, 3);
+  assert.equal(response.items.length, 4);
+  assert.equal(persistedItems.length, 4);
   const persistedTypes = persistedItems.map((item) => item.itemType).sort();
   assert.deepEqual(persistedTypes, [
     'power-distribution-bus',
     'propulsion-manifold',
     'sensor-array',
+    'ship-tractor-beam',
   ]);
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT);
 });

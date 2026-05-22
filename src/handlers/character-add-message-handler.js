@@ -140,6 +140,25 @@ class CharacterAddMessageHandler {
             destroyedAt: null,
             destroyedReason: null,
           },
+          {
+            id: `${starterShipId}-starter-ship-tractor-beam`,
+            itemType: 'ship-tractor-beam',
+            displayName: 'Tractor Beam',
+            state: ITEM_STATE.CONTAINED,
+            damageStatus: ITEM_DAMAGE_STATUS.DAMAGED,
+            launchable: false,
+            container: {
+              containerType: ITEM_CONTAINER_TYPE.SHIP,
+              containerId: starterShipId,
+            },
+            owningPlayerId,
+            owningCharacterId: response.characterId,
+            spatial: null,
+            createdAt,
+            updatedAt: createdAt,
+            destroyedAt: null,
+            destroyedReason: null,
+          },
         ];
         const starterItems = [
           {
@@ -193,6 +212,10 @@ class CharacterAddMessageHandler {
                 {
                   itemId: `${starterShipId}-starter-power-distribution-bus`,
                   itemType: 'power-distribution-bus',
+                },
+                {
+                  itemId: `${starterShipId}-starter-ship-tractor-beam`,
+                  itemType: 'ship-tractor-beam',
                 },
               ],
               spatial: {

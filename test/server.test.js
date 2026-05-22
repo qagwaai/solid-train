@@ -216,6 +216,32 @@ test('GET /items includes canonical conduit-seals catalog item', async () => {
   }
 });
 
+test('GET /items includes canonical ship-tractor-beam catalog item', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  try {
+    const response = await httpGetJson(`http://127.0.0.1:${port}/items`);
+    assert.equal(response.statusCode, 200);
+
+    const parsed = JSON.parse(response.body);
+    assert.ok(Array.isArray(parsed.items));
+
+    const tractorBeam = parsed.items.find((item) => item.itemType === 'ship-tractor-beam');
+    assert.ok(tractorBeam);
+    assert.equal(tractorBeam.displayName, 'Tractor Beam');
+    assert.equal(tractorBeam.launchable, false);
+    assert.equal(tractorBeam.state, 'contained');
+    assert.equal(tractorBeam.damageStatus, 'intact');
+    assert.equal(tractorBeam.container, null);
+
+    assert.equal(parsed.items.filter((item) => item.itemType === 'ship-tractor-beam').length, 1);
+  } finally {
+    io.close();
+    server.close();
+  }
+});
+
 test('server serves OpenAPI yaml and Swagger UI from the same process', async () => {
   const { server, io } = createServer();
   const port = await listen(server);
@@ -806,11 +832,11 @@ test('ship list returns ships for a character', async () => {
       (item) => item.id === `${addResponse.characterId}-ship-1-item-1`
     )
   );
-  const starterSubsystemTypes = ['propulsion-manifold', 'sensor-array', 'power-distribution-bus'];
+  const starterSubsystemTypes = ['propulsion-manifold', 'sensor-array', 'power-distribution-bus', 'ship-tractor-beam'];
   const subsystemRows = shipListResponse.ships[0].inventory.filter((item) =>
     starterSubsystemTypes.includes(item.itemType)
   );
-  assert.equal(subsystemRows.length, 3);
+  assert.equal(subsystemRows.length, 4);
 
   await closeClient(client);
   io.close();
