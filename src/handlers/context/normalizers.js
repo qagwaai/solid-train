@@ -538,6 +538,11 @@ function normalizeItem(ctx, item) {
     throw new Error(`Canonical item tier is missing for itemType: ${itemType}`);
   }
 
+  const normalizedTier =
+    Number.isInteger(source.tier) && source.tier >= 1 && source.tier <= 20
+      ? source.tier
+      : canonicalItem.tier;
+
   const normalizedContainer = source.container
     ? {
         containerType: toNonEmptyString(ctx, source.container.containerType),
@@ -561,7 +566,7 @@ function normalizeItem(ctx, item) {
     id: toNonEmptyString(ctx, source.id),
     itemType,
     displayName: toNonEmptyString(ctx, source.displayName),
-    tier: canonicalItem.tier,
+    tier: normalizedTier,
     state: toNonEmptyString(ctx, source.state),
     damageStatus: toNonEmptyString(ctx, source.damageStatus),
     container: normalizedContainer,

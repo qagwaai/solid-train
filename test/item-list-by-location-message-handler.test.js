@@ -102,6 +102,41 @@ test('ItemListByLocationMessageHandler returns nearest-first items with computed
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_LOCATION_RESPONSE_EVENT);
 });
 
+test('ItemListByLocationMessageHandler preserves explicit item tier in hydrated results', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+
+  seedItems(context, [
+    createDeployedItem({
+      id: 'item-tier-10',
+      tier: 10,
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 1, y: 0, z: 0 },
+        epochMs: 1000000,
+      },
+    }),
+  ]);
+
+  const handler = new ItemListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceKm: 5,
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.items.length, 1);
+  assert.equal(response.items[0].id, 'item-tier-10');
+  assert.equal(response.items[0].tier, 10);
+  assert.equal(socket.events[0].eventName, ITEM_LIST_BY_LOCATION_RESPONSE_EVENT);
+});
+
 test('ItemListByLocationMessageHandler returns deployed items only', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });

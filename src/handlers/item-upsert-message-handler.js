@@ -114,6 +114,12 @@ class ItemUpsertMessageHandler {
 
     const itemType = this.context.toNonEmptyString(itemPayload.itemType);
     const displayName = this.context.toNonEmptyString(itemPayload.displayName);
+    const hasTier = 'tier' in itemPayload;
+    const tierPayload = itemPayload.tier;
+    const tier =
+      hasTier && Number.isInteger(tierPayload) && tierPayload >= 1 && tierPayload <= 20
+        ? tierPayload
+        : null;
 
 
     // Validate itemType against canonical items
@@ -143,6 +149,13 @@ class ItemUpsertMessageHandler {
     if (damageStatus && !VALID_DAMAGE_STATUSES.includes(damageStatus)) {
       return {
         error: `item.damageStatus must be one of: ${VALID_DAMAGE_STATUSES.join(', ')}`,
+        playerName: player.playerName,
+      };
+    }
+
+    if (hasTier && tier === null) {
+      return {
+        error: 'item.tier must be an integer between 1 and 20',
         playerName: player.playerName,
       };
     }
@@ -212,6 +225,8 @@ class ItemUpsertMessageHandler {
       isCreating,
       itemType,
       displayName,
+      hasTier,
+      tier,
       state,
       damageStatus,
       hasSpatial,
@@ -279,6 +294,12 @@ class ItemUpsertMessageHandler {
         const now = this.context.getCurrentTimestamp();
         const itemId = parsed.id || this.context.createId();
         const existing = parsed.existingItem;
+        const canonicalItem = parsed.itemType ? getItemByType(parsed.itemType) : null;
+        const resolvedTier = parsed.hasTier
+          ? parsed.tier
+          : existing?.tier != null
+            ? existing.tier
+            : canonicalItem?.tier || 1;
 
         const resolvedState = parsed.state || existing?.state || ITEM_STATE.CONTAINED;
         const resolvedSpatial = parsed.hasSpatial ? parsed.spatial : (existing?.spatial ?? null);
@@ -287,6 +308,7 @@ class ItemUpsertMessageHandler {
           id: itemId,
           itemType: parsed.itemType || existing?.itemType || '',
           displayName: parsed.displayName || existing?.displayName || '',
+          tier: resolvedTier,
           state: resolvedState,
           damageStatus:
             parsed.damageStatus || existing?.damageStatus || ITEM_DAMAGE_STATUS.INTACT,

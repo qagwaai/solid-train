@@ -1156,6 +1156,8 @@ paths:
 
         Behavior notes:
         - Creating a new item requires `item.itemType` and `item.displayName`.
+        - `item.tier` is optional, but when provided it must be an integer from 1 to 20.
+        - Omitting `item.tier` on update preserves the existing stored tier.
         - `item.kinematics` is not accepted; use canonical `item.spatial` and
           optional `item.motion`.
         - Setting `item.state` to `destroyed` auto-populates `destroyedAt` when the
@@ -1178,6 +1180,7 @@ paths:
                   sessionKey: session-123
                   item:
                     id: item-1
+                    tier: 10
                     state: deployed
                     container: null
                     spatial:

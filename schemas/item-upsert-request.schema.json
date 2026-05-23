@@ -14,6 +14,12 @@
         "id": { "type": ["string", "null"] },
         "itemType": { "type": "string" },
         "displayName": { "type": "string" },
+        "tier": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Optional item tier. When omitted, the server preserves the existing value for updates or applies the canonical default for creates."
+        },
         "state": {
           "type": "string",
           "enum": ["contained", "deployed", "destroyed"],

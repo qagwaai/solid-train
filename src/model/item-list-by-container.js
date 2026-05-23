@@ -22,6 +22,7 @@ const ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT = 'item-list-by-container-response';
  * @property {string} id
  * @property {string} itemType
  * @property {string} displayName
+ * @property {number} [tier]
  * @property {boolean} launchable
  * @property {'contained'|'deployed'|'destroyed'} state
  * @property {'intact'|'damaged'|'disabled'|'destroyed'} damageStatus

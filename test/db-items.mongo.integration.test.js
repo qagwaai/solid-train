@@ -12,6 +12,7 @@ function createItem(overrides = {}) {
     id: overrides.id || 'item-1',
     itemType: overrides.itemType || 'iron',
     displayName: overrides.displayName || 'Iron',
+    tier: overrides.tier !== undefined ? overrides.tier : 1,
     state: overrides.state || ITEM_STATE.CONTAINED,
     damageStatus: overrides.damageStatus || ITEM_DAMAGE_STATUS.INTACT,
     container: overrides.container || { containerType: 'ship', containerId: 'ship-1' },
@@ -60,6 +61,7 @@ test('Items Mongo round-trip: add, read, query, update, and delete', async () =>
     createItem({
       id: 'item-1',
       itemType: 'iron',
+      tier: 10,
       quantity: 2,
       state: ITEM_STATE.DEPLOYED,
       container: null,
@@ -83,10 +85,12 @@ test('Items Mongo round-trip: add, read, query, update, and delete', async () =>
 
   const byIds = await service.getItemsByIds(['item-1', 'item-2']);
   assert.equal(byIds.length, 2);
+  assert.equal(byIds[0].tier, 10);
 
   const byContainer = await service.getItemsByContainer('ship', 'ship-1');
   assert.equal(byContainer.length, 1);
   assert.equal(byContainer[0].id, 'item-1');
+  assert.equal(byContainer[0].tier, 10);
 
   const near = await service.findItemsNearPosition({
     solarSystemId: 'sol',
@@ -101,6 +105,7 @@ test('Items Mongo round-trip: add, read, query, update, and delete', async () =>
     updatedAt: '2026-05-07T00:10:00.000Z',
   });
   assert.equal(updated.quantity, 7);
+  assert.equal(updated.tier, 10);
 
   await service.deleteItemsByIds(['item-1']);
   const afterDelete = await service.getItemsByIds(['item-1', 'item-2']);

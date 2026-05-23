@@ -32,6 +32,14 @@ const {
 } = require('../src/model/character-edit');
 const { SHIP_LIST_REQUEST_EVENT, SHIP_LIST_RESPONSE_EVENT } = require('../src/model/ship-list');
 const {
+  ITEM_UPSERT_REQUEST_EVENT,
+  ITEM_UPSERT_RESPONSE_EVENT,
+} = require('../src/model/item-upsert');
+const {
+  ITEM_LIST_BY_CONTAINER_REQUEST_EVENT,
+  ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT,
+} = require('../src/model/item-list-by-container');
+const {
   SHIP_UPSERT_REQUEST_EVENT,
   SHIP_UPSERT_RESPONSE_EVENT,
 } = require('../src/model/ship-upsert');
@@ -839,6 +847,106 @@ test('ship list returns ships for a character', async () => {
   assert.equal(subsystemRows.length, 4);
 
   await closeClient(client);
+  io.close();
+  server.close();
+});
+
+test('item tier persists through upsert, relog, ship list, and container list', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  const firstClient = connectClient(port);
+  await waitForEvent(firstClient, 'connect');
+
+  const loginResponse = await registerAndLogin(
+    firstClient,
+    'TierPilot',
+    'tier@example.com',
+    'tier-pass'
+  );
+
+  const addCharacterPromise = waitForEvent(firstClient, CHARACTER_ADD_RESPONSE_EVENT);
+  firstClient.emit(CHARACTER_ADD_REQUEST_EVENT, {
+    playerName: 'TierPilot',
+    sessionKey: loginResponse.sessionKey,
+    characterName: 'RangerOne',
+  });
+  const addCharacterResponse = await addCharacterPromise;
+  assert.equal(addCharacterResponse.success, true);
+
+  const shipListBeforeUpsertPromise = waitForEvent(firstClient, SHIP_LIST_RESPONSE_EVENT);
+  firstClient.emit(SHIP_LIST_REQUEST_EVENT, {
+    playerName: 'TierPilot',
+    characterId: addCharacterResponse.characterId,
+    sessionKey: loginResponse.sessionKey,
+  });
+  const shipListBeforeUpsert = await shipListBeforeUpsertPromise;
+  assert.equal(shipListBeforeUpsert.success, true);
+
+  const targetShipId = shipListBeforeUpsert.ships[0].id;
+
+  const itemUpsertResponsePromise = waitForEvent(firstClient, ITEM_UPSERT_RESPONSE_EVENT);
+  firstClient.emit(ITEM_UPSERT_REQUEST_EVENT, {
+    playerName: 'TierPilot',
+    sessionKey: loginResponse.sessionKey,
+    item: {
+      id: '',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      tier: 10,
+      container: {
+        containerType: 'ship',
+        containerId: targetShipId,
+      },
+      owningCharacterId: addCharacterResponse.characterId,
+    },
+  });
+  const itemUpsertResponse = await itemUpsertResponsePromise;
+
+  assert.equal(itemUpsertResponse.success, true);
+  assert.equal(itemUpsertResponse.item.tier, 10);
+
+  await closeClient(firstClient);
+
+  const secondClient = connectClient(port);
+  await waitForEvent(secondClient, 'connect');
+
+  const relogResponsePromise = waitForEvent(secondClient, LOGIN_RESPONSE_EVENT);
+  secondClient.emit(LOGIN_EVENT, {
+    playerName: 'TierPilot',
+    password: 'tier-pass',
+  });
+  const relogResponse = await relogResponsePromise;
+  assert.equal(relogResponse.success, true);
+
+  const shipListAfterRelogPromise = waitForEvent(secondClient, SHIP_LIST_RESPONSE_EVENT);
+  secondClient.emit(SHIP_LIST_REQUEST_EVENT, {
+    playerName: 'TierPilot',
+    characterId: addCharacterResponse.characterId,
+    sessionKey: relogResponse.sessionKey,
+  });
+  const shipListAfterRelog = await shipListAfterRelogPromise;
+
+  const hydratedItem = shipListAfterRelog.ships[0].inventory.find(
+    (item) => item.id === itemUpsertResponse.item.id
+  );
+  assert.ok(hydratedItem);
+  assert.equal(hydratedItem.tier, 10);
+
+  const containerListPromise = waitForEvent(secondClient, ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT);
+  secondClient.emit(ITEM_LIST_BY_CONTAINER_REQUEST_EVENT, {
+    playerName: 'TierPilot',
+    sessionKey: relogResponse.sessionKey,
+    containerType: 'ship',
+    containerId: targetShipId,
+  });
+  const containerList = await containerListPromise;
+
+  const containerItem = containerList.items.find((item) => item.id === itemUpsertResponse.item.id);
+  assert.ok(containerItem);
+  assert.equal(containerItem.tier, 10);
+
+  await closeClient(secondClient);
   io.close();
   server.close();
 });

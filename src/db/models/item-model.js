@@ -60,6 +60,12 @@ function createItemModelArtifacts({
         type: String,
         required: true,
       },
+      tier: {
+        type: Number,
+        min: 1,
+        max: 20,
+        default: null,
+      },
       state: {
         type: String,
         enum: ITEM_STATE_VALUES,

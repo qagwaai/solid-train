@@ -26,6 +26,7 @@ const ITEM_LIST_BY_LOCATION_RESPONSE_EVENT = 'item-list-by-location-response';
  * @property {string} id
  * @property {string} itemType
  * @property {string} displayName
+ * @property {number} [tier]
  * @property {'contained'|'deployed'|'destroyed'} state
  * @property {'intact'|'damaged'|'disabled'|'destroyed'} damageStatus
  * @property {number} distanceKm

@@ -77,6 +77,24 @@ test('ItemUpsertMessageHandler creates a new item when id not in cache', async (
   assert.ok(context.getItem(response.item.id), 'item should be cached');
 });
 
+test('ItemUpsertMessageHandler creates a new item with explicit tier', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+
+  const handler = new ItemUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    item: createItemPayload({ id: '', tier: 10 }),
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.item.tier, 10);
+  assert.equal(context.getItem(response.item.id).tier, 10);
+});
+
 test('ItemUpsertMessageHandler updates an existing item', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
@@ -99,6 +117,47 @@ test('ItemUpsertMessageHandler updates an existing item', async () => {
   assert.equal(response.item.damageStatus, 'damaged');
   assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
   assert.equal(context.getItem('item-1').state, 'deployed');
+});
+
+test('ItemUpsertMessageHandler updates an existing item tier when provided', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+  seedItems(context, [createExistingItem({ tier: 4 })]);
+
+  const handler = new ItemUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    item: createItemPayload({ id: 'item-1', tier: 10 }),
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.item.tier, 10);
+  assert.equal(context.getItem('item-1').tier, 10);
+});
+
+test('ItemUpsertMessageHandler preserves existing tier when update omits tier', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+  seedItems(context, [createExistingItem({ tier: 8 })]);
+
+  const handler = new ItemUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    item: {
+      id: 'item-1',
+      state: 'deployed',
+    },
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.item.tier, 8);
+  assert.equal(context.getItem('item-1').tier, 8);
 });
 
 test('ItemUpsertMessageHandler deploys an item (clears container, sets kinematics)', async () => {
@@ -220,6 +279,25 @@ test('ItemUpsertMessageHandler rejects invalid damageStatus', async () => {
 
   assert.equal(response.success, false);
   assert.match(response.message, /item\.damageStatus must be one of/);
+  assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
+});
+
+test('ItemUpsertMessageHandler rejects invalid tier', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+  seedItems(context, [createExistingItem()]);
+
+  const handler = new ItemUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    item: { id: 'item-1', tier: 0 },
+  });
+
+  assert.equal(response.success, false);
+  assert.equal(response.message, 'item.tier must be an integer between 1 and 20');
   assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
 });
 
