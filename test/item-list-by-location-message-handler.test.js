@@ -190,7 +190,7 @@ test('ItemListByLocationMessageHandler filters by itemType when provided', async
 
   seedItems(context, [
     createDeployedItem({ id: 'item-drone', itemType: 'expendable-dart-drone', spatial }),
-    createDeployedItem({ id: 'item-shield', itemType: 'shield-module', spatial }),
+    createDeployedItem({ id: 'item-sensor', itemType: 'sensor-array', spatial }),
   ]);
 
   const handler = new ItemListByLocationMessageHandler(context);

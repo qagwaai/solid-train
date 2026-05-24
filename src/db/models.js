@@ -12,7 +12,7 @@ const { createJumpGateModelArtifacts } = require('./models/jump-gate-model');
 const { createStarModelArtifacts } = require('./models/star-model');
 const { createSolarSystemModelArtifacts } = require('./models/solar-system-model');
 
-const { tripleSchema, shipKinematicsSchema, motionStateSchema, spatialStateSchema } =
+const { shipKinematicsSchema, motionStateSchema, spatialStateSchema } =
   createSharedPrimitiveSchemas({ mongoose });
 
 const { Item, itemSchema, itemContainerSchema, inventoryItemReferenceSchema } =
@@ -58,12 +58,14 @@ const observabilityStateSchema = new mongoose.Schema(
   },
   { _id: false }
 );
-const { driveProfileSchema, shipSchema, missionSchema } = createShipModelArtifacts({
-  mongoose,
-  inventoryItemReferenceSchema,
-  spatialStateSchema,
-  motionStateSchema,
-});
+const { driveProfileSchema, shipOwnershipSchema, shipSchema, shipRecordSchema, missionSchema } =
+  createShipModelArtifacts({
+    mongoose,
+    inventoryItemReferenceSchema,
+    spatialStateSchema,
+    motionStateSchema,
+  });
+const ShipRecord = mongoose.model('ShipRecord', shipRecordSchema);
 
 const { CelestialBody, celestialBodySchema, asteroidMaterialProfileSchema } =
   createCelestialModelArtifacts({
@@ -123,7 +125,9 @@ module.exports = {
   characterSchema,
   creditLedgerEntrySchema,
   driveProfileSchema,
+  shipOwnershipSchema,
   shipSchema,
+  ShipRecord,
   shipKinematicsSchema,
   missionSchema,
 };

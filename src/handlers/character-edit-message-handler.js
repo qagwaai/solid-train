@@ -88,11 +88,16 @@ class CharacterEditMessageHandler {
 
     if (response.success) {
       try {
-        await this.context.updateCharacterAsync(payload?.playerName, payload?.characterId, {
-          characterName: payload?.characterName,
-        }, {
-          correlationId,
-        });
+        await this.context.updateCharacterAsync(
+          payload?.playerName,
+          payload?.characterId,
+          {
+            characterName: payload?.characterName,
+          },
+          {
+            correlationId,
+          }
+        );
         // Joined-game roster stores display names independently, so update both stores.
         this.context.renameJoinedCharacter(
           payload?.playerName,

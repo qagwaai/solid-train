@@ -58,7 +58,11 @@ const ALPHA_CEN_A = {
     meanTemperatureK: 5790,
     compositionTags: ['hydrogen', 'helium', 'plasma'],
   },
-  atmosphere: { hasAtmosphere: true, surfacePressurePa: null, primaryComponents: ['hydrogen', 'helium'] },
+  atmosphere: {
+    hasAtmosphere: true,
+    surfacePressurePa: null,
+    primaryComponents: ['hydrogen', 'helium'],
+  },
   discovery: {
     discoveredBy: 'Jacques de Mailly / Nicolas Louis de Lacaille',
     discoveredYear: 1689,
@@ -99,7 +103,11 @@ const ALPHA_CEN_B = {
     meanTemperatureK: 5260,
     compositionTags: ['hydrogen', 'helium', 'plasma'],
   },
-  atmosphere: { hasAtmosphere: true, surfacePressurePa: null, primaryComponents: ['hydrogen', 'helium'] },
+  atmosphere: {
+    hasAtmosphere: true,
+    surfacePressurePa: null,
+    primaryComponents: ['hydrogen', 'helium'],
+  },
   discovery: { discoveredBy: 'Jacques de Mailly', discoveredYear: 1689, discoveryNotes: null },
   magnitudes: { absoluteMagnitudeH: 5.71, apparentMagnitudeMin: 1.35, apparentMagnitudeMax: 1.35 },
   visualization: { colorHex: '#ffd07a', spectralClass: 'K', textureKey: 'star-k' },
@@ -132,13 +140,21 @@ const PROXIMA = {
     meanTemperatureK: 3042,
     compositionTags: ['hydrogen', 'helium', 'plasma', 'flare-star'],
   },
-  atmosphere: { hasAtmosphere: true, surfacePressurePa: null, primaryComponents: ['hydrogen', 'helium'] },
+  atmosphere: {
+    hasAtmosphere: true,
+    surfacePressurePa: null,
+    primaryComponents: ['hydrogen', 'helium'],
+  },
   discovery: {
     discoveredBy: 'Robert Innes',
     discoveredYear: 1915,
     discoveryNotes: 'Closest known star to the Sun.',
   },
-  magnitudes: { absoluteMagnitudeH: 15.6, apparentMagnitudeMin: 11.13, apparentMagnitudeMax: 11.13 },
+  magnitudes: {
+    absoluteMagnitudeH: 15.6,
+    apparentMagnitudeMin: 11.13,
+    apparentMagnitudeMax: 11.13,
+  },
   visualization: { colorHex: '#ff7a55', spectralClass: 'M', textureKey: 'star-m' },
 };
 
@@ -175,7 +191,7 @@ const PROXIMA_B = {
   discovery: {
     discoveredBy: 'Pale Red Dot collaboration',
     discoveredYear: 2016,
-    discoveryNotes: 'In Proxima\'s habitable zone; tidally locked candidate.',
+    discoveryNotes: "In Proxima's habitable zone; tidally locked candidate.",
   },
   magnitudes: { absoluteMagnitudeH: null, apparentMagnitudeMin: null, apparentMagnitudeMax: null },
   visualization: { colorHex: '#9b7b5a', textureKey: 'planet-rocky' },
@@ -207,7 +223,11 @@ const PROXIMA_C = {
     meanTemperatureK: 39,
     compositionTags: ['ice', 'silicate'],
   },
-  atmosphere: { hasAtmosphere: true, surfacePressurePa: null, primaryComponents: ['hydrogen', 'methane'] },
+  atmosphere: {
+    hasAtmosphere: true,
+    surfacePressurePa: null,
+    primaryComponents: ['hydrogen', 'methane'],
+  },
   discovery: {
     discoveredBy: 'Damasso et al.',
     discoveredYear: 2019,

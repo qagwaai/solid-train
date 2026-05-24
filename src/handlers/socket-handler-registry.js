@@ -8,6 +8,8 @@ const { CHARACTER_DELETE_REQUEST_EVENT } = require('../model/character-delete');
 const { CHARACTER_EDIT_REQUEST_EVENT } = require('../model/character-edit');
 const { SHIP_LIST_REQUEST_EVENT } = require('../model/ship-list');
 const { SHIP_UPSERT_REQUEST_EVENT } = require('../model/ship-upsert');
+const { SHIP_LIST_BY_OWNER_REQUEST_EVENT } = require('../model/ship-list-by-owner');
+const { SHIP_TRANSFER_REQUEST_EVENT } = require('../model/ship-transfer');
 const { GAME_JOIN_REQUEST_EVENT } = require('../model/game-join');
 const { MISSION_UPSERT_REQUEST_EVENT } = require('../model/mission-upsert');
 const { CELESTIAL_BODY_UPSERT_REQUEST_EVENT } = require('../model/celestial-body-upsert');
@@ -56,9 +58,19 @@ const SOCKET_HANDLER_REGISTRY = [
   },
   { event: SHIP_LIST_REQUEST_EVENT, handlerKey: 'shipListMessageHandler', errorLabel: 'Ship list' },
   {
+    event: SHIP_LIST_BY_OWNER_REQUEST_EVENT,
+    handlerKey: 'shipListByOwnerMessageHandler',
+    errorLabel: 'Ship list by owner',
+  },
+  {
     event: SHIP_UPSERT_REQUEST_EVENT,
     handlerKey: 'shipUpsertMessageHandler',
     errorLabel: 'Ship upsert',
+  },
+  {
+    event: SHIP_TRANSFER_REQUEST_EVENT,
+    handlerKey: 'shipTransferMessageHandler',
+    errorLabel: 'Ship transfer',
   },
   { event: GAME_JOIN_REQUEST_EVENT, handlerKey: 'gameJoinMessageHandler', errorLabel: 'Game join' },
   {

@@ -2,7 +2,16 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "market-quote-request",
   "type": "object",
-  "required": ["playerName", "characterId", "sessionKey", "marketId", "solarSystemId", "itemId", "direction", "quantity"],
+  "required": [
+    "playerName",
+    "characterId",
+    "sessionKey",
+    "marketId",
+    "solarSystemId",
+    "itemId",
+    "direction",
+    "quantity"
+  ],
   "properties": {
     "playerName": { "type": "string" },
     "characterId": { "type": "string" },

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ship-transfer-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "shipId", "toOwner"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "shipId": { "type": "string" },
+    "claimToken": { "type": ["string", "null"] },
+    "fromOwner": { "type": ["object", "null"], "additionalProperties": true },
+    "toOwner": {
+      "type": "object",
+      "required": ["ownerType"],
+      "properties": {
+        "ownerType": {
+          "type": "string",
+          "enum": ["player-character", "npc-pirate", "unowned", "unknown"]
+        },
+        "playerId": { "type": ["string", "null"] },
+        "characterId": { "type": ["string", "null"] },
+        "npcId": { "type": ["string", "null"] },
+        "factionId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    }
+  }
+}

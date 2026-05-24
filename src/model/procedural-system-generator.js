@@ -272,8 +272,7 @@ function generateSystemBodies(options) {
         meanRadiusKm: phys.meanRadiusKm,
         rotationPeriodSec: SECONDS_PER_DAY * pickRange(rng, 0.4, 50),
         axialTiltDeg: pickRange(rng, 0, 30),
-        surfaceGravityMps2:
-          (G_GRAV * phys.massKg) / Math.pow(phys.meanRadiusKm * 1000, 2) || null,
+        surfaceGravityMps2: (G_GRAV * phys.massKg) / Math.pow(phys.meanRadiusKm * 1000, 2) || null,
         meanTemperatureK: phys.meanTemperatureK,
         compositionTags: phys.compositionTags,
       },

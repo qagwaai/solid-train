@@ -759,6 +759,7 @@ The `cb` collection schema gains optional fields used by the UI viewer:
 Existing fields (`spatial`, `motion`, `physical`, `composition`, `state`, `bodyType`, `parentBodyId`, `orbitalElements`, `physicalCatalog`, `atmosphere`, `discovery`, `magnitudes`, `isCatalogBody`) are unchanged.
 
 Within `orbitalElements`, moons and sub-satellites gain an optional field:
+
 - `anchorBodyId` (string) — id of the parent non-star body whose position is the
   origin for `semiMajorAxisKm`. Absent for planets and other bodies that orbit a
   star directly.

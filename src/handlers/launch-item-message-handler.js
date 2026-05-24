@@ -2,11 +2,7 @@
 
 const { LAUNCH_ITEM_RESPONSE_EVENT } = require('../model/launch-item');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
-const {
-  ITEM_STATE,
-  ITEM_DAMAGE_STATUS,
-  ITEM_CONTAINER_TYPE,
-} = require('../model/canonical-items');
+const { ITEM_STATE, ITEM_DAMAGE_STATUS, ITEM_CONTAINER_TYPE } = require('../model/canonical-items');
 
 const EXPENDABLE_DART_DRONE_ITEM_TYPE = 'expendable-dart-drone';
 const HOTKEY_VALUES = new Set([1, 2, 3, 4, 5]);
@@ -393,7 +389,10 @@ class LaunchItemMessageHandler {
 
     await this.context.addOrUpdateCelestialBodyAsync(destroyedTarget);
 
-    const refreshedCharacter = this.context.findCharacter(parsed.player.playerName, parsed.characterId);
+    const refreshedCharacter = this.context.findCharacter(
+      parsed.player.playerName,
+      parsed.characterId
+    );
     const nextShipsWithYield = Array.isArray(refreshedCharacter?.ships)
       ? refreshedCharacter.ships.map((ship) => {
           if (ship.id !== parsed.shipId) {

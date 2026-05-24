@@ -20,7 +20,12 @@ async function persistBackfilledItemsAsync(ctx, backfilledItems) {
   );
 }
 
-async function resolveShipContainerOwnerContextAsync(ctx, containerType, containerId, options = {}) {
+async function resolveShipContainerOwnerContextAsync(
+  ctx,
+  containerType,
+  containerId,
+  options = {}
+) {
   if (containerType !== 'ship') {
     return {
       ship: null,
@@ -61,7 +66,9 @@ async function resolveShipContainerOwnerContextAsync(ctx, containerType, contain
       return {
         ship: ctx.normalizeShip(matchingShip),
         owningPlayerId:
-          ctx.toNonEmptyString(options.owningPlayerId) || ctx.toNonEmptyString(player?.playerId) || null,
+          ctx.toNonEmptyString(options.owningPlayerId) ||
+          ctx.toNonEmptyString(player?.playerId) ||
+          null,
         owningCharacterId:
           ctx.toNonEmptyString(options.owningCharacterId) ||
           ctx.toNonEmptyString(character?.id) ||
@@ -72,7 +79,10 @@ async function resolveShipContainerOwnerContextAsync(ctx, containerType, contain
 
   return {
     ship: null,
-    owningPlayerId: ctx.toNonEmptyString(options.owningPlayerId) || ctx.toNonEmptyString(player?.playerId) || null,
+    owningPlayerId:
+      ctx.toNonEmptyString(options.owningPlayerId) ||
+      ctx.toNonEmptyString(player?.playerId) ||
+      null,
     owningCharacterId: ctx.toNonEmptyString(options.owningCharacterId) || null,
   };
 }
@@ -312,7 +322,11 @@ async function syncShipInventoryReferenceForItemAsync(
       const wasRemoved = filteredInventory.length !== inventory.length;
 
       let nextInventory = filteredInventory;
-      if (shouldAttachToShip && characterId === nextItem.owningCharacterId && ship.id === nextShipId) {
+      if (
+        shouldAttachToShip &&
+        characterId === nextItem.owningCharacterId &&
+        ship.id === nextShipId
+      ) {
         nextInventory = [
           ...filteredInventory,
           {
@@ -387,11 +401,16 @@ async function syncShipInventoryReferenceForItemAsync(
       }
 
       try {
-        await ctx.updateCharacterAsync(canonicalPlayerName, characterId, {
-          ships: nextShips,
-        }, {
-          correlationId,
-        });
+        await ctx.updateCharacterAsync(
+          canonicalPlayerName,
+          characterId,
+          {
+            ships: nextShips,
+          },
+          {
+            correlationId,
+          }
+        );
 
         if (attemptsUsed > 1) {
           ctx.log(

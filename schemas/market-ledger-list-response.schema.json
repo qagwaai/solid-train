@@ -21,7 +21,18 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["transactionId", "requestId", "characterId", "itemId", "direction", "quantity", "unitPrice", "totalPrice", "timestamp", "reversalOfTransactionId"],
+        "required": [
+          "transactionId",
+          "requestId",
+          "characterId",
+          "itemId",
+          "direction",
+          "quantity",
+          "unitPrice",
+          "totalPrice",
+          "timestamp",
+          "reversalOfTransactionId"
+        ],
         "properties": {
           "transactionId": { "type": "string" },
           "requestId": { "type": ["string", "null"] },

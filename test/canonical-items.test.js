@@ -1,5 +1,5 @@
 const { describe, it } = require('node:test');
-'use strict';
+('use strict');
 
 const assert = require('node:assert/strict');
 const {

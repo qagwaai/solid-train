@@ -92,7 +92,9 @@ function getSolarSystemRegistry() {
 }
 
 function getSolarSystemById(id) {
-  const normalized = String(id || '').trim().toLowerCase();
+  const normalized = String(id || '')
+    .trim()
+    .toLowerCase();
   if (!normalized) return null;
   return getSolarSystemRegistry().find((entry) => entry.id === normalized) || null;
 }

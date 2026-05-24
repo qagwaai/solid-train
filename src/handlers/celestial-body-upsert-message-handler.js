@@ -170,7 +170,11 @@ class CelestialBodyUpsertMessageHandler {
         ? { clusterId: this.context.toNonEmptyString(celestialBody.clusterId) }
         : {}),
       ...(celestialBody?.clusterCenterKm !== undefined
-        ? { clusterCenterKm: celestialBody.clusterCenterKm ? { ...celestialBody.clusterCenterKm } : null }
+        ? {
+            clusterCenterKm: celestialBody.clusterCenterKm
+              ? { ...celestialBody.clusterCenterKm }
+              : null,
+          }
         : {}),
       ...(celestialBody?.localOffsetKm !== undefined
         ? { localOffsetKm: celestialBody.localOffsetKm ? { ...celestialBody.localOffsetKm } : null }

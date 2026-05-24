@@ -268,9 +268,7 @@ test('MissionUpsertMessageHandler seeds first-target asteroid field on mission s
         body.localOffsetKm.z === body.spatial.positionKm.z
     )
   );
-  assert.ok(
-    seededField.every((body) => typeof body.distanceFromClusterCenterKm === 'number')
-  );
+  assert.ok(seededField.every((body) => typeof body.distanceFromClusterCenterKm === 'number'));
   assert.ok(
     seededField.every(
       (body) =>

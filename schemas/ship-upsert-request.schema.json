@@ -13,21 +13,56 @@
       "properties": {
         "inventory": {
           "type": "array",
-          "description": "Optional inventory patch for the target ship. Presence indicates patch intent; omission preserves the current ship inventory references. Each entry must be a canonical ShipItem object with at least id, itemType, and displayName.",
+          "description": "Optional inventory patch for the target ship. Presence indicates patch intent; omission preserves the current ship inventory references. Entries may be canonical ShipItem rows (`id`, `itemType`, `displayName`), compact references (`itemId`, `itemType`), or hydrated rows (`id`, `itemType`).",
           "items": {
             "type": "object",
-            "required": ["id", "itemType", "displayName"],
-            "properties": {
-              "id": { "type": "string" },
-              "itemType": { "type": "string" },
-              "displayName": { "type": "string" }
-            },
+            "oneOf": [
+              {
+                "required": ["id", "itemType", "displayName"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "itemType": { "type": "string" },
+                  "displayName": { "type": "string" }
+                }
+              },
+              {
+                "required": ["itemId", "itemType"],
+                "properties": {
+                  "itemId": { "type": "string" },
+                  "itemType": { "type": "string" }
+                }
+              },
+              {
+                "required": ["id", "itemType"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "itemType": { "type": "string" }
+                }
+              }
+            ],
             "additionalProperties": true
           }
         },
         "damageProfile": {
           "type": "object",
           "description": "Optional damage profile patch. Presence indicates patch intent for damage profile fields."
+        },
+        "ownership": {
+          "type": "object",
+          "description": "Optional ownership patch. Presence indicates ownership transfer/update intent.",
+          "required": ["ownerType"],
+          "properties": {
+            "ownerType": {
+              "type": "string",
+              "enum": ["player-character", "npc-pirate", "unowned", "unknown"]
+            },
+            "playerId": { "type": ["string", "null"] },
+            "characterId": { "type": ["string", "null"] },
+            "npcId": { "type": ["string", "null"] },
+            "factionId": { "type": ["string", "null"] },
+            "claimToken": { "type": ["string", "null"] }
+          },
+          "additionalProperties": true
         }
       },
       "additionalProperties": true

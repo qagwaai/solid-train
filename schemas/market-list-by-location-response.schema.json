@@ -2,7 +2,15 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "market-list-by-location-response",
   "type": "object",
-  "required": ["success", "message", "playerName", "solarSystemId", "markets", "isDocked", "dockedMarketId"],
+  "required": [
+    "success",
+    "message",
+    "playerName",
+    "solarSystemId",
+    "markets",
+    "isDocked",
+    "dockedMarketId"
+  ],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },

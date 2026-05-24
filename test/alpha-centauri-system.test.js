@@ -50,9 +50,7 @@ test('Alpha Centauri seeded snapshot exposes UI-grade fields per body', () => {
   // α Cen B should sit somewhere within tens of AU of A.
   const AU_KM = 149_597_870.7;
   const dist = Math.sqrt(
-    b.spatial.positionKm.x ** 2 +
-      b.spatial.positionKm.y ** 2 +
-      b.spatial.positionKm.z ** 2
+    b.spatial.positionKm.x ** 2 + b.spatial.positionKm.y ** 2 + b.spatial.positionKm.z ** 2
   );
   assert.ok(dist > 1 * AU_KM, `α Cen B should be at least 1 AU from A, got ${dist}`);
   assert.ok(dist < 60 * AU_KM, `α Cen B should be within 60 AU of A, got ${dist}`);
@@ -65,6 +63,9 @@ test('Alpha Centauri seeded snapshot exposes UI-grade fields per body', () => {
   assert.equal(proximaB.parentBodyId, 'alpha-centauri-star-tertiary');
   assert.equal(proximaB.planetType, 'rocky');
   // Planets orbiting a star must NOT carry anchorBodyId even in a multi-star system.
-  assert.equal(proximaB.orbitalElements?.anchorBodyId, undefined,
-    'Proxima b orbits a star; anchorBodyId must be absent');
+  assert.equal(
+    proximaB.orbitalElements?.anchorBodyId,
+    undefined,
+    'Proxima b orbits a star; anchorBodyId must be absent'
+  );
 });

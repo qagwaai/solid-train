@@ -11,7 +11,16 @@
     "quote": {
       "type": "object",
       "description": "Present on successful quote responses.",
-      "required": ["marketId", "solarSystemId", "itemId", "direction", "quantity", "unitPrice", "totalPrice", "displayName"],
+      "required": [
+        "marketId",
+        "solarSystemId",
+        "itemId",
+        "direction",
+        "quantity",
+        "unitPrice",
+        "totalPrice",
+        "displayName"
+      ],
       "properties": {
         "marketId": { "type": "string" },
         "solarSystemId": { "type": "string" },

@@ -47,15 +47,17 @@ async function hydrateShipAsync(ctx, ship, options = {}) {
       })
     : [];
 
-  const backfilledItems = buildBackfilledSubsystemItems(ctx, normalizedShip, [
-    ...referencedItems,
-    ...containedItems,
-  ], {
-    playerName: options.playerName,
-    characterId: options.characterId,
-    owningPlayerId: options.owningPlayerId,
-    owningCharacterId: options.owningCharacterId,
-  });
+  const backfilledItems = buildBackfilledSubsystemItems(
+    ctx,
+    normalizedShip,
+    [...referencedItems, ...containedItems],
+    {
+      playerName: options.playerName,
+      characterId: options.characterId,
+      owningPlayerId: options.owningPlayerId,
+      owningCharacterId: options.owningCharacterId,
+    }
+  );
 
   const itemsById = new Map();
   for (const item of containedItems) {

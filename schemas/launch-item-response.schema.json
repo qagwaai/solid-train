@@ -45,7 +45,17 @@
               { "$ref": "./item.schema.json" },
               {
                 "type": "object",
-                "required": ["id", "itemType", "displayName", "quantity", "state", "container", "spatial", "motion", "launchable"],
+                "required": [
+                  "id",
+                  "itemType",
+                  "displayName",
+                  "quantity",
+                  "state",
+                  "container",
+                  "spatial",
+                  "motion",
+                  "launchable"
+                ],
                 "properties": {
                   "quantity": { "type": "number" },
                   "state": { "type": "string", "enum": ["deployed"] },

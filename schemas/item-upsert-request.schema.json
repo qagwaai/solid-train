@@ -25,7 +25,10 @@
           "enum": ["contained", "deployed", "destroyed"],
           "description": "Canonical item state. Setting state to destroyed causes the server to populate destroyedAt if it is not already set."
         },
-        "damageStatus": { "type": "string", "enum": ["intact", "damaged", "disabled", "destroyed"] },
+        "damageStatus": {
+          "type": "string",
+          "enum": ["intact", "damaged", "disabled", "destroyed"]
+        },
         "container": {
           "type": ["object", "null"],
           "description": "Optional container patch. Provide null to clear the container association.",

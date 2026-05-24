@@ -481,6 +481,18 @@ function normalizeShip(ctx, ship) {
     );
   }
 
+  const ownershipSource =
+    source.ownership && typeof source.ownership === 'object' ? source.ownership : null;
+  const ownership = ownershipSource
+    ? {
+        ownerType: toNonEmptyString(ctx, ownershipSource.ownerType),
+        playerId: toNonEmptyString(ctx, ownershipSource.playerId) || null,
+        characterId: toNonEmptyString(ctx, ownershipSource.characterId) || null,
+        npcId: toNonEmptyString(ctx, ownershipSource.npcId) || null,
+        factionId: toNonEmptyString(ctx, ownershipSource.factionId) || null,
+      }
+    : null;
+
   return {
     id: toNonEmptyString(ctx, source.id),
     name: shipName || source.name || source.shipName || '',
@@ -493,6 +505,7 @@ function normalizeShip(ctx, ship) {
     ...(motion ? { motion } : {}),
     launchable: source.launchable != null ? Boolean(source.launchable) : true,
     damageProfile: source.damageProfile != null ? source.damageProfile : null,
+    ...(ownership ? { ownership } : {}),
     ...(normalizeDriveProfile(ctx, source.driveProfile) !== null
       ? { driveProfile: normalizeDriveProfile(ctx, source.driveProfile) }
       : {}),

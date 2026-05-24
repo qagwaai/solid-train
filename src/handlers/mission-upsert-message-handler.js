@@ -421,7 +421,11 @@ class MissionUpsertMessageHandler {
 
     if (response.success) {
       try {
-        logCharacterShipInventorySnapshot('before-mission-upsert', payload?.playerName, payload?.characterId);
+        logCharacterShipInventorySnapshot(
+          'before-mission-upsert',
+          payload?.playerName,
+          payload?.characterId
+        );
 
         const existingMissions = await this.context.getMissionsAsync(
           payload?.playerName,
@@ -457,7 +461,11 @@ class MissionUpsertMessageHandler {
           characterId: response.characterId,
         });
 
-        logCharacterShipInventorySnapshot('after-mission-upsert', payload?.playerName, payload?.characterId);
+        logCharacterShipInventorySnapshot(
+          'after-mission-upsert',
+          payload?.playerName,
+          payload?.characterId
+        );
 
         response.mission = this.formatMissionForResponse(missionWithTimestamps);
       } catch (error) {

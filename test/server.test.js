@@ -840,7 +840,12 @@ test('ship list returns ships for a character', async () => {
       (item) => item.id === `${addResponse.characterId}-ship-1-item-1`
     )
   );
-  const starterSubsystemTypes = ['propulsion-manifold', 'sensor-array', 'power-distribution-bus', 'ship-tractor-beam'];
+  const starterSubsystemTypes = [
+    'propulsion-manifold',
+    'sensor-array',
+    'power-distribution-bus',
+    'ship-tractor-beam',
+  ];
   const subsystemRows = shipListResponse.ships[0].inventory.filter((item) =>
     starterSubsystemTypes.includes(item.itemType)
   );

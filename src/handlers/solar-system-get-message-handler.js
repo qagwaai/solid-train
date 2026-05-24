@@ -16,9 +16,8 @@ class SolarSystemGetMessageHandler {
   }
 
   deriveAsteroidPhysicalCatalog(body) {
-    const physicalCatalog = body?.physicalCatalog && typeof body.physicalCatalog === 'object'
-      ? body.physicalCatalog
-      : {};
+    const physicalCatalog =
+      body?.physicalCatalog && typeof body.physicalCatalog === 'object' ? body.physicalCatalog : {};
     const estimatedDiameterM = this.context.isFiniteNumber(physicalCatalog.estimatedDiameterM)
       ? physicalCatalog.estimatedDiameterM
       : this.context.isFiniteNumber(body?.physical?.estimatedDiameterM)
@@ -49,10 +48,10 @@ class SolarSystemGetMessageHandler {
       return body;
     }
 
-    const displayName = this.context.toNonEmptyString(body.displayName) || body.catalogId || body.id;
-    const visualization = body.visualization && typeof body.visualization === 'object'
-      ? body.visualization
-      : {};
+    const displayName =
+      this.context.toNonEmptyString(body.displayName) || body.catalogId || body.id;
+    const visualization =
+      body.visualization && typeof body.visualization === 'object' ? body.visualization : {};
 
     return {
       ...body,

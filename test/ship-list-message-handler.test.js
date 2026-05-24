@@ -181,7 +181,7 @@ test('ShipListMessageHandler returns ships with kinematics data', async () => {
       id: 'item-1',
       itemType: 'expendable-dart-drone',
       displayName: 'Expendable Dart Drone',
-          tier: 1,
+      tier: 1,
       state: 'contained',
       damageStatus: 'intact',
       container: {
@@ -679,7 +679,12 @@ test('ShipListMessageHandler backfills cold-boot starter subsystem inventory ite
   assert.equal(inventory.length, 4);
 
   const byType = new Map(inventory.map((item) => [item.itemType, item]));
-  for (const itemType of ['propulsion-manifold', 'sensor-array', 'power-distribution-bus', 'ship-tractor-beam']) {
+  for (const itemType of [
+    'propulsion-manifold',
+    'sensor-array',
+    'power-distribution-bus',
+    'ship-tractor-beam',
+  ]) {
     assert.ok(byType.has(itemType));
     const item = byType.get(itemType);
     assert.equal(item.id, `ship-1-starter-${itemType}`);
@@ -803,7 +808,10 @@ test('ShipListMessageHandler backfills for legacy model value scavenger-pod', as
     'sensor-array',
     'ship-tractor-beam',
   ]);
-  assert.equal(response.ships[0].inventory.every((item) => item.tier === 1), true);
+  assert.equal(
+    response.ships[0].inventory.every((item) => item.tier === 1),
+    true
+  );
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
 
@@ -855,12 +863,25 @@ test('ShipListMessageHandler backfilled subsystem rows have non-empty ownership 
 
   assert.equal(response.success, true);
   const subsystemItems = response.ships[0].inventory.filter((item) =>
-    ['propulsion-manifold', 'sensor-array', 'power-distribution-bus', 'ship-tractor-beam'].includes(item.itemType)
+    ['propulsion-manifold', 'sensor-array', 'power-distribution-bus', 'ship-tractor-beam'].includes(
+      item.itemType
+    )
   );
   assert.equal(subsystemItems.length, 4);
-  assert.equal(subsystemItems.every((item) => item.tier === 1), true);
-  assert.ok(subsystemItems.every((item) => typeof item.owningPlayerId === 'string' && item.owningPlayerId.length > 0));
-  assert.ok(subsystemItems.every((item) => typeof item.owningCharacterId === 'string' && item.owningCharacterId.length > 0));
+  assert.equal(
+    subsystemItems.every((item) => item.tier === 1),
+    true
+  );
+  assert.ok(
+    subsystemItems.every(
+      (item) => typeof item.owningPlayerId === 'string' && item.owningPlayerId.length > 0
+    )
+  );
+  assert.ok(
+    subsystemItems.every(
+      (item) => typeof item.owningCharacterId === 'string' && item.owningCharacterId.length > 0
+    )
+  );
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
 

@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ship-list-by-owner-response",
+  "type": "object",
+  "required": ["success", "message", "ships"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "reason": {
+      "type": "string",
+      "enum": ["INVALID_SESSION"]
+    },
+    "message": { "type": "string" },
+    "owner": {
+      "type": "object",
+      "properties": {
+        "ownerType": { "type": "string" },
+        "playerId": { "type": ["string", "null"] },
+        "characterId": { "type": ["string", "null"] },
+        "npcId": { "type": ["string", "null"] },
+        "factionId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "ships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "ownership": {
+            "type": "object",
+            "properties": {
+              "ownerType": { "type": "string" },
+              "playerId": { "type": ["string", "null"] },
+              "characterId": { "type": ["string", "null"] },
+              "npcId": { "type": ["string", "null"] },
+              "factionId": { "type": ["string", "null"] }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

@@ -5,6 +5,15 @@
   "required": ["success", "message", "playerName", "characterId"],
   "properties": {
     "success": { "type": "boolean" },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "OWNERSHIP_VALIDATION_FAILED",
+        "OWNERSHIP_CONFLICT",
+        "SHIP_OWNERSHIP_MISMATCH",
+        "OWNERSHIP_CLAIM_TOKEN_REQUIRED"
+      ]
+    },
     "message": { "type": "string" },
     "playerName": { "type": "string" },
     "characterId": { "type": "string" },

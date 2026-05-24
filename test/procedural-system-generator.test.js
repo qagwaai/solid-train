@@ -42,10 +42,7 @@ test('generateSystemBodies returns deterministic bodies for the same star input'
   assert.equal(first.stars.length, second.stars.length);
   assert.equal(first.planets.length, second.planets.length);
   for (let i = 0; i < first.planets.length; i += 1) {
-    assert.equal(
-      first.planets[i].orbit.semiMajorAxisKm,
-      second.planets[i].orbit.semiMajorAxisKm
-    );
+    assert.equal(first.planets[i].orbit.semiMajorAxisKm, second.planets[i].orbit.semiMajorAxisKm);
     assert.equal(first.planets[i].planetType, second.planets[i].planetType);
   }
 });

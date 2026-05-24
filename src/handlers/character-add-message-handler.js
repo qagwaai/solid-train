@@ -224,6 +224,13 @@ class CharacterAddMessageHandler {
                 positionKm: { x: 0, y: 0, z: 0 },
                 epochMs: Date.parse(createdAt),
               },
+              ownership: {
+                ownerType: 'player-character',
+                playerId: owningPlayerId,
+                characterId: response.characterId,
+                npcId: null,
+                factionId: null,
+              },
             },
           ],
           missions: [

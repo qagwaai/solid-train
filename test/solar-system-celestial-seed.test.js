@@ -74,32 +74,47 @@ test('buildSeededCelestialBodiesForSolarSystem produces canonical-shape document
   );
 
   // Moons must carry anchorBodyId; planets orbiting the Sun must not.
-  assert.equal(luna.orbitalElements.anchorBodyId, 'sol-earth',
-    'Luna orbitalElements.anchorBodyId should be sol-earth');
-  assert.equal(earth.orbitalElements.anchorBodyId, undefined,
-    'Earth (planet) must not have anchorBodyId');
+  assert.equal(
+    luna.orbitalElements.anchorBodyId,
+    'sol-earth',
+    'Luna orbitalElements.anchorBodyId should be sol-earth'
+  );
+  assert.equal(
+    earth.orbitalElements.anchorBodyId,
+    undefined,
+    'Earth (planet) must not have anchorBodyId'
+  );
   const phobos = seeded.find((body) => body.id === 'sol-phobos');
-  assert.equal(phobos.orbitalElements.anchorBodyId, 'sol-mars',
-    'Phobos orbitalElements.anchorBodyId should be sol-mars');
+  assert.equal(
+    phobos.orbitalElements.anchorBodyId,
+    'sol-mars',
+    'Phobos orbitalElements.anchorBodyId should be sol-mars'
+  );
 
   // All moons must have anchorBodyId; no planet/star/dwarf-planet may have it.
   const moons = seeded.filter((body) => body.bodyType === 'moon');
   assert.ok(moons.length > 0);
   for (const moon of moons) {
-    assert.ok(moon.orbitalElements?.anchorBodyId,
-      `Moon ${moon.id} missing orbitalElements.anchorBodyId`);
+    assert.ok(
+      moon.orbitalElements?.anchorBodyId,
+      `Moon ${moon.id} missing orbitalElements.anchorBodyId`
+    );
   }
-  const nonMoonOrbiters = seeded.filter(
-    (body) => body.bodyType !== 'moon' && body.orbitalElements
-  );
+  const nonMoonOrbiters = seeded.filter((body) => body.bodyType !== 'moon' && body.orbitalElements);
   for (const body of nonMoonOrbiters) {
-    assert.equal(body.orbitalElements.anchorBodyId, undefined,
-      `${body.id} (${body.bodyType}) should not have anchorBodyId`);
+    assert.equal(
+      body.orbitalElements.anchorBodyId,
+      undefined,
+      `${body.id} (${body.bodyType}) should not have anchorBodyId`
+    );
   }
 });
 
 test('buildSeededCelestialBodiesForSolarSystem returns empty for unknown systems', () => {
-  assert.deepEqual(buildSeededCelestialBodiesForSolarSystem('not-a-real-system', SEED_TIMESTAMP), []);
+  assert.deepEqual(
+    buildSeededCelestialBodiesForSolarSystem('not-a-real-system', SEED_TIMESTAMP),
+    []
+  );
   assert.deepEqual(buildSeededCelestialBodiesForSolarSystem('', SEED_TIMESTAMP), []);
   assert.deepEqual(buildSeededCelestialBodiesForSolarSystem(null, SEED_TIMESTAMP), []);
 });

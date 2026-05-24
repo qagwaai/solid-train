@@ -22,7 +22,9 @@ const { CharacterAddMessageHandler } = require('./handlers/character-add-message
 const { CharacterDeleteMessageHandler } = require('./handlers/character-delete-message-handler');
 const { CharacterEditMessageHandler } = require('./handlers/character-edit-message-handler');
 const { ShipListMessageHandler } = require('./handlers/ship-list-message-handler');
+const { ShipListByOwnerMessageHandler } = require('./handlers/ship-list-by-owner-message-handler');
 const { ShipUpsertMessageHandler } = require('./handlers/ship-upsert-message-handler');
+const { ShipTransferMessageHandler } = require('./handlers/ship-transfer-message-handler');
 const { GameJoinMessageHandler } = require('./handlers/game-join-message-handler');
 const { MissionUpsertMessageHandler } = require('./handlers/mission-upsert-message-handler');
 const {
@@ -51,12 +53,8 @@ const {
 const { MarketLedgerListMessageHandler } = require('./handlers/market-ledger-list-message-handler');
 const { MarketBuyMessageHandler } = require('./handlers/market-buy-message-handler');
 const { MarketSellMessageHandler } = require('./handlers/market-sell-message-handler');
-const {
-  SolarSystemListMessageHandler,
-} = require('./handlers/solar-system-list-message-handler');
-const {
-  SolarSystemGetMessageHandler,
-} = require('./handlers/solar-system-get-message-handler');
+const { SolarSystemListMessageHandler } = require('./handlers/solar-system-list-message-handler');
+const { SolarSystemGetMessageHandler } = require('./handlers/solar-system-get-message-handler');
 const { StarListMessageHandler } = require('./handlers/star-list-message-handler');
 const { StarGetMessageHandler } = require('./handlers/star-get-message-handler');
 const { registerSocketHandlers } = require('./handlers/socket-handler-registry');
@@ -107,7 +105,9 @@ function createServer(options = {}) {
   const characterDeleteMessageHandler = new CharacterDeleteMessageHandler(messageHandlerContext);
   const characterEditMessageHandler = new CharacterEditMessageHandler(messageHandlerContext);
   const shipListMessageHandler = new ShipListMessageHandler(messageHandlerContext);
+  const shipListByOwnerMessageHandler = new ShipListByOwnerMessageHandler(messageHandlerContext);
   const shipUpsertMessageHandler = new ShipUpsertMessageHandler(messageHandlerContext);
+  const shipTransferMessageHandler = new ShipTransferMessageHandler(messageHandlerContext);
   const gameJoinMessageHandler = new GameJoinMessageHandler(messageHandlerContext);
   const missionUpsertMessageHandler = new MissionUpsertMessageHandler(messageHandlerContext);
   const celestialBodyUpsertMessageHandler = new CelestialBodyUpsertMessageHandler(
@@ -140,7 +140,6 @@ function createServer(options = {}) {
   const solarSystemGetMessageHandler = new SolarSystemGetMessageHandler(messageHandlerContext);
   const starListMessageHandler = new StarListMessageHandler(messageHandlerContext);
   const starGetMessageHandler = new StarGetMessageHandler(messageHandlerContext);
-
 
   // Express app for REST endpoints
   const app = express();
@@ -203,7 +202,9 @@ function createServer(options = {}) {
       characterDeleteMessageHandler,
       characterEditMessageHandler,
       shipListMessageHandler,
+      shipListByOwnerMessageHandler,
       shipUpsertMessageHandler,
+      shipTransferMessageHandler,
       gameJoinMessageHandler,
       missionUpsertMessageHandler,
       celestialBodyUpsertMessageHandler,

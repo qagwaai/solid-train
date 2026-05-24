@@ -56,7 +56,10 @@
       }
     },
     "state": { "type": ["string", "null"], "enum": ["contained", "deployed", "destroyed", null] },
-    "damageStatus": { "type": ["string", "null"], "enum": ["intact", "damaged", "disabled", "destroyed", null] },
+    "damageStatus": {
+      "type": ["string", "null"],
+      "enum": ["intact", "damaged", "disabled", "destroyed", null]
+    },
     "container": {
       "type": ["object", "null"],
       "properties": {

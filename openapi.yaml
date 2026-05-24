@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Stellar API and Message Contract
-  version: 2.0.0
+  version: 3.0.0
   description: >
     Machine-readable contract for HTTP endpoints and Socket.IO message payloads.
     Socket operations are modeled as virtual POST operations under /socket/* so the
@@ -462,10 +462,23 @@ paths:
         Inventory patch semantics:
         - When `ship.inventory` is present, the server applies the provided inventory
           patch for the target ship.
-        - Inventory entries must be canonical ShipItem objects with at least
-          `id`, `itemType`, and `displayName`.
+        - Inventory entries may be either canonical ShipItem rows (with `id`,
+          `itemType`, and `displayName`) or compact item references
+          (`itemId` + `itemType`).
         - When `ship.inventory` is omitted, the server preserves the ship's existing
           inventory references.
+
+        Ownership behavior:
+        - `ship.ownership` is strict for ownership mutations.
+        - Cross-player mutation attempts are rejected with
+          `reason: SHIP_OWNERSHIP_MISMATCH`.
+        - Transitioning from `ownerType: unknown` to `ownerType: player-character`
+          requires a claim token and is rejected with
+          `reason: OWNERSHIP_CLAIM_TOKEN_REQUIRED` when omitted.
+
+        Legacy compatibility:
+        - Legacy `ship.location` and `ship.kinematics` fields are rejected.
+          Use canonical `ship.spatial` and optional `ship.motion`.
       operationId: socketShipUpsert
       tags: [Ship]
       requestBody:
@@ -526,6 +539,181 @@ paths:
                     message: playerName, characterId, and ship.id are required
                     playerName: TestPilot
                     characterId: character-1
+                ownershipMismatchFailure:
+                  summary: Cross-player ownership mutation is rejected with explicit reason
+                  value:
+                    success: false
+                    reason: SHIP_OWNERSHIP_MISMATCH
+                    message: Ship ownership mismatch for requested mutation
+                    playerName: MismatchIntruder
+                    characterId: character-2
+                claimTokenRequiredFailure:
+                  summary: Unknown to player-character transition requires explicit claimToken
+                  value:
+                    success: false
+                    reason: OWNERSHIP_CLAIM_TOKEN_REQUIRED
+                    message: Ownership transition unknown -> player-character requires claimToken
+                    playerName: ClaimTokenPilot
+                    characterId: character-1
+
+  /socket/ship-list-by-owner:
+    post:
+      summary: ship-list-by-owner-request
+      description: |
+        Returns ships that match the provided ownership descriptor.
+
+        Response notes:
+        - The response includes a normalized `owner` descriptor with explicit nullable
+          fields (`playerId`, `characterId`, `npcId`, `factionId`).
+        - Each returned ship includes a canonical `ownership` object.
+        - Invalid sessions return `success: false`, `reason: INVALID_SESSION`, and
+          `ships: []`.
+      operationId: socketShipListByOwner
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipListByOwnerRequest'
+            examples:
+              playerCharacterOwner:
+                summary: List ships owned by a specific player-character
+                value:
+                  playerName: OwnerScopePilot
+                  sessionKey: session-123
+                  owner:
+                    ownerType: player-character
+                    characterId: character-1
+      responses:
+        '200':
+          description: ship-list-by-owner-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipListByOwnerResponse'
+              examples:
+                successfulOwnerList:
+                  summary: Successful owner query returns normalized owner and matching ships
+                  value:
+                    success: true
+                    message: Ship list by owner retrieved successfully
+                    owner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: character-1
+                      npcId: null
+                      factionId: null
+                    ships:
+                      - id: ship-1
+                        ownership:
+                          ownerType: player-character
+                          playerId: player-1
+                          characterId: character-1
+                          npcId: null
+                          factionId: null
+                invalidSession:
+                  summary: Invalid session returns empty ships with explicit reason
+                  value:
+                    success: false
+                    reason: INVALID_SESSION
+                    message: Invalid session
+                    ships: []
+
+  /socket/ship-transfer:
+    post:
+      summary: ship-transfer-request
+      description: |
+        Transfers ship ownership between valid owner descriptors.
+
+        Behavior notes:
+        - `toOwner` is required and must include `ownerType`.
+        - `fromOwner` is optional and can be used for caller-side transfer intent.
+        - `claimToken` is required for unknown -> player-character claim flows.
+        - Unauthorized player-character transfer attempts return
+          `reason: SHIP_TRANSFER_FORBIDDEN`.
+      operationId: socketShipTransfer
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipTransferRequest'
+            examples:
+              transferBetweenCharacters:
+                summary: Transfer from one player-character owner to another
+                value:
+                  playerName: TransferSuccessOwner
+                  sessionKey: session-owner
+                  shipId: ship-1
+                  fromOwner:
+                    ownerType: player-character
+                    playerId: owner-player-id
+                    characterId: owner-character-id
+                    npcId: null
+                    factionId: null
+                  toOwner:
+                    ownerType: player-character
+                    playerId: recipient-player-id
+                    characterId: recipient-character-id
+                    npcId: null
+                    factionId: null
+              claimUnknownShip:
+                summary: Claim an unknown ship to player-character using claimToken
+                value:
+                  playerName: ClaimTokenPilot
+                  sessionKey: session-claim
+                  shipId: unknown-ship-1
+                  fromOwner:
+                    ownerType: unknown
+                  toOwner:
+                    ownerType: player-character
+                    playerId: player-claim
+                    characterId: character-claim
+                    npcId: null
+                    factionId: null
+                  claimToken: test-claim-token
+      responses:
+        '200':
+          description: ship-transfer-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipTransferResponse'
+              examples:
+                successfulTransfer:
+                  summary: Successful transfer returns fromOwner and toOwner descriptors
+                  value:
+                    success: true
+                    message: Ship transferred successfully
+                    shipId: ship-1
+                    fromOwner:
+                      ownerType: player-character
+                      playerId: owner-player-id
+                      characterId: owner-character-id
+                      npcId: null
+                      factionId: null
+                    toOwner:
+                      ownerType: player-character
+                      playerId: recipient-player-id
+                      characterId: recipient-character-id
+                      npcId: null
+                      factionId: null
+                forbiddenTransfer:
+                  summary: Unauthorized actor cannot transfer another player's ship
+                  value:
+                    success: false
+                    reason: SHIP_TRANSFER_FORBIDDEN
+                    message: Actor does not have permission to transfer this ship
+                    shipId: ship-1
+                invalidSession:
+                  summary: Invalid session returns stable reason and no transfer payload
+                  value:
+                    success: false
+                    reason: INVALID_SESSION
+                    message: Invalid session
+                    ships: []
 
   /socket/mission-list:
     post:
@@ -2320,6 +2508,14 @@ components:
       $ref: './schemas/ship-list-request.schema.json'
     ShipListResponse:
       $ref: './schemas/ship-list-response.schema.json'
+    ShipListByOwnerRequest:
+      $ref: './schemas/ship-list-by-owner-request.schema.json'
+    ShipListByOwnerResponse:
+      $ref: './schemas/ship-list-by-owner-response.schema.json'
+    ShipTransferRequest:
+      $ref: './schemas/ship-transfer-request.schema.json'
+    ShipTransferResponse:
+      $ref: './schemas/ship-transfer-response.schema.json'
     ShipUpsertRequest:
       $ref: './schemas/ship-upsert-request.schema.json'
     ShipUpsertResponse:

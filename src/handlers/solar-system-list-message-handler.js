@@ -1,8 +1,6 @@
 'use strict';
 
-const {
-  SOLAR_SYSTEM_LIST_RESPONSE_EVENT,
-} = require('../model/solar-system-list');
+const { SOLAR_SYSTEM_LIST_RESPONSE_EVENT } = require('../model/solar-system-list');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { getSolarSystemRegistry } = require('../model/solar-system-registry');
 

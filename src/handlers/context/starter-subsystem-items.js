@@ -1,6 +1,10 @@
 'use strict';
 
-const { ITEM_STATE, ITEM_DAMAGE_STATUS, ITEM_CONTAINER_TYPE } = require('../../model/canonical-items');
+const {
+  ITEM_STATE,
+  ITEM_DAMAGE_STATUS,
+  ITEM_CONTAINER_TYPE,
+} = require('../../model/canonical-items');
 
 const COLD_BOOT_STARTER_MODELS = new Set(['scavenger pod', 'scavenger-pod']);
 const COLD_BOOT_ORIGIN = 'cold-boot-scripted';

@@ -1,6 +1,17 @@
 'use strict';
 
-const { CelestialBody, GameStateDocument, Item, JumpGate, Market, Player, SolarSystem, Star } = require('./models');
+const mongoose = require('mongoose');
+const {
+  CelestialBody,
+  GameStateDocument,
+  Item,
+  JumpGate,
+  Market,
+  Player,
+  ShipRecord,
+  SolarSystem,
+  Star,
+} = require('./models');
 const playerCharacterService = require('./service/player-character-service');
 const itemWriteService = require('./service/item-write-service');
 const itemQueryService = require('./service/item-query-service');
@@ -121,6 +132,67 @@ class DatabaseService {
     const dz = toPositionKm.z - fromPositionKm.z;
 
     return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  }
+
+  normalizeShipOwnershipForPersistence(ownership) {
+    if (!ownership || typeof ownership !== 'object') {
+      throw new Error('ship ownership is required');
+    }
+
+    const ownerType = this.toNonEmptyString(ownership.ownerType);
+    const playerId = this.toNonEmptyString(ownership.playerId) || null;
+    const characterId = this.toNonEmptyString(ownership.characterId) || null;
+    const npcId = this.toNonEmptyString(ownership.npcId) || null;
+    const factionId = this.toNonEmptyString(ownership.factionId) || null;
+
+    if (!['player-character', 'npc-pirate', 'unowned', 'unknown'].includes(ownerType)) {
+      throw new Error('ship ownership ownerType is invalid');
+    }
+
+    if (ownerType === 'player-character' && (!playerId || !characterId || npcId)) {
+      throw new Error('ship ownership is invalid for player-character owner');
+    }
+
+    if (ownerType === 'npc-pirate' && (!npcId || playerId || characterId)) {
+      throw new Error('ship ownership is invalid for npc-pirate owner');
+    }
+
+    if (
+      (ownerType === 'unowned' || ownerType === 'unknown') &&
+      (playerId || characterId || npcId)
+    ) {
+      throw new Error(`ship ownership is invalid for ${ownerType} owner`);
+    }
+
+    return {
+      ownerType,
+      playerId,
+      characterId,
+      npcId,
+      factionId,
+    };
+  }
+
+  async assertNoDanglingShipInventoryReferences(inventory) {
+    if (!Array.isArray(inventory) || inventory.length === 0) {
+      return;
+    }
+
+    const itemIds = inventory
+      .map((entry) => this.toNonEmptyString(entry?.itemId))
+      .filter((value) => Boolean(value));
+
+    if (itemIds.length === 0) {
+      return;
+    }
+
+    const existingItems = await Item.find({ id: { $in: itemIds } }, { id: 1 }).lean();
+    const existingItemIds = new Set(existingItems.map((item) => item.id));
+    const missingId = itemIds.find((itemId) => !existingItemIds.has(itemId));
+
+    if (missingId) {
+      throw new Error(`ship inventory contains missing item reference: ${missingId}`);
+    }
   }
 
   /**
@@ -295,6 +367,127 @@ class DatabaseService {
     return playerCharacterService.getShips(this, Player, playerName, characterId);
   }
 
+  async createShip(shipData) {
+    try {
+      const ownership = this.normalizeShipOwnershipForPersistence(shipData?.ownership);
+      await this.assertNoDanglingShipInventoryReferences(shipData?.inventory);
+
+      const createdShip = await ShipRecord.create({
+        ...shipData,
+        ownership,
+      });
+      return createdShip.toObject();
+    } catch (error) {
+      this.log(`[db-service] Error creating ship: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getShipById(shipId) {
+    try {
+      const normalizedShipId = this.toNonEmptyString(shipId);
+      if (!normalizedShipId) {
+        return null;
+      }
+
+      return await ShipRecord.findOne({ id: normalizedShipId }).lean();
+    } catch (error) {
+      this.log(`[db-service] Error fetching ship by id: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async updateShip(shipId, updates) {
+    try {
+      const normalizedShipId = this.toNonEmptyString(shipId);
+      if (!normalizedShipId) {
+        return null;
+      }
+
+      const nextUpdates = { ...updates };
+      if ('ownership' in nextUpdates) {
+        nextUpdates.ownership = this.normalizeShipOwnershipForPersistence(nextUpdates.ownership);
+      }
+
+      if (Array.isArray(nextUpdates.inventory)) {
+        await this.assertNoDanglingShipInventoryReferences(nextUpdates.inventory);
+      }
+
+      return await ShipRecord.findOneAndUpdate({ id: normalizedShipId }, nextUpdates, {
+        new: true,
+      }).lean();
+    } catch (error) {
+      this.log(`[db-service] Error updating ship: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async deleteShip(shipId) {
+    try {
+      const normalizedShipId = this.toNonEmptyString(shipId);
+      if (!normalizedShipId) {
+        return false;
+      }
+
+      const result = await ShipRecord.deleteOne({ id: normalizedShipId });
+      return result.deletedCount > 0;
+    } catch (error) {
+      this.log(`[db-service] Error deleting ship: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async listShipsByOwner(ownerQuery) {
+    try {
+      const normalizedOwner = this.normalizeShipOwnershipForPersistence(ownerQuery);
+      const query = { 'ownership.ownerType': normalizedOwner.ownerType };
+
+      if (normalizedOwner.ownerType === 'player-character') {
+        query['ownership.playerId'] = normalizedOwner.playerId;
+        query['ownership.characterId'] = normalizedOwner.characterId;
+      }
+
+      if (normalizedOwner.ownerType === 'npc-pirate') {
+        query['ownership.npcId'] = normalizedOwner.npcId;
+      }
+
+      return await ShipRecord.find(query).lean();
+    } catch (error) {
+      this.log(`[db-service] Error listing ships by owner: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async transferShipOwnership(transfer) {
+    try {
+      const shipId = this.toNonEmptyString(transfer?.shipId);
+      if (!shipId) {
+        throw new Error('shipId is required');
+      }
+
+      const ship = await ShipRecord.findOne({ id: shipId });
+      if (!ship) {
+        throw new Error('ship not found');
+      }
+
+      const currentOwnership = this.normalizeShipOwnershipForPersistence(ship.ownership);
+      const actorPlayerId = this.toNonEmptyString(transfer?.actorPlayerId);
+      if (
+        currentOwnership.ownerType === 'player-character' &&
+        currentOwnership.playerId !== actorPlayerId
+      ) {
+        throw new Error('unauthorized ownership transfer');
+      }
+
+      ship.ownership = this.normalizeShipOwnershipForPersistence(transfer?.toOwner);
+      await ship.save();
+      return ship.toObject();
+    } catch (error) {
+      this.log(`[db-service] Error transferring ship ownership: ${error.message}`);
+      throw error;
+    }
+  }
+
   /**
    * Add or update a celestial body in the cb collection using id as the upsert key
    * @param {Object} celestialBodyData
@@ -418,6 +611,9 @@ class DatabaseService {
       await Player.deleteMany({});
       await CelestialBody.deleteMany({});
       await Item.deleteMany({});
+      if (mongoose.connection.readyState === 1) {
+        await ShipRecord.deleteMany({});
+      }
       this.log('[db-service] All players cleared');
     } catch (error) {
       this.log(`[db-service] Error clearing players: ${error.message}`);

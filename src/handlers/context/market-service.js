@@ -6,7 +6,7 @@ const {
   ITEM_CONTAINER_TYPE,
 } = require('../../model/canonical-items');
 
-const { MARKET_CATALOG, MARKET_CATALOG_BY_ID } = require('../../model/market-catalog');
+const { MARKET_CATALOG_BY_ID } = require('../../model/market-catalog');
 const { computeMidpointPrice } = require('../../model/market-pricing');
 const {
   SOLAR_SYSTEM_MARKET_SEED_VERSION,

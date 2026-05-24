@@ -18,7 +18,17 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["itemId", "itemType", "displayName", "rarity", "stock", "maxStock", "restockPerInterval", "marketCanBuy", "marketCanSell"],
+        "required": [
+          "itemId",
+          "itemType",
+          "displayName",
+          "rarity",
+          "stock",
+          "maxStock",
+          "restockPerInterval",
+          "marketCanBuy",
+          "marketCanSell"
+        ],
         "properties": {
           "itemId": { "type": "string" },
           "itemType": { "type": "string" },

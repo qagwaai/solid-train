@@ -123,13 +123,7 @@ function computeAbsolutePositionKm(catalogEntry, asOfMs, cache, catalogById = SO
  * Mongoose CelestialBody schema. Provides minimal default composition so the
  * required-by-schema field is satisfied for non-asteroid bodies.
  */
-function buildCelestialBodyDocument(
-  catalogEntry,
-  asOfMs,
-  asOfTimestamp,
-  cache,
-  options = {}
-) {
+function buildCelestialBodyDocument(catalogEntry, asOfMs, asOfTimestamp, cache, options = {}) {
   const solarSystemId = options.solarSystemId || 'sol';
   const catalogById = options.catalogById || SOL_CATALOG_BY_ID;
   const positionKm = computeAbsolutePositionKm(catalogEntry, asOfMs, cache, catalogById);

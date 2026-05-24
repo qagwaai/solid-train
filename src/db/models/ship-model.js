@@ -92,6 +92,33 @@ function createShipModelArtifacts({
     { _id: false }
   );
 
+  const shipOwnershipSchema = new mongoose.Schema(
+    {
+      ownerType: {
+        type: String,
+        enum: ['player-character', 'npc-pirate', 'unowned', 'unknown'],
+        required: true,
+      },
+      playerId: {
+        type: String,
+        default: null,
+      },
+      characterId: {
+        type: String,
+        default: null,
+      },
+      npcId: {
+        type: String,
+        default: null,
+      },
+      factionId: {
+        type: String,
+        default: null,
+      },
+    },
+    { _id: false }
+  );
+
   const shipSchema = new mongoose.Schema(
     {
       id: {
@@ -147,8 +174,80 @@ function createShipModelArtifacts({
         type: driveProfileSchema,
         default: null,
       },
+      ownership: {
+        type: shipOwnershipSchema,
+        default: null,
+      },
     },
     { _id: false }
+  );
+
+  const shipRecordSchema = new mongoose.Schema(
+    {
+      id: {
+        type: String,
+        required: true,
+        unique: true,
+        index: true,
+      },
+      shipName: {
+        type: String,
+        required: true,
+      },
+      status: {
+        type: String,
+        default: null,
+      },
+      model: {
+        type: String,
+        required: true,
+        default: 'Scavenger Pod',
+      },
+      tier: {
+        type: Number,
+        required: true,
+        default: 1,
+        min: 1,
+        max: 10,
+      },
+      createdAt: {
+        type: String,
+        required: true,
+      },
+      inventory: {
+        type: [inventoryItemReferenceSchema],
+        default: [],
+      },
+      spatial: {
+        type: spatialStateSchema,
+        required: true,
+      },
+      motion: {
+        type: motionStateSchema,
+        default: null,
+      },
+      launchable: {
+        type: Boolean,
+        required: true,
+        default: true,
+      },
+      damageProfile: {
+        type: damageProfileSchema,
+        default: null,
+      },
+      driveProfile: {
+        type: driveProfileSchema,
+        default: null,
+      },
+      ownership: {
+        type: shipOwnershipSchema,
+        required: true,
+      },
+    },
+    {
+      collection: 'ships',
+      timestamps: true,
+    }
   );
 
   const missionSchema = new mongoose.Schema(
@@ -190,7 +289,9 @@ function createShipModelArtifacts({
     damageSystemSchema,
     damageProfileSchema,
     driveProfileSchema,
+    shipOwnershipSchema,
     shipSchema,
+    shipRecordSchema,
     missionSchema,
   };
 }

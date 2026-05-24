@@ -121,7 +121,6 @@ class ItemUpsertMessageHandler {
         ? tierPayload
         : null;
 
-
     // Validate itemType against canonical items
     const canonicalItem = itemType ? getItemByType(itemType) : null;
     if (isCreating && (!itemType || !displayName)) {
@@ -310,8 +309,7 @@ class ItemUpsertMessageHandler {
           displayName: parsed.displayName || existing?.displayName || '',
           tier: resolvedTier,
           state: resolvedState,
-          damageStatus:
-            parsed.damageStatus || existing?.damageStatus || ITEM_DAMAGE_STATUS.INTACT,
+          damageStatus: parsed.damageStatus || existing?.damageStatus || ITEM_DAMAGE_STATUS.INTACT,
           container: parsed.hasContainer ? parsed.container : (existing?.container ?? null),
           spatial: resolvedSpatial,
           ...(resolvedMotion ? { motion: resolvedMotion } : {}),

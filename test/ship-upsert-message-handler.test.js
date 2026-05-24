@@ -28,6 +28,16 @@ function createShipUpdate(overrides = {}) {
   };
 }
 
+function createCharacterOwnership() {
+  return {
+    ownerType: 'player-character',
+    playerId: 'player-seeded',
+    characterId: 'character-1',
+    npcId: null,
+    factionId: null,
+  };
+}
+
 test('ShipUpsertMessageHandler updates ship location and kinematics', async () => {
   const context = createTestContext();
   seedItems(context, [
@@ -73,6 +83,7 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
                 itemType: 'expendable-dart-drone',
               },
             ],
+            ownership: createCharacterOwnership(),
             createdAt: '2026-04-17T00:00:00.000Z',
           },
         ],
@@ -122,6 +133,7 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
       updatedAt: '2026-04-17T00:00:00.000Z',
       destroyedAt: null,
       destroyedReason: null,
+      tier: 1,
       launchable: true,
       quantity: 1,
     },
@@ -244,6 +256,7 @@ test('ShipUpsertMessageHandler applies provided ship.inventory references', asyn
                 itemType: 'hull-patch-kit',
               },
             ],
+            ownership: createCharacterOwnership(),
             createdAt: '2026-04-17T00:00:00.000Z',
           },
         ],
@@ -353,6 +366,7 @@ test('ShipUpsertMessageHandler accepts hydrated ship.inventory rows with id and 
                 itemType: 'hull-patch-kit',
               },
             ],
+            ownership: createCharacterOwnership(),
             createdAt: '2026-04-17T00:00:00.000Z',
           },
         ],
@@ -478,6 +492,7 @@ test('ShipUpsertMessageHandler updates ship model and tier', async () => {
                 itemType: 'expendable-dart-drone',
               },
             ],
+            ownership: createCharacterOwnership(),
             createdAt: '2026-04-17T00:00:00.000Z',
           },
         ],
@@ -540,6 +555,7 @@ function seedShipPlayer(context) {
               positionKm: { x: 0, y: 0, z: 0 },
               epochMs: 0,
             },
+            ownership: createCharacterOwnership(),
             createdAt: '2026-04-17T00:00:00.000Z',
           },
         ],
@@ -707,6 +723,7 @@ test('ShipUpsertMessageHandler repair transition consumes hull patch kit when in
                 itemType: 'hull-patch-kit',
               },
             ],
+            ownership: createCharacterOwnership(),
             createdAt: '2026-04-17T00:00:00.000Z',
           },
         ],
@@ -773,6 +790,7 @@ test('ShipUpsertMessageHandler partial upsert without damageProfile preserves ex
               positionKm: { x: 0, y: 0, z: 0 },
               epochMs: 0,
             },
+            ownership: createCharacterOwnership(),
             createdAt: '2026-04-17T00:00:00.000Z',
           },
         ],
@@ -815,6 +833,7 @@ test('ShipUpsertMessageHandler explicit damageProfile null clears stored profile
               positionKm: { x: 0, y: 0, z: 0 },
               epochMs: 0,
             },
+            ownership: createCharacterOwnership(),
             createdAt: '2026-04-17T00:00:00.000Z',
           },
         ],

@@ -128,22 +128,34 @@ test('SolarSystemListMessageHandler populates count fields when celestial bodies
 
   // Seed celestial bodies with different bodyTypes in 'sol'
   seedCelestialBodies(context, [
-    { ...createCelestialBody({
-      id: 'sol-planet-1',
-      spatial: { solarSystemId: 'sol' },
-    }), bodyType: 'planet' },
-    { ...createCelestialBody({
-      id: 'sol-planet-2',
-      spatial: { solarSystemId: 'sol' },
-    }), bodyType: 'planet' },
-    { ...createCelestialBody({
-      id: 'sol-moon-1',
-      spatial: { solarSystemId: 'sol' },
-    }), bodyType: 'moon' },
-    { ...createCelestialBody({
-      id: 'sol-asteroid-1',
-      spatial: { solarSystemId: 'sol' },
-    }), bodyType: 'asteroid' },
+    {
+      ...createCelestialBody({
+        id: 'sol-planet-1',
+        spatial: { solarSystemId: 'sol' },
+      }),
+      bodyType: 'planet',
+    },
+    {
+      ...createCelestialBody({
+        id: 'sol-planet-2',
+        spatial: { solarSystemId: 'sol' },
+      }),
+      bodyType: 'planet',
+    },
+    {
+      ...createCelestialBody({
+        id: 'sol-moon-1',
+        spatial: { solarSystemId: 'sol' },
+      }),
+      bodyType: 'moon',
+    },
+    {
+      ...createCelestialBody({
+        id: 'sol-asteroid-1',
+        spatial: { solarSystemId: 'sol' },
+      }),
+      bodyType: 'asteroid',
+    },
   ]);
 
   // Seed markets in 'sol'
@@ -191,4 +203,3 @@ test('SolarSystemListMessageHandler handles missing count data gracefully', asyn
   assert.equal(typeof solSystem.asteroidCount, 'number');
   assert.equal(typeof solSystem.marketCount, 'number');
 });
-

@@ -77,6 +77,13 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
       },
       launchable: true,
       damageProfile: null,
+      ownership: {
+        ownerType: 'player-character',
+        playerId: 'player-seeded',
+        characterId: 'player-1',
+        npcId: null,
+        factionId: null,
+      },
     },
   ]);
   assert.deepEqual(characters[0].missions, [
@@ -118,6 +125,7 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
     updatedAt: '2026-04-17T00:00:00.000Z',
     destroyedAt: null,
     destroyedReason: null,
+    tier: 1,
     launchable: true,
     quantity: 1,
   });
@@ -138,6 +146,7 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
     updatedAt: '2026-04-17T00:00:00.000Z',
     destroyedAt: null,
     destroyedReason: null,
+    tier: 1,
     launchable: false,
     quantity: 1,
   });
@@ -158,6 +167,7 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
     updatedAt: '2026-04-17T00:00:00.000Z',
     destroyedAt: null,
     destroyedReason: null,
+    tier: 1,
     launchable: false,
     quantity: 1,
   });
