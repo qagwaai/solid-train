@@ -30,13 +30,14 @@ Frontend repo documents:
 2. Stage 2: Soft fail with approved bypass
 3. Stage 3: Hard fail on PR path
 4. Stage 4: Operational stabilization with weekly metrics
+5. Stage 5: Optimization and continuous assurance
 
 ## Current Status
 
 | Repo                  | Stage   | PR Gate   | Notes                                                                     |
 | --------------------- | ------- | --------- | ------------------------------------------------------------------------- |
-| solid-train           | Stage 4 | Hard fail | Weekly metrics enabled; approved exceptions remain audited and time-bound |
-| laughing-octo-journey | Stage 4 | Hard fail | Mirror consumer triage, update path, and SLA timing                       |
+| solid-train           | Stage 5 | Hard fail | Trend + recurrence guardrails enabled; approved exceptions remain audited |
+| laughing-octo-journey | Stage 5 | Hard fail | Mirror producer checklist, migration-note discipline, and SLA timing      |
 
 ## Shared Status Board Template
 
@@ -73,9 +74,11 @@ Bypass requires:
 2. Mean time to resolve drift.
 3. Number of bypasses and expiry compliance.
 4. Contract-related regressions that escaped CI.
+5. Rolling 30-day repeat offenders by drift class and producer surface.
 
 ## Change Log
 
 - 2026-05-24: Initial cross-repo index and shared status board template created.
 - 2026-05-24: Stage 3 hard-fail rollout recorded for solid-train.
 - 2026-05-24: Stage 4 stabilization recorded with weekly metrics and tighter ops guidance.
+- 2026-05-24: Stage 5 continuous assurance added trend/recurrence guardrails and PR hygiene checks.

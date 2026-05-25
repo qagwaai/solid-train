@@ -66,6 +66,8 @@ Modes:
 - Phase 1: Report-only.
 - Phase 2: Soft fail with approved exception.
 - Phase 3: Hard fail with approved exception and expiry enforcement.
+- Phase 4: Operational stabilization with weekly metrics and SLA triage discipline.
+- Phase 5: Optimization and continuous assurance with trend/recurrence guardrails.
 
 Output requirements:
 
@@ -123,6 +125,8 @@ Required for breaking changes:
 - Exception frequency and expiry compliance.
 - Downstream regressions caused by contract changes.
 - Weekly drift count, MTTR, bypass count, and expired bypass count.
+- Rolling 30-day trend by drift class, owner, and repeat offender surfaces.
+- False-positive baseline (fixture-noise exclusion rate) for continuous noise reduction.
 
 ## 11. Related Documents
 

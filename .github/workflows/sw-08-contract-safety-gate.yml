@@ -25,6 +25,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Collect changed files for SW-08 PR hygiene
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          mkdir -p artifacts/contracts
+          git diff --name-only "origin/${{ github.base_ref }}"...HEAD > artifacts/contracts/sw08-changed-files.txt
+
+      - name: Enforce SW-08 producer checklist and migration note
+        if: github.event_name == 'pull_request'
+        env:
+          SW08_PR_BODY: ${{ github.event.pull_request.body }}
+        run: npm run contract:pr:hygiene
+
       - name: Generate deterministic contract artifact
         run: npm run contract:artifact
 
@@ -38,6 +51,10 @@ jobs:
       - name: Run main-branch report-only drift detection
         if: github.event_name == 'push'
         run: npm run contract:drift
+
+      - name: Run recurrence trend guardrail
+        if: github.event_name == 'push'
+        run: npm run contract:metrics:trend:strict
 
       - name: Upload SW-08 diagnostics
         if: always()
@@ -53,4 +70,5 @@ jobs:
             artifacts/contracts/stage3-expired-report.json
             artifacts/contracts/stage3-missing-approval-report.json
             artifacts/contracts/stage3-compat-report.json
+            artifacts/contracts/sw08-trend-report.json
           if-no-files-found: error

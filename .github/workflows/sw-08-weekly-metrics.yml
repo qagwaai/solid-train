@@ -28,6 +28,6 @@ jobs:
       - name: Upload weekly SW-08 metrics
         uses: actions/upload-artifact@v4
         with:
-          name: sw08-weekly-metrics
-          path: artifacts/contracts/sw08-weekly-metrics.json
+          name: sw08-trend-report
+          path: artifacts/contracts/sw08-trend-report.json
           if-no-files-found: error

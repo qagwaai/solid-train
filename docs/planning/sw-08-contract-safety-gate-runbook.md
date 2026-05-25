@@ -24,8 +24,9 @@ Use this runbook when SW-08 CI fails due to contract drift or incompatible produ
 5. Run the expired-exception rejection check with `npm run contract:gate:hard:expired`.
 6. Run the missing-approval rejection check with `npm run contract:gate:hard:missing-approval`.
 7. Run the compatibility-window check with `npm run contract:compat-check:hard`.
-8. Run the weekly metrics report with `npm run contract:metrics:weekly`.
-9. Compare expected vs actual contract nodes.
+8. Run trend metrics with `npm run contract:metrics:weekly` and inspect weekly + rolling30 sections.
+9. If recurrence escalation is active, open a repeat-drift escalation thread immediately.
+10. Compare expected vs actual contract nodes.
 
 ## 4. Resolution Paths
 
@@ -47,6 +48,7 @@ Exception path:
 - Keep triage within 1 business day and closure or approved exception within 2 business days.
 - Approved bypass metadata must include reason, impact, expiry date, rollback steps, follow-up ticket, owner, and approvals.backendLead/frontendLead set to true.
 - Expired or missing-approval exceptions must fail CI automatically.
+- Near-expiry exceptions (<=7 days) must be reported and assigned an owner before the next release cut.
 
 ## 5. Exception Requirements
 
@@ -85,6 +87,7 @@ Escalate when:
 - Same drift class repeats in two consecutive releases.
 - Exception requested multiple times for same surface.
 - No owner assigned within one business day.
+- Trend report recurrence threshold is exceeded for class + producer surface.
 
 Path:
 

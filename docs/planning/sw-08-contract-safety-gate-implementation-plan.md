@@ -32,6 +32,7 @@ Implement producer-side contract governance and CI enforcement to prevent backen
 - Upload diagnostics artifacts.
 - Stage 3 PR path runs in hard-fail mode with audited bypass support.
 - Stage 4 weekly metrics output tracks drift count, MTTR, bypass count, and expired bypass count.
+- Stage 5 adds trend reporting, repeat-drift escalation, and PR hygiene checks for migration-note discipline.
 
 5. Cross-repo coordination
 
@@ -44,6 +45,7 @@ Implement producer-side contract governance and CI enforcement to prevent backen
 2. M2: Drift report-only in CI.
 3. M3: Soft fail and exception gate.
 4. M4: Hard fail with SLA enforcement and weekly metrics.
+5. M5: Optimization and continuous assurance with recurrence guardrails.
 
 ## 4. Team Responsibilities
 
@@ -101,3 +103,5 @@ Mitigation: Coordinated change ticket and merge sequence checklist.
 - Teams can reproduce and resolve locally.
 - Exception path audited, time-bound, and rejected automatically when expired or incomplete.
 - Weekly metrics are generated and published without affecting PR gate runtime.
+- Weekly + rolling 30-day trend reports are generated with repeat-offender escalation.
+- Contract-impacting PRs include producer checklist and migration-note evidence before merge.

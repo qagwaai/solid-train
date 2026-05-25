@@ -25,7 +25,9 @@
     "contract:gate:hard:expired": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/drift-old.json --current test/fixtures/sw08/drift-new.json --report artifacts/contracts/stage3-expired-report.json --mode hard-fail --exception test/fixtures/sw08/expired-exception.json",
     "contract:gate:hard:missing-approval": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/drift-old.json --current test/fixtures/sw08/drift-new.json --report artifacts/contracts/stage3-missing-approval-report.json --mode hard-fail --exception test/fixtures/sw08/missing-approval-exception.json",
     "contract:compat-check:hard": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/compat-old.json --current test/fixtures/sw08/compat-new.json --report artifacts/contracts/stage3-compat-report.json --mode hard-fail",
-    "contract:metrics:weekly": "node scripts/sw08/report-contract-metrics.js --reports-dir artifacts/contracts --report artifacts/contracts/sw08-weekly-metrics.json"
+    "contract:metrics:weekly": "node scripts/sw08/report-contract-metrics.js --reports-dir artifacts/contracts --report artifacts/contracts/sw08-trend-report.json --weekly-days 7 --rolling-days 30",
+    "contract:metrics:trend:strict": "node scripts/sw08/report-contract-metrics.js --reports-dir artifacts/contracts --report artifacts/contracts/sw08-trend-report.json --weekly-days 7 --rolling-days 30 --fail-on-recurrence",
+    "contract:pr:hygiene": "node scripts/sw08/check-pr-contract-hygiene.js --changed-files artifacts/contracts/sw08-changed-files.txt"
   },
   "repository": {
     "type": "git",

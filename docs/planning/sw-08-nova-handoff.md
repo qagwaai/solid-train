@@ -48,3 +48,10 @@ Owner tags: backend-lead, frontend-lead, qa-lead
 - Start with `producerLocation`, `consumerSurfaces`, `severity`, and `owner`.
 - If the drift is intentional and still inside the expiry window, attach the approved exception and rerun the gate.
 - If the exception is expired or missing approvals, fix the producer contract or restore the alias instead of retrying.
+
+## Stage 5 Continuous Assurance Note
+
+- Use `artifacts/contracts/sw08-trend-report.json` for weekly and rolling 30-day drift trends.
+- If `recurrenceEscalation.active=true`, escalate repeat offenders (class + producer surface) to backend/frontend leads.
+- Track near-expiry exceptions in `exceptionHygiene.nearExpiryExceptions` and enforce owner assignment before release cut.
+- PRs touching producer contract surfaces now require the SW-08 checklist and a migration-note link (or `not-required`).
