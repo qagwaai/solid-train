@@ -16,6 +16,7 @@ Backend repo documents:
 2. [Implementation Plan](sw-08-contract-safety-gate-implementation-plan.md)
 3. [Runbook](sw-08-contract-safety-gate-runbook.md)
 4. [Prompt Pack](sw-08-contract-safety-gate-prompt-pack.md)
+5. [Closure Checklist](sw-08-closure-checklist.md)
 
 Frontend repo documents:
 
@@ -23,6 +24,7 @@ Frontend repo documents:
 2. [laughing-octo-journey Implementation Plan](../../../laughing-octo-journey/docs/planning/sw-08-contract-safety-gate-implementation-plan.md)
 3. [laughing-octo-journey Runbook](../../../laughing-octo-journey/docs/planning/sw-08-contract-safety-gate-runbook.md)
 4. [laughing-octo-journey Prompt Pack](../../../laughing-octo-journey/docs/planning/sw-08-contract-safety-gate-prompt-pack.md)
+5. [laughing-octo-journey Closure Checklist](../../../laughing-octo-journey/docs/planning/sw-08-closure-checklist.md)
 
 ## Shared Rollout Stages
 
