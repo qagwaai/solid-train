@@ -4,6 +4,13 @@ const SHIP_UPSERT_REQUEST_EVENT = 'ship-upsert-request';
 const SHIP_UPSERT_RESPONSE_EVENT = 'ship-upsert-response';
 
 /**
+ * @typedef {Object} ShipUpsertRequestIdentity
+ * @property {string} operation
+ * @property {string} entityType
+ * @property {string} containerId
+ */
+
+/**
  * @typedef {Object} Triple
  * @property {number} x
  * @property {number} y
@@ -81,6 +88,8 @@ const SHIP_UPSERT_RESPONSE_EVENT = 'ship-upsert-response';
  * @property {string} playerName
  * @property {string} characterId
  * @property {string} sessionKey
+ * @property {string} correlationId
+ * @property {ShipUpsertRequestIdentity} requestIdentity
  * @property {ShipUpsertEntity} ship
  */
 
@@ -90,6 +99,8 @@ const SHIP_UPSERT_RESPONSE_EVENT = 'ship-upsert-response';
  * @property {string} message
  * @property {string} playerName
  * @property {string} characterId
+ * @property {string} correlationId
+ * @property {ShipUpsertRequestIdentity} requestIdentity
  * @property {ShipUpsertEntity} [ship]
  */
 

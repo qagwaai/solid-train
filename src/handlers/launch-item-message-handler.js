@@ -3,6 +3,10 @@
 const { LAUNCH_ITEM_RESPONSE_EVENT } = require('../model/launch-item');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { ITEM_STATE, ITEM_DAMAGE_STATUS, ITEM_CONTAINER_TYPE } = require('../model/canonical-items');
+const {
+  resolveCorrelationId,
+  normalizeRequestIdentity,
+} = require('./correlation-metadata');
 
 const EXPENDABLE_DART_DRONE_ITEM_TYPE = 'expendable-dart-drone';
 const HOTKEY_VALUES = new Set([1, 2, 3, 4, 5]);
@@ -24,6 +28,18 @@ class LaunchItemMessageHandler {
 
   isValidHotkey(value) {
     return Number.isInteger(value) && HOTKEY_VALUES.has(value);
+  }
+
+  normalizeRequestIdentity(requestIdentity, payload) {
+    return normalizeRequestIdentity(
+      {
+        requestIdentity,
+        operation: 'launch-item',
+        entityTypeCandidates: [payload?.itemType, 'unknown'],
+        containerIdCandidates: [payload?.shipId, '-'],
+      },
+      this.context.toNonEmptyString.bind(this.context)
+    );
   }
 
   /**
@@ -298,7 +314,7 @@ class LaunchItemMessageHandler {
     };
   }
 
-  async resolveLaunch(parsed, correlationId = '-') {
+  async resolveLaunch(parsed, correlationId = 'missing-correlation-id', requestIdentity = null) {
     const now = this.context.getCurrentTimestamp();
     const launchSeed = this.computeLaunchSeed(parsed);
     const shouldDeployDebris = true;
@@ -309,6 +325,8 @@ class LaunchItemMessageHandler {
         success: true,
         message: `Launch completed with no effect for itemType: ${parsed.itemType}`,
         playerName: parsed.player.playerName,
+        correlationId,
+        requestIdentity,
         characterId: parsed.characterId,
         shipId: parsed.shipId,
         targetCelestialBodyId: parsed.targetCelestialBodyId,
@@ -429,6 +447,8 @@ class LaunchItemMessageHandler {
       success: true,
       message: 'Launch successful: target destroyed and materials yielded',
       playerName: parsed.player.playerName,
+      correlationId,
+      requestIdentity,
       characterId: parsed.characterId,
       shipId: parsed.shipId,
       targetCelestialBodyId: parsed.targetCelestialBodyId,
@@ -455,11 +475,11 @@ class LaunchItemMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('launch-item-request', payload);
-    const correlationId =
-      this.context.toNonEmptyString(payload?.correlationId) ||
-      this.context.toNonEmptyString(payload?.requestId) ||
-      this.context.toNonEmptyString(payload?.messageId) ||
-      '-';
+    const correlationId = resolveCorrelationId(
+      payload,
+      this.context.toNonEmptyString.bind(this.context)
+    );
+    const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -476,6 +496,8 @@ class LaunchItemMessageHandler {
         success: false,
         message: parsed.error,
         playerName: this.context.toNonEmptyString(parsed.playerName || payload?.playerName),
+        correlationId,
+        requestIdentity,
         characterId: this.context.toNonEmptyString(parsed.characterId || payload?.characterId),
         shipId: this.context.toNonEmptyString(payload?.shipId),
         targetCelestialBodyId: this.context.toNonEmptyString(payload?.targetCelestialBodyId),
@@ -487,7 +509,7 @@ class LaunchItemMessageHandler {
       return response;
     }
 
-    const response = await this.resolveLaunch(parsed, correlationId);
+    const response = await this.resolveLaunch(parsed, correlationId, requestIdentity);
     socket.emit(LAUNCH_ITEM_RESPONSE_EVENT, response);
     return response;
   }

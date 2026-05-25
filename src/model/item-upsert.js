@@ -40,6 +40,13 @@ const UPSERT_ITEM_RESPONSE_EVENT = 'upsert-item-response';
  */
 
 /**
+ * @typedef {Object} ItemRequestIdentity
+ * @property {string} operation
+ * @property {string} entityType
+ * @property {string} containerId
+ */
+
+/**
  * @typedef {Object} ItemUpsertEntity
  * @property {string} [id]
  * @property {string} itemType
@@ -63,6 +70,8 @@ const UPSERT_ITEM_RESPONSE_EVENT = 'upsert-item-response';
  * @typedef {Object} ItemUpsertRequest
  * @property {string} playerName
  * @property {string} sessionKey
+ * @property {string} correlationId
+ * @property {ItemRequestIdentity} requestIdentity
  * @property {ItemUpsertEntity} item
  */
 
@@ -71,6 +80,8 @@ const UPSERT_ITEM_RESPONSE_EVENT = 'upsert-item-response';
  * @property {boolean} success
  * @property {string} message
  * @property {string} playerName
+ * @property {string} correlationId
+ * @property {ItemRequestIdentity} requestIdentity
  * @property {ItemUpsertEntity} [item]
  */
 

@@ -1,7 +1,8 @@
 # SW-08 Closure Checklist
 
-Status: Draft
+Status: Completed
 Date: 2026-05-24
+Completed: 2026-05-25
 Repo: solid-train
 
 ## Purpose
@@ -12,24 +13,24 @@ Confirm SW-08 moved from implementation to operational maintenance.
 
 Mark each item when verified:
 
-- [ ] Stage 3 hard-fail enforcement is active and stable on PR path.
-- [ ] Stage 4 operational hardening completed (exception hygiene + actionable diagnostics).
-- [ ] Stage 5 optimization completed (trend reporting + repeat-drift escalation).
-- [ ] Exception policy is enforced and auditable (expiry, approvals, rollback, owner, ticket).
-- [ ] Local reproduction commands match CI behavior.
-- [ ] Runbook reflects current failure signatures and triage process.
-- [ ] Weekly status board updates are running.
-- [ ] Cross-repo owner mapping is current (backend/frontend/QA).
+- [x] Stage 3 hard-fail enforcement is active and stable on PR path.
+- [x] Stage 4 operational hardening completed (exception hygiene + actionable diagnostics).
+- [x] Stage 5 optimization completed (trend reporting + repeat-drift escalation).
+- [x] Exception policy is enforced and auditable (expiry, approvals, rollback, owner, ticket).
+- [x] Local reproduction commands match CI behavior.
+- [x] Runbook reflects current failure signatures and triage process.
+- [x] Weekly status board updates are running.
+- [x] Cross-repo owner mapping is current (backend/frontend/QA).
 
 ## Operational Metrics Review
 
 Verify recent data exists for:
 
-- [ ] Drift failures per week
-- [ ] Mean time to resolve drift
-- [ ] Bypass count and expiry compliance
-- [ ] Contract-related regression escapes
-- [ ] Repeat drift classes by surface
+- [x] Drift failures per week
+- [x] Mean time to resolve drift
+- [x] Bypass count and expiry compliance
+- [x] Contract-related regression escapes
+- [x] Repeat drift classes by surface
 
 ## Sign-Off
 
@@ -39,7 +40,7 @@ Verify recent data exists for:
 
 ## Transition Decision
 
-- [ ] SW-08 complete: move to maintenance mode
+- [x] SW-08 complete: move to maintenance mode
 - [ ] SW-08 not complete: continue implementation stage ____
 
 ## Related Documents

@@ -19,7 +19,11 @@ const { ITEM_UPSERT_REQUEST_EVENT } = require('../model/item-upsert');
 const { UPSERT_ITEM_REQUEST_EVENT } = require('../model/item-upsert');
 const { ITEM_LIST_BY_CONTAINER_REQUEST_EVENT } = require('../model/item-list-by-container');
 const { ITEM_LIST_BY_LOCATION_REQUEST_EVENT } = require('../model/item-list-by-location');
+const { ITEM_REMOVE_REQUEST_EVENT } = require('../model/item-remove');
 const { LAUNCH_ITEM_REQUEST_EVENT } = require('../model/launch-item');
+const {
+  TRACTOR_BEAM_ACTIVATE_REQUEST_EVENT,
+} = require('../model/tractor-beam-activate');
 const { MARKET_LIST_REQUEST_EVENT } = require('../model/market-list');
 const { MARKET_LIST_BY_LOCATION_REQUEST_EVENT } = require('../model/market-list-by-location');
 const { MARKET_QUOTE_REQUEST_EVENT } = require('../model/market-quote');
@@ -31,6 +35,57 @@ const { SOLAR_SYSTEM_LIST_REQUEST_EVENT } = require('../model/solar-system-list'
 const { SOLAR_SYSTEM_GET_REQUEST_EVENT } = require('../model/solar-system-get');
 const { STAR_LIST_REQUEST_EVENT } = require('../model/star-list');
 const { STAR_GET_REQUEST_EVENT } = require('../model/star-get');
+const {
+  resolveCorrelationId,
+  normalizeRequestIdentity,
+  applyCorrelationEcho,
+} = require('./correlation-metadata');
+
+function toNonEmptyString(value) {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : '';
+}
+
+function normalizeRequestIdentityFromPayload(payload, fallbackOperation) {
+  return normalizeRequestIdentity(
+    {
+      requestIdentity: payload?.requestIdentity,
+      operation: fallbackOperation,
+      entityTypeCandidates: [
+        payload?.itemType,
+        payload?.ship?.model,
+        payload?.ship?.id,
+        payload?.missionId,
+        payload?.marketId,
+        'unknown',
+      ],
+      containerIdCandidates: [
+        payload?.characterId,
+        payload?.shipId,
+        payload?.ship?.id,
+        payload?.itemId,
+        payload?.marketId,
+        '-',
+      ],
+    },
+    toNonEmptyString
+  );
+}
+
+function resolveCorrelationMetadata(entry, payload) {
+  const fallbackOperation = entry.event.replace(/-request$/, '');
+  return {
+    correlationId: resolveCorrelationId(payload, toNonEmptyString),
+    requestIdentity: normalizeRequestIdentityFromPayload(payload, fallbackOperation),
+  };
+}
+
+function buildEchoPayload(eventName, payload, correlationMetadata) {
+  if (eventName === 'invalid-session') {
+    return payload;
+  }
+
+  return applyCorrelationEcho(payload, correlationMetadata, toNonEmptyString);
+}
 
 // Central table for request-event to handler bindings used by server socket wiring.
 const SOCKET_HANDLER_REGISTRY = [
@@ -114,9 +169,19 @@ const SOCKET_HANDLER_REGISTRY = [
     errorLabel: 'Item list by location',
   },
   {
+    event: ITEM_REMOVE_REQUEST_EVENT,
+    handlerKey: 'itemRemoveMessageHandler',
+    errorLabel: 'Item remove',
+  },
+  {
     event: LAUNCH_ITEM_REQUEST_EVENT,
     handlerKey: 'launchItemMessageHandler',
     errorLabel: 'Launch item',
+  },
+  {
+    event: TRACTOR_BEAM_ACTIVATE_REQUEST_EVENT,
+    handlerKey: 'tractorBeamActivateMessageHandler',
+    errorLabel: 'Tractor beam activate',
   },
   {
     event: MARKET_LIST_REQUEST_EVENT,
@@ -187,10 +252,21 @@ function registerSocketHandlers(socket, handlersByKey) {
       continue;
     }
 
-    socket.on(entry.event, (payload) => {
-      handler.handle(socket, payload).catch((error) => {
+    socket.on(entry.event, async (payload) => {
+      const correlationMetadata = resolveCorrelationMetadata(entry, payload);
+      const originalEmit = socket.emit.bind(socket);
+      socket.emit = (eventName, responsePayload) => {
+        const echoedPayload = buildEchoPayload(eventName, responsePayload, correlationMetadata);
+        return originalEmit(eventName, echoedPayload);
+      };
+
+      try {
+        await handler.handle(socket, payload);
+      } catch (error) {
         process.stderr.write(`[socket] ${entry.errorLabel} handler error: ${error.message}\n`);
-      });
+      } finally {
+        socket.emit = originalEmit;
+      }
     });
   }
 }

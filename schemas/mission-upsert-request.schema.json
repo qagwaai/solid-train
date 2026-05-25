@@ -2,7 +2,15 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "mission-upsert-request",
   "type": "object",
-  "required": ["playerName", "characterId", "missionId", "sessionKey", "status"],
+  "required": [
+    "playerName",
+    "characterId",
+    "missionId",
+    "sessionKey",
+    "status",
+    "correlationId",
+    "requestIdentity"
+  ],
   "properties": {
     "playerName": { "type": "string" },
     "characterId": { "type": "string" },
@@ -18,6 +26,20 @@
     "statusDetail": {
       "type": "string",
       "description": "Optional freeform detail preserved with the mission status update."
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
     },
     "requestId": {
       "type": "string",

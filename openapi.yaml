@@ -184,6 +184,13 @@ paths:
   /socket/character-add:
     post:
       summary: character-add-request
+      description: |
+        Creates a new character for the authenticated player.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketCharacterAdd
       tags: [Character]
       requestBody:
@@ -192,6 +199,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CharacterAddRequest'
+            examples:
+              createCharacter:
+                summary: Create a player character with correlation metadata
+                value:
+                  playerName: BuilderPilot
+                  sessionKey: session-123
+                  correlationId: 3b7d0a6d-3b44-4d6f-9d82-6bbf8e16f522
+                  requestIdentity:
+                    operation: character-add
+                    entityType: character
+                    containerId: player-builderpilot
+                  characterName: RangerOne
       responses:
         '200':
           description: character-add-response
@@ -199,10 +218,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CharacterAddResponse'
+              examples:
+                successfulCharacterAdd:
+                  summary: Success echoes correlation metadata with the new character id
+                  value:
+                    success: true
+                    message: Character added successfully
+                    playerName: BuilderPilot
+                    characterName: RangerOne
+                    characterId: character-1
+                    correlationId: 3b7d0a6d-3b44-4d6f-9d82-6bbf8e16f522
+                    requestIdentity:
+                      operation: character-add
+                      entityType: character
+                      containerId: player-builderpilot
+                failedCharacterAdd:
+                  summary: Failure still echoes correlation metadata
+                  value:
+                    success: false
+                    message: Character name is required
+                    playerName: BuilderPilot
+                    characterName: ''
+                    characterId: ''
+                    correlationId: 3b7d0a6d-3b44-4d6f-9d82-6bbf8e16f522
+                    requestIdentity:
+                      operation: character-add
+                      entityType: character
+                      containerId: player-builderpilot
 
   /socket/character-delete:
     post:
       summary: character-delete-request
+      description: |
+        Deletes an existing character from the authenticated player's roster.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketCharacterDelete
       tags: [Character]
       requestBody:
@@ -211,6 +264,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CharacterDeleteRequest'
+            examples:
+              deleteCharacter:
+                summary: Delete an existing character with correlation metadata
+                value:
+                  playerName: DeletePilot
+                  sessionKey: session-123
+                  correlationId: c157c8a1-d7aa-4e66-8654-03fd69acb57d
+                  requestIdentity:
+                    operation: character-delete
+                    entityType: character
+                    containerId: character-1
+                  characterId: character-1
       responses:
         '200':
           description: character-delete-response
@@ -218,10 +283,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CharacterDeleteResponse'
+              examples:
+                successfulCharacterDelete:
+                  summary: Success echoes correlation metadata with deleted character context
+                  value:
+                    success: true
+                    message: Character deleted successfully
+                    playerName: DeletePilot
+                    characterId: character-1
+                    correlationId: c157c8a1-d7aa-4e66-8654-03fd69acb57d
+                    requestIdentity:
+                      operation: character-delete
+                      entityType: character
+                      containerId: character-1
+                failedCharacterDelete:
+                  summary: Failure still echoes correlation metadata
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: DeletePilot
+                    characterId: missing-character-id
+                    correlationId: c157c8a1-d7aa-4e66-8654-03fd69acb57d
+                    requestIdentity:
+                      operation: character-delete
+                      entityType: character
+                      containerId: missing-character-id
 
   /socket/character-edit:
     post:
       summary: character-edit-request
+      description: |
+        Updates a character's display name.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketCharacterEdit
       tags: [Character]
       requestBody:
@@ -230,6 +327,19 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CharacterEditRequest'
+            examples:
+              renameCharacter:
+                summary: Rename an existing character for a player
+                value:
+                  playerName: EditPilot
+                  sessionKey: session-123
+                  correlationId: f4740f89-47a4-4c43-914e-08c4f4c2fe16
+                  requestIdentity:
+                    operation: character-edit
+                    entityType: character
+                    containerId: character-1
+                  characterId: character-1
+                  characterName: NewName
       responses:
         '200':
           description: character-edit-response
@@ -237,12 +347,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CharacterEditResponse'
+              examples:
+                successfulEdit:
+                  summary: Successful response echoes correlation identity
+                  value:
+                    success: true
+                    message: Character edited successfully
+                    playerName: EditPilot
+                    characterId: character-1
+                    characterName: NewName
+                    correlationId: f4740f89-47a4-4c43-914e-08c4f4c2fe16
+                    requestIdentity:
+                      operation: character-edit
+                      entityType: character
+                      containerId: character-1
+                failedEdit:
+                  summary: Validation failure still echoes correlation identity
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: EditPilot
+                    characterId: missing-character-id
+                    characterName: GhostName
+                    correlationId: 87f7dd0a-6022-4c7a-b3b1-6b98aac0e0d9
+                    requestIdentity:
+                      operation: character-edit
+                      entityType: character
+                      containerId: missing-character-id
 
   /socket/character-list:
     post:
       summary: character-list-request
       description: |
         Returns the current player's character summaries.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Response notes:
         - The server returns a defensive copy of the current character list.
@@ -257,6 +399,17 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CharacterListRequest'
+            examples:
+              listCharacters:
+                summary: Retrieve the current character roster with correlation metadata
+                value:
+                  playerName: CharacterPilot
+                  sessionKey: session-123
+                  correlationId: 7967d54c-7843-4450-89b6-8d8a63fdcfbb
+                  requestIdentity:
+                    operation: character-list
+                    entityType: character
+                    containerId: player-characterpilot
       responses:
         '200':
           description: character-list-response
@@ -271,6 +424,11 @@ paths:
                     success: true
                     message: Character list retrieved successfully
                     playerName: CharacterPilot
+                    correlationId: 7967d54c-7843-4450-89b6-8d8a63fdcfbb
+                    requestIdentity:
+                      operation: character-list
+                      entityType: character
+                      containerId: player-characterpilot
                     characters:
                       - id: character-1
                         characterName: RangerOne
@@ -280,6 +438,11 @@ paths:
                     success: true
                     message: Character list retrieved successfully
                     playerName: ActivityPilot
+                    correlationId: b3758e6c-b605-4695-8f4d-2c4041f8fc55
+                    requestIdentity:
+                      operation: character-list
+                      entityType: character
+                      containerId: player-activitypilot
                     characters:
                       - id: character-1
                         characterName: RangerOne
@@ -297,6 +460,11 @@ paths:
                     success: false
                     message: Player is not registered
                     playerName: GhostPilot
+                    correlationId: 5ec4e0b0-f37d-4d8b-b025-2435ad11eb58
+                    requestIdentity:
+                      operation: character-list
+                      entityType: character
+                      containerId: player-ghostpilot
                     characters: []
 
   /socket/ship-list:
@@ -304,6 +472,11 @@ paths:
       summary: ship-list-request
       description: |
         Returns canonical ship payloads for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Cold-boot starter ships are server-authoritative for damaged starter subsystems.
         For ships where `model` is `Scavenger Pod` and `damageProfile.origin` is
@@ -332,6 +505,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ShipListRequest'
+            examples:
+              listShipsForCharacter:
+                summary: Retrieve canonical ships for a character with correlation metadata
+                value:
+                  playerName: ColdBootPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 96bc42e5-a4f7-42fb-82af-88aa67a79085
+                  requestIdentity:
+                    operation: ship-list
+                    entityType: ship
+                    containerId: character-1
       responses:
         '200':
           description: ship-list-response
@@ -347,6 +532,11 @@ paths:
                     message: Ship list retrieved successfully
                     playerName: ColdBootPilot
                     characterId: character-1
+                    correlationId: 96bc42e5-a4f7-42fb-82af-88aa67a79085
+                    requestIdentity:
+                      operation: ship-list
+                      entityType: ship
+                      containerId: character-1
                     ships:
                       - id: ship-1
                         name: Scavenger Pod
@@ -448,6 +638,11 @@ paths:
                     message: Character is not in player list
                     playerName: EdgePilot
                     characterId: missing-character-id
+                    correlationId: ea3182b7-3a35-431f-a61d-2e3dd4e42dcb
+                    requestIdentity:
+                      operation: ship-list
+                      entityType: ship
+                      containerId: missing-character-id
                     ships: []
 
   /socket/ship-upsert:
@@ -455,6 +650,11 @@ paths:
       summary: ship-upsert-request
       description: |
         Updates a ship for the active character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         `ship` is a partial patch object. Patch intent for nested sections is based on
         property presence in the request payload.
@@ -494,6 +694,11 @@ paths:
                   playerName: TestPilot
                   characterId: character-1
                   sessionKey: session-123
+                  correlationId: cf88c640-35fd-407d-9ad8-6ef8ed6f423c
+                  requestIdentity:
+                    operation: ship-upsert
+                    entityType: ship
+                    containerId: ship-1
                   ship:
                     id: ship-1
                     inventory:
@@ -508,6 +713,11 @@ paths:
                   playerName: TestPilot
                   characterId: character-1
                   sessionKey: session-123
+                  correlationId: 9ed4ac7d-bf52-43c8-9f87-43519bc24f78
+                  requestIdentity:
+                    operation: ship-upsert
+                    entityType: ship
+                    containerId: ship-1
                   ship:
                     id: ship-1
                     damageProfile:
@@ -528,6 +738,11 @@ paths:
                     message: Ship updated successfully
                     playerName: TestPilot
                     characterId: character-1
+                    correlationId: cf88c640-35fd-407d-9ad8-6ef8ed6f423c
+                    requestIdentity:
+                      operation: ship-upsert
+                      entityType: ship
+                      containerId: ship-1
                     ship:
                       id: ship-1
                       model: Reaver Hauler
@@ -539,6 +754,11 @@ paths:
                     message: playerName, characterId, and ship.id are required
                     playerName: TestPilot
                     characterId: character-1
+                    correlationId: 9ed4ac7d-bf52-43c8-9f87-43519bc24f78
+                    requestIdentity:
+                      operation: ship-upsert
+                      entityType: ship
+                      containerId: ship-1
                 ownershipMismatchFailure:
                   summary: Cross-player ownership mutation is rejected with explicit reason
                   value:
@@ -547,6 +767,11 @@ paths:
                     message: Ship ownership mismatch for requested mutation
                     playerName: MismatchIntruder
                     characterId: character-2
+                    correlationId: 6632ab5c-c8c9-40e7-ab8e-2d816f876e00
+                    requestIdentity:
+                      operation: ship-upsert
+                      entityType: ship
+                      containerId: ship-1
                 claimTokenRequiredFailure:
                   summary: Unknown to player-character transition requires explicit claimToken
                   value:
@@ -555,12 +780,22 @@ paths:
                     message: Ownership transition unknown -> player-character requires claimToken
                     playerName: ClaimTokenPilot
                     characterId: character-1
+                    correlationId: 4b679f2c-1456-428d-8df1-df91bb7f8f26
+                    requestIdentity:
+                      operation: ship-upsert
+                      entityType: ship
+                      containerId: ship-1
 
   /socket/ship-list-by-owner:
     post:
       summary: ship-list-by-owner-request
       description: |
         Returns ships that match the provided ownership descriptor.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Response notes:
         - The response includes a normalized `owner` descriptor with explicit nullable
@@ -582,6 +817,11 @@ paths:
                 value:
                   playerName: OwnerScopePilot
                   sessionKey: session-123
+                  correlationId: 58f2cc38-68c6-48ba-ba3e-2ca78f65d926
+                  requestIdentity:
+                    operation: ship-list-by-owner
+                    entityType: ship
+                    containerId: player-character:character-1
                   owner:
                     ownerType: player-character
                     characterId: character-1
@@ -598,6 +838,11 @@ paths:
                   value:
                     success: true
                     message: Ship list by owner retrieved successfully
+                    correlationId: 58f2cc38-68c6-48ba-ba3e-2ca78f65d926
+                    requestIdentity:
+                      operation: ship-list-by-owner
+                      entityType: ship
+                      containerId: player-character:character-1
                     owner:
                       ownerType: player-character
                       playerId: player-1
@@ -618,6 +863,11 @@ paths:
                     success: false
                     reason: INVALID_SESSION
                     message: Invalid session
+                    correlationId: 58f2cc38-68c6-48ba-ba3e-2ca78f65d926
+                    requestIdentity:
+                      operation: ship-list-by-owner
+                      entityType: ship
+                      containerId: player-character:character-1
                     ships: []
 
   /socket/ship-transfer:
@@ -625,6 +875,11 @@ paths:
       summary: ship-transfer-request
       description: |
         Transfers ship ownership between valid owner descriptors.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Behavior notes:
         - `toOwner` is required and must include `ownerType`.
@@ -646,6 +901,11 @@ paths:
                 value:
                   playerName: TransferSuccessOwner
                   sessionKey: session-owner
+                  correlationId: 3b49dfe3-f290-4f46-98f1-77dbe2d14b4c
+                  requestIdentity:
+                    operation: ship-transfer
+                    entityType: ship
+                    containerId: ship-1
                   shipId: ship-1
                   fromOwner:
                     ownerType: player-character
@@ -664,6 +924,11 @@ paths:
                 value:
                   playerName: ClaimTokenPilot
                   sessionKey: session-claim
+                  correlationId: 35ff5f80-b755-4d0b-b72a-cb24f017ab50
+                  requestIdentity:
+                    operation: ship-transfer
+                    entityType: ship
+                    containerId: unknown-ship-1
                   shipId: unknown-ship-1
                   fromOwner:
                     ownerType: unknown
@@ -687,6 +952,11 @@ paths:
                   value:
                     success: true
                     message: Ship transferred successfully
+                    correlationId: 3b49dfe3-f290-4f46-98f1-77dbe2d14b4c
+                    requestIdentity:
+                      operation: ship-transfer
+                      entityType: ship
+                      containerId: ship-1
                     shipId: ship-1
                     fromOwner:
                       ownerType: player-character
@@ -706,6 +976,11 @@ paths:
                     success: false
                     reason: SHIP_TRANSFER_FORBIDDEN
                     message: Actor does not have permission to transfer this ship
+                    correlationId: 3b49dfe3-f290-4f46-98f1-77dbe2d14b4c
+                    requestIdentity:
+                      operation: ship-transfer
+                      entityType: ship
+                      containerId: ship-1
                     shipId: ship-1
                 invalidSession:
                   summary: Invalid session returns stable reason and no transfer payload
@@ -713,11 +988,23 @@ paths:
                     success: false
                     reason: INVALID_SESSION
                     message: Invalid session
+                    correlationId: 3b49dfe3-f290-4f46-98f1-77dbe2d14b4c
+                    requestIdentity:
+                      operation: ship-transfer
+                      entityType: ship
+                      containerId: ship-1
                     ships: []
 
   /socket/mission-list:
     post:
       summary: mission-list-request
+      description: |
+        Lists mission records for the active character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketMissionList
       tags: [Mission]
       requestBody:
@@ -726,6 +1013,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MissionListRequest'
+            examples:
+              listCharacterMissions:
+                summary: Retrieve mission progress for a character with correlation metadata
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
+                  requestIdentity:
+                    operation: mission-list
+                    entityType: mission
+                    containerId: character-1
       responses:
         '200':
           description: mission-list-response
@@ -733,12 +1032,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MissionListResponse'
+              examples:
+                successfulMissionList:
+                  summary: Success echoes correlation metadata with mission rows
+                  value:
+                    success: true
+                    message: Mission list retrieved successfully
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
+                    requestIdentity:
+                      operation: mission-list
+                      entityType: mission
+                      containerId: character-1
+                    missions:
+                      - missionId: first-target
+                        status: started
+                failedMissionList:
+                  summary: Failure still echoes correlation metadata
+                  value:
+                    success: false
+                    message: Invalid session
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
+                    requestIdentity:
+                      operation: mission-list
+                      entityType: mission
+                      containerId: character-1
+                    missions: []
 
   /socket/mission-upsert:
     post:
       summary: mission-upsert-request
       description: |
         Upserts mission progress for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Accepted `status` values are the canonical mission lifecycle states handled by
         the server: `available`, `started`, `in-progress`, `failed`, `completed`,
@@ -768,6 +1101,11 @@ paths:
                   missionId: first-target
                   status: started
                   sessionKey: session-123
+                  correlationId: f5d5cc38-e8f1-4e58-b775-1b86800fbc8c
+                  requestIdentity:
+                    operation: mission-upsert
+                    entityType: mission
+                    containerId: character-1
               completeMissionWithRequestId:
                 summary: Complete a mission and request response correlation
                 value:
@@ -775,6 +1113,11 @@ paths:
                   characterId: character-1
                   missionId: first-target
                   status: completed
+                  correlationId: 64af3477-f07e-4648-b0f1-fcf1fb646638
+                  requestIdentity:
+                    operation: mission-upsert
+                    entityType: mission
+                    containerId: character-1
                   requestId: req-123
                   sessionKey: session-123
       responses:
@@ -792,6 +1135,11 @@ paths:
                     message: Mission recorded successfully
                     playerName: MissionPilot
                     characterId: character-1
+                    correlationId: f5d5cc38-e8f1-4e58-b775-1b86800fbc8c
+                    requestIdentity:
+                      operation: mission-upsert
+                      entityType: mission
+                      containerId: character-1
                     requestId: req-123
                     mission:
                       missionId: first-target
@@ -805,6 +1153,11 @@ paths:
                     message: 'status must be one of: available, started, in-progress, failed, completed, locked, abandoned, paused, turned-in'
                     playerName: MissionPilot
                     characterId: character-1
+                    correlationId: 64af3477-f07e-4648-b0f1-fcf1fb646638
+                    requestIdentity:
+                      operation: mission-upsert
+                      entityType: mission
+                      containerId: character-1
                     requestId: req-123
 
   /socket/add-mission:
@@ -831,6 +1184,11 @@ paths:
                   characterId: character-1
                   missionId: first-target
                   status: started
+                  correlationId: f5d5cc38-e8f1-4e58-b775-1b86800fbc8c
+                  requestIdentity:
+                    operation: mission-upsert
+                    entityType: mission
+                    containerId: character-1
                   sessionKey: session-123
       responses:
         '200':
@@ -845,6 +1203,11 @@ paths:
       summary: celestial-body-list-request
       description: |
         Lists canonical celestial bodies in a solar system.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Query modes:
         - Whole-system listing: omit both `positionKm` and `distanceKm`.
@@ -873,6 +1236,11 @@ paths:
                 value:
                   playerName: ScannerOne
                   sessionKey: session-123
+                  correlationId: 2d95dd9d-287a-4fc0-93a0-5b95a53d5a89
+                  requestIdentity:
+                    operation: celestial-body-list
+                    entityType: celestial-body
+                    containerId: sol
                   solarSystemId: sol
                   positionKm:
                     x: 0
@@ -888,6 +1256,11 @@ paths:
                 value:
                   playerName: ScannerOne
                   sessionKey: session-123
+                  correlationId: b8c2cb60-f33b-4675-8955-8bde05bdc31c
+                  requestIdentity:
+                    operation: celestial-body-list
+                    entityType: celestial-body
+                    containerId: sol
                   solarSystemId: sol
                   createdByCharacterId: character-1
                   missionId: first-target
@@ -905,6 +1278,11 @@ paths:
                     success: true
                     message: Celestial body list retrieved successfully
                     playerName: ScannerOne
+                    correlationId: 2d95dd9d-287a-4fc0-93a0-5b95a53d5a89
+                    requestIdentity:
+                      operation: celestial-body-list
+                      entityType: celestial-body
+                      containerId: sol
                     solarSystemId: sol
                     positionKm:
                       x: 0
@@ -1000,6 +1378,11 @@ paths:
                     success: true
                     message: Celestial body list retrieved successfully
                     playerName: ScannerOne
+                    correlationId: b8c2cb60-f33b-4675-8955-8bde05bdc31c
+                    requestIdentity:
+                      operation: celestial-body-list
+                      entityType: celestial-body
+                      containerId: sol
                     solarSystemId: sol
                     celestialBodies:
                       - id: cb-sol-1
@@ -1045,6 +1428,11 @@ paths:
                     success: false
                     message: positionKm and distanceKm must both be supplied for radius queries; omit both for a whole-system listing
                     playerName: ScannerOne
+                    correlationId: 2d95dd9d-287a-4fc0-93a0-5b95a53d5a89
+                    requestIdentity:
+                      operation: celestial-body-list
+                      entityType: celestial-body
+                      containerId: sol
                     solarSystemId: sol
                     celestialBodies: []
 
@@ -1053,6 +1441,11 @@ paths:
       summary: celestial-body-upsert-request
       description: |
         Creates or updates a canonical celestial body record.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         `celestialBody` is a complete canonical payload, not a partial patch.
 
@@ -1083,6 +1476,11 @@ paths:
                 value:
                   playerName: ScannerOne
                   sessionKey: session-123
+                  correlationId: 6c867e8f-80ff-4e3d-b474-08b85bfe4ad7
+                  requestIdentity:
+                    operation: celestial-body-upsert
+                    entityType: celestial-body
+                    containerId: cb-1
                   celestialBody:
                     id: cb-1
                     catalogId: asteroid-scan-1
@@ -1112,6 +1510,11 @@ paths:
                 value:
                   playerName: ScannerOne
                   sessionKey: session-123
+                  correlationId: 7331bb3d-6fdd-48ef-ae41-6c223f4cf836
+                  requestIdentity:
+                    operation: celestial-body-upsert
+                    entityType: celestial-body
+                    containerId: first-target
                   celestialBody:
                     catalogId: asteroid-scan-2
                     sourceScanId: sample-a3
@@ -1146,6 +1549,11 @@ paths:
                     success: true
                     message: Celestial body recorded successfully
                     playerName: ScannerOne
+                    correlationId: 6c867e8f-80ff-4e3d-b474-08b85bfe4ad7
+                    requestIdentity:
+                      operation: celestial-body-upsert
+                      entityType: celestial-body
+                      containerId: cb-1
                     celestialBody:
                       id: cb-1
                       catalogId: asteroid-scan-1
@@ -1158,6 +1566,11 @@ paths:
                     success: false
                     message: playerName and a complete canonical celestialBody payload are required
                     playerName: ScannerOne
+                    correlationId: 7331bb3d-6fdd-48ef-ae41-6c223f4cf836
+                    requestIdentity:
+                      operation: celestial-body-upsert
+                      entityType: celestial-body
+                      containerId: first-target
 
   /socket/item-list-by-container:
     post:
@@ -1165,6 +1578,11 @@ paths:
       description: |
         Returns canonical item payloads whose `container` matches the requested
         `containerType` and `containerId`.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         For `containerType: ship`, cold-boot starter Scavenger Pods use the same
         server-authoritative subsystem backfill behavior as `ship-list`.
@@ -1184,6 +1602,19 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ItemListByContainerRequest'
+            examples:
+              shipInventory:
+                summary: Retrieve canonical ship inventory with correlation metadata
+                value:
+                  playerName: ColdBootPilot
+                  sessionKey: session-123
+                  correlationId: 65a4a621-2c83-4094-8832-af79992095bd
+                  requestIdentity:
+                    operation: item-list-by-container
+                    entityType: item
+                    containerId: ship-1
+                  containerType: ship
+                  containerId: ship-1
       responses:
         '200':
           description: item-list-by-container-response
@@ -1198,6 +1629,11 @@ paths:
                     success: true
                     message: Items retrieved successfully
                     playerName: ColdBootPilot
+                    correlationId: 65a4a621-2c83-4094-8832-af79992095bd
+                    requestIdentity:
+                      operation: item-list-by-container
+                      entityType: item
+                      containerId: ship-1
                     containerType: ship
                     containerId: ship-1
                     items:
@@ -1264,6 +1700,11 @@ paths:
       description: |
         Lists items near a barycentric position in a solar system.
 
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
         Query behavior:
         - Only deployed items with canonical `spatial` coordinates are eligible.
         - Legacy `kinematics` is not used for selection.
@@ -1280,6 +1721,24 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ItemListByLocationRequest'
+            examples:
+              nearbyItems:
+                summary: Retrieve deployed items near a point in space
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 55753bb2-26dd-45fb-acab-c88f7734b709
+                  requestIdentity:
+                    operation: item-list-by-location
+                    entityType: item
+                    containerId: sol
+                  solarSystemId: sol
+                  positionKm:
+                    x: 0
+                    y: 0
+                    z: 0
+                  distanceKm: 10
+                  itemType: expendable-dart-drone
       responses:
         '200':
           description: item-list-by-location-response
@@ -1294,6 +1753,11 @@ paths:
                     success: true
                     message: Item list retrieved successfully
                     playerName: PilotOne
+                    correlationId: 55753bb2-26dd-45fb-acab-c88f7734b709
+                    requestIdentity:
+                      operation: item-list-by-location
+                      entityType: item
+                      containerId: sol
                     solarSystemId: sol
                     positionKm:
                       x: 0
@@ -1328,6 +1792,11 @@ paths:
                     success: false
                     message: playerName, solarSystemId, positionKm, and distanceKm are required
                     playerName: PilotOne
+                    correlationId: 55753bb2-26dd-45fb-acab-c88f7734b709
+                    requestIdentity:
+                      operation: item-list-by-location
+                      entityType: item
+                      containerId: sol
                     solarSystemId: sol
                     items: []
 
@@ -1343,6 +1812,9 @@ paths:
           `item.motion` and clears those fields.
 
         Behavior notes:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
         - Creating a new item requires `item.itemType` and `item.displayName`.
         - `item.tier` is optional, but when provided it must be an integer from 1 to 20.
         - Omitting `item.tier` on update preserves the existing stored tier.
@@ -1366,6 +1838,11 @@ paths:
                 value:
                   playerName: PilotOne
                   sessionKey: session-123
+                  correlationId: 7b1c4066-78bd-4611-8d88-3610b054f4ce
+                  requestIdentity:
+                    operation: item-upsert
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
                   item:
                     id: item-1
                     tier: 10
@@ -1389,6 +1866,11 @@ paths:
                 value:
                   playerName: PilotOne
                   sessionKey: session-123
+                  correlationId: 251eccf4-7f07-4331-a214-7d6ef5c57b87
+                  requestIdentity:
+                    operation: item-upsert
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
                   item:
                     id: item-1
                     state: destroyed
@@ -1407,6 +1889,11 @@ paths:
                     success: true
                     message: Item updated successfully
                     playerName: PilotOne
+                    correlationId: 7b1c4066-78bd-4611-8d88-3610b054f4ce
+                    requestIdentity:
+                      operation: item-upsert
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
                     item:
                       id: item-1
                       itemType: expendable-dart-drone
@@ -1419,6 +1906,11 @@ paths:
                     success: false
                     message: 'item.state must be one of: contained, deployed, destroyed'
                     playerName: PilotOne
+                    correlationId: 251eccf4-7f07-4331-a214-7d6ef5c57b87
+                    requestIdentity:
+                      operation: item-upsert
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
 
   /socket/launch-item:
     post:
@@ -1427,6 +1919,9 @@ paths:
         Launches a ship inventory item at a target celestial body.
 
         Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
         - `hotkey` must be one of `1` through `5`.
         - The item must exist in the specified ship inventory.
         - `itemType` must match the persisted item record.
@@ -1457,6 +1952,11 @@ paths:
                   characterId: character-1
                   shipId: ship-1
                   sessionKey: session-123
+                  correlationId: 0b16ca57-4773-4348-9c69-20598ba55bae
+                  requestIdentity:
+                    operation: launch-item
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
                   targetCelestialBodyId: cb-1
                   hotkey: 3
                   itemId: item-1
@@ -1468,6 +1968,11 @@ paths:
                   characterId: character-1
                   shipId: ship-1
                   sessionKey: session-123
+                  correlationId: c77e0eb2-322f-4a6e-bf24-f1eb7e89f5b3
+                  requestIdentity:
+                    operation: launch-item
+                    entityType: basic-mining-laser
+                    containerId: ship-1
                   targetCelestialBodyId: cb-1
                   hotkey: 3
                   itemId: item-2
@@ -1486,6 +1991,11 @@ paths:
                     success: true
                     message: 'Launch successful: target destroyed and materials yielded'
                     playerName: PilotOne
+                    correlationId: 0b16ca57-4773-4348-9c69-20598ba55bae
+                    requestIdentity:
+                      operation: launch-item
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
                     characterId: character-1
                     shipId: ship-1
                     targetCelestialBodyId: cb-1
@@ -1534,6 +2044,11 @@ paths:
                     success: false
                     message: Target celestial body does not exist
                     playerName: PilotOne
+                    correlationId: c77e0eb2-322f-4a6e-bf24-f1eb7e89f5b3
+                    requestIdentity:
+                      operation: launch-item
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
                     characterId: character-1
                     shipId: ship-1
                     targetCelestialBodyId: cb-missing
@@ -1541,11 +2056,165 @@ paths:
                     itemId: item-1
                     itemType: expendable-dart-drone
 
+  /socket/item-remove:
+    post:
+      summary: item-remove-request
+      description: |
+        Removes a ship-contained item from inventory and marks the persisted item as destroyed.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - The item must exist in the target ship inventory.
+      operationId: socketItemRemove
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemRemoveRequest'
+            examples:
+              removeContainedItem:
+                summary: Remove a ship-contained item by id
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  correlationId: 9d4af767-fec8-4fd4-90e7-1776f1f2f7f4
+                  requestIdentity:
+                    operation: item-remove
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
+                  itemId: item-1
+                  itemType: expendable-dart-drone
+                  reason: consumed-by:salvage
+      responses:
+        '200':
+          description: item-remove-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemRemoveResponse'
+              examples:
+                successfulRemove:
+                  summary: Successful remove returns destroyed item state
+                  value:
+                    success: true
+                    message: Item removed successfully
+                    correlationId: 9d4af767-fec8-4fd4-90e7-1776f1f2f7f4
+                    requestIdentity:
+                      operation: item-remove
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+                failedRemove:
+                  summary: Failure response echoes request identity and correlation
+                  value:
+                    success: false
+                    message: Item is not in ship inventory
+                    correlationId: 9d4af767-fec8-4fd4-90e7-1776f1f2f7f4
+                    requestIdentity:
+                      operation: item-remove
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+
+  /socket/tractor-beam-activate:
+    post:
+      summary: tractor-beam-activate-request
+      description: |
+        Activates a ship tractor beam subsystem for the active ship context.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - The target ship must contain `ship-tractor-beam` in its inventory references.
+      operationId: socketTractorBeamActivate
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TractorBeamActivateRequest'
+            examples:
+              activateTractorBeam:
+                summary: Activate the tractor beam for a ship and optional target
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  correlationId: 0b45f0c0-9777-4cd9-abce-429f95bc4b03
+                  requestIdentity:
+                    operation: tractor-beam-activate
+                    entityType: ship-tractor-beam
+                    containerId: ship-1
+                  targetItemId: debris-item-1
+                  targetCelestialBodyId: cb-1
+      responses:
+        '200':
+          description: tractor-beam-activate-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TractorBeamActivateResponse'
+              examples:
+                successfulActivation:
+                  summary: Successful activation returns the equipped tractor beam reference
+                  value:
+                    success: true
+                    message: Tractor beam activated
+                    correlationId: 0b45f0c0-9777-4cd9-abce-429f95bc4b03
+                    requestIdentity:
+                      operation: tractor-beam-activate
+                      entityType: ship-tractor-beam
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    tractorBeamItemId: ship-1-starter-ship-tractor-beam
+                    targetItemId: debris-item-1
+                    targetCelestialBodyId: cb-1
+                    activated: true
+                failedActivation:
+                  summary: Activation failure still echoes request identity and correlation
+                  value:
+                    success: false
+                    message: Ship does not have an equipped tractor beam item
+                    correlationId: 0b45f0c0-9777-4cd9-abce-429f95bc4b03
+                    requestIdentity:
+                      operation: tractor-beam-activate
+                      entityType: ship-tractor-beam
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    targetItemId: debris-item-1
+                    targetCelestialBodyId: cb-1
+
   /socket/market-buy:
     post:
       summary: market-buy-request
       description: |
         Executes a market buy transaction for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Preconditions:
         - `quantity` must be a positive integer.
@@ -1579,6 +2248,11 @@ paths:
                   playerName: MarketPilot
                   characterId: character-1
                   sessionKey: session-123
+                  correlationId: d7239128-1483-4517-a6eb-6eecf574e511
+                  requestIdentity:
+                    operation: market-buy
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
                   marketId: sol-ceres-exchange
                   solarSystemId: sol
                   itemId: iron
@@ -1591,6 +2265,11 @@ paths:
                   playerName: MarketPilot
                   characterId: character-1
                   sessionKey: session-123
+                  correlationId: 51685b3b-5e74-4f55-b9b0-7f044b11fa8f
+                  requestIdentity:
+                    operation: market-buy
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
                   marketId: sol-ceres-exchange
                   solarSystemId: sol
                   itemId: iridium
@@ -1608,6 +2287,11 @@ paths:
                   value:
                     success: true
                     message: Market buy transaction completed
+                    correlationId: d7239128-1483-4517-a6eb-6eecf574e511
+                    requestIdentity:
+                      operation: market-buy
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
                     requestId: buy-1
                     transaction:
                       transactionId: tx-123
@@ -1628,12 +2312,24 @@ paths:
                   value:
                     success: false
                     message: Insufficient credits for purchase
+                    correlationId: 51685b3b-5e74-4f55-b9b0-7f044b11fa8f
+                    requestIdentity:
+                      operation: market-buy
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
                     requestId: buy-2
                     reason: INSUFFICIENT_CREDITS
 
   /socket/market-inventory-list:
     post:
       summary: market-inventory-list-request
+      description: |
+        Lists canonical market inventory rows.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketMarketInventoryList
       tags: [Market]
       requestBody:
@@ -1642,6 +2338,19 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MarketInventoryListRequest'
+            examples:
+              inventoryPage:
+                summary: Retrieve market inventory with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: c1f167c8-2964-4ab7-9dde-abfc0ce97997
+                  requestIdentity:
+                    operation: market-inventory-list
+                    entityType: market-inventory
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
       responses:
         '200':
           description: market-inventory-list-response
@@ -1655,6 +2364,11 @@ paths:
                   value:
                     success: true
                     message: Market inventory retrieved successfully
+                    correlationId: c1f167c8-2964-4ab7-9dde-abfc0ce97997
+                    requestIdentity:
+                      operation: market-inventory-list
+                      entityType: market-inventory
+                      containerId: sol-ceres-exchange
                     playerName: MarketPilot
                     marketId: sol-ceres-exchange
                     solarSystemId: sol
@@ -1678,6 +2392,11 @@ paths:
                   value:
                     success: false
                     message: Market was not found
+                    correlationId: c1f167c8-2964-4ab7-9dde-abfc0ce97997
+                    requestIdentity:
+                      operation: market-inventory-list
+                      entityType: market-inventory
+                      containerId: sol-ceres-exchange
                     reason: MARKET_NOT_FOUND
                     inventory: []
                     total: 0
@@ -1687,6 +2406,13 @@ paths:
   /socket/market-ledger-list:
     post:
       summary: market-ledger-list-request
+      description: |
+        Lists canonical market ledger entries.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketMarketLedgerList
       tags: [Market]
       requestBody:
@@ -1695,6 +2421,19 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MarketLedgerListRequest'
+            examples:
+              ledgerPage:
+                summary: Retrieve market ledger entries with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: a164d0e6-5c0f-48d7-baad-915dcdb12709
+                  requestIdentity:
+                    operation: market-ledger-list
+                    entityType: market-ledger
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
       responses:
         '200':
           description: market-ledger-list-response
@@ -1708,6 +2447,11 @@ paths:
                   value:
                     success: true
                     message: Market ledger retrieved successfully
+                    correlationId: a164d0e6-5c0f-48d7-baad-915dcdb12709
+                    requestIdentity:
+                      operation: market-ledger-list
+                      entityType: market-ledger
+                      containerId: sol-ceres-exchange
                     playerName: MarketPilot
                     marketId: sol-ceres-exchange
                     solarSystemId: sol
@@ -1731,6 +2475,11 @@ paths:
                   value:
                     success: false
                     message: Market was not found
+                    correlationId: a164d0e6-5c0f-48d7-baad-915dcdb12709
+                    requestIdentity:
+                      operation: market-ledger-list
+                      entityType: market-ledger
+                      containerId: sol-ceres-exchange
                     reason: MARKET_NOT_FOUND
                     requestId: ledger-list-2
                     entries: []
@@ -1741,6 +2490,13 @@ paths:
   /socket/market-list:
     post:
       summary: market-list-request
+      description: |
+        Lists canonical market projections.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketMarketList
       tags: [Market]
       requestBody:
@@ -1749,6 +2505,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MarketListRequest'
+            examples:
+              listMarkets:
+                summary: Retrieve market projections for a system with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: 60477298-cc90-4777-a22b-1852c8f087db
+                  requestIdentity:
+                    operation: market-list
+                    entityType: market
+                    containerId: sol
+                  solarSystemId: sol
       responses:
         '200':
           description: market-list-response
@@ -1763,6 +2531,11 @@ paths:
                     success: true
                     message: Market list retrieved successfully
                     playerName: MarketPilot
+                    correlationId: 60477298-cc90-4777-a22b-1852c8f087db
+                    requestIdentity:
+                      operation: market-list
+                      entityType: market
+                      containerId: sol
                     solarSystemId: sol
                     markets:
                       - marketId: sol-ceres-exchange
@@ -1791,12 +2564,24 @@ paths:
                     success: false
                     message: "MarketList: market 'broken-market' has invalid canonical spatial/trajectory fields"
                     playerName: MarketPilot
+                    correlationId: 60477298-cc90-4777-a22b-1852c8f087db
+                    requestIdentity:
+                      operation: market-list
+                      entityType: market
+                      containerId: sol
                     solarSystemId: sol
                     markets: []
 
   /socket/market-list-by-location:
     post:
       summary: market-list-by-location-request
+      description: |
+        Lists nearby markets from a barycentric position.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketMarketListByLocation
       tags: [Market]
       requestBody:
@@ -1805,6 +2590,23 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MarketListByLocationRequest'
+            examples:
+              localMarkets:
+                summary: Retrieve nearby markets with docking context and correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                  requestIdentity:
+                    operation: market-list-by-location
+                    entityType: market
+                    containerId: sol
+                  solarSystemId: sol
+                  positionKm:
+                    x: 90
+                    y: 0
+                    z: 0
+                  distanceAu: 0.001
       responses:
         '200':
           description: market-list-by-location-response
@@ -1819,6 +2621,11 @@ paths:
                     success: true
                     message: Local market list retrieved successfully
                     playerName: MarketPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
                     solarSystemId: sol
                     positionKm:
                       x: 90
@@ -1858,6 +2665,11 @@ paths:
                     success: false
                     message: playerName, solarSystemId, positionKm, and distanceAu are required
                     playerName: MarketPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
                     solarSystemId: sol
                     markets: []
                     isDocked: false
@@ -1866,6 +2678,13 @@ paths:
   /socket/market-quote:
     post:
       summary: market-quote-request
+      description: |
+        Returns normalized market quote pricing.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketMarketQuote
       tags: [Market]
       requestBody:
@@ -1874,6 +2693,23 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MarketQuoteRequest'
+            examples:
+              quoteBuy:
+                summary: Retrieve a buy quote with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 48222fd0-64f6-4d75-a8f0-948f2386e253
+                  requestIdentity:
+                    operation: market-quote
+                    entityType: market-quote
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  direction: buy
+                  quantity: 5
       responses:
         '200':
           description: market-quote-response
@@ -1889,6 +2725,11 @@ paths:
                     message: Market quote retrieved successfully
                     playerName: MarketPilot
                     characterId: character-1
+                    correlationId: 48222fd0-64f6-4d75-a8f0-948f2386e253
+                    requestIdentity:
+                      operation: market-quote
+                      entityType: market-quote
+                      containerId: sol-ceres-exchange
                     requestId: rq-1
                     quote:
                       marketId: sol-ceres-exchange
@@ -1904,6 +2745,11 @@ paths:
                   value:
                     success: false
                     message: direction must be buy or sell
+                    correlationId: 48222fd0-64f6-4d75-a8f0-948f2386e253
+                    requestIdentity:
+                      operation: market-quote
+                      entityType: market-quote
+                      containerId: sol-ceres-exchange
                     requestId: rq-invalid-direction-1
                     reason: INVALID_DIRECTION
 
@@ -1912,6 +2758,11 @@ paths:
       summary: market-sell-request
       description: |
         Executes a market sell transaction for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Preconditions:
         - `quantity` must be a positive integer.
@@ -1943,6 +2794,11 @@ paths:
                   playerName: MarketPilot
                   characterId: character-1
                   sessionKey: session-123
+                  correlationId: 3aa16533-b021-42c2-8419-6614e754d1af
+                  requestIdentity:
+                    operation: market-sell
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
                   marketId: sol-ceres-exchange
                   solarSystemId: sol
                   itemId: iron
@@ -1955,6 +2811,11 @@ paths:
                   playerName: MarketPilot
                   characterId: character-1
                   sessionKey: session-123
+                  correlationId: 8798f4d3-a6ca-4956-91ec-4c99d8f75a83
+                  requestIdentity:
+                    operation: market-sell
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
                   marketId: sol-ceres-exchange
                   solarSystemId: sol
                   itemId: iron
@@ -1972,6 +2833,11 @@ paths:
                   value:
                     success: true
                     message: Market sell transaction completed
+                    correlationId: 3aa16533-b021-42c2-8419-6614e754d1af
+                    requestIdentity:
+                      operation: market-sell
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
                     requestId: sell-1
                     transaction:
                       transactionId: tx-456
@@ -1992,12 +2858,24 @@ paths:
                   value:
                     success: false
                     message: Insufficient item quantity to sell
+                    correlationId: 8798f4d3-a6ca-4956-91ec-4c99d8f75a83
+                    requestIdentity:
+                      operation: market-sell
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
                     requestId: sell-2
                     reason: INSUFFICIENT_ITEM_QUANTITY
 
   /socket/context-distance:
     post:
       summary: context-distance-request
+      description: |
+        Computes the scalar distance between two context identifiers.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketContextDistance
       tags: [Context]
       requestBody:
@@ -2006,6 +2884,19 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ContextDistanceRequest'
+            examples:
+              distanceLookup:
+                summary: Calculate context distance with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 3adf84db-48f0-4c53-a8a2-53b6e4b47d3a
+                  requestIdentity:
+                    operation: context-distance
+                    entityType: context
+                    containerId: route-sol-alpha-centauri
+                  source: sol
+                  destination: alpha-centauri
       responses:
         '200':
           description: context-distance-response
@@ -2013,10 +2904,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContextDistanceResponse'
+              examples:
+                successfulDistance:
+                  summary: Success echoes correlation metadata with the calculated distance
+                  value:
+                    success: true
+                    message: Distance calculated successfully
+                    playerName: PilotOne
+                    correlationId: 3adf84db-48f0-4c53-a8a2-53b6e4b47d3a
+                    requestIdentity:
+                      operation: context-distance
+                      entityType: context
+                      containerId: route-sol-alpha-centauri
+                    source: sol
+                    destination: alpha-centauri
+                    distance: 4.37
 
   /socket/context-routing:
     post:
       summary: context-routing-request
+      description: |
+        Computes route context between two identifiers.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketContextRouting
       tags: [Context]
       requestBody:
@@ -2025,6 +2938,19 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ContextRoutingRequest'
+            examples:
+              routeLookup:
+                summary: Calculate a route with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: c94904ef-d5b6-4187-b9e8-3c9e6d8047aa
+                  requestIdentity:
+                    operation: context-routing
+                    entityType: context
+                    containerId: route-sol-alpha-centauri
+                  source: sol
+                  destination: alpha-centauri
       responses:
         '200':
           description: context-routing-response
@@ -2032,6 +2958,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContextRoutingResponse'
+              examples:
+                successfulRoute:
+                  summary: Success echoes correlation metadata with route nodes
+                  value:
+                    success: true
+                    message: Route calculated successfully
+                    playerName: PilotOne
+                    correlationId: c94904ef-d5b6-4187-b9e8-3c9e6d8047aa
+                    requestIdentity:
+                      operation: context-routing
+                      entityType: context
+                      containerId: route-sol-alpha-centauri
+                    source: sol
+                    destination: alpha-centauri
+                    route:
+                      - sol
+                      - alpha-centauri
 
   /socket/solar-system-get:
     post:
@@ -2039,6 +2982,11 @@ paths:
       description: |
         Resolves a solar system by id, seeds its canonical celestial bodies on demand,
         and returns both the system summary and its materialized bodies.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Response notes:
         - `solarSystem`, `stars`, and `bodies` are present on success.
@@ -2052,6 +3000,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SolarSystemGetRequest'
+            examples:
+              getSystem:
+                summary: Retrieve a solar system snapshot with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                  requestIdentity:
+                    operation: solar-system-get
+                    entityType: solar-system
+                    containerId: alpha-centauri
+                  solarSystemId: alpha-centauri
       responses:
         '200':
           description: solar-system-get-response
@@ -2066,6 +3026,11 @@ paths:
                     success: true
                     message: Solar system retrieved successfully
                     playerName: PilotOne
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: solar-system-get
+                      entityType: solar-system
+                      containerId: alpha-centauri
                     solarSystemId: alpha-centauri
                     solarSystem:
                       id: alpha-centauri
@@ -2086,6 +3051,11 @@ paths:
                     success: false
                     message: Unknown solar system
                     playerName: PilotOne
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: solar-system-get
+                      entityType: solar-system
+                      containerId: not-a-system
                     solarSystemId: not-a-system
                     requestId: req-1
 
@@ -2095,6 +3065,11 @@ paths:
       description: |
         Returns solar systems from the registry, optionally filtered by source,
         search text, and maximum distance.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Response notes:
         - Systems are sorted by increasing distance.
@@ -2109,6 +3084,17 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SolarSystemListRequest'
+            examples:
+              listSystems:
+                summary: Retrieve solar systems with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 05bf6f98-a26f-4ccb-aa53-ef81259e8303
+                  requestIdentity:
+                    operation: solar-system-list
+                    entityType: solar-system
+                    containerId: registry
       responses:
         '200':
           description: solar-system-list-response
@@ -2123,6 +3109,11 @@ paths:
                     success: true
                     message: Solar system list retrieved successfully
                     playerName: PilotOne
+                    correlationId: 05bf6f98-a26f-4ccb-aa53-ef81259e8303
+                    requestIdentity:
+                      operation: solar-system-list
+                      entityType: solar-system
+                      containerId: registry
                     requestId: req-42
                     solarSystems:
                       - id: sol
@@ -2139,6 +3130,11 @@ paths:
                     success: false
                     message: 'source must be one of: curated, procedural'
                     playerName: PilotOne
+                    correlationId: 05bf6f98-a26f-4ccb-aa53-ef81259e8303
+                    requestIdentity:
+                      operation: solar-system-list
+                      entityType: solar-system
+                      containerId: registry
                     solarSystems: []
 
   /socket/star-get:
@@ -2146,6 +3142,11 @@ paths:
       summary: star-get-request
       description: |
         Returns a single HYG catalog star by `hygId`.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Response notes:
         - `star` is present only on success.
@@ -2158,6 +3159,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/StarGetRequest'
+            examples:
+              getStar:
+                summary: Retrieve a star by HYG id with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: ea3e74fc-a156-4686-a5c4-4bd12ef2ed4d
+                  requestIdentity:
+                    operation: star-get
+                    entityType: star
+                    containerId: '70890'
+                  hygId: '70890'
       responses:
         '200':
           description: star-get-response
@@ -2172,6 +3185,11 @@ paths:
                     success: true
                     message: Star retrieved successfully
                     playerName: PilotOne
+                    correlationId: ea3e74fc-a156-4686-a5c4-4bd12ef2ed4d
+                    requestIdentity:
+                      operation: star-get
+                      entityType: star
+                      containerId: '70890'
                     hygId: '70890'
                     star:
                       hygId: '70890'
@@ -2185,6 +3203,11 @@ paths:
                     success: false
                     message: Star not found
                     playerName: PilotOne
+                    correlationId: ea3e74fc-a156-4686-a5c4-4bd12ef2ed4d
+                    requestIdentity:
+                      operation: star-get
+                      entityType: star
+                      containerId: no-such-id
                     hygId: no-such-id
                     requestId: req-1
 
@@ -2194,6 +3217,11 @@ paths:
       description: |
         Returns HYG catalog stars, optionally filtered by system, spectral class,
         and maximum distance.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
 
         Response notes:
         - Results are sorted by increasing `distanceParsec`.
@@ -2206,6 +3234,17 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/StarListRequest'
+            examples:
+              listStars:
+                summary: Retrieve stars with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: c5dfa780-60d2-4823-837b-c7e84a421f4c
+                  requestIdentity:
+                    operation: star-list
+                    entityType: star
+                    containerId: registry
       responses:
         '200':
           description: star-list-response
@@ -2220,6 +3259,11 @@ paths:
                     success: true
                     message: Star list retrieved successfully
                     playerName: PilotOne
+                    correlationId: c5dfa780-60d2-4823-837b-c7e84a421f4c
+                    requestIdentity:
+                      operation: star-list
+                      entityType: star
+                      containerId: registry
                     requestId: req-2
                     stars:
                       - hygId: '70890'
@@ -2233,11 +3277,23 @@ paths:
                     success: true
                     message: No stars matched the query
                     playerName: PilotOne
+                    correlationId: c5dfa780-60d2-4823-837b-c7e84a421f4c
+                    requestIdentity:
+                      operation: star-list
+                      entityType: star
+                      containerId: registry
                     stars: []
 
   /socket/credit-ledger-list:
     post:
       summary: credit-ledger-list-request
+      description: |
+        Lists character credit ledger entries.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketCreditLedgerList
       tags: [Ledger]
       requestBody:
@@ -2246,6 +3302,17 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreditLedgerListRequest'
+            examples:
+              listCredits:
+                summary: Retrieve credit ledger entries with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 5d8024fd-2cf0-4afd-8c46-b2f3ce65db2e
+                  requestIdentity:
+                    operation: credit-ledger-list
+                    entityType: credit-ledger
+                    containerId: player-pilotone
       responses:
         '200':
           description: credit-ledger-list-response
@@ -2253,10 +3320,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreditLedgerListResponse'
+              examples:
+                successfulCreditLedger:
+                  summary: Success echoes correlation metadata with paged ledger entries
+                  value:
+                    success: true
+                    message: Credit ledger retrieved successfully
+                    playerName: PilotOne
+                    correlationId: 5d8024fd-2cf0-4afd-8c46-b2f3ce65db2e
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: player-pilotone
+                    entries: []
+                    total: 0
+                    offset: 0
+                    limit: 50
 
   /socket/game-join:
     post:
       summary: game-join-request
+      description: |
+        Marks a character as joined to the active game session.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketGameJoin
       tags: [Game]
       requestBody:
@@ -2265,6 +3355,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/GameJoinRequest'
+            examples:
+              joinGame:
+                summary: Join a character to the game with correlation metadata
+                value:
+                  playerName: JoinPilot
+                  sessionKey: session-123
+                  correlationId: 68bd4d59-2ef4-4a51-bb7b-763e530c1270
+                  requestIdentity:
+                    operation: game-join
+                    entityType: game-session
+                    containerId: character-1
+                  characterId: character-1
       responses:
         '200':
           description: game-join-response
@@ -2272,10 +3374,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GameJoinResponse'
+              examples:
+                successfulJoin:
+                  summary: Success echoes correlation metadata with character context
+                  value:
+                    success: true
+                    message: Character joined game successfully
+                    playerName: JoinPilot
+                    characterId: character-1
+                    correlationId: 68bd4d59-2ef4-4a51-bb7b-763e530c1270
+                    requestIdentity:
+                      operation: game-join
+                      entityType: game-session
+                      containerId: character-1
 
   /socket/game-leave:
     post:
       summary: game-leave-request
+      description: |
+        Marks the current player session as leaving the game.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
       operationId: socketGameLeave
       tags: [Game]
       requestBody:
@@ -2284,6 +3406,17 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/GameLeaveRequest'
+            examples:
+              leaveGame:
+                summary: Leave the active game with correlation metadata
+                value:
+                  playerName: JoinPilot
+                  sessionKey: session-123
+                  correlationId: df1b7c96-5d1e-4bfa-a177-5134b5d0a52d
+                  requestIdentity:
+                    operation: game-leave
+                    entityType: game-session
+                    containerId: player-joinpilot
       responses:
         '200':
           description: game-leave-response
@@ -2291,6 +3424,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GameLeaveResponse'
+              examples:
+                successfulLeave:
+                  summary: Success echoes correlation metadata with session context
+                  value:
+                    success: true
+                    message: Game left successfully
+                    playerName: JoinPilot
+                    sessionKey: session-123
+                    correlationId: df1b7c96-5d1e-4bfa-a177-5134b5d0a52d
+                    requestIdentity:
+                      operation: game-leave
+                      entityType: game-session
+                      containerId: player-joinpilot
 
   /socket/game-state:
     post:
@@ -2442,6 +3588,10 @@ components:
       $ref: './schemas/item-list-by-location-request.schema.json'
     ItemListByLocationResponse:
       $ref: './schemas/item-list-by-location-response.schema.json'
+    ItemRemoveRequest:
+      $ref: './schemas/item-remove-request.schema.json'
+    ItemRemoveResponse:
+      $ref: './schemas/item-remove-response.schema.json'
     ItemUpsertRequest:
       $ref: './schemas/item-upsert-request.schema.json'
     ItemUpsertResponse:
@@ -2536,6 +3686,10 @@ components:
       $ref: './schemas/solar-system-list-request.schema.json'
     SolarSystemListResponse:
       $ref: './schemas/solar-system-list-response.schema.json'
+    TractorBeamActivateRequest:
+      $ref: './schemas/tractor-beam-activate-request.schema.json'
+    TractorBeamActivateResponse:
+      $ref: './schemas/tractor-beam-activate-response.schema.json'
     UnknownMessage:
       $ref: './schemas/unknown-message.schema.json'
     WelcomeEvent:

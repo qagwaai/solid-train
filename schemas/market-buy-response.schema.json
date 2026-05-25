@@ -2,10 +2,24 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "market-buy-response",
   "type": "object",
-  "required": ["success", "message"],
+  "required": ["success", "message", "correlationId", "requestIdentity"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
     "requestId": {
       "type": ["string", "null"],
       "description": "Echoed caller correlation id when one was provided on the request."

@@ -38,6 +38,72 @@ function createCharacterOwnership() {
   };
 }
 
+function createRequestIdentity(overrides = {}) {
+  return {
+    operation: 'ship-upsert',
+    entityType: 'ship',
+    containerId: 'ship-1',
+    ...overrides,
+  };
+}
+
+test('ShipUpsertMessageHandler echoes correlationId and requestIdentity on success and validation error', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            createdAt: '2026-04-17T00:00:00.000Z',
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            ownership: createCharacterOwnership(),
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipUpsertMessageHandler(context);
+
+  const successSocket = createMockSocket();
+  const successRequest = {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    correlationId: 'cf88c640-35fd-407d-9ad8-6ef8ed6f423c',
+    requestIdentity: createRequestIdentity(),
+    ship: createShipUpdate(),
+  };
+  const successResponse = await handler.handle(successSocket, successRequest);
+  assert.equal(successResponse.correlationId, successRequest.correlationId);
+  assert.deepEqual(successResponse.requestIdentity, successRequest.requestIdentity);
+
+  const errorSocket = createMockSocket();
+  const errorRequest = {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    correlationId: '9ed4ac7d-bf52-43c8-9f87-43519bc24f78',
+    requestIdentity: createRequestIdentity({ containerId: 'missing-ship' }),
+    ship: { id: 'missing-ship' },
+  };
+  const errorResponse = await handler.handle(errorSocket, errorRequest);
+  assert.equal(errorResponse.success, false);
+  assert.equal(errorResponse.correlationId, errorRequest.correlationId);
+  assert.deepEqual(errorResponse.requestIdentity, errorRequest.requestIdentity);
+});
+
 test('ShipUpsertMessageHandler updates ship location and kinematics', async () => {
   const context = createTestContext();
   seedItems(context, [

@@ -1,5 +1,9 @@
 # SW-08 Nova Handoff
 
+Status: Completed (Maintenance Mode)
+Date: 2026-05-24
+Completed: 2026-05-25
+
 Audience: Nova
 Owner tags: backend-lead, frontend-lead, qa-lead
 

@@ -275,6 +275,103 @@ test('server serves OpenAPI yaml and Swagger UI from the same process', async ()
   }
 });
 
+test('selected OpenAPI socket examples stay aligned with runtime correlation behavior', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const openApiResponse = await httpGetJson(`http://127.0.0.1:${port}/openapi.yaml`);
+    assert.equal(openApiResponse.statusCode, 200);
+    assert.match(openApiResponse.body, /\/socket\/character-add:/);
+    assert.match(openApiResponse.body, /operation:\s+character-add/);
+    assert.match(openApiResponse.body, /\/socket\/market-quote:/);
+    assert.match(openApiResponse.body, /operation:\s+market-quote/);
+    assert.match(openApiResponse.body, /requestId:\s+rq-1/);
+
+    const loginResponse = await registerAndLogin(
+      client,
+      'OpenApiSyncPilot',
+      'openapi-sync@example.com',
+      'sync-pass'
+    );
+
+    const characterCorrelationId = '8de8c197-bd34-4fe3-a619-379f31d0c3a7';
+    const characterRequestIdentity = {
+      operation: 'character-add',
+      entityType: 'character',
+      containerId: 'player-openapisyncpilot',
+    };
+
+    const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+    client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+      playerName: 'OpenApiSyncPilot',
+      sessionKey: loginResponse.sessionKey,
+      correlationId: characterCorrelationId,
+      requestIdentity: characterRequestIdentity,
+      characterName: 'SyncRanger',
+    });
+    const addCharacter = await addCharacterPromise;
+
+    assert.equal(addCharacter.success, true);
+    assert.equal(addCharacter.correlationId, characterCorrelationId);
+    assert.deepEqual(addCharacter.requestIdentity, characterRequestIdentity);
+
+    const marketListPromise = waitForEvent(client, MARKET_LIST_RESPONSE_EVENT);
+    client.emit(MARKET_LIST_REQUEST_EVENT, {
+      playerName: 'OpenApiSyncPilot',
+      sessionKey: loginResponse.sessionKey,
+      correlationId: '85f134ea-cb3d-4470-b811-ee78075ad38b',
+      requestIdentity: {
+        operation: 'market-list',
+        entityType: 'market',
+        containerId: 'sol',
+      },
+      solarSystemId: 'sol',
+    });
+    const marketList = await marketListPromise;
+
+    assert.equal(marketList.success, true);
+    assert.ok(Array.isArray(marketList.markets));
+    assert.ok(marketList.markets.length >= 1);
+
+    const marketQuoteCorrelationId = '7471fa72-7fe6-4123-88c5-0450b6690bf8';
+    const marketQuoteRequestIdentity = {
+      operation: 'market-quote',
+      entityType: 'market-quote',
+      containerId: marketList.markets[0].marketId,
+    };
+
+    const marketQuotePromise = waitForEvent(client, MARKET_QUOTE_RESPONSE_EVENT);
+    client.emit(MARKET_QUOTE_REQUEST_EVENT, {
+      requestId: 'rq-1',
+      playerName: 'OpenApiSyncPilot',
+      characterId: addCharacter.characterId,
+      sessionKey: loginResponse.sessionKey,
+      correlationId: marketQuoteCorrelationId,
+      requestIdentity: marketQuoteRequestIdentity,
+      marketId: marketList.markets[0].marketId,
+      solarSystemId: marketList.markets[0].solarSystemId,
+      itemId: 'iron',
+      direction: 'buy',
+      quantity: 2,
+    });
+    const marketQuote = await marketQuotePromise;
+
+    assert.equal(marketQuote.success, true);
+    assert.equal(marketQuote.requestId, 'rq-1');
+    assert.equal(marketQuote.correlationId, marketQuoteCorrelationId);
+    assert.deepEqual(marketQuote.requestIdentity, marketQuoteRequestIdentity);
+    assert.equal(marketQuote.quote.itemId, 'iron');
+  } finally {
+    await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
 test('server broadcasts generic message payload to connected clients', async () => {
   const { server, io } = createServer();
   const port = await listen(server);

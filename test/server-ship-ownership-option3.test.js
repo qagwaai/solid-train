@@ -191,6 +191,12 @@ test('Option3 server negative: ship-transfer rejects unauthorized actor with str
       reason: 'SHIP_TRANSFER_FORBIDDEN',
       message: 'Actor does not have permission to transfer this ship',
       shipId,
+      correlationId: 'missing-correlation-id',
+      requestIdentity: {
+        operation: 'ship-transfer',
+        entityType: 'unknown',
+        containerId: shipId,
+      },
     });
   } finally {
     await closeClient(ownerClient);
@@ -267,6 +273,12 @@ test('Option3 server negative: ship-upsert cross-player mutation returns ownersh
       message: 'Ship ownership mismatch for requested mutation',
       playerName: 'MismatchIntruder',
       characterId: intruderCharacter.characterId,
+      correlationId: 'missing-correlation-id',
+      requestIdentity: {
+        operation: 'ship-upsert',
+        entityType: 'ship',
+        containerId: ownerShipId,
+      },
     });
   } finally {
     await closeClient(ownerClient);
@@ -364,6 +376,12 @@ test('Option3 server positive: ship-transfer success and persistence (list-by-ow
         playerId: recipientLogin.playerId || 'TransferSuccessRecipient',
         npcId: null,
         factionId: null,
+      },
+      correlationId: 'missing-correlation-id',
+      requestIdentity: {
+        operation: 'ship-transfer',
+        entityType: 'unknown',
+        containerId: shipId,
       },
     });
 
@@ -485,6 +503,12 @@ test('Option3 server positive: unknown -> player-character claim-token success a
         npcId: null,
         factionId: null,
       },
+      correlationId: 'missing-correlation-id',
+      requestIdentity: {
+        operation: 'ship-transfer',
+        entityType: 'unknown',
+        containerId: 'unknown-ship-1',
+      },
     });
 
     // Verify persistence: ship now appears in list-by-owner for player-character
@@ -538,6 +562,12 @@ test('Option3 server negative: invalid session/identity on ship-list-by-owner an
       reason: 'INVALID_SESSION',
       message: 'Invalid session',
       ships: [],
+      correlationId: 'missing-correlation-id',
+      requestIdentity: {
+        operation: 'ship-list-by-owner',
+        entityType: 'unknown',
+        containerId: '-',
+      },
     });
 
     // Try ship-transfer with invalid session
@@ -567,6 +597,12 @@ test('Option3 server negative: invalid session/identity on ship-list-by-owner an
       reason: 'INVALID_SESSION',
       message: 'Invalid session',
       ships: [],
+      correlationId: 'missing-correlation-id',
+      requestIdentity: {
+        operation: 'ship-transfer',
+        entityType: 'unknown',
+        containerId: 'fake-ship',
+      },
     });
   } finally {
     await closeClient(client);

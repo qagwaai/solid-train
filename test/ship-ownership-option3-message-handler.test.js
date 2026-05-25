@@ -91,6 +91,12 @@ test('Option3 strict cutover: ship-upsert rejects legacy ship payload without ow
     message: 'ship.ownership is required',
     playerName: 'CompatPilot',
     characterId: 'character-1',
+    correlationId: 'missing-correlation-id',
+    requestIdentity: {
+      operation: 'ship-upsert',
+      entityType: 'ship',
+      containerId: 'ship-1',
+    },
   });
 });
 
@@ -161,6 +167,12 @@ test('Option3 negative: ship-upsert rejects ownership payload missing discrimina
     message: 'ship.ownership.npcId is required when ownerType is npc-pirate',
     playerName: 'NpcPilot',
     characterId: 'character-1',
+    correlationId: 'missing-correlation-id',
+    requestIdentity: {
+      operation: 'ship-upsert',
+      entityType: 'ship',
+      containerId: 'ship-1',
+    },
   });
 });
 
@@ -201,6 +213,12 @@ test('Option3 negative: ship-upsert rejects conflicting owner fields', async () 
     message: 'ship.ownership must not include characterId when ownerType is npc-pirate',
     playerName: 'ConflictPilot',
     characterId: 'character-1',
+    correlationId: 'missing-correlation-id',
+    requestIdentity: {
+      operation: 'ship-upsert',
+      entityType: 'ship',
+      containerId: 'ship-1',
+    },
   });
 });
 
@@ -258,6 +276,12 @@ test('Option3 negative: ship-upsert blocks cross-player ship hijack attempts wit
     message: 'Ship ownership mismatch for requested mutation',
     playerName: 'PlayerTwo',
     characterId: 'character-2',
+    correlationId: 'missing-correlation-id',
+    requestIdentity: {
+      operation: 'ship-upsert',
+      entityType: 'ship',
+      containerId: 'ship-a',
+    },
   });
 });
 
@@ -308,5 +332,11 @@ test('Option3 negative: illegal ownership transition unknown -> player-character
     message: 'Ownership transition unknown -> player-character requires claimToken',
     playerName: 'UnknownPilot',
     characterId: 'character-1',
+    correlationId: 'missing-correlation-id',
+    requestIdentity: {
+      operation: 'ship-upsert',
+      entityType: 'ship',
+      containerId: 'ship-1',
+    },
   });
 });

@@ -1,7 +1,8 @@
 # SW-08 Contract Safety Gate Prompt Pack
 
-Status: Draft
+Status: Completed (Maintenance Mode)
 Date: 2026-05-24
+Completed: 2026-05-25
 Repo: solid-train
 Purpose: Reusable prompts for implementing and operating producer-side contract safety.
 

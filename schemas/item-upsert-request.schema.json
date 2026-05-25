@@ -2,10 +2,25 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "item-upsert-request",
   "type": "object",
-  "required": ["playerName", "sessionKey", "item"],
+  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "item"],
   "properties": {
     "playerName": { "type": "string" },
     "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "description": "Identity block echoed by the backend so clients can demultiplex concurrent responses safely.",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
     "item": {
       "type": "object",
       "description": "Item create or partial update payload. For existing items, omitted fields preserve stored values. Explicit null clears item.container, item.spatial, or item.motion when those properties are present.",

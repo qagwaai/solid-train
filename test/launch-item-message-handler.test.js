@@ -20,6 +20,12 @@ function createLaunchPayload(overrides = {}) {
     characterId: 'character-1',
     shipId: 'ship-1',
     sessionKey: 'session-1',
+    correlationId: '0b16ca57-4773-4348-9c69-20598ba55bae',
+    requestIdentity: {
+      operation: 'launch-item',
+      entityType: 'expendable-dart-drone',
+      containerId: 'ship-1',
+    },
     targetCelestialBodyId: 'cb-1',
     hotkey: 3,
     itemId: 'item-1',
@@ -27,6 +33,44 @@ function createLaunchPayload(overrides = {}) {
     ...overrides,
   };
 }
+
+test('LaunchItemMessageHandler echoes correlationId and requestIdentity on success and validation error', async () => {
+  const context = createTestContext();
+  seedLaunchScenario(context);
+
+  const handler = new LaunchItemMessageHandler(context);
+
+  const successSocket = createMockSocket();
+  const successRequest = createLaunchPayload({
+    correlationId: '0b16ca57-4773-4348-9c69-20598ba55bae',
+    requestIdentity: {
+      operation: 'launch-item',
+      entityType: 'expendable-dart-drone',
+      containerId: 'ship-1',
+    },
+  });
+  const successResponse = await handler.handle(successSocket, successRequest);
+
+  assert.equal(successResponse.success, true);
+  assert.equal(successResponse.correlationId, successRequest.correlationId);
+  assert.deepEqual(successResponse.requestIdentity, successRequest.requestIdentity);
+
+  const errorSocket = createMockSocket();
+  const errorRequest = createLaunchPayload({
+    targetCelestialBodyId: 'cb-missing',
+    correlationId: 'c77e0eb2-322f-4a6e-bf24-f1eb7e89f5b3',
+    requestIdentity: {
+      operation: 'launch-item',
+      entityType: 'sensor-array',
+      containerId: 'ship-1',
+    },
+  });
+  const errorResponse = await handler.handle(errorSocket, errorRequest);
+
+  assert.equal(errorResponse.success, false);
+  assert.equal(errorResponse.correlationId, errorRequest.correlationId);
+  assert.deepEqual(errorResponse.requestIdentity, errorRequest.requestIdentity);
+});
 
 function createSeedItem(overrides = {}) {
   return {

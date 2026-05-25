@@ -6,6 +6,13 @@ const MISSION_UPSERT_ALIAS_REQUEST_EVENT = 'mission-upsert-request';
 const MISSION_UPSERT_ALIAS_RESPONSE_EVENT = 'mission-upsert-response';
 
 /**
+ * @typedef {Object} MissionUpsertRequestIdentity
+ * @property {string} operation
+ * @property {string} entityType
+ * @property {string} containerId
+ */
+
+/**
  * @typedef {Object} MissionUpsertRequest
  * @property {string} playerName
  * @property {string} characterId
@@ -14,6 +21,8 @@ const MISSION_UPSERT_ALIAS_RESPONSE_EVENT = 'mission-upsert-response';
  * @property {string} status
  * @property {string} [statusDetail]
  * @property {string} [requestId]
+ * @property {string} correlationId
+ * @property {MissionUpsertRequestIdentity} requestIdentity
  */
 
 /**
@@ -24,6 +33,8 @@ const MISSION_UPSERT_ALIAS_RESPONSE_EVENT = 'mission-upsert-response';
  * @property {string} characterId
  * @property {import('./mission').CharacterMissionProgress} [mission]
  * @property {string} [requestId]
+ * @property {string} correlationId
+ * @property {MissionUpsertRequestIdentity} requestIdentity
  */
 
 module.exports = {

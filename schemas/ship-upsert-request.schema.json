@@ -2,11 +2,32 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ship-upsert-request",
   "type": "object",
-  "required": ["playerName", "characterId", "sessionKey", "ship"],
+  "required": [
+    "playerName",
+    "characterId",
+    "sessionKey",
+    "correlationId",
+    "requestIdentity",
+    "ship"
+  ],
   "properties": {
     "playerName": { "type": "string" },
     "characterId": { "type": "string" },
     "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
     "ship": {
       "type": "object",
       "description": "Partial ship patch object. Nested patch intent is determined by property presence. When ship.inventory is present, the server applies the provided inventory patch. When ship.inventory is omitted, the server preserves existing ship inventory references.",

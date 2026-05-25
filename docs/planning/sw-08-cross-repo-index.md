@@ -1,7 +1,8 @@
 # SW-08 Cross-Repo Coordination Index
 
-Status: Active
+Status: Completed (Maintenance Mode)
 Date: 2026-05-24
+Completed: 2026-05-25
 Scope: Contract Safety Gate across solid-train and laughing-octo-journey
 
 ## Purpose
@@ -84,3 +85,4 @@ Bypass requires:
 - 2026-05-24: Stage 3 hard-fail rollout recorded for solid-train.
 - 2026-05-24: Stage 4 stabilization recorded with weekly metrics and tighter ops guidance.
 - 2026-05-24: Stage 5 continuous assurance added trend/recurrence guardrails and PR hygiene checks.
+- 2026-05-25: SW-08 marked complete and transitioned to maintenance mode across both repos.

@@ -87,6 +87,8 @@
     "hardFailEnforced": false,
     "impactedConsumers": ["laughing-octo-journey"],
     "mode": "soft-fail",
+    "nextAction": "No action required: approved exception is valid within policy.",
+    "owner": "backend-lead",
     "softFailEnforced": false,
     "totalIssues": 5
   },

@@ -68,7 +68,8 @@
       "approve": true,
       "matchCommandLine": true
     },
-    "winpty": true
+    "winpty": true,
+    "npx prettier": true
   },
   "specstory.cloudSync.enabled": "never"
 }

@@ -77,6 +77,8 @@
     "hardFailEnforced": false,
     "impactedConsumers": ["laughing-octo-journey"],
     "mode": "soft-fail",
+    "nextAction": "Complete the missing exception fields or approvals, then rerun the gate.",
+    "owner": "backend-lead",
     "softFailEnforced": true,
     "totalIssues": 5
   },

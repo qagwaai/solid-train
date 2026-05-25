@@ -11,6 +11,10 @@ const {
   ITEM_STATE_VALUES,
   ITEM_DAMAGE_STATUS_VALUES,
 } = require('../model/canonical-items');
+const {
+  resolveCorrelationId,
+  normalizeRequestIdentity,
+} = require('./correlation-metadata');
 
 const VALID_STATES = ITEM_STATE_VALUES;
 const VALID_DAMAGE_STATUSES = ITEM_DAMAGE_STATUS_VALUES;
@@ -94,6 +98,18 @@ class ItemUpsertMessageHandler {
     }
 
     return { velocityKmPerSec };
+  }
+
+  normalizeRequestIdentity(requestIdentity, itemPayload) {
+    return normalizeRequestIdentity(
+      {
+        requestIdentity,
+        operation: 'item-upsert',
+        entityTypeCandidates: [itemPayload?.itemType, 'unknown'],
+        containerIdCandidates: [itemPayload?.container?.containerId, '-'],
+      },
+      this.context.toNonEmptyString.bind(this.context)
+    );
   }
 
   buildParsed(payload) {
@@ -254,11 +270,11 @@ class ItemUpsertMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-upsert-request', payload);
-    const correlationId =
-      this.context.toNonEmptyString(payload?.correlationId) ||
-      this.context.toNonEmptyString(payload?.requestId) ||
-      this.context.toNonEmptyString(payload?.messageId) ||
-      '-';
+    const correlationId = resolveCorrelationId(
+      payload,
+      this.context.toNonEmptyString.bind(this.context)
+    );
+    const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload?.item);
 
     const incomingItemId = this.context.toNonEmptyString(payload?.item?.id);
     const incomingItemType = this.context.toNonEmptyString(payload?.item?.itemType);
@@ -286,6 +302,8 @@ class ItemUpsertMessageHandler {
         parsed.error ||
         (parsed.isCreating ? 'Item created successfully' : 'Item updated successfully'),
       playerName: parsed.playerName,
+      correlationId,
+      requestIdentity,
     };
 
     if (response.success) {

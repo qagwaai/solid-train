@@ -8,11 +8,20 @@ const LAUNCH_ITEM_RESPONSE_EVENT = 'launch-item-response';
  */
 
 /**
+ * @typedef {Object} LaunchRequestIdentity
+ * @property {string} operation
+ * @property {string} entityType
+ * @property {string} containerId
+ */
+
+/**
  * @typedef {Object} LaunchItemRequest
  * @property {string} playerName
  * @property {string} characterId
  * @property {string} shipId
  * @property {string} sessionKey
+ * @property {string} correlationId
+ * @property {LaunchRequestIdentity} requestIdentity
  * @property {string} targetCelestialBodyId
  * @property {LaunchHotkey} hotkey
  * @property {string} itemId
@@ -51,6 +60,8 @@ const LAUNCH_ITEM_RESPONSE_EVENT = 'launch-item-response';
  * @typedef {Object} LaunchItemResponse
  * @property {boolean} success
  * @property {string} message
+ * @property {string} correlationId
+ * @property {LaunchRequestIdentity} requestIdentity
  * @property {string} playerName
  * @property {string} characterId
  * @property {string} shipId

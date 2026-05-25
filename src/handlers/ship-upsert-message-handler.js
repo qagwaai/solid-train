@@ -8,6 +8,10 @@ const {
   ITEM_DAMAGE_STATUS_VALUES,
 } = require('../model/canonical-items');
 const { normalizeOwnership } = require('./context/ship-ownership');
+const {
+  resolveCorrelationId,
+  normalizeRequestIdentity: normalizeCorrelationRequestIdentity,
+} = require('./correlation-metadata');
 
 class ShipUpsertMessageHandler {
   /**
@@ -15,6 +19,18 @@ class ShipUpsertMessageHandler {
    */
   constructor(context) {
     this.context = context;
+  }
+
+  normalizeRequestIdentity(requestIdentity, payload) {
+    return normalizeCorrelationRequestIdentity(
+      {
+        requestIdentity,
+        operation: 'ship-upsert',
+        entityTypeCandidates: ['ship'],
+        containerIdCandidates: [payload?.ship?.id, '-'],
+      },
+      this.context.toNonEmptyString.bind(this.context)
+    );
   }
 
   findShipAcrossAllCharacters(shipId) {
@@ -588,11 +604,11 @@ class ShipUpsertMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-upsert-request', payload);
-    const correlationId =
-      this.context.toNonEmptyString(payload?.correlationId) ||
-      this.context.toNonEmptyString(payload?.requestId) ||
-      this.context.toNonEmptyString(payload?.messageId) ||
-      '-';
+    const correlationId = resolveCorrelationId(
+      payload,
+      this.context.toNonEmptyString.bind(this.context)
+    );
+    const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
     const hasInventoryPatch = payload?.ship != null && 'inventory' in payload.ship;
     const hasDamageProfilePatch = payload?.ship != null && 'damageProfile' in payload.ship;
 
@@ -627,6 +643,8 @@ class ShipUpsertMessageHandler {
     this.context.touchJoinedCharacters(payload);
 
     const response = this.buildResponse(payload);
+    response.correlationId = correlationId;
+    response.requestIdentity = requestIdentity;
 
     if (response.success) {
       try {

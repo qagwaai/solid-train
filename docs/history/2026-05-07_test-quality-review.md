@@ -88,8 +88,10 @@ Missing scenarios I could not find tests for:
 - `quantity` ≤ 0, non-integer, NaN
 - Lazy restock side-effect firing during a buy when the interval has elapsed
 - `priceMultiplier` and `driftPercentPerHour` actually applied to ledger amounts
-- `requestId` echoed on failure responses
-- Idempotency under repeated `requestId` (if intended)
+- Legacy `requestId` echoed on failure responses alongside required SW-COR
+  `correlationId` and `requestIdentity`
+- Idempotency under repeated legacy `requestId` (if intended) without weakening
+  SW-COR correlation checks
 - Verification that the **`creditLedger` entry is appended** with the correct
   `type: 'take'`, `amount`, `description`, and `referenceId` — current happy-path
   test only asserts response payload + stock delta + item rows; it never reads
@@ -177,12 +179,18 @@ from the ledger and never stored. The test passes because `normalizeCharacter`
 overwrites the field, but the fixture demonstrates the wrong shape and could
 mislead anyone copying it.
 
-### 3.3 Inconsistent `requestId` assertions
+### 3.3 Inconsistent correlation assertions
 
 [MESSAGE_CONTRACT.md](MESSAGE_CONTRACT.md) shows market responses include
-`requestId`. Some tests assert it (market buy happy path), most do not.
-The negative-path tests for buy/sell omit the `requestId` from the input entirely,
-so the contract behavior of "echo requestId on failure" is uncovered.
+legacy `requestId`, and the SW-COR contract now also requires `correlationId`
+and `requestIdentity` on socket request/response pairs. Some tests assert
+`requestId` (market buy happy path), but broad coverage of the full correlation
+contract is still uneven.
+
+The negative-path tests for buy/sell often omit the `requestId` from the input,
+and many older tests still do not assert `correlationId` or `requestIdentity`,
+so the combined contract behavior of "echo legacy requestId when supplied while
+always echoing SW-COR metadata" is undercovered.
 
 ### 3.4 No assertion that legacy-shape inputs are _rejected_
 

@@ -41,7 +41,11 @@ const {
 const {
   ItemListByLocationMessageHandler,
 } = require('./handlers/item-list-by-location-message-handler');
+const { ItemRemoveMessageHandler } = require('./handlers/item-remove-message-handler');
 const { LaunchItemMessageHandler } = require('./handlers/launch-item-message-handler');
+const {
+  TractorBeamActivateMessageHandler,
+} = require('./handlers/tractor-beam-activate-message-handler');
 const { MarketListMessageHandler } = require('./handlers/market-list-message-handler');
 const {
   MarketListByLocationMessageHandler,
@@ -124,7 +128,11 @@ function createServer(options = {}) {
   const itemListByLocationMessageHandler = new ItemListByLocationMessageHandler(
     messageHandlerContext
   );
+  const itemRemoveMessageHandler = new ItemRemoveMessageHandler(messageHandlerContext);
   const launchItemMessageHandler = new LaunchItemMessageHandler(messageHandlerContext);
+  const tractorBeamActivateMessageHandler = new TractorBeamActivateMessageHandler(
+    messageHandlerContext
+  );
   const marketListMessageHandler = new MarketListMessageHandler(messageHandlerContext);
   const marketListByLocationMessageHandler = new MarketListByLocationMessageHandler(
     messageHandlerContext
@@ -213,7 +221,9 @@ function createServer(options = {}) {
       itemUpsertMessageHandler,
       itemListByContainerMessageHandler,
       itemListByLocationMessageHandler,
+      itemRemoveMessageHandler,
       launchItemMessageHandler,
+      tractorBeamActivateMessageHandler,
       marketListMessageHandler,
       marketListByLocationMessageHandler,
       marketQuoteMessageHandler,

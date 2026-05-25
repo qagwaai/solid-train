@@ -200,10 +200,24 @@
       "additionalProperties": true
     }
   },
-  "required": ["success", "message", "playerName", "solarSystemId"],
+  "required": ["success", "message", "playerName", "solarSystemId", "correlationId", "requestIdentity"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
     "playerName": { "type": "string" },
     "solarSystemId": { "type": "string" },
     "solarSystem": {

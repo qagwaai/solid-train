@@ -1,7 +1,8 @@
 # SW-08 Contract Safety Gate Requirements (Backend-Led)
 
-Status: Draft
+Status: Completed (Maintenance Mode)
 Date: 2026-05-24
+Completed: 2026-05-25
 Repo: solid-train
 Related repo: laughing-octo-journey
 Owner: Backend lead (primary), Frontend lead (co-owner), QA lead (validation)
@@ -48,11 +49,25 @@ Breaking examples:
 - Type incompatibility.
 - Endpoint/event removed without compatibility alias.
 - Enum narrowing that rejects prior valid values.
+- **Correlation semantics violation (see amendment below)**.
 
 Potentially non-breaking examples:
 
 - Optional field addition.
 - Backward-compatible endpoint extension.
+
+### 4a. Correlation Semantics Amendment (2026-05-25)
+
+Request/response correlation is treated as a first-class contract requirement, same severity as shape mismatch. The following are breaking violations:
+
+- Socket response does not echo `correlationId` from the request.
+- Socket response echoes a `correlationId` that does not match any active request.
+- Socket response does not echo `requestIdentity` (operation, entityType, containerId).
+- Server handler emits a response without extracting and echoing the incoming correlationId.
+
+Rationale: Shape-only validation is insufficient when concurrent requests share the same event name. A structurally valid response with the wrong correlationId causes silent state corruption (wrong payload merged into wrong context).
+
+Full correlation contract: docs/planning/socket-correlation-contract-spec.md
 
 ## 5. Gate Behavior
 
@@ -123,6 +138,13 @@ Required for breaking changes:
 - Breaking changes caught pre-merge.
 - Mean drift resolution time.
 - Exception frequency and expiry compliance.
+
+## 11. Related Documents
+
+- docs/planning/sw-08-contract-safety-gate-implementation-plan.md
+- docs/planning/sw-08-contract-safety-gate-runbook.md
+- docs/planning/sw-08-contract-safety-gate-prompt-pack.md
+- docs/planning/socket-correlation-contract-spec.md
 - Downstream regressions caused by contract changes.
 - Weekly drift count, MTTR, bypass count, and expired bypass count.
 - Rolling 30-day trend by drift class, owner, and repeat offender surfaces.

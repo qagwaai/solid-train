@@ -50,6 +50,51 @@ function createExistingItem(overrides = {}) {
   };
 }
 
+function createRequestIdentity(overrides = {}) {
+  return {
+    operation: 'item-upsert',
+    entityType: 'expendable-dart-drone',
+    containerId: 'ship-1',
+    ...overrides,
+  };
+}
+
+test('ItemUpsertMessageHandler echoes correlationId and requestIdentity on success and validation error', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+  seedItems(context, [createExistingItem()]);
+
+  const handler = new ItemUpsertMessageHandler(context);
+
+  const successSocket = createMockSocket();
+  const successRequest = {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    correlationId: '7b1c4066-78bd-4611-8d88-3610b054f4ce',
+    requestIdentity: createRequestIdentity(),
+    item: createItemPayload({ id: 'item-1', state: 'deployed' }),
+  };
+
+  const successResponse = await handler.handle(successSocket, successRequest);
+  assert.equal(successResponse.success, true);
+  assert.equal(successResponse.correlationId, successRequest.correlationId);
+  assert.deepEqual(successResponse.requestIdentity, successRequest.requestIdentity);
+
+  const errorSocket = createMockSocket();
+  const errorRequest = {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    correlationId: '251eccf4-7f07-4331-a214-7d6ef5c57b87',
+    requestIdentity: createRequestIdentity({ entityType: 'sensor-array', containerId: 'ship-9' }),
+    item: { id: 'item-1', state: 'exploded' },
+  };
+
+  const errorResponse = await handler.handle(errorSocket, errorRequest);
+  assert.equal(errorResponse.success, false);
+  assert.equal(errorResponse.correlationId, errorRequest.correlationId);
+  assert.deepEqual(errorResponse.requestIdentity, errorRequest.requestIdentity);
+});
+
 test('ItemUpsertMessageHandler creates a new item when id not in cache', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });

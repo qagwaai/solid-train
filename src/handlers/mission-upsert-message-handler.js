@@ -11,6 +11,10 @@ const {
 } = require('../model/mission');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { DEFAULT_SOLAR_SYSTEM_ID } = require('../model/celestial-body-upsert');
+const {
+  resolveCorrelationId,
+  normalizeRequestIdentity: normalizeCorrelationRequestIdentity,
+} = require('./correlation-metadata');
 
 const STARTER_MISSION_ASTEROID_STATE = 'unscanned';
 const STARTER_MISSION_ASTEROID_COUNT = 10;
@@ -37,6 +41,18 @@ class MissionUpsertMessageHandler {
    */
   constructor(context) {
     this.context = context;
+  }
+
+  normalizeRequestIdentity(requestIdentity, payload) {
+    return normalizeCorrelationRequestIdentity(
+      {
+        requestIdentity,
+        operation: 'mission-upsert',
+        entityTypeCandidates: ['mission'],
+        containerIdCandidates: [payload?.characterId, '-'],
+      },
+      this.context.toNonEmptyString.bind(this.context)
+    );
   }
 
   attachRequestId(response, payload) {
@@ -377,11 +393,11 @@ class MissionUpsertMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('add-mission-request', payload);
-    const correlationId =
-      this.context.toNonEmptyString(payload?.correlationId) ||
-      this.context.toNonEmptyString(payload?.requestId) ||
-      this.context.toNonEmptyString(payload?.messageId) ||
-      '-';
+    const correlationId = resolveCorrelationId(
+      payload,
+      this.context.toNonEmptyString.bind(this.context)
+    );
+    const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
 
     const logCharacterShipInventorySnapshot = (phase, playerName, characterId) => {
       const character = this.context.findCharacter(playerName, characterId);
@@ -418,6 +434,8 @@ class MissionUpsertMessageHandler {
     this.context.touchJoinedCharacters(payload);
 
     const response = this.buildResponse(payload);
+    response.correlationId = correlationId;
+    response.requestIdentity = requestIdentity;
 
     if (response.success) {
       try {

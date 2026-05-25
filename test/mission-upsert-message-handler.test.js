@@ -25,6 +25,49 @@ function seedMissionPilot(context, missions = []) {
   });
 }
 
+function createRequestIdentity(overrides = {}) {
+  return {
+    operation: 'mission-upsert',
+    entityType: 'mission',
+    containerId: 'character-1',
+    ...overrides,
+  };
+}
+
+test('MissionUpsertMessageHandler echoes correlationId and requestIdentity on success and validation error', async () => {
+  const context = createTestContext();
+  seedMissionPilot(context, []);
+  const handler = new MissionUpsertMessageHandler(context);
+
+  const successSocket = createMockSocket();
+  const successRequest = {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    missionId: 'first-target',
+    status: 'started',
+    sessionKey: 'session-1',
+    correlationId: 'f5d5cc38-e8f1-4e58-b775-1b86800fbc8c',
+    requestIdentity: createRequestIdentity(),
+  };
+  const successResponse = await handler.handle(successSocket, successRequest);
+  assert.equal(successResponse.correlationId, successRequest.correlationId);
+  assert.deepEqual(successResponse.requestIdentity, successRequest.requestIdentity);
+
+  const errorSocket = createMockSocket();
+  const errorRequest = {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    missionId: 'first-target',
+    sessionKey: 'session-1',
+    correlationId: '64af3477-f07e-4648-b0f1-fcf1fb646638',
+    requestIdentity: createRequestIdentity({ containerId: 'character-9' }),
+  };
+  const errorResponse = await handler.handle(errorSocket, errorRequest);
+  assert.equal(errorResponse.success, false);
+  assert.equal(errorResponse.correlationId, errorRequest.correlationId);
+  assert.deepEqual(errorResponse.requestIdentity, errorRequest.requestIdentity);
+});
+
 test('MissionUpsertMessageHandler upserts mission progress to a character', async () => {
   const context = createTestContext();
   seedMissionPilot(context, []);

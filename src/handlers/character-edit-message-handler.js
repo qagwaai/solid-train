@@ -2,6 +2,10 @@
 
 const { CHARACTER_EDIT_RESPONSE_EVENT } = require('../model/character-edit');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const {
+  resolveCorrelationId,
+  normalizeRequestIdentity,
+} = require('./correlation-metadata');
 
 class CharacterEditMessageHandler {
   /**
@@ -9,6 +13,18 @@ class CharacterEditMessageHandler {
    */
   constructor(context) {
     this.context = context;
+  }
+
+  normalizeRequestIdentity(requestIdentity, payload) {
+    return normalizeRequestIdentity(
+      {
+        requestIdentity,
+        operation: 'character-edit',
+        entityTypeCandidates: ['character'],
+        containerIdCandidates: [payload?.characterId, '-'],
+      },
+      this.context.toNonEmptyString.bind(this.context)
+    );
   }
 
   /**
@@ -69,11 +85,11 @@ class CharacterEditMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-edit', payload);
-    const correlationId =
-      this.context.toNonEmptyString(payload?.correlationId) ||
-      this.context.toNonEmptyString(payload?.requestId) ||
-      this.context.toNonEmptyString(payload?.messageId) ||
-      '-';
+    const correlationId = resolveCorrelationId(
+      payload,
+      this.context.toNonEmptyString.bind(this.context)
+    );
+    const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -85,6 +101,8 @@ class CharacterEditMessageHandler {
     this.context.touchJoinedCharacters(payload);
 
     const response = this.buildResponse(payload);
+    response.correlationId = correlationId;
+    response.requestIdentity = requestIdentity;
 
     if (response.success) {
       try {

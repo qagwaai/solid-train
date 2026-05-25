@@ -2,9 +2,23 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ship-list-by-owner-response",
   "type": "object",
-  "required": ["success", "message", "ships"],
+  "required": ["success", "message", "ships", "correlationId", "requestIdentity"],
   "properties": {
     "success": { "type": "boolean" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
     "reason": {
       "type": "string",
       "enum": ["INVALID_SESSION"]
