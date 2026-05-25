@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "sw-08-fixture-v1",
+  "surfaces": {
+    "apiEndpoints": ["/health"],
+    "socketEndpoints": [],
+    "socketEvents": []
+  },
+  "components": {
+    "schemas": {
+      "FixtureContract": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["alpha"]
+          },
+          "count": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

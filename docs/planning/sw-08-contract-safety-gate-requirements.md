@@ -13,11 +13,13 @@ Define and enforce producer-side contract stability so frontend consumers detect
 ## 2. Scope
 
 In scope:
+
 - Publish and validate backend contracts used by frontend consumers.
 - Detect breaking changes in API and socket payload shapes.
 - Provide migration-aware failure reporting.
 
 Out of scope:
+
 - UI behavior validation.
 - Gameplay balancing.
 - Non-contract performance tuning.
@@ -25,10 +27,12 @@ Out of scope:
 ## 3. Canonical Contract Surfaces
 
 Primary:
+
 - OpenAPI schemas.
 - Socket event request/response contracts.
 
 Critical domains:
+
 - Authentication/session.
 - Character/ship.
 - Market/ledger.
@@ -39,27 +43,32 @@ Critical domains:
 ## 4. Breaking Change Definition
 
 Breaking examples:
+
 - Required field removed or renamed.
 - Type incompatibility.
 - Endpoint/event removed without compatibility alias.
 - Enum narrowing that rejects prior valid values.
 
 Potentially non-breaking examples:
+
 - Optional field addition.
 - Backward-compatible endpoint extension.
 
 ## 5. Gate Behavior
 
 Execution:
+
 - Run contract safety checks on PR and main branch.
 - Provide local command parity.
 
 Modes:
+
 - Phase 1: Report-only.
 - Phase 2: Soft fail with approved exception.
 - Phase 3: Hard fail.
 
 Output requirements:
+
 - Contract producer location.
 - Known consumers impacted.
 - Severity and owner.
@@ -76,21 +85,26 @@ Output requirements:
 ## 7. Ownership and SLA
 
 Backend lead:
+
 - Owns producer schema correctness and migration windows.
 
 Frontend lead:
+
 - Owns consumer updates and fallback handling.
 
 QA lead:
+
 - Owns mismatch fixture and gate-health validation.
 
 SLA:
+
 - Triage within 1 business day.
 - Fix or approved exception within 2 business days.
 
 ## 8. Backward Compatibility Policy
 
 Required for breaking changes:
+
 1. Deprecation notice.
 2. Compatibility window when feasible.
 3. Explicit migration notes.

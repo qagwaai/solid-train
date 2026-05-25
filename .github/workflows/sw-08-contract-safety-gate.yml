@@ -1,0 +1,45 @@
+name: SW-08 Contract Safety Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  contract-safety-gate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate deterministic contract artifact
+        run: npm run contract:artifact
+
+      - name: Run report-only drift detection
+        run: npm run contract:drift
+
+      - name: Run intentional mismatch fixture check
+        run: npm run contract:fixture-check
+
+      - name: Upload SW-08 diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: sw08-contract-safety-gate-report
+          path: |
+            artifacts/contracts/contract-artifact.json
+            artifacts/contracts/drift-report.json
+            artifacts/contracts/drift-fixture-report.json
+          if-no-files-found: error

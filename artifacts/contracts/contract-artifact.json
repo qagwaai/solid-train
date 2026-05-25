@@ -1,0 +1,6278 @@
+{
+  "checksums": {
+    "openApiSha256": "b47d9f009485eeea12dab3d8e89c3d4a72a9e4e138d33cae93888fb3d156bd01",
+    "schemaBundleSha256": "7896e4704ad65b5a71239896a69dc4e1cac0f4332bca425b416468f8b64061f4"
+  },
+  "components": {
+    "schemaRefMap": {
+      "CatalogItemDefinition": "catalog-item-definition.schema.json",
+      "CelestialBodyListRequest": "celestial-body-list-request.schema.json",
+      "CelestialBodyListResponse": "celestial-body-list-response.schema.json",
+      "CelestialBodyUpsertRequest": "celestial-body-upsert-request.schema.json",
+      "CelestialBodyUpsertResponse": "celestial-body-upsert-response.schema.json",
+      "CharacterAddRequest": "character-add-request.schema.json",
+      "CharacterAddResponse": "character-add-response.schema.json",
+      "CharacterDeleteRequest": "character-delete-request.schema.json",
+      "CharacterDeleteResponse": "character-delete-response.schema.json",
+      "CharacterEditRequest": "character-edit-request.schema.json",
+      "CharacterEditResponse": "character-edit-response.schema.json",
+      "CharacterListRequest": "character-list-request.schema.json",
+      "CharacterListResponse": "character-list-response.schema.json",
+      "ContextDistanceRequest": "context-distance-request.schema.json",
+      "ContextDistanceResponse": "context-distance-response.schema.json",
+      "ContextRoutingRequest": "context-routing-request.schema.json",
+      "ContextRoutingResponse": "context-routing-response.schema.json",
+      "CreditLedgerListRequest": "credit-ledger-list-request.schema.json",
+      "CreditLedgerListResponse": "credit-ledger-list-response.schema.json",
+      "ErrorResponse": "error-response.schema.json",
+      "GameJoinRequest": "game-join-request.schema.json",
+      "GameJoinResponse": "game-join-response.schema.json",
+      "GameLeaveRequest": "game-leave-request.schema.json",
+      "GameLeaveResponse": "game-leave-response.schema.json",
+      "GameState": "game-state.schema.json",
+      "Heartbeat": "heartbeat.schema.json",
+      "InvalidSessionResponse": "invalid-session-response.schema.json",
+      "Item": "item.schema.json",
+      "ItemListByContainerRequest": "item-list-by-container-request.schema.json",
+      "ItemListByContainerResponse": "item-list-by-container-response.schema.json",
+      "ItemListByLocationRequest": "item-list-by-location-request.schema.json",
+      "ItemListByLocationResponse": "item-list-by-location-response.schema.json",
+      "ItemUpsertRequest": "item-upsert-request.schema.json",
+      "ItemUpsertResponse": "item-upsert-response.schema.json",
+      "LaunchItemRequest": "launch-item-request.schema.json",
+      "LaunchItemResponse": "launch-item-response.schema.json",
+      "LoginRequest": "login-request.schema.json",
+      "LoginResponse": "login-response.schema.json",
+      "MarketBuyRequest": "market-buy-request.schema.json",
+      "MarketBuyResponse": "market-buy-response.schema.json",
+      "MarketInventoryListRequest": "market-inventory-list-request.schema.json",
+      "MarketInventoryListResponse": "market-inventory-list-response.schema.json",
+      "MarketLedgerListRequest": "market-ledger-list-request.schema.json",
+      "MarketLedgerListResponse": "market-ledger-list-response.schema.json",
+      "MarketListByLocationRequest": "market-list-by-location-request.schema.json",
+      "MarketListByLocationResponse": "market-list-by-location-response.schema.json",
+      "MarketListRequest": "market-list-request.schema.json",
+      "MarketListResponse": "market-list-response.schema.json",
+      "MarketQuoteRequest": "market-quote-request.schema.json",
+      "MarketQuoteResponse": "market-quote-response.schema.json",
+      "MarketSellRequest": "market-sell-request.schema.json",
+      "MarketSellResponse": "market-sell-response.schema.json",
+      "MessageRequest": "message-request.schema.json",
+      "MessageResponse": "message-response.schema.json",
+      "MissionListRequest": "mission-list-request.schema.json",
+      "MissionListResponse": "mission-list-response.schema.json",
+      "MissionUpsertRequest": "mission-upsert-request.schema.json",
+      "MissionUpsertResponse": "mission-upsert-response.schema.json",
+      "PingRequest": "ping-request.schema.json",
+      "PongResponse": "pong-response.schema.json",
+      "RegisterRequest": "register-request.schema.json",
+      "RegisterResponse": "register-response.schema.json",
+      "ShipListByOwnerRequest": "ship-list-by-owner-request.schema.json",
+      "ShipListByOwnerResponse": "ship-list-by-owner-response.schema.json",
+      "ShipListRequest": "ship-list-request.schema.json",
+      "ShipListResponse": "ship-list-response.schema.json",
+      "ShipTransferRequest": "ship-transfer-request.schema.json",
+      "ShipTransferResponse": "ship-transfer-response.schema.json",
+      "ShipUpsertRequest": "ship-upsert-request.schema.json",
+      "ShipUpsertResponse": "ship-upsert-response.schema.json",
+      "SolarSystemGetRequest": "solar-system-get-request.schema.json",
+      "SolarSystemGetResponse": "solar-system-get-response.schema.json",
+      "SolarSystemListRequest": "solar-system-list-request.schema.json",
+      "SolarSystemListResponse": "solar-system-list-response.schema.json",
+      "StarGetRequest": "star-get-request.schema.json",
+      "StarGetResponse": "star-get-response.schema.json",
+      "StarListRequest": "star-list-request.schema.json",
+      "StarListResponse": "star-list-response.schema.json",
+      "UnknownMessage": "unknown-message.schema.json",
+      "WelcomeEvent": "welcome-event.schema.json"
+    },
+    "schemas": {
+      "CatalogItemDefinition": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "description": "Canonical catalog item definition returned by /items. Catalog entries are keyed by itemType and may omit runtime instance id.",
+        "properties": {
+          "baseValueCredits": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "category": {
+            "enum": [
+              "tool",
+              "repair",
+              "mining",
+              "unit",
+              "subsystem",
+              "structural",
+              "infrastructure",
+              "refined",
+              "alloy",
+              "component",
+              "fuel",
+              "module",
+              "capital-unit",
+              "manufactured-component",
+              "raw-material",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "container": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "containerType": {
+                "enum": [
+                  "ship",
+                  "market"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "containerType",
+              "containerId"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "damageStatus": {
+            "enum": [
+              "intact",
+              "damaged",
+              "disabled",
+              "destroyed",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "fabrication": {
+            "properties": {
+              "durationMs": {
+                "type": "number"
+              },
+              "requiredMaterials": {
+                "items": {
+                  "properties": {
+                    "itemType": {
+                      "type": "string"
+                    },
+                    "quantity": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "itemType",
+                    "quantity"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "launchable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "massKg": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "rarity": {
+            "enum": [
+              "common",
+              "uncommon",
+              "rare",
+              "exotic",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stackable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "state": {
+            "enum": [
+              "contained",
+              "deployed",
+              "destroyed",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tier": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "volumeM3": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "itemType",
+          "displayName"
+        ],
+        "title": "catalog-item-definition",
+        "type": "object"
+      },
+      "CelestialBodyListRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "createdByCharacterId": {
+            "type": "string"
+          },
+          "distanceKm": {
+            "description": "Required only for radius queries. Omit together with positionKm for whole-system listing mode.",
+            "minimum": 0,
+            "type": "number"
+          },
+          "limit": {
+            "description": "Optional positive result limit.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "missionId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "positionKm": {
+            "description": "Required only for radius queries. Omit together with distanceKm for whole-system listing mode.",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          },
+          "states": {
+            "description": "Optional canonical state filter.",
+            "items": {
+              "enum": [
+                "unscanned",
+                "active",
+                "destroyed"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "solarSystemId"
+        ],
+        "title": "celestial-body-list-request",
+        "type": "object"
+      },
+      "CelestialBodyListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "definitions": {
+          "celestialBody": {
+            "additionalProperties": true,
+            "description": "Canonical celestial body payload, with distanceKm added for radius queries.",
+            "properties": {
+              "atmosphere": {
+                "additionalProperties": true,
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "bodyType": {
+                "type": "string"
+              },
+              "catalogId": {
+                "type": "string"
+              },
+              "clusterCenterKm": {
+                "$ref": "#/definitions/vector3"
+              },
+              "clusterId": {
+                "type": "string"
+              },
+              "composition": {
+                "$ref": "#/definitions/compositionState"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "createdByCharacterId": {
+                "type": "string"
+              },
+              "debris": {
+                "items": {
+                  "$ref": "#/definitions/debrisEntry"
+                },
+                "type": "array"
+              },
+              "debrisSeed": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "destroyedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "destroyedReason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "discovery": {
+                "additionalProperties": true,
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "distanceFromClusterCenterKm": {
+                "type": "number"
+              },
+              "distanceKm": {
+                "type": "number"
+              },
+              "hygId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "id": {
+                "type": "string"
+              },
+              "isCatalogBody": {
+                "type": "boolean"
+              },
+              "localOffsetKm": {
+                "$ref": "#/definitions/vector3"
+              },
+              "magnitudes": {
+                "additionalProperties": true,
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "missionId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "missionInstanceId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "motion": {
+                "$ref": "#/definitions/motionState"
+              },
+              "observability": {
+                "$ref": "#/definitions/observabilityState"
+              },
+              "orbitalElements": {
+                "additionalProperties": true,
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "parentBodyId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "physical": {
+                "$ref": "#/definitions/physicalState"
+              },
+              "physicalCatalog": {
+                "$ref": "#/definitions/physicalCatalog"
+              },
+              "planetType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "sourceScanId": {
+                "type": "string"
+              },
+              "spatial": {
+                "$ref": "#/definitions/spatialState"
+              },
+              "state": {
+                "enum": [
+                  "unscanned",
+                  "active",
+                  "destroyed"
+                ],
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              },
+              "visualization": {
+                "$ref": "#/definitions/visualization"
+              }
+            },
+            "required": [
+              "id",
+              "catalogId",
+              "sourceScanId",
+              "createdByCharacterId",
+              "missionId",
+              "missionInstanceId",
+              "createdAt",
+              "updatedAt",
+              "spatial",
+              "observability",
+              "composition",
+              "state",
+              "destroyedAt",
+              "destroyedReason",
+              "debrisSeed",
+              "debris"
+            ],
+            "type": "object"
+          },
+          "compositionState": {
+            "properties": {
+              "material": {
+                "type": "string"
+              },
+              "rarity": {
+                "enum": [
+                  "Common",
+                  "Uncommon",
+                  "Rare",
+                  "Exotic"
+                ],
+                "type": "string"
+              },
+              "textureColor": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "rarity",
+              "material",
+              "textureColor"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "debrisEntry": {
+            "properties": {
+              "itemType": {
+                "type": "string"
+              },
+              "material": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "integer"
+              },
+              "rarity": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "material",
+              "rarity",
+              "quantity",
+              "itemType"
+            ],
+            "type": "object"
+          },
+          "motionState": {
+            "properties": {
+              "angularVelocityRadPerSec": {
+                "$ref": "#/definitions/vector3"
+              },
+              "velocityKmPerSec": {
+                "$ref": "#/definitions/vector3"
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "observabilityState": {
+            "properties": {
+              "scanState": {
+                "enum": [
+                  "unscanned",
+                  "scanned"
+                ],
+                "type": "string"
+              },
+              "visibility": {
+                "enum": [
+                  "visible",
+                  "not-visible",
+                  "cloaked"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "visibility",
+              "scanState"
+            ],
+            "type": "object"
+          },
+          "physicalCatalog": {
+            "properties": {
+              "estimatedDiameterM": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "estimatedMassKg": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "radiusKm": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "physicalState": {
+            "properties": {
+              "estimatedDiameterM": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "estimatedMassKg": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "spatialState": {
+            "properties": {
+              "epochMs": {
+                "type": "number"
+              },
+              "frame": {
+                "enum": [
+                  "barycentric"
+                ],
+                "type": "string"
+              },
+              "positionKm": {
+                "$ref": "#/definitions/vector3"
+              },
+              "solarSystemId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "solarSystemId",
+              "frame",
+              "positionKm",
+              "epochMs"
+            ],
+            "type": "object"
+          },
+          "vector3": {
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          },
+          "visualization": {
+            "properties": {
+              "colorHex": {
+                "type": "string"
+              },
+              "spectralClass": {
+                "type": "string"
+              },
+              "textureKey": {
+                "type": "string"
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "properties": {
+          "celestialBodies": {
+            "items": {
+              "$ref": "#/definitions/celestialBody"
+            },
+            "type": "array"
+          },
+          "distanceKm": {
+            "type": "number"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "positionKm": {
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          },
+          "solarSystemId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "solarSystemId",
+          "celestialBodies"
+        ],
+        "title": "celestial-body-list-response",
+        "type": "object"
+      },
+      "CelestialBodyUpsertRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "celestialBody": {
+            "additionalProperties": true,
+            "description": "Complete canonical celestial body payload. When id is present, the server upserts by id. When id is omitted, the server derives a deterministic id from sourceScanId, createdByCharacterId, and missionId for mission-generated bodies.",
+            "properties": {
+              "catalogId": {
+                "type": "string"
+              },
+              "clusterCenterKm": {
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "z": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "type": "object"
+              },
+              "clusterId": {
+                "type": "string"
+              },
+              "composition": {
+                "description": "Asteroid material profile. Required unless state is unscanned.",
+                "properties": {
+                  "material": {
+                    "type": "string"
+                  },
+                  "rarity": {
+                    "enum": [
+                      "Common",
+                      "Uncommon",
+                      "Rare",
+                      "Exotic"
+                    ],
+                    "type": "string"
+                  },
+                  "textureColor": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "rarity",
+                  "material",
+                  "textureColor"
+                ],
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "createdAt": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "createdByCharacterId": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "localOffsetKm": {
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "z": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "type": "object"
+              },
+              "missionId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "missionInstanceId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "motion": {
+                "properties": {
+                  "angularVelocityRadPerSec": {
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "z"
+                    ],
+                    "type": "object"
+                  },
+                  "velocityKmPerSec": {
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "z"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "observability": {
+                "description": "Required observability state for the body.",
+                "properties": {
+                  "scanState": {
+                    "enum": [
+                      "unscanned",
+                      "scanned"
+                    ],
+                    "type": "string"
+                  },
+                  "visibility": {
+                    "enum": [
+                      "visible",
+                      "not-visible",
+                      "cloaked"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "visibility",
+                  "scanState"
+                ],
+                "type": "object"
+              },
+              "physical": {
+                "properties": {
+                  "estimatedDiameterM": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "estimatedMassKg": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "sourceScanId": {
+                "type": "string"
+              },
+              "spatial": {
+                "description": "Canonical barycentric spatial coordinates.",
+                "properties": {
+                  "epochMs": {
+                    "type": "number"
+                  },
+                  "frame": {
+                    "enum": [
+                      "barycentric"
+                    ],
+                    "type": "string"
+                  },
+                  "positionKm": {
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "z"
+                    ],
+                    "type": "object"
+                  },
+                  "solarSystemId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "solarSystemId",
+                  "frame",
+                  "positionKm",
+                  "epochMs"
+                ],
+                "type": "object"
+              },
+              "state": {
+                "description": "Canonical celestial body state. Composition may be omitted only when state is unscanned.",
+                "enum": [
+                  "unscanned",
+                  "active",
+                  "destroyed"
+                ],
+                "type": "string"
+              },
+              "updatedAt": {
+                "format": "date-time",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "celestialBody"
+        ],
+        "title": "celestial-body-upsert-request",
+        "type": "object"
+      },
+      "CelestialBodyUpsertResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "celestialBody": {
+            "additionalProperties": true,
+            "description": "Present on successful celestial body upsert responses.",
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName"
+        ],
+        "title": "celestial-body-upsert-response",
+        "type": "object"
+      },
+      "CharacterAddRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterName": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "characterName"
+        ],
+        "title": "character-add-request",
+        "type": "object"
+      },
+      "CharacterAddResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "characterName": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterName",
+          "characterId"
+        ],
+        "title": "character-add-response",
+        "type": "object"
+      },
+      "CharacterDeleteRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "characterId"
+        ],
+        "title": "character-delete-request",
+        "type": "object"
+      },
+      "CharacterDeleteResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId"
+        ],
+        "title": "character-delete-response",
+        "type": "object"
+      },
+      "CharacterEditRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "characterName": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "characterId",
+          "characterName"
+        ],
+        "title": "character-edit-request",
+        "type": "object"
+      },
+      "CharacterEditResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "characterName": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "characterName"
+        ],
+        "title": "character-edit-response",
+        "type": "object"
+      },
+      "CharacterListRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey"
+        ],
+        "title": "character-list-request",
+        "type": "object"
+      },
+      "CharacterListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characters": {
+            "items": {
+              "additionalProperties": true,
+              "description": "Character summary snapshot. Only id and characterName are guaranteed; additional canonical fields may be present.",
+              "properties": {
+                "characterName": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "creditLedger": {
+                  "type": "array"
+                },
+                "credits": {
+                  "type": "number"
+                },
+                "gameJoinedAt": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "gameLastMessageReceivedAt": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "inGame": {
+                  "type": "boolean"
+                },
+                "level": {
+                  "type": "number"
+                },
+                "ships": {
+                  "type": "array"
+                }
+              },
+              "required": [
+                "id",
+                "characterName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characters"
+        ],
+        "title": "character-list-response",
+        "type": "object"
+      },
+      "ContextDistanceRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "source",
+          "destination"
+        ],
+        "title": "context-distance-request",
+        "type": "object"
+      },
+      "ContextDistanceResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "distance": {
+            "type": "number"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "source",
+          "destination",
+          "distance"
+        ],
+        "title": "context-distance-response",
+        "type": "object"
+      },
+      "ContextRoutingRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "source",
+          "destination"
+        ],
+        "title": "context-routing-request",
+        "type": "object"
+      },
+      "ContextRoutingResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "route": {
+            "type": "array"
+          },
+          "source": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "source",
+          "destination",
+          "route"
+        ],
+        "title": "context-routing-response",
+        "type": "object"
+      },
+      "CreditLedgerListRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "endAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "startAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey"
+        ],
+        "title": "credit-ledger-list-request",
+        "type": "object"
+      },
+      "CreditLedgerListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "entries": {
+            "type": "array"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "entries",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "credit-ledger-list-response",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          },
+          "success": {
+            "const": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "error-response",
+        "type": "object"
+      },
+      "GameJoinRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "characterId"
+        ],
+        "title": "game-join-request",
+        "type": "object"
+      },
+      "GameJoinResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId"
+        ],
+        "title": "game-join-response",
+        "type": "object"
+      },
+      "GameLeaveRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey"
+        ],
+        "title": "game-leave-request",
+        "type": "object"
+      },
+      "GameLeaveResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "sessionKey"
+        ],
+        "title": "game-leave-response",
+        "type": "object"
+      },
+      "GameState": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "asOf": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "characterId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "state": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "characterId",
+          "state"
+        ],
+        "title": "game-state",
+        "type": "object"
+      },
+      "Heartbeat": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "type": {
+            "const": "heartbeat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "timestamp"
+        ],
+        "title": "heartbeat",
+        "type": "object"
+      },
+      "InvalidSessionResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "message": {
+            "const": "Invalid session",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "invalid-session-response",
+        "type": "object"
+      },
+      "Item": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "description": "Canonical item payload for runtime item records. For catalog definitions returned by /items, use CatalogItemDefinition. Client-facing material requirements are defined only by fabrication.requiredMaterials[].itemType.",
+        "examples": [
+          {
+            "baseValueCredits": 250,
+            "category": "manufactured-component",
+            "container": null,
+            "damageStatus": "intact",
+            "description": "Pressure-rated sealing sleeves for rerouting damaged ship conduits and stabilizing subsystem junctions.",
+            "displayName": "Conduit Seals",
+            "fabrication": {
+              "durationMs": 600000,
+              "requiredMaterials": [
+                {
+                  "itemType": "copper",
+                  "quantity": 2
+                },
+                {
+                  "itemType": "polymer",
+                  "quantity": 1
+                }
+              ]
+            },
+            "itemType": "conduit-seals",
+            "launchable": false,
+            "massKg": 2,
+            "rarity": "common",
+            "stackable": true,
+            "state": "contained",
+            "tier": 1,
+            "volumeM3": 0.02
+          }
+        ],
+        "properties": {
+          "baseValueCredits": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "category": {
+            "enum": [
+              "tool",
+              "repair",
+              "mining",
+              "unit",
+              "subsystem",
+              "structural",
+              "infrastructure",
+              "refined",
+              "alloy",
+              "component",
+              "fuel",
+              "module",
+              "capital-unit",
+              "manufactured-component",
+              "raw-material",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "container": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "containerType": {
+                "enum": [
+                  "ship",
+                  "market"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "containerType",
+              "containerId"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "damageStatus": {
+            "enum": [
+              "intact",
+              "damaged",
+              "disabled",
+              "destroyed"
+            ],
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "destroyedAt": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "destroyedReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "discoveredAt": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "discoveredByCharacterId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "fabrication": {
+            "properties": {
+              "durationMs": {
+                "type": "number"
+              },
+              "requiredMaterials": {
+                "description": "Canonical material requirements for crafting/comparison. Clients should use requiredMaterials[].itemType values for lookups.",
+                "items": {
+                  "properties": {
+                    "itemType": {
+                      "type": "string"
+                    },
+                    "quantity": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "itemType",
+                    "quantity"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "launchable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "massKg": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "motion": {
+            "properties": {
+              "velocityKmPerSec": {
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "z": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "velocityKmPerSec"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "owningCharacterId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "owningPlayerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rarity": {
+            "enum": [
+              "common",
+              "uncommon",
+              "rare",
+              "exotic",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "spatial": {
+            "properties": {
+              "epochMs": {
+                "type": "number"
+              },
+              "frame": {
+                "enum": [
+                  "barycentric"
+                ],
+                "type": "string"
+              },
+              "positionKm": {
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "z": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "type": "object"
+              },
+              "solarSystemId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "solarSystemId",
+              "frame",
+              "positionKm",
+              "epochMs"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "stackable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "state": {
+            "enum": [
+              "contained",
+              "deployed",
+              "destroyed"
+            ],
+            "type": "string"
+          },
+          "tier": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "volumeM3": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "itemType",
+          "displayName"
+        ],
+        "title": "item",
+        "type": "object"
+      },
+      "ItemListByContainerRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "containerId": {
+            "type": "string"
+          },
+          "containerType": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "containerType",
+          "containerId"
+        ],
+        "title": "item-list-by-container-request",
+        "type": "object"
+      },
+      "ItemListByContainerResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "containerId": {
+            "type": "string"
+          },
+          "containerType": {
+            "enum": [
+              "ship",
+              "market"
+            ],
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "./item.schema.json"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "containerType",
+          "containerId",
+          "items"
+        ],
+        "title": "item-list-by-container-response",
+        "type": "object"
+      },
+      "ItemListByLocationRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "distanceKm": {
+            "type": "number"
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "positionKm": {
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "solarSystemId",
+          "positionKm",
+          "distanceKm"
+        ],
+        "title": "item-list-by-location-request",
+        "type": "object"
+      },
+      "ItemListByLocationResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "distanceKm": {
+            "type": "number"
+          },
+          "itemType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "items": {
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "./item.schema.json"
+                },
+                {
+                  "properties": {
+                    "distanceKm": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "distanceKm"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "positionKm": {
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          },
+          "solarSystemId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "solarSystemId",
+          "items"
+        ],
+        "title": "item-list-by-location-response",
+        "type": "object"
+      },
+      "ItemUpsertRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "item": {
+            "description": "Item create or partial update payload. For existing items, omitted fields preserve stored values. Explicit null clears item.container, item.spatial, or item.motion when those properties are present.",
+            "properties": {
+              "container": {
+                "description": "Optional container patch. Provide null to clear the container association.",
+                "properties": {
+                  "containerId": {
+                    "type": "string"
+                  },
+                  "containerType": {
+                    "enum": [
+                      "ship",
+                      "market"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "containerType",
+                  "containerId"
+                ],
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "createdAt": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "damageStatus": {
+                "enum": [
+                  "intact",
+                  "damaged",
+                  "disabled",
+                  "destroyed"
+                ],
+                "type": "string"
+              },
+              "destroyedAt": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "destroyedReason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "discoveredAt": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "discoveredByCharacterId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "itemType": {
+                "type": "string"
+              },
+              "launchable": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "motion": {
+                "description": "Optional motion patch. Provide null to clear motion state.",
+                "properties": {
+                  "velocityKmPerSec": {
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "z"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "velocityKmPerSec"
+                ],
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "owningCharacterId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "owningPlayerId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "spatial": {
+                "description": "Canonical spatial position. Provide null to clear spatial state. The legacy item.kinematics field is not accepted.",
+                "properties": {
+                  "epochMs": {
+                    "type": "number"
+                  },
+                  "frame": {
+                    "enum": [
+                      "barycentric"
+                    ],
+                    "type": "string"
+                  },
+                  "positionKm": {
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "z"
+                    ],
+                    "type": "object"
+                  },
+                  "solarSystemId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "solarSystemId",
+                  "frame",
+                  "positionKm",
+                  "epochMs"
+                ],
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "state": {
+                "description": "Canonical item state. Setting state to destroyed causes the server to populate destroyedAt if it is not already set.",
+                "enum": [
+                  "contained",
+                  "deployed",
+                  "destroyed"
+                ],
+                "type": "string"
+              },
+              "tier": {
+                "description": "Optional item tier. When omitted, the server preserves the existing value for updates or applies the canonical default for creates.",
+                "maximum": 20,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "updatedAt": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "itemType",
+              "displayName"
+            ],
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "item"
+        ],
+        "title": "item-upsert-request",
+        "type": "object"
+      },
+      "ItemUpsertResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "item": {
+            "$ref": "./item.schema.json",
+            "description": "Present on successful item upsert responses."
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName"
+        ],
+        "title": "item-upsert-response",
+        "type": "object"
+      },
+      "LaunchItemRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "hotkey": {
+            "description": "Launch slot hotkey. Must be one of the supported launch hotkeys 1 through 5.",
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "type": "integer"
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "itemType": {
+            "description": "Expected persisted item type for the launched item. Must match the stored item record.",
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "shipId": {
+            "type": "string"
+          },
+          "targetCelestialBodyId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "characterId",
+          "shipId",
+          "targetCelestialBodyId",
+          "hotkey",
+          "itemId",
+          "itemType"
+        ],
+        "title": "launch-item-request",
+        "type": "object"
+      },
+      "LaunchItemResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "hotkey": {
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "type": "integer"
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "launchedItem": {
+            "additionalProperties": true,
+            "description": "Present on successful launch responses.",
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "resolution": {
+            "description": "Present on successful launch responses.",
+            "properties": {
+              "launchSeed": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "outcome": {
+                "enum": [
+                  "target-destroyed",
+                  "no-effect"
+                ],
+                "type": "string"
+              },
+              "targetCelestialBody": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "targetDestroyed": {
+                "type": "boolean"
+              },
+              "yieldedItems": {
+                "description": "Yielded items from target-destroyed launches are deployed debris with canonical spatial coordinates and motion vectors.",
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "./item.schema.json"
+                    },
+                    {
+                      "properties": {
+                        "container": {
+                          "type": "null"
+                        },
+                        "motion": {
+                          "properties": {
+                            "velocityKmPerSec": {
+                              "properties": {
+                                "x": {
+                                  "type": "number"
+                                },
+                                "y": {
+                                  "type": "number"
+                                },
+                                "z": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "x",
+                                "y",
+                                "z"
+                              ],
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "velocityKmPerSec"
+                          ],
+                          "type": "object"
+                        },
+                        "quantity": {
+                          "type": "number"
+                        },
+                        "spatial": {
+                          "properties": {
+                            "epochMs": {
+                              "type": "number"
+                            },
+                            "frame": {
+                              "enum": [
+                                "barycentric"
+                              ],
+                              "type": "string"
+                            },
+                            "positionKm": {
+                              "properties": {
+                                "x": {
+                                  "type": "number"
+                                },
+                                "y": {
+                                  "type": "number"
+                                },
+                                "z": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "x",
+                                "y",
+                                "z"
+                              ],
+                              "type": "object"
+                            },
+                            "solarSystemId": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "solarSystemId",
+                            "frame",
+                            "positionKm",
+                            "epochMs"
+                          ],
+                          "type": "object"
+                        },
+                        "state": {
+                          "enum": [
+                            "deployed"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "itemType",
+                        "displayName",
+                        "quantity",
+                        "state",
+                        "container",
+                        "spatial",
+                        "motion",
+                        "launchable"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              "yieldedMaterials": {
+                "items": {
+                  "properties": {
+                    "material": {
+                      "type": "string"
+                    },
+                    "quantity": {
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "rarity": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "material",
+                    "rarity",
+                    "quantity"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "outcome",
+              "targetDestroyed",
+              "yieldedMaterials",
+              "yieldedItems",
+              "launchSeed"
+            ],
+            "type": "object"
+          },
+          "shipId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "targetCelestialBodyId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "launch-item-response",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "password"
+        ],
+        "title": "login-request",
+        "type": "object"
+      },
+      "LoginResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "playerId": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerId",
+          "sessionKey"
+        ],
+        "title": "login-response",
+        "type": "object"
+      },
+      "MarketBuyRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "itemId": {
+            "description": "Catalog or market inventory item id. The server normalizes matching case-insensitively.",
+            "type": "string"
+          },
+          "marketId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "quantity": {
+            "description": "Requested buy quantity. Must be a positive integer.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "requestId": {
+            "description": "Optional caller correlation id echoed in the response.",
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          },
+          "transactionId": {
+            "description": "Optional caller-supplied transaction id. If omitted, the server creates one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "marketId",
+          "solarSystemId",
+          "characterId",
+          "itemId",
+          "quantity"
+        ],
+        "title": "market-buy-request",
+        "type": "object"
+      },
+      "MarketBuyResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "reason": {
+            "description": "Stable machine-readable failure reason when success is false.",
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Echoed caller correlation id when one was provided on the request.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "transaction": {
+            "description": "Present on successful market buy responses.",
+            "properties": {
+              "characterCredits": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "characterId": {
+                "type": "string"
+              },
+              "direction": {
+                "enum": [
+                  "buy"
+                ],
+                "type": "string"
+              },
+              "itemId": {
+                "type": "string"
+              },
+              "marketId": {
+                "type": "string"
+              },
+              "marketStock": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "requestId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "solarSystemId": {
+                "type": "string"
+              },
+              "timestamp": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "totalPrice": {
+                "type": "number"
+              },
+              "transactionId": {
+                "type": "string"
+              },
+              "unitPrice": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "transactionId",
+              "requestId",
+              "marketId",
+              "solarSystemId",
+              "characterId",
+              "itemId",
+              "direction",
+              "quantity",
+              "unitPrice",
+              "totalPrice",
+              "timestamp",
+              "characterCredits",
+              "marketStock"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "market-buy-response",
+        "type": "object"
+      },
+      "MarketInventoryListRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "limit": {
+            "type": "integer"
+          },
+          "marketId": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "marketId",
+          "solarSystemId"
+        ],
+        "title": "market-inventory-list-request",
+        "type": "object"
+      },
+      "MarketInventoryListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "asOf": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "inventory": {
+            "items": {
+              "properties": {
+                "displayName": {
+                  "type": "string"
+                },
+                "itemId": {
+                  "type": "string"
+                },
+                "itemType": {
+                  "type": "string"
+                },
+                "marketCanBuy": {
+                  "type": "boolean"
+                },
+                "marketCanSell": {
+                  "type": "boolean"
+                },
+                "maxStock": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "rarity": {
+                  "type": "string"
+                },
+                "restockPerInterval": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "stock": {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "itemId",
+                "itemType",
+                "displayName",
+                "rarity",
+                "stock",
+                "maxStock",
+                "restockPerInterval",
+                "marketCanBuy",
+                "marketCanSell"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "marketId": {
+            "type": "string"
+          },
+          "marketName": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "reason": {
+            "description": "Stable machine-readable failure reason when success is false.",
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "inventory",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "market-inventory-list-response",
+        "type": "object"
+      },
+      "MarketLedgerListRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "endAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "marketId": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          },
+          "startAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "marketId",
+          "solarSystemId"
+        ],
+        "title": "market-ledger-list-request",
+        "type": "object"
+      },
+      "MarketLedgerListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": {
+                "characterId": {
+                  "type": "string"
+                },
+                "direction": {
+                  "type": "string"
+                },
+                "itemId": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "requestId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reversalOfTransactionId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "timestamp": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "totalPrice": {
+                  "type": "number"
+                },
+                "transactionId": {
+                  "type": "string"
+                },
+                "unitPrice": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "transactionId",
+                "requestId",
+                "characterId",
+                "itemId",
+                "direction",
+                "quantity",
+                "unitPrice",
+                "totalPrice",
+                "timestamp",
+                "reversalOfTransactionId"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "marketId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "reason": {
+            "description": "Stable machine-readable failure reason when success is false.",
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Echoed caller correlation id when one was provided on the request.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "solarSystemId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "entries",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "market-ledger-list-response",
+        "type": "object"
+      },
+      "MarketListByLocationRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "distanceAu": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "locationTypes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "positionKm": {
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "solarSystemId",
+          "positionKm",
+          "distanceAu"
+        ],
+        "title": "market-list-by-location-request",
+        "type": "object"
+      },
+      "MarketListByLocationResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "distanceAu": {
+            "type": "number"
+          },
+          "dockedMarketId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isDocked": {
+            "type": "boolean"
+          },
+          "locationTypes": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "markets": {
+            "items": {
+              "properties": {
+                "distanceAu": {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "driftPercentPerHour": {
+                  "type": "number"
+                },
+                "isDocked": {
+                  "type": "boolean"
+                },
+                "isStarterMarket": {
+                  "type": "boolean"
+                },
+                "marketId": {
+                  "type": "string"
+                },
+                "marketName": {
+                  "type": "string"
+                },
+                "priceMultiplier": {
+                  "type": "number"
+                },
+                "restockIntervalMinutes": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "route": {
+                  "additionalProperties": true,
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                },
+                "siteName": {
+                  "type": "string"
+                },
+                "siteType": {
+                  "type": "string"
+                },
+                "solarSystemId": {
+                  "type": "string"
+                },
+                "spatial": {
+                  "additionalProperties": true,
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                },
+                "trajectory": {
+                  "additionalProperties": true,
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "marketId",
+                "solarSystemId",
+                "marketName",
+                "siteType",
+                "siteName",
+                "isStarterMarket",
+                "spatial",
+                "trajectory",
+                "distanceAu",
+                "route",
+                "isDocked",
+                "priceMultiplier",
+                "driftPercentPerHour",
+                "restockIntervalMinutes"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "positionKm": {
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          },
+          "solarSystemId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "solarSystemId",
+          "markets",
+          "isDocked",
+          "dockedMarketId"
+        ],
+        "title": "market-list-by-location-response",
+        "type": "object"
+      },
+      "MarketListRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey"
+        ],
+        "title": "market-list-request",
+        "type": "object"
+      },
+      "MarketListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "markets": {
+            "items": {
+              "properties": {
+                "distanceAu": {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "driftPercentPerHour": {
+                  "type": "number"
+                },
+                "isStarterMarket": {
+                  "type": "boolean"
+                },
+                "marketId": {
+                  "type": "string"
+                },
+                "marketName": {
+                  "type": "string"
+                },
+                "priceMultiplier": {
+                  "type": "number"
+                },
+                "restockIntervalMinutes": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "siteName": {
+                  "type": "string"
+                },
+                "siteType": {
+                  "type": "string"
+                },
+                "solarSystemId": {
+                  "type": "string"
+                },
+                "spatial": {
+                  "additionalProperties": true,
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                },
+                "trajectory": {
+                  "additionalProperties": true,
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "marketId",
+                "solarSystemId",
+                "marketName",
+                "siteType",
+                "siteName",
+                "isStarterMarket",
+                "spatial",
+                "trajectory",
+                "distanceAu",
+                "priceMultiplier",
+                "driftPercentPerHour",
+                "restockIntervalMinutes"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "markets"
+        ],
+        "title": "market-list-response",
+        "type": "object"
+      },
+      "MarketQuoteRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "marketId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "characterId",
+          "sessionKey",
+          "marketId",
+          "solarSystemId",
+          "itemId",
+          "direction",
+          "quantity"
+        ],
+        "title": "market-quote-request",
+        "type": "object"
+      },
+      "MarketQuoteResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "quote": {
+            "description": "Present on successful quote responses.",
+            "properties": {
+              "direction": {
+                "enum": [
+                  "buy",
+                  "sell"
+                ],
+                "type": "string"
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "itemId": {
+                "type": "string"
+              },
+              "marketId": {
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "solarSystemId": {
+                "type": "string"
+              },
+              "totalPrice": {
+                "type": "number"
+              },
+              "unitPrice": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "marketId",
+              "solarSystemId",
+              "itemId",
+              "direction",
+              "quantity",
+              "unitPrice",
+              "totalPrice",
+              "displayName"
+            ],
+            "type": "object"
+          },
+          "reason": {
+            "description": "Stable machine-readable failure reason when success is false.",
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Echoed caller correlation id when one was provided on the request.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "market-quote-response",
+        "type": "object"
+      },
+      "MarketSellRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "itemId": {
+            "description": "Catalog or market inventory item id to sell. The server normalizes matching case-insensitively.",
+            "type": "string"
+          },
+          "marketId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "quantity": {
+            "description": "Requested sell quantity. Must be a positive integer.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "requestId": {
+            "description": "Optional caller correlation id echoed in the response.",
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          },
+          "transactionId": {
+            "description": "Optional caller-supplied transaction id. If omitted, the server creates one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "marketId",
+          "solarSystemId",
+          "characterId",
+          "itemId",
+          "quantity"
+        ],
+        "title": "market-sell-request",
+        "type": "object"
+      },
+      "MarketSellResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "reason": {
+            "description": "Stable machine-readable failure reason when success is false.",
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Echoed caller correlation id when one was provided on the request.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "transaction": {
+            "description": "Present on successful market sell responses.",
+            "properties": {
+              "characterCredits": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "characterId": {
+                "type": "string"
+              },
+              "direction": {
+                "enum": [
+                  "sell"
+                ],
+                "type": "string"
+              },
+              "itemId": {
+                "type": "string"
+              },
+              "marketId": {
+                "type": "string"
+              },
+              "marketStock": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "requestId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "solarSystemId": {
+                "type": "string"
+              },
+              "timestamp": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "totalPrice": {
+                "type": "number"
+              },
+              "transactionId": {
+                "type": "string"
+              },
+              "unitPrice": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "transactionId",
+              "requestId",
+              "marketId",
+              "solarSystemId",
+              "characterId",
+              "itemId",
+              "direction",
+              "quantity",
+              "unitPrice",
+              "totalPrice",
+              "timestamp",
+              "characterCredits",
+              "marketStock"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "market-sell-response",
+        "type": "object"
+      },
+      "MessageRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "title": "message-request",
+        "type": "object"
+      },
+      "MessageResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "payload"
+        ],
+        "title": "message-response",
+        "type": "object"
+      },
+      "MissionListRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "statuses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "playerName",
+          "characterId",
+          "sessionKey"
+        ],
+        "title": "mission-list-request",
+        "type": "object"
+      },
+      "MissionListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "missions": {
+            "type": "array"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "missions"
+        ],
+        "title": "mission-list-response",
+        "type": "object"
+      },
+      "MissionUpsertRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "missionId": {
+            "description": "Canonical mission id. Must be one of the mission ids known to the server mission catalog.",
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Optional request correlation id echoed in the response when provided.",
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "status": {
+            "description": "Mission lifecycle status. Supported values are available, started, in-progress, failed, completed, locked, abandoned, paused, and turned-in.",
+            "type": "string"
+          },
+          "statusDetail": {
+            "description": "Optional freeform detail preserved with the mission status update.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "characterId",
+          "missionId",
+          "sessionKey",
+          "status"
+        ],
+        "title": "mission-upsert-request",
+        "type": "object"
+      },
+      "MissionUpsertResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "mission": {
+            "additionalProperties": false,
+            "description": "Present on successful mission upsert responses.",
+            "properties": {
+              "completedAt": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "failedAt": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "failureReason": {
+                "type": "string"
+              },
+              "inProgressAt": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "missionId": {
+                "type": "string"
+              },
+              "startedAt": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "statusDetail": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "format": "date-time",
+                "type": "string"
+              }
+            },
+            "required": [
+              "missionId",
+              "status"
+            ],
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Echoed caller correlation id when one was supplied on the request.",
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId"
+        ],
+        "title": "mission-upsert-response",
+        "type": "object"
+      },
+      "PingRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "type": {
+            "const": "ping",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "timestamp"
+        ],
+        "title": "ping-request",
+        "type": "object"
+      },
+      "PongResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "type": {
+            "const": "pong",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "timestamp"
+        ],
+        "title": "pong-response",
+        "type": "object"
+      },
+      "RegisterRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "email",
+          "password"
+        ],
+        "title": "register-request",
+        "type": "object"
+      },
+      "RegisterResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "playerId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "register-response",
+        "type": "object"
+      },
+      "ShipListByOwnerRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "owner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "factionId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "npcId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ownerType": {
+                "enum": [
+                  "player-character",
+                  "npc-pirate",
+                  "unowned",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              "playerId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "ownerType"
+            ],
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "owner"
+        ],
+        "title": "ship-list-by-owner-request",
+        "type": "object"
+      },
+      "ShipListByOwnerResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "owner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "factionId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "npcId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ownerType": {
+                "type": "string"
+              },
+              "playerId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "reason": {
+            "enum": [
+              "INVALID_SESSION"
+            ],
+            "type": "string"
+          },
+          "ships": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "ownership": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "characterId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "factionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "npcId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "ownerType": {
+                      "type": "string"
+                    },
+                    "playerId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "ships"
+        ],
+        "title": "ship-list-by-owner-response",
+        "type": "object"
+      },
+      "ShipListRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "characterId",
+          "sessionKey"
+        ],
+        "title": "ship-list-request",
+        "type": "object"
+      },
+      "ShipListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "ships": {
+            "items": {
+              "properties": {
+                "createdAt": {
+                  "description": "Ship creation timestamp when available. May be an empty string for legacy or synthesized ship records.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "damageProfile": {
+                  "properties": {
+                    "origin": {
+                      "enum": [
+                        "cold-boot-scripted",
+                        "combat",
+                        "wear",
+                        "unknown"
+                      ],
+                      "type": "string"
+                    },
+                    "overallStatus": {
+                      "enum": [
+                        "intact",
+                        "damaged",
+                        "disabled",
+                        "destroyed"
+                      ],
+                      "type": "string"
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
+                    "systems": {
+                      "items": {
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "repairPriority": {
+                            "type": "integer"
+                          },
+                          "severity": {
+                            "enum": [
+                              "minor",
+                              "major",
+                              "critical"
+                            ],
+                            "type": "string"
+                          },
+                          "summary": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "label",
+                          "severity",
+                          "summary",
+                          "repairPriority"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "updatedAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "overallStatus",
+                    "summary",
+                    "origin",
+                    "updatedAt",
+                    "systems"
+                  ],
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                },
+                "driveProfile": {
+                  "description": "Present only when the ship has a valid normalized drive profile.",
+                  "properties": {
+                    "cruiseSpeedAuPerHour": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    },
+                    "fuelCostPerAu": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "rangeAu": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "rangeAu",
+                    "cruiseSpeedAuPerHour",
+                    "fuelCostPerAu"
+                  ],
+                  "type": "object"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "inventory": {
+                  "items": {
+                    "$ref": "./item.schema.json"
+                  },
+                  "type": "array"
+                },
+                "launchable": {
+                  "type": "boolean"
+                },
+                "model": {
+                  "type": "string"
+                },
+                "motion": {
+                  "properties": {
+                    "velocityKmPerSec": {
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        },
+                        "z": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "velocityKmPerSec"
+                  ],
+                  "type": "object"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "ownership": {
+                  "properties": {
+                    "characterId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "factionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "npcId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "ownerType": {
+                      "enum": [
+                        "player-character",
+                        "npc-pirate",
+                        "unowned",
+                        "unknown"
+                      ],
+                      "type": "string"
+                    },
+                    "playerId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ownerType"
+                  ],
+                  "type": "object"
+                },
+                "spatial": {
+                  "properties": {
+                    "epochMs": {
+                      "type": "number"
+                    },
+                    "frame": {
+                      "enum": [
+                        "barycentric"
+                      ],
+                      "type": "string"
+                    },
+                    "positionKm": {
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        },
+                        "z": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "type": "object"
+                    },
+                    "solarSystemId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "solarSystemId",
+                    "frame",
+                    "positionKm",
+                    "epochMs"
+                  ],
+                  "type": "object"
+                },
+                "status": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "tier": {
+                  "maximum": 10,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "model",
+                "tier",
+                "inventory",
+                "spatial",
+                "launchable",
+                "ownership"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "ships"
+        ],
+        "title": "ship-list-response",
+        "type": "object"
+      },
+      "ShipTransferRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "claimToken": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fromOwner": {
+            "additionalProperties": true,
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "shipId": {
+            "type": "string"
+          },
+          "toOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "factionId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "npcId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ownerType": {
+                "enum": [
+                  "player-character",
+                  "npc-pirate",
+                  "unowned",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              "playerId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "ownerType"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "shipId",
+          "toOwner"
+        ],
+        "title": "ship-transfer-request",
+        "type": "object"
+      },
+      "ShipTransferResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "fromOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "factionId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "npcId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ownerType": {
+                "type": "string"
+              },
+              "playerId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          },
+          "ownership": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "factionId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "npcId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ownerType": {
+                "type": "string"
+              },
+              "playerId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "reason": {
+            "enum": [
+              "INVALID_SESSION",
+              "SHIP_ID_REQUIRED",
+              "SHIP_NOT_FOUND",
+              "SHIP_TRANSFER_FORBIDDEN",
+              "OWNERSHIP_VALIDATION_FAILED"
+            ],
+            "type": "string"
+          },
+          "shipId": {
+            "type": "string"
+          },
+          "ships": {
+            "description": "Present on INVALID_SESSION responses for compatibility with shared error payload shape.",
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "toOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "factionId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "npcId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ownerType": {
+                "type": "string"
+              },
+              "playerId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "ship-transfer-response",
+        "type": "object"
+      },
+      "ShipUpsertRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "ship": {
+            "additionalProperties": true,
+            "description": "Partial ship patch object. Nested patch intent is determined by property presence. When ship.inventory is present, the server applies the provided inventory patch. When ship.inventory is omitted, the server preserves existing ship inventory references.",
+            "properties": {
+              "damageProfile": {
+                "description": "Optional damage profile patch. Presence indicates patch intent for damage profile fields.",
+                "type": "object"
+              },
+              "inventory": {
+                "description": "Optional inventory patch for the target ship. Presence indicates patch intent; omission preserves the current ship inventory references. Entries may be canonical ShipItem rows (`id`, `itemType`, `displayName`), compact references (`itemId`, `itemType`), or hydrated rows (`id`, `itemType`).",
+                "items": {
+                  "additionalProperties": true,
+                  "oneOf": [
+                    {
+                      "properties": {
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "itemType": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "itemType",
+                        "displayName"
+                      ]
+                    },
+                    {
+                      "properties": {
+                        "itemId": {
+                          "type": "string"
+                        },
+                        "itemType": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "itemId",
+                        "itemType"
+                      ]
+                    },
+                    {
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "itemType": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "itemType"
+                      ]
+                    }
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "ownership": {
+                "additionalProperties": true,
+                "description": "Optional ownership patch. Presence indicates ownership transfer/update intent.",
+                "properties": {
+                  "characterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "claimToken": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "factionId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "npcId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "ownerType": {
+                    "enum": [
+                      "player-character",
+                      "npc-pirate",
+                      "unowned",
+                      "unknown"
+                    ],
+                    "type": "string"
+                  },
+                  "playerId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "ownerType"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "playerName",
+          "characterId",
+          "sessionKey",
+          "ship"
+        ],
+        "title": "ship-upsert-request",
+        "type": "object"
+      },
+      "ShipUpsertResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "OWNERSHIP_VALIDATION_FAILED",
+              "OWNERSHIP_CONFLICT",
+              "SHIP_OWNERSHIP_MISMATCH",
+              "OWNERSHIP_CLAIM_TOKEN_REQUIRED"
+            ],
+            "type": "string"
+          },
+          "ship": {
+            "additionalProperties": true,
+            "description": "Present on successful ship upsert responses.",
+            "type": "object"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId"
+        ],
+        "title": "ship-upsert-response",
+        "type": "object"
+      },
+      "SolarSystemGetRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "asOf": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "solarSystemId"
+        ],
+        "title": "solar-system-get-request",
+        "type": "object"
+      },
+      "SolarSystemGetResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "definitions": {
+          "celestialBody": {
+            "additionalProperties": true,
+            "description": "Canonical celestial body payload with optional catalog enrichments.",
+            "properties": {
+              "atmosphere": {
+                "additionalProperties": true,
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "bodyType": {
+                "type": "string"
+              },
+              "catalogId": {
+                "type": "string"
+              },
+              "clusterCenterKm": {
+                "$ref": "#/definitions/vector3"
+              },
+              "clusterId": {
+                "type": "string"
+              },
+              "composition": {
+                "$ref": "#/definitions/compositionState"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "createdByCharacterId": {
+                "type": "string"
+              },
+              "debris": {
+                "items": {
+                  "$ref": "#/definitions/debrisEntry"
+                },
+                "type": "array"
+              },
+              "debrisSeed": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "destroyedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "destroyedReason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "discovery": {
+                "additionalProperties": true,
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "distanceFromClusterCenterKm": {
+                "type": "number"
+              },
+              "hygId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "id": {
+                "type": "string"
+              },
+              "isCatalogBody": {
+                "type": "boolean"
+              },
+              "localOffsetKm": {
+                "$ref": "#/definitions/vector3"
+              },
+              "magnitudes": {
+                "additionalProperties": true,
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "missionId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "missionInstanceId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "motion": {
+                "$ref": "#/definitions/motionState"
+              },
+              "observability": {
+                "$ref": "#/definitions/observabilityState"
+              },
+              "orbitalElements": {
+                "additionalProperties": true,
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "parentBodyId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "physical": {
+                "$ref": "#/definitions/physicalState"
+              },
+              "physicalCatalog": {
+                "$ref": "#/definitions/physicalCatalog"
+              },
+              "planetType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "sourceScanId": {
+                "type": "string"
+              },
+              "spatial": {
+                "$ref": "#/definitions/spatialState"
+              },
+              "state": {
+                "enum": [
+                  "unscanned",
+                  "active",
+                  "destroyed"
+                ],
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              },
+              "visualization": {
+                "$ref": "#/definitions/visualization"
+              }
+            },
+            "required": [
+              "id",
+              "catalogId",
+              "sourceScanId",
+              "createdByCharacterId",
+              "missionId",
+              "missionInstanceId",
+              "createdAt",
+              "updatedAt",
+              "spatial",
+              "observability",
+              "composition",
+              "state",
+              "destroyedAt",
+              "destroyedReason",
+              "debrisSeed",
+              "debris"
+            ],
+            "type": "object"
+          },
+          "compositionState": {
+            "properties": {
+              "material": {
+                "type": "string"
+              },
+              "rarity": {
+                "enum": [
+                  "Common",
+                  "Uncommon",
+                  "Rare",
+                  "Exotic"
+                ],
+                "type": "string"
+              },
+              "textureColor": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "rarity",
+              "material",
+              "textureColor"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "debrisEntry": {
+            "properties": {
+              "itemType": {
+                "type": "string"
+              },
+              "material": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "integer"
+              },
+              "rarity": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "material",
+              "rarity",
+              "quantity",
+              "itemType"
+            ],
+            "type": "object"
+          },
+          "motionState": {
+            "properties": {
+              "angularVelocityRadPerSec": {
+                "$ref": "#/definitions/vector3"
+              },
+              "velocityKmPerSec": {
+                "$ref": "#/definitions/vector3"
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "observabilityState": {
+            "properties": {
+              "scanState": {
+                "enum": [
+                  "unscanned",
+                  "scanned"
+                ],
+                "type": "string"
+              },
+              "visibility": {
+                "enum": [
+                  "visible",
+                  "not-visible",
+                  "cloaked"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "visibility",
+              "scanState"
+            ],
+            "type": "object"
+          },
+          "physicalCatalog": {
+            "properties": {
+              "estimatedDiameterM": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "estimatedMassKg": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "radiusKm": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "physicalState": {
+            "properties": {
+              "estimatedDiameterM": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "estimatedMassKg": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "primaryStarSummary": {
+            "properties": {
+              "absoluteMagnitude": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "colorHex": {
+                "type": "string"
+              },
+              "colorIndexBv": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "hygId": {
+                "type": "string"
+              },
+              "luminositySolar": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "massSolar": {
+                "type": "number"
+              },
+              "properName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "radiusSolar": {
+                "type": "number"
+              },
+              "spectralClass": {
+                "type": "string"
+              },
+              "spectralType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "hygId",
+              "spectralClass",
+              "spectralType",
+              "colorHex",
+              "colorIndexBv",
+              "luminositySolar",
+              "massSolar",
+              "radiusSolar",
+              "absoluteMagnitude",
+              "properName"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "solarSystemSummary": {
+            "properties": {
+              "asteroidCount": {
+                "type": "integer"
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "distanceParsec": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "generationSeed": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "hygSystemId": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "isMultiStar": {
+                "type": "boolean"
+              },
+              "marketCount": {
+                "type": "integer"
+              },
+              "moonCount": {
+                "type": "integer"
+              },
+              "planetCount": {
+                "type": "integer"
+              },
+              "positionPc": {
+                "$ref": "#/definitions/vector3"
+              },
+              "primaryStar": {
+                "$ref": "#/definitions/primaryStarSummary"
+              },
+              "source": {
+                "enum": [
+                  "curated",
+                  "procedural"
+                ],
+                "type": "string"
+              },
+              "starCount": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "displayName",
+              "hygSystemId",
+              "source",
+              "isMultiStar",
+              "positionPc",
+              "distanceParsec",
+              "primaryStar",
+              "starCount",
+              "generationSeed"
+            ],
+            "type": "object"
+          },
+          "spatialState": {
+            "properties": {
+              "epochMs": {
+                "type": "number"
+              },
+              "frame": {
+                "enum": [
+                  "barycentric"
+                ],
+                "type": "string"
+              },
+              "positionKm": {
+                "$ref": "#/definitions/vector3"
+              },
+              "solarSystemId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "solarSystemId",
+              "frame",
+              "positionKm",
+              "epochMs"
+            ],
+            "type": "object"
+          },
+          "vector3": {
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          },
+          "visualization": {
+            "properties": {
+              "colorHex": {
+                "type": "string"
+              },
+              "spectralClass": {
+                "type": "string"
+              },
+              "textureKey": {
+                "type": "string"
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "properties": {
+          "bodies": {
+            "items": {
+              "$ref": "#/definitions/celestialBody"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Echoed caller correlation id when one was supplied on the request.",
+            "type": "string"
+          },
+          "solarSystem": {
+            "$ref": "#/definitions/solarSystemSummary",
+            "description": "Present on successful solar system lookup responses."
+          },
+          "solarSystemId": {
+            "type": "string"
+          },
+          "stars": {
+            "items": {
+              "$ref": "#/definitions/celestialBody"
+            },
+            "type": "array"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "solarSystemId"
+        ],
+        "title": "solar-system-get-response",
+        "type": "object"
+      },
+      "SolarSystemListRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "limit": {
+            "type": "integer"
+          },
+          "maxDistanceParsec": {
+            "type": "number"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "search": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey"
+        ],
+        "title": "solar-system-list-request",
+        "type": "object"
+      },
+      "SolarSystemListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "definitions": {
+          "primaryStarSummary": {
+            "properties": {
+              "absoluteMagnitude": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "colorHex": {
+                "type": "string"
+              },
+              "colorIndexBv": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "hygId": {
+                "type": "string"
+              },
+              "luminositySolar": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "massSolar": {
+                "type": "number"
+              },
+              "properName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "radiusSolar": {
+                "type": "number"
+              },
+              "spectralClass": {
+                "type": "string"
+              },
+              "spectralType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "hygId",
+              "spectralClass",
+              "spectralType",
+              "colorHex",
+              "colorIndexBv",
+              "luminositySolar",
+              "massSolar",
+              "radiusSolar",
+              "absoluteMagnitude",
+              "properName"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "solarSystemSummary": {
+            "description": "Solar system registry summary enriched with optional count fields when available.",
+            "properties": {
+              "asteroidCount": {
+                "type": "integer"
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "distanceParsec": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "generationSeed": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "hygSystemId": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "isMultiStar": {
+                "type": "boolean"
+              },
+              "marketCount": {
+                "type": "integer"
+              },
+              "moonCount": {
+                "type": "integer"
+              },
+              "planetCount": {
+                "type": "integer"
+              },
+              "positionPc": {
+                "$ref": "#/definitions/vector3"
+              },
+              "primaryStar": {
+                "$ref": "#/definitions/primaryStarSummary"
+              },
+              "source": {
+                "enum": [
+                  "curated",
+                  "procedural"
+                ],
+                "type": "string"
+              },
+              "starCount": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "displayName",
+              "hygSystemId",
+              "source",
+              "isMultiStar",
+              "positionPc",
+              "distanceParsec",
+              "primaryStar",
+              "starCount",
+              "generationSeed"
+            ],
+            "type": "object"
+          },
+          "vector3": {
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          }
+        },
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Echoed caller correlation id when one was supplied on the request.",
+            "type": "string"
+          },
+          "solarSystems": {
+            "items": {
+              "$ref": "#/definitions/solarSystemSummary"
+            },
+            "type": "array"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "solarSystems"
+        ],
+        "title": "solar-system-list-response",
+        "type": "object"
+      },
+      "StarGetRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "hygId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "hygId"
+        ],
+        "title": "star-get-request",
+        "type": "object"
+      },
+      "StarGetResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "definitions": {
+          "starCatalogEntry": {
+            "description": "Canonical HYG star catalog entry returned by star and solar system queries.",
+            "properties": {
+              "absoluteMagnitude": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "apparentMagnitude": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "colorHex": {
+                "type": "string"
+              },
+              "colorIndexBv": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "decDeg": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "distanceParsec": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "hdId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "hipId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "hygId": {
+                "type": "string"
+              },
+              "luminositySolar": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "massKg": {
+                "type": "number"
+              },
+              "massSolar": {
+                "type": "number"
+              },
+              "positionPc": {
+                "$ref": "#/definitions/vector3Pc"
+              },
+              "properName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "raHours": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "radiusKm": {
+                "type": "number"
+              },
+              "radiusSolar": {
+                "type": "number"
+              },
+              "spectralClass": {
+                "type": "string"
+              },
+              "spectralSubclass": {
+                "type": "number"
+              },
+              "spectralType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "systemId": {
+                "type": "string"
+              },
+              "systemRole": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hygId",
+              "hipId",
+              "hdId",
+              "properName",
+              "raHours",
+              "decDeg",
+              "distanceParsec",
+              "apparentMagnitude",
+              "absoluteMagnitude",
+              "spectralType",
+              "spectralClass",
+              "spectralSubclass",
+              "colorIndexBv",
+              "colorHex",
+              "luminositySolar",
+              "massSolar",
+              "radiusSolar",
+              "radiusKm",
+              "massKg",
+              "positionPc",
+              "systemId",
+              "systemRole"
+            ],
+            "type": "object"
+          },
+          "vector3Pc": {
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          }
+        },
+        "properties": {
+          "hygId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Echoed caller correlation id when one was supplied on the request.",
+            "type": "string"
+          },
+          "star": {
+            "$ref": "#/definitions/starCatalogEntry",
+            "description": "Present on successful star lookup responses."
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "hygId"
+        ],
+        "title": "star-get-response",
+        "type": "object"
+      },
+      "StarListRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "limit": {
+            "type": "integer"
+          },
+          "maxDistanceParsec": {
+            "type": "number"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "spectralClass": {
+            "type": "string"
+          },
+          "systemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey"
+        ],
+        "title": "star-list-request",
+        "type": "object"
+      },
+      "StarListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "definitions": {
+          "starCatalogEntry": {
+            "description": "Canonical HYG star catalog entry returned by star and solar system queries.",
+            "properties": {
+              "absoluteMagnitude": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "apparentMagnitude": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "colorHex": {
+                "type": "string"
+              },
+              "colorIndexBv": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "decDeg": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "distanceParsec": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "hdId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "hipId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "hygId": {
+                "type": "string"
+              },
+              "luminositySolar": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "massKg": {
+                "type": "number"
+              },
+              "massSolar": {
+                "type": "number"
+              },
+              "positionPc": {
+                "$ref": "#/definitions/vector3Pc"
+              },
+              "properName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "raHours": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "radiusKm": {
+                "type": "number"
+              },
+              "radiusSolar": {
+                "type": "number"
+              },
+              "spectralClass": {
+                "type": "string"
+              },
+              "spectralSubclass": {
+                "type": "number"
+              },
+              "spectralType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "systemId": {
+                "type": "string"
+              },
+              "systemRole": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hygId",
+              "hipId",
+              "hdId",
+              "properName",
+              "raHours",
+              "decDeg",
+              "distanceParsec",
+              "apparentMagnitude",
+              "absoluteMagnitude",
+              "spectralType",
+              "spectralClass",
+              "spectralSubclass",
+              "colorIndexBv",
+              "colorHex",
+              "luminositySolar",
+              "massSolar",
+              "radiusSolar",
+              "radiusKm",
+              "massKg",
+              "positionPc",
+              "systemId",
+              "systemRole"
+            ],
+            "type": "object"
+          },
+          "vector3Pc": {
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "object"
+          }
+        },
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestId": {
+            "description": "Echoed caller correlation id when one was supplied on the request.",
+            "type": "string"
+          },
+          "stars": {
+            "items": {
+              "$ref": "#/definitions/starCatalogEntry"
+            },
+            "type": "array"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "stars"
+        ],
+        "title": "star-list-response",
+        "type": "object"
+      },
+      "UnknownMessage": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "payload": {
+            "type": "object"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "payload"
+        ],
+        "title": "unknown-message",
+        "type": "object"
+      },
+      "WelcomeEvent": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "message"
+        ],
+        "title": "welcome-event",
+        "type": "object"
+      }
+    }
+  },
+  "producer": {
+    "contractSource": "openapi.yaml + ./schemas/*.json",
+    "repo": "solid-train"
+  },
+  "schemaVersion": "sw-08-v1",
+  "surfaces": {
+    "apiEndpoints": [
+      "/health",
+      "/items"
+    ],
+    "socketEndpoints": [
+      "/socket/add-mission",
+      "/socket/celestial-body-list",
+      "/socket/celestial-body-upsert",
+      "/socket/character-add",
+      "/socket/character-delete",
+      "/socket/character-edit",
+      "/socket/character-list",
+      "/socket/context-distance",
+      "/socket/context-routing",
+      "/socket/credit-ledger-list",
+      "/socket/game-join",
+      "/socket/game-leave",
+      "/socket/game-state",
+      "/socket/invalid-session",
+      "/socket/item-list-by-container",
+      "/socket/item-list-by-location",
+      "/socket/item-upsert",
+      "/socket/launch-item",
+      "/socket/login",
+      "/socket/market-buy",
+      "/socket/market-inventory-list",
+      "/socket/market-ledger-list",
+      "/socket/market-list",
+      "/socket/market-list-by-location",
+      "/socket/market-quote",
+      "/socket/market-sell",
+      "/socket/message",
+      "/socket/mission-list",
+      "/socket/mission-upsert",
+      "/socket/ping",
+      "/socket/register",
+      "/socket/ship-list",
+      "/socket/ship-list-by-owner",
+      "/socket/ship-transfer",
+      "/socket/ship-upsert",
+      "/socket/solar-system-get",
+      "/socket/solar-system-list",
+      "/socket/star-get",
+      "/socket/star-list",
+      "/socket/welcome"
+    ],
+    "socketEvents": [
+      "add-mission",
+      "celestial-body-list",
+      "celestial-body-upsert",
+      "character-add",
+      "character-delete",
+      "character-edit",
+      "character-list",
+      "context-distance",
+      "context-routing",
+      "credit-ledger-list",
+      "game-join",
+      "game-leave",
+      "game-state",
+      "invalid-session",
+      "item-list-by-container",
+      "item-list-by-location",
+      "item-upsert",
+      "launch-item",
+      "login",
+      "market-buy",
+      "market-inventory-list",
+      "market-ledger-list",
+      "market-list",
+      "market-list-by-location",
+      "market-quote",
+      "market-sell",
+      "message",
+      "mission-list",
+      "mission-upsert",
+      "ping",
+      "register",
+      "ship-list",
+      "ship-list-by-owner",
+      "ship-transfer",
+      "ship-upsert",
+      "solar-system-get",
+      "solar-system-list",
+      "star-get",
+      "star-list",
+      "welcome"
+    ]
+  }
+}

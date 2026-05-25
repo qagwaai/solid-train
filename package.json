@@ -11,7 +11,11 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit -p tsconfig.checkjs.json"
+    "typecheck": "tsc --noEmit -p tsconfig.checkjs.json",
+    "contract:artifact": "node scripts/sw08/generate-contract-artifact.js --out artifacts/contracts/contract-artifact.json",
+    "contract:drift": "node scripts/sw08/check-contract-drift.js --baseline artifacts/contracts/baseline-contract-artifact.json --current artifacts/contracts/contract-artifact.json --report artifacts/contracts/drift-report.json --mode report-only",
+    "contract:gate": "npm run contract:artifact && npm run contract:drift",
+    "contract:fixture-check": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/drift-old.json --current test/fixtures/sw08/drift-new.json --report artifacts/contracts/drift-fixture-report.json --mode report-only"
   },
   "repository": {
     "type": "git",

@@ -25,27 +25,32 @@ Use this runbook when SW-08 CI fails due to contract drift or incompatible produ
 ## 4. Resolution Paths
 
 Producer compatibility fix:
+
 - Restore removed field.
 - Add compatibility alias.
 - Expand enum handling.
 
 Coordinated migration:
+
 - Keep old and new shapes during window.
 - Publish migration note.
 - Merge frontend adaptation in planned sequence.
 
 Exception path:
+
 - Use only when urgent and documented.
 
 ## 5. Exception Requirements
 
 Required fields:
+
 - Reason and impact.
 - Expiry date.
 - Rollback steps.
 - Follow-up owner and ticket.
 
 Approval:
+
 - Backend lead + frontend lead.
 
 ## 6. Communication Template
@@ -60,11 +65,13 @@ Approval:
 ## 7. Escalation
 
 Escalate when:
+
 - Same drift class repeats in two consecutive releases.
 - Exception requested multiple times for same surface.
 - No owner assigned within one business day.
 
 Path:
+
 1. Backend lead
 2. Frontend lead
 3. Engineering manager

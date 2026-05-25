@@ -11,12 +11,14 @@ Provide a single coordination view for SW-08 so backend, frontend, and QA teams 
 ## Canonical Document Set
 
 Backend repo documents:
+
 1. [Requirements](sw-08-contract-safety-gate-requirements.md)
 2. [Implementation Plan](sw-08-contract-safety-gate-implementation-plan.md)
 3. [Runbook](sw-08-contract-safety-gate-runbook.md)
 4. [Prompt Pack](sw-08-contract-safety-gate-prompt-pack.md)
 
 Frontend repo documents:
+
 1. [laughing-octo-journey Requirements](../../../laughing-octo-journey/docs/planning/sw-08-contract-safety-gate-requirements.md)
 2. [laughing-octo-journey Implementation Plan](../../../laughing-octo-journey/docs/planning/sw-08-contract-safety-gate-implementation-plan.md)
 3. [laughing-octo-journey Runbook](../../../laughing-octo-journey/docs/planning/sw-08-contract-safety-gate-runbook.md)
@@ -32,14 +34,15 @@ Frontend repo documents:
 
 Use this table in sprint reviews and incident triage:
 
-| Date | Stage | Repo | CI Status | Drift Count | Open Exceptions | Owner | ETA | Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| YYYY-MM-DD | Report/Soft/Hard | solid-train | Green/Red | 0 | 0 | Backend Lead | YYYY-MM-DD | |
-| YYYY-MM-DD | Report/Soft/Hard | laughing-octo-journey | Green/Red | 0 | 0 | Frontend Lead | YYYY-MM-DD | |
+| Date       | Stage            | Repo                  | CI Status | Drift Count | Open Exceptions | Owner         | ETA        | Notes |
+| ---------- | ---------------- | --------------------- | --------- | ----------- | --------------- | ------------- | ---------- | ----- |
+| YYYY-MM-DD | Report/Soft/Hard | solid-train           | Green/Red | 0           | 0               | Backend Lead  | YYYY-MM-DD |       |
+| YYYY-MM-DD | Report/Soft/Hard | laughing-octo-journey | Green/Red | 0           | 0               | Frontend Lead | YYYY-MM-DD |       |
 
 ## Drift Triage Contract (Shared)
 
 When a drift is detected:
+
 1. Assign owner within 1 business day.
 2. Reproduce locally in both repos.
 3. Decide fix path: frontend update, backend compatibility, or coordinated sequence.
@@ -49,6 +52,7 @@ When a drift is detected:
 ## Exception Governance
 
 Bypass requires:
+
 1. Frontend lead approval.
 2. Backend lead approval.
 3. Expiry date.

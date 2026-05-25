@@ -11,22 +11,27 @@ Implement producer-side contract governance and CI enforcement to prevent backen
 ## 2. Workstreams
 
 1. Contract artifact publication
+
 - Ensure deterministic generation of API and event contracts.
 - Version and expose artifact for consumer checks.
 
 2. Drift detection
+
 - Compare current artifact with consumer expectations.
 - Classify compatibility impact.
 
 3. Compatibility handling
+
 - Define alias/deprecation strategy for breaking changes.
 - Require migration note for all contract-impacting PRs.
 
 4. CI integration
+
 - Add report-only and fail modes.
 - Upload diagnostics artifacts.
 
 5. Cross-repo coordination
+
 - Document handoff workflow for frontend updates.
 - Align release sequencing.
 
@@ -40,24 +45,29 @@ Implement producer-side contract governance and CI enforcement to prevent backen
 ## 4. Team Responsibilities
 
 Backend:
+
 - Maintain canonical contracts.
 - Provide migration guidance.
 
 Frontend:
+
 - Update consumers for approved changes.
 - Validate no regressions in critical pages.
 
 QA:
+
 - Validate fixture coverage and failure messaging.
 
 ## 5. Dependencies
 
 Required:
+
 - Contract generation scripts.
 - CI integration access.
 - Agreed mismatch taxonomy.
 
 Optional:
+
 - Typed client generation.
 - Contract changelog automation.
 
