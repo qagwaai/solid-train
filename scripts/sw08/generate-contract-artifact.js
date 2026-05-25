@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const prettier = require('prettier');
 
 function parseArgs(argv) {
   const result = {};
@@ -43,6 +44,11 @@ function sortValue(value) {
 
 function stableStringify(value) {
   return `${JSON.stringify(sortValue(value), null, 2)}\n`;
+}
+
+async function formatJson(value, filePath) {
+  const config = (await prettier.resolveConfig(filePath)) || {};
+  return prettier.format(stableStringify(value), { ...config, parser: 'json' });
 }
 
 function sha256(input) {
@@ -132,7 +138,7 @@ function buildArtifact(rootDir) {
   };
 }
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv.slice(2));
   const rootDir = path.resolve(__dirname, '..', '..');
   const outputPath = path.resolve(
@@ -142,7 +148,7 @@ function main() {
 
   const artifact = buildArtifact(rootDir);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, stableStringify(artifact), 'utf8');
+  fs.writeFileSync(outputPath, await formatJson(artifact, outputPath), 'utf8');
 
   console.log(
     `[sw08] wrote deterministic contract artifact: ${path.relative(rootDir, outputPath)}`
@@ -150,7 +156,10 @@ function main() {
 }
 
 if (require.main === module) {
-  main();
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
 }
 
 module.exports = {

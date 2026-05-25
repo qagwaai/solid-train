@@ -24,11 +24,13 @@ Implement producer-side contract governance and CI enforcement to prevent backen
 
 - Define alias/deprecation strategy for breaking changes.
 - Require migration note for all contract-impacting PRs.
+- Support approved bypasses for soft-fail drift with expiry and rollback metadata.
 
 4. CI integration
 
 - Add report-only and fail modes.
 - Upload diagnostics artifacts.
+- Stage 2 PR path runs in soft-fail mode with audited bypass support.
 
 5. Cross-repo coordination
 
@@ -88,6 +90,7 @@ Mitigation: Coordinated change ticket and merge sequence checklist.
 - Drift detection checks.
 - CI gate stages.
 - Migration note template.
+- Approved bypass template and handoff note.
 - Runbook and prompt pack.
 
 ## 8. Done Criteria

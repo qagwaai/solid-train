@@ -19,8 +19,10 @@ Use this runbook when SW-08 CI fails due to contract drift or incompatible produ
 
 1. Pull latest main.
 2. Regenerate contract artifact.
-3. Run SW-08 local check.
-4. Compare expected vs actual contract nodes.
+3. Run the Stage 2 soft-fail check with `npm run contract:gate:soft`.
+4. Run the approved-bypass path with `npm run contract:gate:soft:approved`.
+5. Run the compatibility-window check with `npm run contract:compat-check`.
+6. Compare expected vs actual contract nodes.
 
 ## 4. Resolution Paths
 
@@ -39,6 +41,7 @@ Coordinated migration:
 Exception path:
 
 - Use only when urgent and documented.
+- Approved bypass metadata must include reason, impact, expiry date, rollback steps, follow-up ticket, owner, and approvals.backendLead/frontendLead set to true.
 
 ## 5. Exception Requirements
 

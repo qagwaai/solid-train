@@ -93,10 +93,7 @@
         "description": "Canonical catalog item definition returned by /items. Catalog entries are keyed by itemType and may omit runtime instance id.",
         "properties": {
           "baseValueCredits": {
-            "type": [
-              "number",
-              "null"
-            ]
+            "type": ["number", "null"]
           },
           "category": {
             "enum": [
@@ -117,10 +114,7 @@
               "raw-material",
               null
             ],
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "container": {
             "properties": {
@@ -128,40 +122,19 @@
                 "type": "string"
               },
               "containerType": {
-                "enum": [
-                  "ship",
-                  "market"
-                ],
+                "enum": ["ship", "market"],
                 "type": "string"
               }
             },
-            "required": [
-              "containerType",
-              "containerId"
-            ],
-            "type": [
-              "object",
-              "null"
-            ]
+            "required": ["containerType", "containerId"],
+            "type": ["object", "null"]
           },
           "damageStatus": {
-            "enum": [
-              "intact",
-              "damaged",
-              "disabled",
-              "destroyed",
-              null
-            ],
-            "type": [
-              "string",
-              "null"
-            ]
+            "enum": ["intact", "damaged", "disabled", "destroyed", null],
+            "type": ["string", "null"]
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "displayName": {
             "type": "string"
@@ -181,83 +154,42 @@
                       "type": "number"
                     }
                   },
-                  "required": [
-                    "itemType",
-                    "quantity"
-                  ],
+                  "required": ["itemType", "quantity"],
                   "type": "object"
                 },
                 "type": "array"
               }
             },
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "itemType": {
             "type": "string"
           },
           "launchable": {
-            "type": [
-              "boolean",
-              "null"
-            ]
+            "type": ["boolean", "null"]
           },
           "massKg": {
-            "type": [
-              "number",
-              "null"
-            ]
+            "type": ["number", "null"]
           },
           "rarity": {
-            "enum": [
-              "common",
-              "uncommon",
-              "rare",
-              "exotic",
-              null
-            ],
-            "type": [
-              "string",
-              "null"
-            ]
+            "enum": ["common", "uncommon", "rare", "exotic", null],
+            "type": ["string", "null"]
           },
           "stackable": {
-            "type": [
-              "boolean",
-              "null"
-            ]
+            "type": ["boolean", "null"]
           },
           "state": {
-            "enum": [
-              "contained",
-              "deployed",
-              "destroyed",
-              null
-            ],
-            "type": [
-              "string",
-              "null"
-            ]
+            "enum": ["contained", "deployed", "destroyed", null],
+            "type": ["string", "null"]
           },
           "tier": {
-            "type": [
-              "integer",
-              "null"
-            ]
+            "type": ["integer", "null"]
           },
           "volumeM3": {
-            "type": [
-              "number",
-              "null"
-            ]
+            "type": ["number", "null"]
           }
         },
-        "required": [
-          "itemType",
-          "displayName"
-        ],
+        "required": ["itemType", "displayName"],
         "title": "catalog-item-definition",
         "type": "object"
       },
@@ -296,11 +228,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           },
           "sessionKey": {
@@ -312,21 +240,13 @@
           "states": {
             "description": "Optional canonical state filter.",
             "items": {
-              "enum": [
-                "unscanned",
-                "active",
-                "destroyed"
-              ],
+              "enum": ["unscanned", "active", "destroyed"],
               "type": "string"
             },
             "type": "array"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "solarSystemId"
-        ],
+        "required": ["playerName", "sessionKey", "solarSystemId"],
         "title": "celestial-body-list-request",
         "type": "object"
       },
@@ -339,10 +259,7 @@
             "properties": {
               "atmosphere": {
                 "additionalProperties": true,
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": ["object", "null"]
               },
               "bodyType": {
                 "type": "string"
@@ -372,29 +289,17 @@
                 "type": "array"
               },
               "debrisSeed": {
-                "type": [
-                  "integer",
-                  "null"
-                ]
+                "type": ["integer", "null"]
               },
               "destroyedAt": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "destroyedReason": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "discovery": {
                 "additionalProperties": true,
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": ["object", "null"]
               },
               "displayName": {
                 "type": "string"
@@ -406,10 +311,7 @@
                 "type": "number"
               },
               "hygId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "id": {
                 "type": "string"
@@ -422,22 +324,13 @@
               },
               "magnitudes": {
                 "additionalProperties": true,
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": ["object", "null"]
               },
               "missionId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "missionInstanceId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "motion": {
                 "$ref": "#/definitions/motionState"
@@ -447,16 +340,10 @@
               },
               "orbitalElements": {
                 "additionalProperties": true,
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": ["object", "null"]
               },
               "parentBodyId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "physical": {
                 "$ref": "#/definitions/physicalState"
@@ -465,10 +352,7 @@
                 "$ref": "#/definitions/physicalCatalog"
               },
               "planetType": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "sourceScanId": {
                 "type": "string"
@@ -477,11 +361,7 @@
                 "$ref": "#/definitions/spatialState"
               },
               "state": {
-                "enum": [
-                  "unscanned",
-                  "active",
-                  "destroyed"
-                ],
+                "enum": ["unscanned", "active", "destroyed"],
                 "type": "string"
               },
               "updatedAt": {
@@ -517,27 +397,15 @@
                 "type": "string"
               },
               "rarity": {
-                "enum": [
-                  "Common",
-                  "Uncommon",
-                  "Rare",
-                  "Exotic"
-                ],
+                "enum": ["Common", "Uncommon", "Rare", "Exotic"],
                 "type": "string"
               },
               "textureColor": {
                 "type": "string"
               }
             },
-            "required": [
-              "rarity",
-              "material",
-              "textureColor"
-            ],
-            "type": [
-              "object",
-              "null"
-            ]
+            "required": ["rarity", "material", "textureColor"],
+            "type": ["object", "null"]
           },
           "debrisEntry": {
             "properties": {
@@ -554,12 +422,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "material",
-              "rarity",
-              "quantity",
-              "itemType"
-            ],
+            "required": ["material", "rarity", "quantity", "itemType"],
             "type": "object"
           },
           "motionState": {
@@ -571,80 +434,46 @@
                 "$ref": "#/definitions/vector3"
               }
             },
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "observabilityState": {
             "properties": {
               "scanState": {
-                "enum": [
-                  "unscanned",
-                  "scanned"
-                ],
+                "enum": ["unscanned", "scanned"],
                 "type": "string"
               },
               "visibility": {
-                "enum": [
-                  "visible",
-                  "not-visible",
-                  "cloaked"
-                ],
+                "enum": ["visible", "not-visible", "cloaked"],
                 "type": "string"
               }
             },
-            "required": [
-              "visibility",
-              "scanState"
-            ],
+            "required": ["visibility", "scanState"],
             "type": "object"
           },
           "physicalCatalog": {
             "properties": {
               "estimatedDiameterM": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "estimatedMassKg": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "radiusKm": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               }
             },
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "physicalState": {
             "properties": {
               "estimatedDiameterM": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "estimatedMassKg": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               }
             },
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "spatialState": {
             "properties": {
@@ -652,9 +481,7 @@
                 "type": "number"
               },
               "frame": {
-                "enum": [
-                  "barycentric"
-                ],
+                "enum": ["barycentric"],
                 "type": "string"
               },
               "positionKm": {
@@ -664,12 +491,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "solarSystemId",
-              "frame",
-              "positionKm",
-              "epochMs"
-            ],
+            "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
             "type": "object"
           },
           "vector3": {
@@ -684,11 +506,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           },
           "visualization": {
@@ -703,10 +521,7 @@
                 "type": "string"
               }
             },
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           }
         },
         "properties": {
@@ -737,11 +552,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           },
           "solarSystemId": {
@@ -751,13 +562,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "solarSystemId",
-          "celestialBodies"
-        ],
+        "required": ["success", "message", "playerName", "solarSystemId", "celestialBodies"],
         "title": "celestial-body-list-response",
         "type": "object"
       },
@@ -783,11 +588,7 @@
                     "type": "number"
                   }
                 },
-                "required": [
-                  "x",
-                  "y",
-                  "z"
-                ],
+                "required": ["x", "y", "z"],
                 "type": "object"
               },
               "clusterId": {
@@ -800,27 +601,15 @@
                     "type": "string"
                   },
                   "rarity": {
-                    "enum": [
-                      "Common",
-                      "Uncommon",
-                      "Rare",
-                      "Exotic"
-                    ],
+                    "enum": ["Common", "Uncommon", "Rare", "Exotic"],
                     "type": "string"
                   },
                   "textureColor": {
                     "type": "string"
                   }
                 },
-                "required": [
-                  "rarity",
-                  "material",
-                  "textureColor"
-                ],
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "required": ["rarity", "material", "textureColor"],
+                "type": ["object", "null"]
               },
               "createdAt": {
                 "format": "date-time",
@@ -844,24 +633,14 @@
                     "type": "number"
                   }
                 },
-                "required": [
-                  "x",
-                  "y",
-                  "z"
-                ],
+                "required": ["x", "y", "z"],
                 "type": "object"
               },
               "missionId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "missionInstanceId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "motion": {
                 "properties": {
@@ -877,11 +656,7 @@
                         "type": "number"
                       }
                     },
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
+                    "required": ["x", "y", "z"],
                     "type": "object"
                   },
                   "velocityKmPerSec": {
@@ -896,63 +671,37 @@
                         "type": "number"
                       }
                     },
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
+                    "required": ["x", "y", "z"],
                     "type": "object"
                   }
                 },
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": ["object", "null"]
               },
               "observability": {
                 "description": "Required observability state for the body.",
                 "properties": {
                   "scanState": {
-                    "enum": [
-                      "unscanned",
-                      "scanned"
-                    ],
+                    "enum": ["unscanned", "scanned"],
                     "type": "string"
                   },
                   "visibility": {
-                    "enum": [
-                      "visible",
-                      "not-visible",
-                      "cloaked"
-                    ],
+                    "enum": ["visible", "not-visible", "cloaked"],
                     "type": "string"
                   }
                 },
-                "required": [
-                  "visibility",
-                  "scanState"
-                ],
+                "required": ["visibility", "scanState"],
                 "type": "object"
               },
               "physical": {
                 "properties": {
                   "estimatedDiameterM": {
-                    "type": [
-                      "number",
-                      "null"
-                    ]
+                    "type": ["number", "null"]
                   },
                   "estimatedMassKg": {
-                    "type": [
-                      "number",
-                      "null"
-                    ]
+                    "type": ["number", "null"]
                   }
                 },
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": ["object", "null"]
               },
               "sourceScanId": {
                 "type": "string"
@@ -964,9 +713,7 @@
                     "type": "number"
                   },
                   "frame": {
-                    "enum": [
-                      "barycentric"
-                    ],
+                    "enum": ["barycentric"],
                     "type": "string"
                   },
                   "positionKm": {
@@ -981,32 +728,19 @@
                         "type": "number"
                       }
                     },
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
+                    "required": ["x", "y", "z"],
                     "type": "object"
                   },
                   "solarSystemId": {
                     "type": "string"
                   }
                 },
-                "required": [
-                  "solarSystemId",
-                  "frame",
-                  "positionKm",
-                  "epochMs"
-                ],
+                "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
                 "type": "object"
               },
               "state": {
                 "description": "Canonical celestial body state. Composition may be omitted only when state is unscanned.",
-                "enum": [
-                  "unscanned",
-                  "active",
-                  "destroyed"
-                ],
+                "enum": ["unscanned", "active", "destroyed"],
                 "type": "string"
               },
               "updatedAt": {
@@ -1023,11 +757,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "celestialBody"
-        ],
+        "required": ["playerName", "sessionKey", "celestialBody"],
         "title": "celestial-body-upsert-request",
         "type": "object"
       },
@@ -1049,11 +779,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName"
-        ],
+        "required": ["success", "message", "playerName"],
         "title": "celestial-body-upsert-response",
         "type": "object"
       },
@@ -1070,11 +796,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "characterName"
-        ],
+        "required": ["playerName", "sessionKey", "characterName"],
         "title": "character-add-request",
         "type": "object"
       },
@@ -1097,13 +819,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characterName",
-          "characterId"
-        ],
+        "required": ["success", "message", "playerName", "characterName", "characterId"],
         "title": "character-add-response",
         "type": "object"
       },
@@ -1120,11 +836,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "characterId"
-        ],
+        "required": ["playerName", "sessionKey", "characterId"],
         "title": "character-delete-request",
         "type": "object"
       },
@@ -1144,12 +856,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characterId"
-        ],
+        "required": ["success", "message", "playerName", "characterId"],
         "title": "character-delete-response",
         "type": "object"
       },
@@ -1169,12 +876,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "characterId",
-          "characterName"
-        ],
+        "required": ["playerName", "sessionKey", "characterId", "characterName"],
         "title": "character-edit-request",
         "type": "object"
       },
@@ -1197,13 +899,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characterId",
-          "characterName"
-        ],
+        "required": ["success", "message", "playerName", "characterId", "characterName"],
         "title": "character-edit-response",
         "type": "object"
       },
@@ -1217,10 +913,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey"
-        ],
+        "required": ["playerName", "sessionKey"],
         "title": "character-list-request",
         "type": "object"
       },
@@ -1266,10 +959,7 @@
                   "type": "array"
                 }
               },
-              "required": [
-                "id",
-                "characterName"
-              ],
+              "required": ["id", "characterName"],
               "type": "object"
             },
             "type": "array"
@@ -1284,12 +974,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characters"
-        ],
+        "required": ["success", "message", "playerName", "characters"],
         "title": "character-list-response",
         "type": "object"
       },
@@ -1312,12 +997,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "source",
-          "destination"
-        ],
+        "required": ["playerName", "sessionKey", "source", "destination"],
         "title": "context-distance-request",
         "type": "object"
       },
@@ -1346,14 +1026,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "source",
-          "destination",
-          "distance"
-        ],
+        "required": ["success", "message", "playerName", "source", "destination", "distance"],
         "title": "context-distance-response",
         "type": "object"
       },
@@ -1376,12 +1049,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "source",
-          "destination"
-        ],
+        "required": ["playerName", "sessionKey", "source", "destination"],
         "title": "context-routing-request",
         "type": "object"
       },
@@ -1410,14 +1078,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "source",
-          "destination",
-          "route"
-        ],
+        "required": ["success", "message", "playerName", "source", "destination", "route"],
         "title": "context-routing-response",
         "type": "object"
       },
@@ -1448,10 +1109,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey"
-        ],
+        "required": ["playerName", "sessionKey"],
         "title": "credit-ledger-list-request",
         "type": "object"
       },
@@ -1480,15 +1138,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "entries",
-          "total",
-          "offset",
-          "limit"
-        ],
+        "required": ["success", "message", "playerName", "entries", "total", "offset", "limit"],
         "title": "credit-ledger-list-response",
         "type": "object"
       },
@@ -1509,10 +1159,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message"
-        ],
+        "required": ["success", "message"],
         "title": "error-response",
         "type": "object"
       },
@@ -1529,11 +1176,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "characterId"
-        ],
+        "required": ["playerName", "sessionKey", "characterId"],
         "title": "game-join-request",
         "type": "object"
       },
@@ -1553,12 +1196,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characterId"
-        ],
+        "required": ["success", "message", "playerName", "characterId"],
         "title": "game-join-response",
         "type": "object"
       },
@@ -1575,10 +1213,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey"
-        ],
+        "required": ["playerName", "sessionKey"],
         "title": "game-leave-request",
         "type": "object"
       },
@@ -1601,12 +1236,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "sessionKey"
-        ],
+        "required": ["success", "message", "playerName", "sessionKey"],
         "title": "game-leave-response",
         "type": "object"
       },
@@ -1630,12 +1260,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "characterId",
-          "state"
-        ],
+        "required": ["playerName", "sessionKey", "characterId", "state"],
         "title": "game-state",
         "type": "object"
       },
@@ -1651,10 +1276,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "type",
-          "timestamp"
-        ],
+        "required": ["type", "timestamp"],
         "title": "heartbeat",
         "type": "object"
       },
@@ -1666,9 +1288,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "message"
-        ],
+        "required": ["message"],
         "title": "invalid-session-response",
         "type": "object"
       },
@@ -1708,10 +1328,7 @@
         ],
         "properties": {
           "baseValueCredits": {
-            "type": [
-              "number",
-              "null"
-            ]
+            "type": ["number", "null"]
           },
           "category": {
             "enum": [
@@ -1732,10 +1349,7 @@
               "raw-material",
               null
             ],
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "container": {
             "properties": {
@@ -1743,69 +1357,37 @@
                 "type": "string"
               },
               "containerType": {
-                "enum": [
-                  "ship",
-                  "market"
-                ],
+                "enum": ["ship", "market"],
                 "type": "string"
               }
             },
-            "required": [
-              "containerType",
-              "containerId"
-            ],
-            "type": [
-              "object",
-              "null"
-            ]
+            "required": ["containerType", "containerId"],
+            "type": ["object", "null"]
           },
           "createdAt": {
             "format": "date-time",
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "damageStatus": {
-            "enum": [
-              "intact",
-              "damaged",
-              "disabled",
-              "destroyed"
-            ],
+            "enum": ["intact", "damaged", "disabled", "destroyed"],
             "type": "string"
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "destroyedAt": {
             "format": "date-time",
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "destroyedReason": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "discoveredAt": {
             "format": "date-time",
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "discoveredByCharacterId": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "displayName": {
             "type": "string"
@@ -1826,40 +1408,25 @@
                       "type": "number"
                     }
                   },
-                  "required": [
-                    "itemType",
-                    "quantity"
-                  ],
+                  "required": ["itemType", "quantity"],
                   "type": "object"
                 },
                 "type": "array"
               }
             },
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "id": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "itemType": {
             "type": "string"
           },
           "launchable": {
-            "type": [
-              "boolean",
-              "null"
-            ]
+            "type": ["boolean", "null"]
           },
           "massKg": {
-            "type": [
-              "number",
-              "null"
-            ]
+            "type": ["number", "null"]
           },
           "motion": {
             "properties": {
@@ -1875,46 +1442,22 @@
                     "type": "number"
                   }
                 },
-                "required": [
-                  "x",
-                  "y",
-                  "z"
-                ],
+                "required": ["x", "y", "z"],
                 "type": "object"
               }
             },
-            "required": [
-              "velocityKmPerSec"
-            ],
-            "type": [
-              "object",
-              "null"
-            ]
+            "required": ["velocityKmPerSec"],
+            "type": ["object", "null"]
           },
           "owningCharacterId": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "owningPlayerId": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "rarity": {
-            "enum": [
-              "common",
-              "uncommon",
-              "rare",
-              "exotic",
-              null
-            ],
-            "type": [
-              "string",
-              "null"
-            ]
+            "enum": ["common", "uncommon", "rare", "exotic", null],
+            "type": ["string", "null"]
           },
           "spatial": {
             "properties": {
@@ -1922,9 +1465,7 @@
                 "type": "number"
               },
               "frame": {
-                "enum": [
-                  "barycentric"
-                ],
+                "enum": ["barycentric"],
                 "type": "string"
               },
               "positionKm": {
@@ -1939,66 +1480,35 @@
                     "type": "number"
                   }
                 },
-                "required": [
-                  "x",
-                  "y",
-                  "z"
-                ],
+                "required": ["x", "y", "z"],
                 "type": "object"
               },
               "solarSystemId": {
                 "type": "string"
               }
             },
-            "required": [
-              "solarSystemId",
-              "frame",
-              "positionKm",
-              "epochMs"
-            ],
-            "type": [
-              "object",
-              "null"
-            ]
+            "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+            "type": ["object", "null"]
           },
           "stackable": {
-            "type": [
-              "boolean",
-              "null"
-            ]
+            "type": ["boolean", "null"]
           },
           "state": {
-            "enum": [
-              "contained",
-              "deployed",
-              "destroyed"
-            ],
+            "enum": ["contained", "deployed", "destroyed"],
             "type": "string"
           },
           "tier": {
-            "type": [
-              "integer",
-              "null"
-            ]
+            "type": ["integer", "null"]
           },
           "updatedAt": {
             "format": "date-time",
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "volumeM3": {
-            "type": [
-              "number",
-              "null"
-            ]
+            "type": ["number", "null"]
           }
         },
-        "required": [
-          "itemType",
-          "displayName"
-        ],
+        "required": ["itemType", "displayName"],
         "title": "item",
         "type": "object"
       },
@@ -2018,12 +1528,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "containerType",
-          "containerId"
-        ],
+        "required": ["playerName", "sessionKey", "containerType", "containerId"],
         "title": "item-list-by-container-request",
         "type": "object"
       },
@@ -2034,10 +1539,7 @@
             "type": "string"
           },
           "containerType": {
-            "enum": [
-              "ship",
-              "market"
-            ],
+            "enum": ["ship", "market"],
             "type": "string"
           },
           "items": {
@@ -2056,14 +1558,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "containerType",
-          "containerId",
-          "items"
-        ],
+        "required": ["success", "message", "playerName", "containerType", "containerId", "items"],
         "title": "item-list-by-container-response",
         "type": "object"
       },
@@ -2094,11 +1589,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           },
           "sessionKey": {
@@ -2108,13 +1599,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "solarSystemId",
-          "positionKm",
-          "distanceKm"
-        ],
+        "required": ["playerName", "sessionKey", "solarSystemId", "positionKm", "distanceKm"],
         "title": "item-list-by-location-request",
         "type": "object"
       },
@@ -2125,10 +1610,7 @@
             "type": "number"
           },
           "itemType": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "items": {
             "items": {
@@ -2142,9 +1624,7 @@
                       "type": "number"
                     }
                   },
-                  "required": [
-                    "distanceKm"
-                  ],
+                  "required": ["distanceKm"],
                   "type": "object"
                 }
               ]
@@ -2169,11 +1649,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           },
           "solarSystemId": {
@@ -2183,13 +1659,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "solarSystemId",
-          "items"
-        ],
+        "required": ["success", "message", "playerName", "solarSystemId", "items"],
         "title": "item-list-by-location-response",
         "type": "object"
       },
@@ -2206,81 +1676,46 @@
                     "type": "string"
                   },
                   "containerType": {
-                    "enum": [
-                      "ship",
-                      "market"
-                    ],
+                    "enum": ["ship", "market"],
                     "type": "string"
                   }
                 },
-                "required": [
-                  "containerType",
-                  "containerId"
-                ],
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "required": ["containerType", "containerId"],
+                "type": ["object", "null"]
               },
               "createdAt": {
                 "format": "date-time",
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "damageStatus": {
-                "enum": [
-                  "intact",
-                  "damaged",
-                  "disabled",
-                  "destroyed"
-                ],
+                "enum": ["intact", "damaged", "disabled", "destroyed"],
                 "type": "string"
               },
               "destroyedAt": {
                 "format": "date-time",
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "destroyedReason": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "discoveredAt": {
                 "format": "date-time",
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "discoveredByCharacterId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "displayName": {
                 "type": "string"
               },
               "id": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "itemType": {
                 "type": "string"
               },
               "launchable": {
-                "type": [
-                  "boolean",
-                  "null"
-                ]
+                "type": ["boolean", "null"]
               },
               "motion": {
                 "description": "Optional motion patch. Provide null to clear motion state.",
@@ -2297,33 +1732,18 @@
                         "type": "number"
                       }
                     },
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
+                    "required": ["x", "y", "z"],
                     "type": "object"
                   }
                 },
-                "required": [
-                  "velocityKmPerSec"
-                ],
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "required": ["velocityKmPerSec"],
+                "type": ["object", "null"]
               },
               "owningCharacterId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "owningPlayerId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "spatial": {
                 "description": "Canonical spatial position. Provide null to clear spatial state. The legacy item.kinematics field is not accepted.",
@@ -2332,9 +1752,7 @@
                     "type": "number"
                   },
                   "frame": {
-                    "enum": [
-                      "barycentric"
-                    ],
+                    "enum": ["barycentric"],
                     "type": "string"
                   },
                   "positionKm": {
@@ -2349,35 +1767,19 @@
                         "type": "number"
                       }
                     },
-                    "required": [
-                      "x",
-                      "y",
-                      "z"
-                    ],
+                    "required": ["x", "y", "z"],
                     "type": "object"
                   },
                   "solarSystemId": {
                     "type": "string"
                   }
                 },
-                "required": [
-                  "solarSystemId",
-                  "frame",
-                  "positionKm",
-                  "epochMs"
-                ],
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+                "type": ["object", "null"]
               },
               "state": {
                 "description": "Canonical item state. Setting state to destroyed causes the server to populate destroyedAt if it is not already set.",
-                "enum": [
-                  "contained",
-                  "deployed",
-                  "destroyed"
-                ],
+                "enum": ["contained", "deployed", "destroyed"],
                 "type": "string"
               },
               "tier": {
@@ -2388,16 +1790,10 @@
               },
               "updatedAt": {
                 "format": "date-time",
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               }
             },
-            "required": [
-              "itemType",
-              "displayName"
-            ],
+            "required": ["itemType", "displayName"],
             "type": "object"
           },
           "playerName": {
@@ -2407,11 +1803,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "item"
-        ],
+        "required": ["playerName", "sessionKey", "item"],
         "title": "item-upsert-request",
         "type": "object"
       },
@@ -2432,11 +1824,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName"
-        ],
+        "required": ["success", "message", "playerName"],
         "title": "item-upsert-response",
         "type": "object"
       },
@@ -2448,13 +1836,7 @@
           },
           "hotkey": {
             "description": "Launch slot hotkey. Must be one of the supported launch hotkeys 1 through 5.",
-            "enum": [
-              1,
-              2,
-              3,
-              4,
-              5
-            ],
+            "enum": [1, 2, 3, 4, 5],
             "type": "integer"
           },
           "itemId": {
@@ -2497,13 +1879,7 @@
             "type": "string"
           },
           "hotkey": {
-            "enum": [
-              1,
-              2,
-              3,
-              4,
-              5
-            ],
+            "enum": [1, 2, 3, 4, 5],
             "type": "integer"
           },
           "itemId": {
@@ -2531,10 +1907,7 @@
                 "type": "integer"
               },
               "outcome": {
-                "enum": [
-                  "target-destroyed",
-                  "no-effect"
-                ],
+                "enum": ["target-destroyed", "no-effect"],
                 "type": "string"
               },
               "targetCelestialBody": {
@@ -2570,17 +1943,11 @@
                                   "type": "number"
                                 }
                               },
-                              "required": [
-                                "x",
-                                "y",
-                                "z"
-                              ],
+                              "required": ["x", "y", "z"],
                               "type": "object"
                             }
                           },
-                          "required": [
-                            "velocityKmPerSec"
-                          ],
+                          "required": ["velocityKmPerSec"],
                           "type": "object"
                         },
                         "quantity": {
@@ -2592,9 +1959,7 @@
                               "type": "number"
                             },
                             "frame": {
-                              "enum": [
-                                "barycentric"
-                              ],
+                              "enum": ["barycentric"],
                               "type": "string"
                             },
                             "positionKm": {
@@ -2609,29 +1974,18 @@
                                   "type": "number"
                                 }
                               },
-                              "required": [
-                                "x",
-                                "y",
-                                "z"
-                              ],
+                              "required": ["x", "y", "z"],
                               "type": "object"
                             },
                             "solarSystemId": {
                               "type": "string"
                             }
                           },
-                          "required": [
-                            "solarSystemId",
-                            "frame",
-                            "positionKm",
-                            "epochMs"
-                          ],
+                          "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
                           "type": "object"
                         },
                         "state": {
-                          "enum": [
-                            "deployed"
-                          ],
+                          "enum": ["deployed"],
                           "type": "string"
                         }
                       },
@@ -2666,11 +2020,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "material",
-                    "rarity",
-                    "quantity"
-                  ],
+                  "required": ["material", "rarity", "quantity"],
                   "type": "object"
                 },
                 "type": "array"
@@ -2695,9 +2045,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "message"
-        ],
+        "required": ["message"],
         "title": "launch-item-response",
         "type": "object"
       },
@@ -2714,10 +2062,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "password"
-        ],
+        "required": ["playerName", "password"],
         "title": "login-request",
         "type": "object"
       },
@@ -2737,12 +2082,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerId",
-          "sessionKey"
-        ],
+        "required": ["success", "message", "playerId", "sessionKey"],
         "title": "login-response",
         "type": "object"
       },
@@ -2806,10 +2146,7 @@
           },
           "requestId": {
             "description": "Echoed caller correlation id when one was provided on the request.",
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "success": {
             "type": "boolean"
@@ -2818,18 +2155,13 @@
             "description": "Present on successful market buy responses.",
             "properties": {
               "characterCredits": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "characterId": {
                 "type": "string"
               },
               "direction": {
-                "enum": [
-                  "buy"
-                ],
+                "enum": ["buy"],
                 "type": "string"
               },
               "itemId": {
@@ -2839,20 +2171,14 @@
                 "type": "string"
               },
               "marketStock": {
-                "type": [
-                  "integer",
-                  "null"
-                ]
+                "type": ["integer", "null"]
               },
               "quantity": {
                 "minimum": 1,
                 "type": "integer"
               },
               "requestId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "solarSystemId": {
                 "type": "string"
@@ -2889,10 +2215,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "success",
-          "message"
-        ],
+        "required": ["success", "message"],
         "title": "market-buy-response",
         "type": "object"
       },
@@ -2918,12 +2241,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "marketId",
-          "solarSystemId"
-        ],
+        "required": ["playerName", "sessionKey", "marketId", "solarSystemId"],
         "title": "market-inventory-list-request",
         "type": "object"
       },
@@ -3015,14 +2333,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "inventory",
-          "total",
-          "offset",
-          "limit"
-        ],
+        "required": ["success", "message", "inventory", "total", "offset", "limit"],
         "title": "market-inventory-list-response",
         "type": "object"
       },
@@ -3065,12 +2376,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "marketId",
-          "solarSystemId"
-        ],
+        "required": ["playerName", "sessionKey", "marketId", "solarSystemId"],
         "title": "market-ledger-list-request",
         "type": "object"
       },
@@ -3094,16 +2400,10 @@
                   "type": "integer"
                 },
                 "requestId": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": ["string", "null"]
                 },
                 "reversalOfTransactionId": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": ["string", "null"]
                 },
                 "timestamp": {
                   "format": "date-time",
@@ -3156,10 +2456,7 @@
           },
           "requestId": {
             "description": "Echoed caller correlation id when one was provided on the request.",
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "solarSystemId": {
             "type": "string"
@@ -3171,14 +2468,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "entries",
-          "total",
-          "offset",
-          "limit"
-        ],
+        "required": ["success", "message", "entries", "total", "offset", "limit"],
         "title": "market-ledger-list-response",
         "type": "object"
       },
@@ -3212,11 +2502,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           },
           "sessionKey": {
@@ -3226,13 +2512,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "solarSystemId",
-          "positionKm",
-          "distanceAu"
-        ],
+        "required": ["playerName", "sessionKey", "solarSystemId", "positionKm", "distanceAu"],
         "title": "market-list-by-location-request",
         "type": "object"
       },
@@ -3243,10 +2523,7 @@
             "type": "number"
           },
           "dockedMarketId": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "isDocked": {
             "type": "boolean"
@@ -3255,10 +2532,7 @@
             "items": {
               "type": "string"
             },
-            "type": [
-              "array",
-              "null"
-            ]
+            "type": ["array", "null"]
           },
           "markets": {
             "items": {
@@ -3291,10 +2565,7 @@
                 },
                 "route": {
                   "additionalProperties": true,
-                  "type": [
-                    "object",
-                    "null"
-                  ]
+                  "type": ["object", "null"]
                 },
                 "siteName": {
                   "type": "string"
@@ -3307,17 +2578,11 @@
                 },
                 "spatial": {
                   "additionalProperties": true,
-                  "type": [
-                    "object",
-                    "null"
-                  ]
+                  "type": ["object", "null"]
                 },
                 "trajectory": {
                   "additionalProperties": true,
-                  "type": [
-                    "object",
-                    "null"
-                  ]
+                  "type": ["object", "null"]
                 }
               },
               "required": [
@@ -3358,11 +2623,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           },
           "solarSystemId": {
@@ -3397,10 +2658,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey"
-        ],
+        "required": ["playerName", "sessionKey"],
         "title": "market-list-request",
         "type": "object"
       },
@@ -3444,17 +2702,11 @@
                 },
                 "spatial": {
                   "additionalProperties": true,
-                  "type": [
-                    "object",
-                    "null"
-                  ]
+                  "type": ["object", "null"]
                 },
                 "trajectory": {
                   "additionalProperties": true,
-                  "type": [
-                    "object",
-                    "null"
-                  ]
+                  "type": ["object", "null"]
                 }
               },
               "required": [
@@ -3482,21 +2734,13 @@
             "type": "string"
           },
           "solarSystemId": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "success": {
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "markets"
-        ],
+        "required": ["success", "message", "playerName", "markets"],
         "title": "market-list-response",
         "type": "object"
       },
@@ -3560,10 +2804,7 @@
             "description": "Present on successful quote responses.",
             "properties": {
               "direction": {
-                "enum": [
-                  "buy",
-                  "sell"
-                ],
+                "enum": ["buy", "sell"],
                 "type": "string"
               },
               "displayName": {
@@ -3607,19 +2848,13 @@
           },
           "requestId": {
             "description": "Echoed caller correlation id when one was provided on the request.",
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "success": {
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message"
-        ],
+        "required": ["success", "message"],
         "title": "market-quote-response",
         "type": "object"
       },
@@ -3683,10 +2918,7 @@
           },
           "requestId": {
             "description": "Echoed caller correlation id when one was provided on the request.",
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "success": {
             "type": "boolean"
@@ -3695,18 +2927,13 @@
             "description": "Present on successful market sell responses.",
             "properties": {
               "characterCredits": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "characterId": {
                 "type": "string"
               },
               "direction": {
-                "enum": [
-                  "sell"
-                ],
+                "enum": ["sell"],
                 "type": "string"
               },
               "itemId": {
@@ -3716,20 +2943,14 @@
                 "type": "string"
               },
               "marketStock": {
-                "type": [
-                  "integer",
-                  "null"
-                ]
+                "type": ["integer", "null"]
               },
               "quantity": {
                 "minimum": 1,
                 "type": "integer"
               },
               "requestId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "solarSystemId": {
                 "type": "string"
@@ -3766,10 +2987,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "success",
-          "message"
-        ],
+        "required": ["success", "message"],
         "title": "market-sell-response",
         "type": "object"
       },
@@ -3790,10 +3008,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "id",
-          "payload"
-        ],
+        "required": ["id", "payload"],
         "title": "message-response",
         "type": "object"
       },
@@ -3819,11 +3034,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "playerName",
-          "characterId",
-          "sessionKey"
-        ],
+        "required": ["playerName", "characterId", "sessionKey"],
         "title": "mission-list-request",
         "type": "object"
       },
@@ -3849,13 +3060,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characterId",
-          "missions"
-        ],
+        "required": ["success", "message", "playerName", "characterId", "missions"],
         "title": "mission-list-response",
         "type": "object"
       },
@@ -3888,13 +3093,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "characterId",
-          "missionId",
-          "sessionKey",
-          "status"
-        ],
+        "required": ["playerName", "characterId", "missionId", "sessionKey", "status"],
         "title": "mission-upsert-request",
         "type": "object"
       },
@@ -3944,10 +3143,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "missionId",
-              "status"
-            ],
+            "required": ["missionId", "status"],
             "type": "object"
           },
           "playerName": {
@@ -3961,12 +3157,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characterId"
-        ],
+        "required": ["success", "message", "playerName", "characterId"],
         "title": "mission-upsert-response",
         "type": "object"
       },
@@ -3982,10 +3173,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "type",
-          "timestamp"
-        ],
+        "required": ["type", "timestamp"],
         "title": "ping-request",
         "type": "object"
       },
@@ -4001,10 +3189,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "type",
-          "timestamp"
-        ],
+        "required": ["type", "timestamp"],
         "title": "pong-response",
         "type": "object"
       },
@@ -4025,11 +3210,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "email",
-          "password"
-        ],
+        "required": ["playerName", "email", "password"],
         "title": "register-request",
         "type": "object"
       },
@@ -4046,10 +3227,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message"
-        ],
+        "required": ["success", "message"],
         "title": "register-response",
         "type": "object"
       },
@@ -4060,42 +3238,23 @@
             "additionalProperties": true,
             "properties": {
               "characterId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "factionId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "npcId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "ownerType": {
-                "enum": [
-                  "player-character",
-                  "npc-pirate",
-                  "unowned",
-                  "unknown"
-                ],
+                "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
                 "type": "string"
               },
               "playerId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               }
             },
-            "required": [
-              "ownerType"
-            ],
+            "required": ["ownerType"],
             "type": "object"
           },
           "playerName": {
@@ -4105,11 +3264,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "owner"
-        ],
+        "required": ["playerName", "sessionKey", "owner"],
         "title": "ship-list-by-owner-request",
         "type": "object"
       },
@@ -4123,39 +3278,25 @@
             "additionalProperties": true,
             "properties": {
               "characterId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "factionId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "npcId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "ownerType": {
                 "type": "string"
               },
               "playerId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               }
             },
             "type": "object"
           },
           "reason": {
-            "enum": [
-              "INVALID_SESSION"
-            ],
+            "enum": ["INVALID_SESSION"],
             "type": "string"
           },
           "ships": {
@@ -4169,31 +3310,19 @@
                   "additionalProperties": true,
                   "properties": {
                     "characterId": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "type": ["string", "null"]
                     },
                     "factionId": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "type": ["string", "null"]
                     },
                     "npcId": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "type": ["string", "null"]
                     },
                     "ownerType": {
                       "type": "string"
                     },
                     "playerId": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "type": ["string", "null"]
                     }
                   },
                   "type": "object"
@@ -4207,11 +3336,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "ships"
-        ],
+        "required": ["success", "message", "ships"],
         "title": "ship-list-by-owner-response",
         "type": "object"
       },
@@ -4228,11 +3353,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "characterId",
-          "sessionKey"
-        ],
+        "required": ["playerName", "characterId", "sessionKey"],
         "title": "ship-list-request",
         "type": "object"
       },
@@ -4253,29 +3374,16 @@
               "properties": {
                 "createdAt": {
                   "description": "Ship creation timestamp when available. May be an empty string for legacy or synthesized ship records.",
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": ["string", "null"]
                 },
                 "damageProfile": {
                   "properties": {
                     "origin": {
-                      "enum": [
-                        "cold-boot-scripted",
-                        "combat",
-                        "wear",
-                        "unknown"
-                      ],
+                      "enum": ["cold-boot-scripted", "combat", "wear", "unknown"],
                       "type": "string"
                     },
                     "overallStatus": {
-                      "enum": [
-                        "intact",
-                        "damaged",
-                        "disabled",
-                        "destroyed"
-                      ],
+                      "enum": ["intact", "damaged", "disabled", "destroyed"],
                       "type": "string"
                     },
                     "summary": {
@@ -4294,24 +3402,14 @@
                             "type": "integer"
                           },
                           "severity": {
-                            "enum": [
-                              "minor",
-                              "major",
-                              "critical"
-                            ],
+                            "enum": ["minor", "major", "critical"],
                             "type": "string"
                           },
                           "summary": {
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "code",
-                          "label",
-                          "severity",
-                          "summary",
-                          "repairPriority"
-                        ],
+                        "required": ["code", "label", "severity", "summary", "repairPriority"],
                         "type": "object"
                       },
                       "type": "array"
@@ -4321,17 +3419,8 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "overallStatus",
-                    "summary",
-                    "origin",
-                    "updatedAt",
-                    "systems"
-                  ],
-                  "type": [
-                    "object",
-                    "null"
-                  ]
+                  "required": ["overallStatus", "summary", "origin", "updatedAt", "systems"],
+                  "type": ["object", "null"]
                 },
                 "driveProfile": {
                   "description": "Present only when the ship has a valid normalized drive profile.",
@@ -4355,13 +3444,7 @@
                       "type": "number"
                     }
                   },
-                  "required": [
-                    "id",
-                    "name",
-                    "rangeAu",
-                    "cruiseSpeedAuPerHour",
-                    "fuelCostPerAu"
-                  ],
+                  "required": ["id", "name", "rangeAu", "cruiseSpeedAuPerHour", "fuelCostPerAu"],
                   "type": "object"
                 },
                 "id": {
@@ -4393,17 +3476,11 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "x",
-                        "y",
-                        "z"
-                      ],
+                      "required": ["x", "y", "z"],
                       "type": "object"
                     }
                   },
-                  "required": [
-                    "velocityKmPerSec"
-                  ],
+                  "required": ["velocityKmPerSec"],
                   "type": "object"
                 },
                 "name": {
@@ -4412,42 +3489,23 @@
                 "ownership": {
                   "properties": {
                     "characterId": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "type": ["string", "null"]
                     },
                     "factionId": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "type": ["string", "null"]
                     },
                     "npcId": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "type": ["string", "null"]
                     },
                     "ownerType": {
-                      "enum": [
-                        "player-character",
-                        "npc-pirate",
-                        "unowned",
-                        "unknown"
-                      ],
+                      "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
                       "type": "string"
                     },
                     "playerId": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "type": ["string", "null"]
                     }
                   },
-                  "required": [
-                    "ownerType"
-                  ],
+                  "required": ["ownerType"],
                   "type": "object"
                 },
                 "spatial": {
@@ -4456,9 +3514,7 @@
                       "type": "number"
                     },
                     "frame": {
-                      "enum": [
-                        "barycentric"
-                      ],
+                      "enum": ["barycentric"],
                       "type": "string"
                     },
                     "positionKm": {
@@ -4473,30 +3529,18 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "x",
-                        "y",
-                        "z"
-                      ],
+                      "required": ["x", "y", "z"],
                       "type": "object"
                     },
                     "solarSystemId": {
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "solarSystemId",
-                    "frame",
-                    "positionKm",
-                    "epochMs"
-                  ],
+                  "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
                   "type": "object"
                 },
                 "status": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": ["string", "null"]
                 },
                 "tier": {
                   "maximum": 10,
@@ -4522,13 +3566,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characterId",
-          "ships"
-        ],
+        "required": ["success", "message", "playerName", "characterId", "ships"],
         "title": "ship-list-response",
         "type": "object"
       },
@@ -4536,17 +3574,11 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
           "claimToken": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "fromOwner": {
             "additionalProperties": true,
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "playerName": {
             "type": "string"
@@ -4561,51 +3593,27 @@
             "additionalProperties": true,
             "properties": {
               "characterId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "factionId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "npcId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "ownerType": {
-                "enum": [
-                  "player-character",
-                  "npc-pirate",
-                  "unowned",
-                  "unknown"
-                ],
+                "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
                 "type": "string"
               },
               "playerId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               }
             },
-            "required": [
-              "ownerType"
-            ],
+            "required": ["ownerType"],
             "type": "object"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "shipId",
-          "toOwner"
-        ],
+        "required": ["playerName", "sessionKey", "shipId", "toOwner"],
         "title": "ship-transfer-request",
         "type": "object"
       },
@@ -4616,31 +3624,19 @@
             "additionalProperties": true,
             "properties": {
               "characterId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "factionId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "npcId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "ownerType": {
                 "type": "string"
               },
               "playerId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               }
             },
             "type": "object"
@@ -4652,31 +3648,19 @@
             "additionalProperties": true,
             "properties": {
               "characterId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "factionId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "npcId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "ownerType": {
                 "type": "string"
               },
               "playerId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               }
             },
             "type": "object"
@@ -4708,40 +3692,25 @@
             "additionalProperties": true,
             "properties": {
               "characterId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "factionId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "npcId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "ownerType": {
                 "type": "string"
               },
               "playerId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               }
             },
             "type": "object"
           }
         },
-        "required": [
-          "success",
-          "message"
-        ],
+        "required": ["success", "message"],
         "title": "ship-transfer-response",
         "type": "object"
       },
@@ -4782,11 +3751,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "id",
-                        "itemType",
-                        "displayName"
-                      ]
+                      "required": ["id", "itemType", "displayName"]
                     },
                     {
                       "properties": {
@@ -4797,10 +3762,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "itemId",
-                        "itemType"
-                      ]
+                      "required": ["itemId", "itemType"]
                     },
                     {
                       "properties": {
@@ -4811,10 +3773,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "id",
-                        "itemType"
-                      ]
+                      "required": ["id", "itemType"]
                     }
                   ],
                   "type": "object"
@@ -4826,60 +3785,33 @@
                 "description": "Optional ownership patch. Presence indicates ownership transfer/update intent.",
                 "properties": {
                   "characterId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
+                    "type": ["string", "null"]
                   },
                   "claimToken": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
+                    "type": ["string", "null"]
                   },
                   "factionId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
+                    "type": ["string", "null"]
                   },
                   "npcId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
+                    "type": ["string", "null"]
                   },
                   "ownerType": {
-                    "enum": [
-                      "player-character",
-                      "npc-pirate",
-                      "unowned",
-                      "unknown"
-                    ],
+                    "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
                     "type": "string"
                   },
                   "playerId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
+                    "type": ["string", "null"]
                   }
                 },
-                "required": [
-                  "ownerType"
-                ],
+                "required": ["ownerType"],
                 "type": "object"
               }
             },
             "type": "object"
           }
         },
-        "required": [
-          "playerName",
-          "characterId",
-          "sessionKey",
-          "ship"
-        ],
+        "required": ["playerName", "characterId", "sessionKey", "ship"],
         "title": "ship-upsert-request",
         "type": "object"
       },
@@ -4913,12 +3845,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characterId"
-        ],
+        "required": ["success", "message", "playerName", "characterId"],
         "title": "ship-upsert-response",
         "type": "object"
       },
@@ -4942,11 +3869,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "solarSystemId"
-        ],
+        "required": ["playerName", "sessionKey", "solarSystemId"],
         "title": "solar-system-get-request",
         "type": "object"
       },
@@ -4959,10 +3882,7 @@
             "properties": {
               "atmosphere": {
                 "additionalProperties": true,
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": ["object", "null"]
               },
               "bodyType": {
                 "type": "string"
@@ -4992,29 +3912,17 @@
                 "type": "array"
               },
               "debrisSeed": {
-                "type": [
-                  "integer",
-                  "null"
-                ]
+                "type": ["integer", "null"]
               },
               "destroyedAt": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "destroyedReason": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "discovery": {
                 "additionalProperties": true,
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": ["object", "null"]
               },
               "displayName": {
                 "type": "string"
@@ -5023,10 +3931,7 @@
                 "type": "number"
               },
               "hygId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "id": {
                 "type": "string"
@@ -5039,22 +3944,13 @@
               },
               "magnitudes": {
                 "additionalProperties": true,
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": ["object", "null"]
               },
               "missionId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "missionInstanceId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "motion": {
                 "$ref": "#/definitions/motionState"
@@ -5064,16 +3960,10 @@
               },
               "orbitalElements": {
                 "additionalProperties": true,
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": ["object", "null"]
               },
               "parentBodyId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "physical": {
                 "$ref": "#/definitions/physicalState"
@@ -5082,10 +3972,7 @@
                 "$ref": "#/definitions/physicalCatalog"
               },
               "planetType": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "sourceScanId": {
                 "type": "string"
@@ -5094,11 +3981,7 @@
                 "$ref": "#/definitions/spatialState"
               },
               "state": {
-                "enum": [
-                  "unscanned",
-                  "active",
-                  "destroyed"
-                ],
+                "enum": ["unscanned", "active", "destroyed"],
                 "type": "string"
               },
               "updatedAt": {
@@ -5134,27 +4017,15 @@
                 "type": "string"
               },
               "rarity": {
-                "enum": [
-                  "Common",
-                  "Uncommon",
-                  "Rare",
-                  "Exotic"
-                ],
+                "enum": ["Common", "Uncommon", "Rare", "Exotic"],
                 "type": "string"
               },
               "textureColor": {
                 "type": "string"
               }
             },
-            "required": [
-              "rarity",
-              "material",
-              "textureColor"
-            ],
-            "type": [
-              "object",
-              "null"
-            ]
+            "required": ["rarity", "material", "textureColor"],
+            "type": ["object", "null"]
           },
           "debrisEntry": {
             "properties": {
@@ -5171,12 +4042,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "material",
-              "rarity",
-              "quantity",
-              "itemType"
-            ],
+            "required": ["material", "rarity", "quantity", "itemType"],
             "type": "object"
           },
           "motionState": {
@@ -5188,115 +4054,69 @@
                 "$ref": "#/definitions/vector3"
               }
             },
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "observabilityState": {
             "properties": {
               "scanState": {
-                "enum": [
-                  "unscanned",
-                  "scanned"
-                ],
+                "enum": ["unscanned", "scanned"],
                 "type": "string"
               },
               "visibility": {
-                "enum": [
-                  "visible",
-                  "not-visible",
-                  "cloaked"
-                ],
+                "enum": ["visible", "not-visible", "cloaked"],
                 "type": "string"
               }
             },
-            "required": [
-              "visibility",
-              "scanState"
-            ],
+            "required": ["visibility", "scanState"],
             "type": "object"
           },
           "physicalCatalog": {
             "properties": {
               "estimatedDiameterM": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "estimatedMassKg": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "radiusKm": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               }
             },
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "physicalState": {
             "properties": {
               "estimatedDiameterM": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "estimatedMassKg": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               }
             },
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "primaryStarSummary": {
             "properties": {
               "absoluteMagnitude": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "colorHex": {
                 "type": "string"
               },
               "colorIndexBv": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "hygId": {
                 "type": "string"
               },
               "luminositySolar": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "massSolar": {
                 "type": "number"
               },
               "properName": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "radiusSolar": {
                 "type": "number"
@@ -5305,10 +4125,7 @@
                 "type": "string"
               },
               "spectralType": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               }
             },
             "required": [
@@ -5323,10 +4140,7 @@
               "absoluteMagnitude",
               "properName"
             ],
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "solarSystemSummary": {
             "properties": {
@@ -5337,16 +4151,10 @@
                 "type": "string"
               },
               "distanceParsec": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "generationSeed": {
-                "type": [
-                  "integer",
-                  "null"
-                ]
+                "type": ["integer", "null"]
               },
               "hygSystemId": {
                 "type": "string"
@@ -5373,10 +4181,7 @@
                 "$ref": "#/definitions/primaryStarSummary"
               },
               "source": {
-                "enum": [
-                  "curated",
-                  "procedural"
-                ],
+                "enum": ["curated", "procedural"],
                 "type": "string"
               },
               "starCount": {
@@ -5403,9 +4208,7 @@
                 "type": "number"
               },
               "frame": {
-                "enum": [
-                  "barycentric"
-                ],
+                "enum": ["barycentric"],
                 "type": "string"
               },
               "positionKm": {
@@ -5415,12 +4218,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "solarSystemId",
-              "frame",
-              "positionKm",
-              "epochMs"
-            ],
+            "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
             "type": "object"
           },
           "vector3": {
@@ -5435,11 +4233,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           },
           "visualization": {
@@ -5454,10 +4248,7 @@
                 "type": "string"
               }
             },
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           }
         },
         "properties": {
@@ -5494,12 +4285,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "solarSystemId"
-        ],
+        "required": ["success", "message", "playerName", "solarSystemId"],
         "title": "solar-system-get-response",
         "type": "object"
       },
@@ -5528,10 +4314,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey"
-        ],
+        "required": ["playerName", "sessionKey"],
         "title": "solar-system-list-request",
         "type": "object"
       },
@@ -5541,37 +4324,25 @@
           "primaryStarSummary": {
             "properties": {
               "absoluteMagnitude": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "colorHex": {
                 "type": "string"
               },
               "colorIndexBv": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "hygId": {
                 "type": "string"
               },
               "luminositySolar": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "massSolar": {
                 "type": "number"
               },
               "properName": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "radiusSolar": {
                 "type": "number"
@@ -5580,10 +4351,7 @@
                 "type": "string"
               },
               "spectralType": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               }
             },
             "required": [
@@ -5598,10 +4366,7 @@
               "absoluteMagnitude",
               "properName"
             ],
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "solarSystemSummary": {
             "description": "Solar system registry summary enriched with optional count fields when available.",
@@ -5613,16 +4378,10 @@
                 "type": "string"
               },
               "distanceParsec": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "generationSeed": {
-                "type": [
-                  "integer",
-                  "null"
-                ]
+                "type": ["integer", "null"]
               },
               "hygSystemId": {
                 "type": "string"
@@ -5649,10 +4408,7 @@
                 "$ref": "#/definitions/primaryStarSummary"
               },
               "source": {
-                "enum": [
-                  "curated",
-                  "procedural"
-                ],
+                "enum": ["curated", "procedural"],
                 "type": "string"
               },
               "starCount": {
@@ -5685,11 +4441,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           }
         },
@@ -5714,12 +4466,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "solarSystems"
-        ],
+        "required": ["success", "message", "playerName", "solarSystems"],
         "title": "solar-system-list-response",
         "type": "object"
       },
@@ -5739,11 +4486,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey",
-          "hygId"
-        ],
+        "required": ["playerName", "sessionKey", "hygId"],
         "title": "star-get-request",
         "type": "object"
       },
@@ -5754,58 +4497,34 @@
             "description": "Canonical HYG star catalog entry returned by star and solar system queries.",
             "properties": {
               "absoluteMagnitude": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "apparentMagnitude": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "colorHex": {
                 "type": "string"
               },
               "colorIndexBv": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "decDeg": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "distanceParsec": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "hdId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "hipId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "hygId": {
                 "type": "string"
               },
               "luminositySolar": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "massKg": {
                 "type": "number"
@@ -5817,16 +4536,10 @@
                 "$ref": "#/definitions/vector3Pc"
               },
               "properName": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "raHours": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "radiusKm": {
                 "type": "number"
@@ -5841,10 +4554,7 @@
                 "type": "number"
               },
               "spectralType": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "systemId": {
                 "type": "string"
@@ -5891,11 +4601,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           }
         },
@@ -5921,12 +4627,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "hygId"
-        ],
+        "required": ["success", "message", "playerName", "hygId"],
         "title": "star-get-response",
         "type": "object"
       },
@@ -5955,10 +4656,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "playerName",
-          "sessionKey"
-        ],
+        "required": ["playerName", "sessionKey"],
         "title": "star-list-request",
         "type": "object"
       },
@@ -5969,58 +4667,34 @@
             "description": "Canonical HYG star catalog entry returned by star and solar system queries.",
             "properties": {
               "absoluteMagnitude": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "apparentMagnitude": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "colorHex": {
                 "type": "string"
               },
               "colorIndexBv": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "decDeg": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "distanceParsec": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "hdId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "hipId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "hygId": {
                 "type": "string"
               },
               "luminositySolar": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "massKg": {
                 "type": "number"
@@ -6032,16 +4706,10 @@
                 "$ref": "#/definitions/vector3Pc"
               },
               "properName": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "raHours": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "radiusKm": {
                 "type": "number"
@@ -6056,10 +4724,7 @@
                 "type": "number"
               },
               "spectralType": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "systemId": {
                 "type": "string"
@@ -6106,11 +4771,7 @@
                 "type": "number"
               }
             },
-            "required": [
-              "x",
-              "y",
-              "z"
-            ],
+            "required": ["x", "y", "z"],
             "type": "object"
           }
         },
@@ -6135,12 +4796,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "stars"
-        ],
+        "required": ["success", "message", "playerName", "stars"],
         "title": "star-list-response",
         "type": "object"
       },
@@ -6154,10 +4810,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "type",
-          "payload"
-        ],
+        "required": ["type", "payload"],
         "title": "unknown-message",
         "type": "object"
       },
@@ -6171,10 +4824,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "message"
-        ],
+        "required": ["id", "message"],
         "title": "welcome-event",
         "type": "object"
       }
@@ -6186,10 +4836,7 @@
   },
   "schemaVersion": "sw-08-v1",
   "surfaces": {
-    "apiEndpoints": [
-      "/health",
-      "/items"
-    ],
+    "apiEndpoints": ["/health", "/items"],
     "socketEndpoints": [
       "/socket/add-mission",
       "/socket/celestial-body-list",

@@ -1,0 +1,12 @@
+{
+  "reason": "",
+  "impact": "",
+  "expiryDate": "YYYY-MM-DDTHH:MM:SSZ",
+  "rollbackSteps": [""],
+  "followUpTicket": "",
+  "owner": "backend-lead",
+  "approvals": {
+    "backendLead": true,
+    "frontendLead": true
+  }
+}

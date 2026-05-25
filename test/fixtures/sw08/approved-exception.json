@@ -1,0 +1,16 @@
+{
+  "reason": "Temporary compatibility window while frontend migrates ship-transfer owner descriptors",
+  "impact": "Breaking ship ownership contract drift is allowed only for the approved migration window.",
+  "expiryDate": "2026-06-30T23:59:59.000Z",
+  "rollbackSteps": [
+    "Revert the producer change behind the exception",
+    "Remove the bypass file",
+    "Notify frontend consumers and re-run SW-08 gate"
+  ],
+  "followUpTicket": "SW08-123",
+  "owner": "backend-lead",
+  "approvals": {
+    "backendLead": true,
+    "frontendLead": true
+  }
+}

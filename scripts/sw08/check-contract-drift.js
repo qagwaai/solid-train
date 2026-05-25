@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const prettier = require('prettier');
 
 const CATEGORY = {
   REMOVED_REQUIRED: 'removed required fields',
@@ -51,6 +52,11 @@ function stableStringify(value) {
   return `${JSON.stringify(sortValue(value), null, 2)}\n`;
 }
 
+async function formatJson(value, filePath) {
+  const config = (await prettier.resolveConfig(filePath)) || {};
+  return prettier.format(stableStringify(value), { ...config, parser: 'json' });
+}
+
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
@@ -77,6 +83,84 @@ function arraysEqual(a, b) {
     }
   }
   return true;
+}
+
+function readExceptionMetadata(exceptionPath) {
+  if (!exceptionPath) {
+    return null;
+  }
+
+  if (!fs.existsSync(exceptionPath)) {
+    return {
+      valid: false,
+      path: exceptionPath,
+      errors: [`Exception file not found: ${exceptionPath}`],
+    };
+  }
+
+  try {
+    const parsed = readJson(exceptionPath);
+    const errors = [];
+
+    if (!parsed || typeof parsed !== 'object') {
+      errors.push('Exception metadata must be a JSON object');
+    }
+
+    const approvals =
+      parsed?.approvals && typeof parsed.approvals === 'object' ? parsed.approvals : {};
+    const rollbackSteps = Array.isArray(parsed?.rollbackSteps) ? parsed.rollbackSteps : [];
+    const expiryDate = new Date(parsed?.expiryDate);
+
+    for (const field of ['reason', 'impact', 'followUpTicket', 'owner']) {
+      if (typeof parsed?.[field] !== 'string' || parsed[field].trim().length === 0) {
+        errors.push(`Exception metadata requires non-empty string field: ${field}`);
+      }
+    }
+
+    if (
+      rollbackSteps.length === 0 ||
+      rollbackSteps.some((step) => typeof step !== 'string' || !step.trim())
+    ) {
+      errors.push('Exception metadata requires non-empty rollbackSteps array');
+    }
+
+    if (approvals.backendLead !== true || approvals.frontendLead !== true) {
+      errors.push(
+        'Exception metadata requires approvals.backendLead=true and approvals.frontendLead=true'
+      );
+    }
+
+    if (Number.isNaN(expiryDate.getTime())) {
+      errors.push('Exception metadata requires a valid expiryDate');
+    } else if (expiryDate.getTime() < Date.now()) {
+      errors.push('Exception metadata expiryDate must not be in the past');
+    }
+
+    return errors.length > 0
+      ? { valid: false, path: exceptionPath, errors }
+      : {
+          valid: true,
+          path: exceptionPath,
+          value: {
+            reason: parsed.reason.trim(),
+            impact: parsed.impact.trim(),
+            expiryDate: parsed.expiryDate,
+            rollbackSteps: rollbackSteps.map((step) => step.trim()),
+            followUpTicket: parsed.followUpTicket.trim(),
+            owner: parsed.owner.trim(),
+            approvals: {
+              backendLead: true,
+              frontendLead: true,
+            },
+          },
+        };
+  } catch (error) {
+    return {
+      valid: false,
+      path: exceptionPath,
+      errors: [`Failed to parse exception metadata: ${error.message}`],
+    };
+  }
 }
 
 function inferConsumerSurfaces(text) {
@@ -184,15 +268,12 @@ function compareSchemaNode(oldNode, newNode, pointer, issues) {
     const newEnum = [...new Set(newNode.enum.map(String))].sort();
     const removed = oldEnum.filter((value) => !newEnum.includes(value));
 
-    if (removed.length > 0 || !arraysEqual(oldEnum, newEnum)) {
+    if (removed.length > 0) {
       issues.push(
         createIssue({
           category: CATEGORY.ENUM_MISMATCH,
           location: pointer,
-          detail:
-            removed.length > 0
-              ? `Enum narrowed; removed values: [${removed.join(', ')}]`
-              : `Enum mismatch; old=[${oldEnum.join(', ')}], new=[${newEnum.join(', ')}]`,
+          detail: `Enum narrowed; removed values: [${removed.join(', ')}]`,
           strategy: 'Avoid enum narrowing or preserve old values with deprecation window.',
         })
       );
@@ -323,7 +404,36 @@ function analyzeDrift(oldArtifact, newArtifact) {
   };
 }
 
-function main() {
+function createReportContext(mode, exceptionInfo, issues) {
+  const report = {
+    enforcementMode: mode,
+    softFailEnforced: false,
+    bypassApproved: false,
+    exception: null,
+    exitCode: 0,
+  };
+
+  if (mode === 'soft-fail' && issues.length > 0) {
+    if (exceptionInfo?.valid) {
+      report.bypassApproved = true;
+      report.exception = exceptionInfo.value;
+      report.exitCode = 0;
+    } else {
+      report.softFailEnforced = true;
+      report.exception = exceptionInfo
+        ? {
+            path: exceptionInfo.path,
+            errors: exceptionInfo.errors,
+          }
+        : null;
+      report.exitCode = 1;
+    }
+  }
+
+  return report;
+}
+
+async function main() {
   const args = parseArgs(process.argv.slice(2));
   const rootDir = path.resolve(__dirname, '..', '..');
 
@@ -337,6 +447,9 @@ function main() {
   );
   const reportPath = path.resolve(rootDir, args.report || 'artifacts/contracts/drift-report.json');
   const mode = args.mode || 'report-only';
+  const exceptionPath = args.exception
+    ? path.resolve(rootDir, args.exception)
+    : path.resolve(rootDir, 'docs/planning/sw-08-approved-bypass.json');
 
   const baselineExists = fs.existsSync(baselinePath);
   const currentExists = fs.existsSync(currentPath);
@@ -349,28 +462,49 @@ function main() {
     ? readJson(baselinePath)
     : { surfaces: {}, components: {} };
   const currentArtifact = readJson(currentPath);
+  const exceptionInfo = readExceptionMetadata(exceptionPath);
 
   const report = analyzeDrift(baselineArtifact, currentArtifact);
+  const execution = createReportContext(mode, exceptionInfo, report.issues);
   report.summary.mode = mode;
+  report.summary.enforcementMode = execution.enforcementMode;
+  report.summary.softFailEnforced = execution.softFailEnforced;
+  report.summary.bypassApproved = execution.bypassApproved;
+  if (execution.exception) {
+    report.exception = execution.exception;
+  }
   report.metadata = {
     baselinePath: path.relative(rootDir, baselinePath),
     currentPath: path.relative(rootDir, currentPath),
     baselineMissing: !baselineExists,
+    exceptionPath: path.relative(rootDir, exceptionPath),
+    exceptionFound: Boolean(exceptionInfo?.valid),
     generatedBy: 'scripts/sw08/check-contract-drift.js',
   };
 
+  if (exceptionInfo && !exceptionInfo.valid && mode === 'soft-fail' && report.issues.length > 0) {
+    report.exception = {
+      path: path.relative(rootDir, exceptionInfo.path),
+      errors: exceptionInfo.errors,
+    };
+  }
+
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
-  fs.writeFileSync(reportPath, stableStringify(report), 'utf8');
+  fs.writeFileSync(reportPath, await formatJson(report, reportPath), 'utf8');
 
   console.log(`[sw08] drift report generated: ${path.relative(rootDir, reportPath)}`);
-  console.log(`[sw08] mode=${mode} totalIssues=${report.summary.totalIssues}`);
+  console.log(
+    `[sw08] mode=${mode} totalIssues=${report.summary.totalIssues} bypassApproved=${execution.bypassApproved} softFailEnforced=${execution.softFailEnforced}`
+  );
 
-  // Stage 1 is explicitly report-only. Never fail the process here.
-  process.exitCode = 0;
+  process.exitCode = execution.exitCode;
 }
 
 if (require.main === module) {
-  main();
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
 }
 
 module.exports = {

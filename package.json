@@ -15,7 +15,10 @@
     "contract:artifact": "node scripts/sw08/generate-contract-artifact.js --out artifacts/contracts/contract-artifact.json",
     "contract:drift": "node scripts/sw08/check-contract-drift.js --baseline artifacts/contracts/baseline-contract-artifact.json --current artifacts/contracts/contract-artifact.json --report artifacts/contracts/drift-report.json --mode report-only",
     "contract:gate": "npm run contract:artifact && npm run contract:drift",
-    "contract:fixture-check": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/drift-old.json --current test/fixtures/sw08/drift-new.json --report artifacts/contracts/drift-fixture-report.json --mode report-only"
+    "contract:fixture-check": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/drift-old.json --current test/fixtures/sw08/drift-new.json --report artifacts/contracts/drift-fixture-report.json --mode report-only",
+    "contract:gate:soft": "node scripts/sw08/check-contract-drift.js --baseline artifacts/contracts/baseline-contract-artifact.json --current artifacts/contracts/contract-artifact.json --report artifacts/contracts/drift-report.json --mode soft-fail",
+    "contract:gate:soft:approved": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/drift-old.json --current test/fixtures/sw08/drift-new.json --report artifacts/contracts/drift-approved-report.json --mode soft-fail --exception test/fixtures/sw08/approved-exception.json",
+    "contract:compat-check": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/compat-old.json --current test/fixtures/sw08/compat-new.json --report artifacts/contracts/compat-report.json --mode soft-fail"
   },
   "repository": {
     "type": "git",

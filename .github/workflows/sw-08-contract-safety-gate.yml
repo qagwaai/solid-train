@@ -28,8 +28,23 @@ jobs:
       - name: Generate deterministic contract artifact
         run: npm run contract:artifact
 
-      - name: Run report-only drift detection
+      - name: Run PR soft-fail drift detection
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: npm run contract:gate:soft
+
+      - name: Run approved-bypass soft-fail validation
+        run: npm run contract:gate:soft:approved
+
+      - name: Run compatibility-window validation
+        run: npm run contract:compat-check
+
+      - name: Run main-branch report-only drift detection
+        if: github.event_name == 'push'
         run: npm run contract:drift
+
+      - name: Run soft-fail validation fixtures
+        run: node --test test/sw08-contract-stage2.test.js
 
       - name: Run intentional mismatch fixture check
         run: npm run contract:fixture-check
@@ -41,5 +56,10 @@ jobs:
           path: |
             artifacts/contracts/contract-artifact.json
             artifacts/contracts/drift-report.json
+            artifacts/contracts/drift-approved-report.json
+            artifacts/contracts/compat-report.json
             artifacts/contracts/drift-fixture-report.json
+            artifacts/contracts/stage2-soft-fail-report.json
+            artifacts/contracts/stage2-approved-report.json
+            artifacts/contracts/stage2-compat-report.json
           if-no-files-found: error

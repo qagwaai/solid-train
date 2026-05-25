@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "sw-08-fixture-v1",
+  "surfaces": {
+    "apiEndpoints": ["/health"],
+    "socketEndpoints": ["/socket/ship-transfer"],
+    "socketEvents": ["ship-transfer"]
+  },
+  "components": {
+    "schemas": {
+      "CompatContract": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["alpha", "beta", "gamma"]
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
