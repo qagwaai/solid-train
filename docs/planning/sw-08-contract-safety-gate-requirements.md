@@ -122,6 +122,7 @@ Required for breaking changes:
 - Mean drift resolution time.
 - Exception frequency and expiry compliance.
 - Downstream regressions caused by contract changes.
+- Weekly drift count, MTTR, bypass count, and expired bypass count.
 
 ## 11. Related Documents
 

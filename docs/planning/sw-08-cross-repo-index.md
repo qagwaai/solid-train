@@ -29,13 +29,14 @@ Frontend repo documents:
 1. Stage 1: Report-only (warn)
 2. Stage 2: Soft fail with approved bypass
 3. Stage 3: Hard fail on PR path
+4. Stage 4: Operational stabilization with weekly metrics
 
 ## Current Status
 
-| Repo                  | Stage   | PR Gate   | Notes                                             |
-| --------------------- | ------- | --------- | ------------------------------------------------- |
-| solid-train           | Stage 3 | Hard fail | Approved exceptions remain audited and time-bound |
-| laughing-octo-journey | Stage 3 | Hard fail | Mirror consumer triage and update path            |
+| Repo                  | Stage   | PR Gate   | Notes                                                                     |
+| --------------------- | ------- | --------- | ------------------------------------------------------------------------- |
+| solid-train           | Stage 4 | Hard fail | Weekly metrics enabled; approved exceptions remain audited and time-bound |
+| laughing-octo-journey | Stage 4 | Hard fail | Mirror consumer triage, update path, and SLA timing                       |
 
 ## Shared Status Board Template
 
@@ -77,3 +78,4 @@ Bypass requires:
 
 - 2026-05-24: Initial cross-repo index and shared status board template created.
 - 2026-05-24: Stage 3 hard-fail rollout recorded for solid-train.
+- 2026-05-24: Stage 4 stabilization recorded with weekly metrics and tighter ops guidance.

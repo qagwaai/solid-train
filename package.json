@@ -24,7 +24,8 @@
     "contract:gate:hard:approved": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/drift-old.json --current test/fixtures/sw08/drift-new.json --report artifacts/contracts/stage3-approved-report.json --mode hard-fail --exception test/fixtures/sw08/approved-exception.json",
     "contract:gate:hard:expired": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/drift-old.json --current test/fixtures/sw08/drift-new.json --report artifacts/contracts/stage3-expired-report.json --mode hard-fail --exception test/fixtures/sw08/expired-exception.json",
     "contract:gate:hard:missing-approval": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/drift-old.json --current test/fixtures/sw08/drift-new.json --report artifacts/contracts/stage3-missing-approval-report.json --mode hard-fail --exception test/fixtures/sw08/missing-approval-exception.json",
-    "contract:compat-check:hard": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/compat-old.json --current test/fixtures/sw08/compat-new.json --report artifacts/contracts/stage3-compat-report.json --mode hard-fail"
+    "contract:compat-check:hard": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/compat-old.json --current test/fixtures/sw08/compat-new.json --report artifacts/contracts/stage3-compat-report.json --mode hard-fail",
+    "contract:metrics:weekly": "node scripts/sw08/report-contract-metrics.js --reports-dir artifacts/contracts --report artifacts/contracts/sw08-weekly-metrics.json"
   },
   "repository": {
     "type": "git",

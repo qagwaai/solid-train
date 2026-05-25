@@ -20,6 +20,8 @@
     "hardFailEnforced": false,
     "impactedConsumers": ["laughing-octo-journey"],
     "mode": "hard-fail",
+    "nextAction": "No action required.",
+    "owner": "unassigned",
     "softFailEnforced": false,
     "totalIssues": 0
   },

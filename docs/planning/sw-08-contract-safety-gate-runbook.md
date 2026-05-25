@@ -24,7 +24,8 @@ Use this runbook when SW-08 CI fails due to contract drift or incompatible produ
 5. Run the expired-exception rejection check with `npm run contract:gate:hard:expired`.
 6. Run the missing-approval rejection check with `npm run contract:gate:hard:missing-approval`.
 7. Run the compatibility-window check with `npm run contract:compat-check:hard`.
-8. Compare expected vs actual contract nodes.
+8. Run the weekly metrics report with `npm run contract:metrics:weekly`.
+9. Compare expected vs actual contract nodes.
 
 ## 4. Resolution Paths
 
@@ -43,6 +44,7 @@ Coordinated migration:
 Exception path:
 
 - Use only when urgent, documented, and still inside the expiry window.
+- Keep triage within 1 business day and closure or approved exception within 2 business days.
 - Approved bypass metadata must include reason, impact, expiry date, rollback steps, follow-up ticket, owner, and approvals.backendLead/frontendLead set to true.
 - Expired or missing-approval exceptions must fail CI automatically.
 
@@ -64,6 +66,7 @@ Approval:
 - Start with `producerLocation`, `consumerSurfaces`, `severity`, and `owner`.
 - If the drift is intentional, attach a valid exception with both lead approvals before retrying.
 - If the exception is expired or incomplete, treat it as a release blocker and fix the producer or rename alias instead.
+- For a hard failure, the next action should be either producer compatibility restoration or a corrected exception with a valid expiry window.
 - Keep the rollback plan and follow-up ticket in the handoff thread so the frontend team can sequence their update.
 
 ## 7. Communication Template

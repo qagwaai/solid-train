@@ -405,6 +405,20 @@ function analyzeDrift(oldArtifact, newArtifact) {
 }
 
 function createReportContext(mode, exceptionInfo, issues) {
+  const primaryIssue =
+    issues.find((issue) => issue && (issue.owner || issue.producerLocation)) || null;
+  const owner = primaryIssue?.owner || exceptionInfo?.value?.owner || 'unassigned';
+  const nextAction =
+    issues.length === 0
+      ? 'No action required.'
+      : exceptionInfo?.valid
+        ? 'No action required: approved exception is valid within policy.'
+        : exceptionInfo?.errors?.length
+          ? exceptionInfo.errors.some((message) => message.includes('expiryDate'))
+            ? 'Fix exception metadata or reissue a fresh exception within the SLA window.'
+            : 'Complete the missing exception fields or approvals, then rerun the gate.'
+          : 'Restore compatibility, add an alias, or attach an approved exception before retrying.';
+
   const report = {
     enforcementMode: mode,
     softFailEnforced: false,
@@ -413,6 +427,9 @@ function createReportContext(mode, exceptionInfo, issues) {
     exception: null,
     exitCode: 0,
   };
+
+  report.owner = owner;
+  report.nextAction = nextAction;
 
   if (mode === 'report-only' || issues.length === 0) {
     return report;
@@ -479,6 +496,8 @@ async function main() {
   report.summary.softFailEnforced = execution.softFailEnforced;
   report.summary.hardFailEnforced = execution.hardFailEnforced;
   report.summary.bypassApproved = execution.bypassApproved;
+  report.summary.owner = execution.owner;
+  report.summary.nextAction = execution.nextAction;
   if (execution.exception) {
     report.exception = execution.exception;
   }
@@ -505,6 +524,7 @@ async function main() {
   console.log(
     `[sw08] mode=${mode} totalIssues=${report.summary.totalIssues} bypassApproved=${execution.bypassApproved} softFailEnforced=${execution.softFailEnforced} hardFailEnforced=${execution.hardFailEnforced}`
   );
+  console.log(`[sw08] owner=${execution.owner} nextAction=${execution.nextAction}`);
 
   process.exitCode = execution.exitCode;
 }

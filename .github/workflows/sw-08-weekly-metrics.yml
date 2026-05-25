@@ -1,0 +1,33 @@
+name: SW-08 Weekly Metrics
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate weekly SW-08 metrics
+        run: npm run contract:metrics:weekly
+
+      - name: Upload weekly SW-08 metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: sw08-weekly-metrics
+          path: artifacts/contracts/sw08-weekly-metrics.json
+          if-no-files-found: error

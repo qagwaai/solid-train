@@ -75,6 +75,8 @@
     "hardFailEnforced": true,
     "impactedConsumers": ["laughing-octo-journey"],
     "mode": "hard-fail",
+    "nextAction": "Fix exception metadata or reissue a fresh exception within the SLA window.",
+    "owner": "backend-lead",
     "softFailEnforced": false,
     "totalIssues": 5
   },
