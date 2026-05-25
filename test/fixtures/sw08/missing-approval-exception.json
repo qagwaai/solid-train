@@ -1,0 +1,15 @@
+{
+  "reason": "Temporary compatibility window missing the second lead approval",
+  "impact": "This bypass is incomplete and must fail CI.",
+  "expiryDate": "2026-06-30T23:59:59.000Z",
+  "rollbackSteps": [
+    "Revert the producer change behind the exception",
+    "Remove the bypass file",
+    "Notify frontend consumers and re-run SW-08 gate"
+  ],
+  "followUpTicket": "SW08-125",
+  "owner": "backend-lead",
+  "approvals": {
+    "backendLead": true
+  }
+}

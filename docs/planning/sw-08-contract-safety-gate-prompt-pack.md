@@ -21,7 +21,7 @@ Purpose: Reusable prompts for implementing and operating producer-side contract 
 
 ## Prompt 3: Add CI Gate Stages
 
-"Add SW-08 CI stages for report-only, soft fail, and hard fail. Publish detailed diagnostics as CI artifact and include remediation hints."
+"Add SW-08 CI stages for report-only, soft fail, and hard fail. Promote PRs to hard-fail once rollout is approved. Publish detailed diagnostics as CI artifact and include remediation hints."
 
 ## Prompt 4: Build Compatibility Fixtures
 
@@ -42,3 +42,7 @@ Purpose: Reusable prompts for implementing and operating producer-side contract 
 ## Prompt 8: Exception Validation
 
 "Review requested SW-08 exception for required fields: reason, impact, expiry date, rollback plan, and owner. Reject if incomplete."
+
+## Prompt 9: Hard-Fail Triage
+
+"For a SW-08 hard-fail, identify producer location, impacted consumer surface, severity, and owner first. If the exception is expired or missing approvals, reject it and fix the producer contract or alias instead."

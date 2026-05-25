@@ -28,38 +28,29 @@ jobs:
       - name: Generate deterministic contract artifact
         run: npm run contract:artifact
 
-      - name: Run PR soft-fail drift detection
+      - name: Run Stage 3 validation suite
+        run: node --test test/sw08-contract-stage3.test.js
+
+      - name: Run PR hard-fail drift detection
         if: github.event_name == 'pull_request'
-        continue-on-error: true
-        run: npm run contract:gate:soft
-
-      - name: Run approved-bypass soft-fail validation
-        run: npm run contract:gate:soft:approved
-
-      - name: Run compatibility-window validation
-        run: npm run contract:compat-check
+        run: npm run contract:gate:hard
 
       - name: Run main-branch report-only drift detection
         if: github.event_name == 'push'
         run: npm run contract:drift
 
-      - name: Run soft-fail validation fixtures
-        run: node --test test/sw08-contract-stage2.test.js
-
-      - name: Run intentional mismatch fixture check
-        run: npm run contract:fixture-check
-
       - name: Upload SW-08 diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sw08-contract-safety-gate-report
           path: |
             artifacts/contracts/contract-artifact.json
             artifacts/contracts/drift-report.json
-            artifacts/contracts/drift-approved-report.json
-            artifacts/contracts/compat-report.json
             artifacts/contracts/drift-fixture-report.json
-            artifacts/contracts/stage2-soft-fail-report.json
-            artifacts/contracts/stage2-approved-report.json
-            artifacts/contracts/stage2-compat-report.json
+            artifacts/contracts/stage3-hard-fail-report.json
+            artifacts/contracts/stage3-approved-report.json
+            artifacts/contracts/stage3-expired-report.json
+            artifacts/contracts/stage3-missing-approval-report.json
+            artifacts/contracts/stage3-compat-report.json
           if-no-files-found: error

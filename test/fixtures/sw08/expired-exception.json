@@ -1,0 +1,16 @@
+{
+  "reason": "Expired emergency compatibility window for ship-transfer migration",
+  "impact": "This bypass is no longer valid and must fail CI.",
+  "expiryDate": "2025-12-31T23:59:59.000Z",
+  "rollbackSteps": [
+    "Revert the producer change behind the exception",
+    "Remove the bypass file",
+    "Notify frontend consumers and re-run SW-08 gate"
+  ],
+  "followUpTicket": "SW08-124",
+  "owner": "backend-lead",
+  "approvals": {
+    "backendLead": true,
+    "frontendLead": true
+  }
+}

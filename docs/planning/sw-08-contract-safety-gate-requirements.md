@@ -65,7 +65,7 @@ Modes:
 
 - Phase 1: Report-only.
 - Phase 2: Soft fail with approved exception.
-- Phase 3: Hard fail.
+- Phase 3: Hard fail with approved exception and expiry enforcement.
 
 Output requirements:
 

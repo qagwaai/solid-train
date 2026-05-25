@@ -1,9 +1,7 @@
 {
   "exception": {
-    "errors": [
-      "Exception file not found: C:\\Development\\Projects\\Github\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
-    ],
-    "path": "docs\\planning\\sw-08-approved-bypass.json"
+    "errors": ["Exception metadata expiryDate must not be in the past"],
+    "path": "C:\\Development\\Projects\\Github\\solid-train\\test\\fixtures\\sw08\\expired-exception.json"
   },
   "issues": [
     {
@@ -62,7 +60,7 @@
     "baselinePath": "test\\fixtures\\sw08\\drift-old.json",
     "currentPath": "test\\fixtures\\sw08\\drift-new.json",
     "exceptionFound": false,
-    "exceptionPath": "docs\\planning\\sw-08-approved-bypass.json",
+    "exceptionPath": "test\\fixtures\\sw08\\expired-exception.json",
     "generatedBy": "scripts/sw08/check-contract-drift.js"
   },
   "summary": {
@@ -73,11 +71,11 @@
       "type mismatches": 2
     },
     "bypassApproved": false,
-    "enforcementMode": "soft-fail",
-    "hardFailEnforced": false,
+    "enforcementMode": "hard-fail",
+    "hardFailEnforced": true,
     "impactedConsumers": ["laughing-octo-journey"],
-    "mode": "soft-fail",
-    "softFailEnforced": true,
+    "mode": "hard-fail",
+    "softFailEnforced": false,
     "totalIssues": 5
   },
   "taxonomy": {

@@ -30,7 +30,7 @@ Implement producer-side contract governance and CI enforcement to prevent backen
 
 - Add report-only and fail modes.
 - Upload diagnostics artifacts.
-- Stage 2 PR path runs in soft-fail mode with audited bypass support.
+- Stage 3 PR path runs in hard-fail mode with audited bypass support.
 
 5. Cross-repo coordination
 
@@ -95,7 +95,7 @@ Mitigation: Coordinated change ticket and merge sequence checklist.
 
 ## 8. Done Criteria
 
-- Intentional breaks are blocked in hard-fail mode.
+- Intentional breaks are blocked in hard-fail mode on PRs to protected branches.
 - Failure output identifies affected frontend consumers.
 - Teams can reproduce and resolve locally.
-- Exception path audited and time-bound.
+- Exception path audited, time-bound, and rejected automatically when expired or incomplete.

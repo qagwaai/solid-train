@@ -1,9 +1,19 @@
 {
   "exception": {
-    "errors": [
-      "Exception file not found: C:\\Development\\Projects\\Github\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
-    ],
-    "path": "docs\\planning\\sw-08-approved-bypass.json"
+    "approvals": {
+      "backendLead": true,
+      "frontendLead": true
+    },
+    "expiryDate": "2026-06-30T23:59:59.000Z",
+    "followUpTicket": "SW08-123",
+    "impact": "Breaking ship ownership contract drift is allowed only for the approved migration window.",
+    "owner": "backend-lead",
+    "reason": "Temporary compatibility window while frontend migrates ship-transfer owner descriptors",
+    "rollbackSteps": [
+      "Revert the producer change behind the exception",
+      "Remove the bypass file",
+      "Notify frontend consumers and re-run SW-08 gate"
+    ]
   },
   "issues": [
     {
@@ -61,8 +71,8 @@
     "baselineMissing": false,
     "baselinePath": "test\\fixtures\\sw08\\drift-old.json",
     "currentPath": "test\\fixtures\\sw08\\drift-new.json",
-    "exceptionFound": false,
-    "exceptionPath": "docs\\planning\\sw-08-approved-bypass.json",
+    "exceptionFound": true,
+    "exceptionPath": "test\\fixtures\\sw08\\approved-exception.json",
     "generatedBy": "scripts/sw08/check-contract-drift.js"
   },
   "summary": {
@@ -72,12 +82,12 @@
       "removed required fields": 1,
       "type mismatches": 2
     },
-    "bypassApproved": false,
-    "enforcementMode": "soft-fail",
+    "bypassApproved": true,
+    "enforcementMode": "hard-fail",
     "hardFailEnforced": false,
     "impactedConsumers": ["laughing-octo-journey"],
-    "mode": "soft-fail",
-    "softFailEnforced": true,
+    "mode": "hard-fail",
+    "softFailEnforced": false,
     "totalIssues": 5
   },
   "taxonomy": {

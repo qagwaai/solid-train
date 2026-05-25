@@ -2,8 +2,8 @@
   "issues": [],
   "metadata": {
     "baselineMissing": false,
-    "baselinePath": "artifacts\\contracts\\baseline-contract-artifact.json",
-    "currentPath": "artifacts\\contracts\\contract-artifact.json",
+    "baselinePath": "test\\fixtures\\sw08\\compat-old.json",
+    "currentPath": "test\\fixtures\\sw08\\compat-new.json",
     "exceptionFound": false,
     "exceptionPath": "docs\\planning\\sw-08-approved-bypass.json",
     "generatedBy": "scripts/sw08/check-contract-drift.js"

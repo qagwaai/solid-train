@@ -30,6 +30,13 @@ Frontend repo documents:
 2. Stage 2: Soft fail with approved bypass
 3. Stage 3: Hard fail on PR path
 
+## Current Status
+
+| Repo                  | Stage   | PR Gate   | Notes                                             |
+| --------------------- | ------- | --------- | ------------------------------------------------- |
+| solid-train           | Stage 3 | Hard fail | Approved exceptions remain audited and time-bound |
+| laughing-octo-journey | Stage 3 | Hard fail | Mirror consumer triage and update path            |
+
 ## Shared Status Board Template
 
 Use this table in sprint reviews and incident triage:
@@ -69,3 +76,4 @@ Bypass requires:
 ## Change Log
 
 - 2026-05-24: Initial cross-repo index and shared status board template created.
+- 2026-05-24: Stage 3 hard-fail rollout recorded for solid-train.

@@ -17,6 +17,7 @@
     },
     "bypassApproved": false,
     "enforcementMode": "soft-fail",
+    "hardFailEnforced": false,
     "impactedConsumers": ["laughing-octo-journey"],
     "mode": "soft-fail",
     "softFailEnforced": false,

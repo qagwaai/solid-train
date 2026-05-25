@@ -19,10 +19,12 @@ Use this runbook when SW-08 CI fails due to contract drift or incompatible produ
 
 1. Pull latest main.
 2. Regenerate contract artifact.
-3. Run the Stage 2 soft-fail check with `npm run contract:gate:soft`.
-4. Run the approved-bypass path with `npm run contract:gate:soft:approved`.
-5. Run the compatibility-window check with `npm run contract:compat-check`.
-6. Compare expected vs actual contract nodes.
+3. Run the Stage 3 hard-fail check with `npm run contract:gate:hard`.
+4. Run the approved-exception path with `npm run contract:gate:hard:approved`.
+5. Run the expired-exception rejection check with `npm run contract:gate:hard:expired`.
+6. Run the missing-approval rejection check with `npm run contract:gate:hard:missing-approval`.
+7. Run the compatibility-window check with `npm run contract:compat-check:hard`.
+8. Compare expected vs actual contract nodes.
 
 ## 4. Resolution Paths
 
@@ -40,8 +42,9 @@ Coordinated migration:
 
 Exception path:
 
-- Use only when urgent and documented.
+- Use only when urgent, documented, and still inside the expiry window.
 - Approved bypass metadata must include reason, impact, expiry date, rollback steps, follow-up ticket, owner, and approvals.backendLead/frontendLead set to true.
+- Expired or missing-approval exceptions must fail CI automatically.
 
 ## 5. Exception Requirements
 
@@ -56,7 +59,14 @@ Approval:
 
 - Backend lead + frontend lead.
 
-## 6. Communication Template
+## 6. Hard-Fail Triage Note
+
+- Start with `producerLocation`, `consumerSurfaces`, `severity`, and `owner`.
+- If the drift is intentional, attach a valid exception with both lead approvals before retrying.
+- If the exception is expired or incomplete, treat it as a release blocker and fix the producer or rename alias instead.
+- Keep the rollback plan and follow-up ticket in the handoff thread so the frontend team can sequence their update.
+
+## 7. Communication Template
 
 - Failure ID:
 - Contract surface:
@@ -65,7 +75,7 @@ Approval:
 - ETA:
 - Need exception: yes/no
 
-## 7. Escalation
+## 8. Escalation
 
 Escalate when:
 
@@ -79,7 +89,7 @@ Path:
 2. Frontend lead
 3. Engineering manager
 
-## 8. Postmortem Checklist
+## 9. Postmortem Checklist
 
 - Root cause category.
 - Missed detection opportunity.

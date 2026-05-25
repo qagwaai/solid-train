@@ -408,27 +408,35 @@ function createReportContext(mode, exceptionInfo, issues) {
   const report = {
     enforcementMode: mode,
     softFailEnforced: false,
+    hardFailEnforced: false,
     bypassApproved: false,
     exception: null,
     exitCode: 0,
   };
 
-  if (mode === 'soft-fail' && issues.length > 0) {
-    if (exceptionInfo?.valid) {
-      report.bypassApproved = true;
-      report.exception = exceptionInfo.value;
-      report.exitCode = 0;
-    } else {
-      report.softFailEnforced = true;
-      report.exception = exceptionInfo
-        ? {
-            path: exceptionInfo.path,
-            errors: exceptionInfo.errors,
-          }
-        : null;
-      report.exitCode = 1;
-    }
+  if (mode === 'report-only' || issues.length === 0) {
+    return report;
   }
+
+  if (exceptionInfo?.valid) {
+    report.bypassApproved = true;
+    report.exception = exceptionInfo.value;
+    return report;
+  }
+
+  if (mode === 'hard-fail') {
+    report.hardFailEnforced = true;
+  } else {
+    report.softFailEnforced = true;
+  }
+
+  report.exception = exceptionInfo
+    ? {
+        path: exceptionInfo.path,
+        errors: exceptionInfo.errors,
+      }
+    : null;
+  report.exitCode = 1;
 
   return report;
 }
@@ -469,6 +477,7 @@ async function main() {
   report.summary.mode = mode;
   report.summary.enforcementMode = execution.enforcementMode;
   report.summary.softFailEnforced = execution.softFailEnforced;
+  report.summary.hardFailEnforced = execution.hardFailEnforced;
   report.summary.bypassApproved = execution.bypassApproved;
   if (execution.exception) {
     report.exception = execution.exception;
@@ -494,7 +503,7 @@ async function main() {
 
   console.log(`[sw08] drift report generated: ${path.relative(rootDir, reportPath)}`);
   console.log(
-    `[sw08] mode=${mode} totalIssues=${report.summary.totalIssues} bypassApproved=${execution.bypassApproved} softFailEnforced=${execution.softFailEnforced}`
+    `[sw08] mode=${mode} totalIssues=${report.summary.totalIssues} bypassApproved=${execution.bypassApproved} softFailEnforced=${execution.softFailEnforced} hardFailEnforced=${execution.hardFailEnforced}`
   );
 
   process.exitCode = execution.exitCode;
