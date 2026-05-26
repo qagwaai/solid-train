@@ -119,7 +119,7 @@ test('ItemRemoveMessageHandler removes inventory reference and marks item destro
   assert.equal(response.message, 'Item removed successfully');
   assert.equal(response.item.state, 'destroyed');
   assert.equal(response.item.container, null);
-  assert.equal(response.item.launchable, false);
+  assert.equal(response.item.launchable, true);
   assert.equal(response.item.destroyedReason, 'consumed-by:salvage');
   assert.equal(socket.events[0].eventName, ITEM_REMOVE_RESPONSE_EVENT);
 

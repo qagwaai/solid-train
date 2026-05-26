@@ -165,6 +165,7 @@ const craftableItemsSource = [
     category: ITEM_CATEGORY.MINING,
     tier: 1,
     rarity: ITEM_RARITY.COMMON,
+    launchable: true,
     craftingRequirements: [{ material: 'Iron', quantity: 1 }],
     dependentItems: [],
     buyPrice: null,

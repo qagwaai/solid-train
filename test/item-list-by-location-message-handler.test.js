@@ -137,6 +137,40 @@ test('ItemListByLocationMessageHandler preserves explicit item tier in hydrated 
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_LOCATION_RESPONSE_EVENT);
 });
 
+test('ItemListByLocationMessageHandler emits expendable dart drone as launchable when persisted false', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+
+  seedItems(context, [
+    createDeployedItem({
+      id: 'item-false-launchable',
+      itemType: 'expendable-dart-drone',
+      launchable: false,
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 1, y: 1, z: 1 },
+        epochMs: 1000000,
+      },
+    }),
+  ]);
+
+  const handler = new ItemListByLocationMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceKm: 10,
+    itemType: 'expendable-dart-drone',
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.items.length, 1);
+  assert.equal(response.items[0].itemType, 'expendable-dart-drone');
+  assert.equal(response.items[0].launchable, true);
+});
+
 test('ItemListByLocationMessageHandler returns deployed items only', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });

@@ -154,6 +154,74 @@ test('ShipListMessageHandler handles missing character in player list', async ()
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
 
+test('ShipListMessageHandler emits expendable dart drone as launchable even when persisted false', async () => {
+  const context = createTestContext();
+  seedItems(context, [
+    {
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      tier: 1,
+      state: 'contained',
+      damageStatus: 'intact',
+      container: {
+        containerType: 'ship',
+        containerId: 'ship-1',
+      },
+      owningPlayerId: 'player-seeded',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:00:00.000Z',
+      destroyedAt: null,
+      destroyedReason: null,
+      launchable: false,
+    },
+  ]);
+  seedPlayer(context, {
+    playerName: 'ShipPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scout Ship',
+            model: 'scout-mk2',
+            inventory: [
+              {
+                itemId: 'item-1',
+                itemType: 'expendable-dart-drone',
+              },
+            ],
+            spatial: {
+              solarSystemId: 'system-sol',
+              frame: 'barycentric',
+              positionKm: { x: 100.5, y: 200.3, z: 50.1 },
+              epochMs: 1713607200000,
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'ShipPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.ships.length, 1);
+  assert.equal(response.ships[0].inventory.length, 1);
+  assert.equal(response.ships[0].inventory[0].itemType, 'expendable-dart-drone');
+  assert.equal(response.ships[0].inventory[0].launchable, true);
+});
+
 test('ShipListMessageHandler emits invalid session when session is not valid', async () => {
   const context = createTestContext();
   seedPlayer(context, {

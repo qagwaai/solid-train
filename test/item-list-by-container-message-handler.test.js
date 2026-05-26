@@ -107,6 +107,32 @@ test('ItemListByContainerMessageHandler returns items for a market container', a
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT);
 });
 
+test('ItemListByContainerMessageHandler emits expendable dart drone as launchable when persisted false', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+  seedItems(context, [
+    createItem({
+      id: 'item-1',
+      itemType: 'expendable-dart-drone',
+      launchable: false,
+      container: { containerType: 'ship', containerId: 'ship-1' },
+    }),
+  ]);
+
+  const handler = new ItemListByContainerMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    containerType: 'ship',
+    containerId: 'ship-1',
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.items.length, 1);
+  assert.equal(response.items[0].itemType, 'expendable-dart-drone');
+  assert.equal(response.items[0].launchable, true);
+});
+
 test('ItemListByContainerMessageHandler rejects invalid containerType', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });

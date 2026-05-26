@@ -2,6 +2,8 @@
 
 const { getItemByType } = require('../../model/canonical-items');
 
+const ALWAYS_LAUNCHABLE_ITEM_TYPES = new Set(['expendable-dart-drone']);
+
 const { MARKET_CATALOG, MARKET_CATALOG_BY_ID } = require('../../model/market-catalog');
 
 const SUPPORTED_LOCALES = new Set(['en', 'it']);
@@ -525,6 +527,13 @@ function normalizeItem(ctx, item) {
   }
 
   const { kinematics: _legacyKinematics, ...rest } = source;
+  const launchable = ALWAYS_LAUNCHABLE_ITEM_TYPES.has(itemType)
+    ? true
+    : source.launchable != null
+      ? Boolean(source.launchable)
+      : canonicalItem.launchable != null
+        ? Boolean(canonicalItem.launchable)
+        : true;
 
   return {
     ...rest,
@@ -543,7 +552,7 @@ function normalizeItem(ctx, item) {
     updatedAt: toNonEmptyString(ctx, source.updatedAt),
     destroyedAt: toNonEmptyString(ctx, source.destroyedAt) || null,
     destroyedReason: toNonEmptyString(ctx, source.destroyedReason) || null,
-    launchable: source.launchable != null ? Boolean(source.launchable) : true,
+    launchable,
     quantity: Number.isInteger(source.quantity) && source.quantity > 0 ? source.quantity : 1,
   };
 }

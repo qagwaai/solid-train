@@ -196,7 +196,7 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   assert.ok(response.resolution.yieldedItems[0].motion.velocityKmPerSec);
   assert.equal(response.resolution.launchSeed >= 0, true);
   assert.equal(response.launchedItem.state, 'destroyed');
-  assert.equal(response.launchedItem.launchable, false);
+  assert.equal(response.launchedItem.launchable, true);
 
   const [updatedItem] = await context.getItemsByIdsAsync(['item-1']);
   assert.equal(updatedItem.state, 'destroyed');
