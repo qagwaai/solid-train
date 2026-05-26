@@ -14,6 +14,7 @@
     },
     "requestIdentity": {
       "type": "object",
+      "description": "Client-supplied identity block that is echoed unchanged in every emitted list-missions-response.",
       "required": ["operation", "entityType", "containerId"],
       "properties": {
         "operation": { "type": "string" },

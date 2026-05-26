@@ -9,10 +9,11 @@
     "correlationId": {
       "type": "string",
       "format": "uuid",
-      "description": "Echo of the request correlationId."
+      "description": "Exact echo of the request correlationId for the originating list-missions-request."
     },
     "requestIdentity": {
       "type": "object",
+      "description": "Exact echo (deep-equal) of the full requestIdentity object supplied in the request, including additional properties when present.",
       "required": ["operation", "entityType", "containerId"],
       "properties": {
         "operation": { "type": "string" },

@@ -501,7 +501,7 @@ test('mission-list operation emits only list-missions-response', async () => {
   }
 });
 
-test('mission-list requests with legacy operation value are canonicalized to list-missions', async () => {
+test('mission-list responses strictly echo requestIdentity and correlationId', async () => {
   const { server, io } = createServer();
   const port = await listen(server);
 
@@ -530,23 +530,27 @@ test('mission-list requests with legacy operation value are canonicalized to lis
     });
     const addedCharacter = await addCharacterPromise;
 
+    const requestIdentity = {
+      operation: 'mission-list',
+      entityType: 'mission',
+      containerId: addedCharacter.characterId,
+      source: 'legacy-client',
+    };
+
     const missionListPromise = waitForEvent(client, MISSION_LIST_RESPONSE_EVENT);
     client.emit(MISSION_LIST_REQUEST_EVENT, {
       playerName: 'MissionLegacyOpPilot',
       characterId: addedCharacter.characterId,
       sessionKey: login.sessionKey,
       correlationId: '984dce8e-b248-4d78-ba5f-95224e71d8c5',
-      requestIdentity: {
-        operation: 'mission-list',
-        entityType: 'mission',
-        containerId: addedCharacter.characterId,
-      },
+      requestIdentity,
     });
 
     const missionListResponse = await missionListPromise;
 
     assert.equal(missionListResponse.success, true);
-    assert.equal(missionListResponse.requestIdentity.operation, 'list-missions');
+    assert.equal(missionListResponse.correlationId, '984dce8e-b248-4d78-ba5f-95224e71d8c5');
+    assert.deepEqual(missionListResponse.requestIdentity, requestIdentity);
   } finally {
     await closeClient(client);
     io.close();

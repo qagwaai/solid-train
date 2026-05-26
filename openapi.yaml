@@ -1005,6 +1005,14 @@ paths:
         - Every request must include a client-generated `correlationId` (UUID v4).
         - Every request must include `requestIdentity` with `operation`, `entityType`, and
           `containerId`.
+
+        Response correlation contract:
+        - Every emitted `list-missions-response` includes a non-empty `correlationId`.
+        - Response `correlationId` is the exact request `correlationId` value.
+        - Response `requestIdentity` deep-equals the full request `requestIdentity` object
+          (including additional properties when present).
+        - This applies to success responses, empty-list successes, and emitted
+          validation/business error responses.
       operationId: socketMissionList
       tags: [Mission]
       requestBody:
@@ -1025,6 +1033,18 @@ paths:
                     operation: list-missions
                     entityType: mission
                     containerId: character-1
+              listCharacterMissionsLegacyOperation:
+                summary: Legacy operation value is echoed exactly in response identity
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 984dce8e-b248-4d78-ba5f-95224e71d8c5
+                  requestIdentity:
+                    operation: mission-list
+                    entityType: mission
+                    containerId: character-1
+                    source: ship-exterior-bootstrap
       responses:
         '200':
           description: list-missions-response
@@ -1048,6 +1068,20 @@ paths:
                     missions:
                       - missionId: first-target
                         status: started
+                successfulMissionListLegacyOperationEcho:
+                  summary: Success echoes requestIdentity exactly, including legacy operation value
+                  value:
+                    success: true
+                    message: Mission list retrieved successfully
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 984dce8e-b248-4d78-ba5f-95224e71d8c5
+                    requestIdentity:
+                      operation: mission-list
+                      entityType: mission
+                      containerId: character-1
+                      source: ship-exterior-bootstrap
+                    missions: []
                 failedMissionList:
                   summary: Failure still echoes correlation metadata
                   value:

@@ -59,6 +59,7 @@ const RESPONSE_CHANNEL_BY_OPERATION = Object.freeze({
   'ship-transfer': 'ship-transfer-response',
   'game-join': 'game-join-response',
   'mission-upsert': 'mission-upsert-response',
+  'mission-list': 'list-missions-response',
   'list-missions': 'list-missions-response',
   'celestial-body-upsert': 'celestial-body-upsert-response',
   'celestial-body-list': 'celestial-body-list-response',
@@ -109,10 +110,23 @@ function normalizeRequestIdentityFromPayload(payload, fallbackOperation) {
 
 function resolveCorrelationMetadata(entry, payload) {
   const fallbackOperation = entry.operationOverride || entry.event.replace(/-request$/, '');
-  const requestIdentity = normalizeRequestIdentityFromPayload(payload, fallbackOperation);
+  const requestIdentity =
+    entry.strictRequestIdentityEcho === true &&
+    payload?.requestIdentity &&
+    typeof payload.requestIdentity === 'object' &&
+    !Array.isArray(payload.requestIdentity)
+      ? payload.requestIdentity
+      : normalizeRequestIdentityFromPayload(payload, fallbackOperation);
   const canonicalOperation = toNonEmptyString(entry.canonicalOperation);
+  const correlationId =
+    entry.strictCorrelationIdEcho === true &&
+    typeof payload?.correlationId === 'string' &&
+    payload.correlationId.trim().length > 0
+      ? payload.correlationId
+      : resolveCorrelationId(payload, toNonEmptyString);
+
   return {
-    correlationId: resolveCorrelationId(payload, toNonEmptyString),
+    correlationId,
     requestIdentity: canonicalOperation
       ? {
           ...requestIdentity,
@@ -122,12 +136,34 @@ function resolveCorrelationMetadata(entry, payload) {
   };
 }
 
-function buildEchoPayload(eventName, payload, correlationMetadata) {
+function buildEchoPayload(entry, eventName, payload, correlationMetadata) {
   if (eventName === 'invalid-session') {
     return payload;
   }
 
-  return applyCorrelationEcho(payload, correlationMetadata, toNonEmptyString);
+  const echoedPayload = applyCorrelationEcho(payload, correlationMetadata, toNonEmptyString);
+  if (
+    entry.strictCorrelationIdEcho !== true &&
+    entry.strictRequestIdentityEcho !== true
+  ) {
+    return echoedPayload;
+  }
+
+  if (!echoedPayload || typeof echoedPayload !== 'object' || Array.isArray(echoedPayload)) {
+    return echoedPayload;
+  }
+
+  return {
+    ...echoedPayload,
+    correlationId:
+      entry.strictCorrelationIdEcho === true
+        ? correlationMetadata.correlationId
+        : echoedPayload.correlationId,
+    requestIdentity:
+      entry.strictRequestIdentityEcho === true
+        ? correlationMetadata.requestIdentity
+        : echoedPayload.requestIdentity,
+  };
 }
 
 function resolveOutboundEventName(entry, eventName) {
@@ -189,6 +225,7 @@ function createScopedSocket(entry, socket, correlationMetadata) {
           validateEmitChannel(entry, outboundEventName, correlationMetadata);
           logEmit(entry, outboundEventName, correlationMetadata);
           const echoedPayload = buildEchoPayload(
+            entry,
             outboundEventName,
             responsePayload,
             correlationMetadata
@@ -263,7 +300,8 @@ const SOCKET_HANDLER_REGISTRY = [
     event: MISSION_LIST_REQUEST_EVENT,
     handlerKey: 'missionListMessageHandler',
     errorLabel: 'Mission list',
-    canonicalOperation: 'list-missions',
+    strictCorrelationIdEcho: true,
+    strictRequestIdentityEcho: true,
   },
   {
     event: ITEM_UPSERT_REQUEST_EVENT,

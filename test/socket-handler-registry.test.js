@@ -237,7 +237,7 @@ test('registerSocketHandlers keeps correlation metadata isolated across overlapp
   assert.equal(missionResponse.payload.requestIdentity.operation, 'list-missions');
 });
 
-test('registerSocketHandlers canonicalizes mission-list operation to list-missions', async () => {
+test('registerSocketHandlers strictly echoes mission-list request identity on list-missions responses', async () => {
   const socket = createMockSocket();
   registerSocketHandlers(socket, {
     missionListMessageHandler: {
@@ -246,26 +246,71 @@ test('registerSocketHandlers canonicalizes mission-list operation to list-missio
           success: true,
           message: 'ok',
           missions: [],
+          correlationId: 'mutated-correlation',
+          requestIdentity: {
+            operation: 'list-missions',
+            entityType: 'mission',
+            containerId: 'mutated-container',
+          },
         });
       },
     },
   });
+
+  const requestIdentity = {
+    operation: 'mission-list',
+    entityType: 'mission',
+    containerId: 'character-1',
+    source: 'ship-exterior-bootstrap',
+  };
 
   await socket.trigger('list-missions-request', {
     playerName: 'PilotOne',
     sessionKey: 'session-1',
     characterId: 'character-1',
     correlationId: '7a11cba8-bad6-4143-9424-ea1177cac8a0',
-    requestIdentity: {
-      operation: 'mission-list',
-      entityType: 'mission',
-      containerId: 'character-1',
-    },
+    requestIdentity,
   });
 
   assert.equal(socket.events.length, 1);
   assert.equal(socket.events[0].eventName, 'list-missions-response');
-  assert.equal(socket.events[0].payload.requestIdentity.operation, 'list-missions');
+  assert.equal(socket.events[0].payload.correlationId, '7a11cba8-bad6-4143-9424-ea1177cac8a0');
+  assert.deepEqual(socket.events[0].payload.requestIdentity, requestIdentity);
+});
+
+test('registerSocketHandlers includes mission-list requestIdentity on emitted error responses', async () => {
+  const socket = createMockSocket();
+  registerSocketHandlers(socket, {
+    missionListMessageHandler: {
+      async handle(currentSocket) {
+        currentSocket.emit('list-missions-response', {
+          success: false,
+          message: 'Character is not in player list',
+          missions: [],
+        });
+      },
+    },
+  });
+
+  const requestIdentity = {
+    operation: 'list-missions',
+    entityType: 'mission',
+    containerId: 'character-404',
+  };
+
+  await socket.trigger('list-missions-request', {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    characterId: 'character-404',
+    correlationId: 'b8c7a513-6412-4638-9ab5-df3e8e9f8eb5',
+    requestIdentity,
+  });
+
+  assert.equal(socket.events.length, 1);
+  assert.equal(socket.events[0].eventName, 'list-missions-response');
+  assert.equal(socket.events[0].payload.success, false);
+  assert.equal(socket.events[0].payload.correlationId, 'b8c7a513-6412-4638-9ab5-df3e8e9f8eb5');
+  assert.deepEqual(socket.events[0].payload.requestIdentity, requestIdentity);
 });
 
 test('registerSocketHandlers blocks legacy add-mission-response for mission-upsert requests', async () => {
