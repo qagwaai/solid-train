@@ -97,6 +97,7 @@ test('MissionUpsertMessageHandler upserts mission progress to a character', asyn
   assert.ok(mission);
   assert.equal(mission.status, 'started');
   assert.equal(socket.events[0].eventName, MISSION_UPSERT_RESPONSE_EVENT);
+  assert.notEqual(socket.events[0].eventName, 'add-mission-response');
 });
 
 test('MissionUpsertMessageHandler updates existing mission (upsert)', async () => {
@@ -434,4 +435,26 @@ test('MissionUpsertMessageHandler echoes requestId when present', async () => {
 
   assert.equal(response.success, true);
   assert.equal(response.requestId, 'req-123');
+});
+
+test('MissionUpsertMessageHandler emits mission-upsert-response and never add-mission-response', async () => {
+  const context = createTestContext();
+  seedMissionPilot(context, []);
+
+  const handler = new MissionUpsertMessageHandler(context);
+  const socket = createMockSocket();
+
+  await handler.handle(socket, {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    missionId: 'first-target',
+    status: 'started',
+    sessionKey: 'session-1',
+    correlationId: 'e1297d52-37b0-4420-a5a3-4535a634ee29',
+    requestIdentity: createRequestIdentity(),
+  });
+
+  assert.equal(socket.events.length, 1);
+  assert.equal(socket.events[0].eventName, 'mission-upsert-response');
+  assert.notEqual(socket.events[0].eventName, 'add-mission-response');
 });

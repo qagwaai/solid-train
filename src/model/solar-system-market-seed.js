@@ -177,59 +177,104 @@ function buildOrbit(overrides = {}, epoch = DEFAULT_ORBIT_EPOCH) {
   };
 }
 
+function buildSeedMarket({
+  solarSystemId,
+  marketId,
+  marketName,
+  siteType,
+  siteName,
+  isStarterMarket = false,
+  priceMultiplier,
+  driftPercentPerHour,
+  restockIntervalMinutes = 60,
+  orbit,
+}) {
+  const positionKm = {
+    x: orbit.semiMajorAxisKm,
+    y: 0,
+    z: 0,
+  };
+
+  return {
+    marketId,
+    solarSystemId,
+    marketName,
+    siteType,
+    siteName,
+    isStarterMarket: Boolean(isStarterMarket),
+    priceMultiplier,
+    driftPercentPerHour,
+    restockIntervalMinutes,
+    spatial: {
+      solarSystemId,
+      frame: 'barycentric',
+      positionKm,
+      epochMs: Date.parse(orbit.epoch),
+    },
+    trajectory: {
+      kind: 'orbital-elements',
+      orbit,
+    },
+  };
+}
+
 function buildSolSeedMarkets(asOfTimestamp) {
   const epoch =
     typeof asOfTimestamp === 'string' && asOfTimestamp.trim()
       ? asOfTimestamp.trim()
       : DEFAULT_ORBIT_EPOCH;
 
-  const planetary = SOL_PLANETARY_MARKETS.map((entry, index) => ({
-    marketId: entry.marketId,
-    solarSystemId: 'sol',
-    marketName: entry.marketName,
-    locationType: 'station',
-    locationName: `${entry.anchorBodyName} Orbital Market`,
-    priceMultiplier: entry.priceMultiplier,
-    driftPercentPerHour: entry.driftPercentPerHour,
-    restockIntervalMinutes: 60,
-    orbit: buildOrbit(
-      {
-        anchorBodyId: entry.anchorBodyId,
-        anchorBodyName: entry.anchorBodyName,
-        semiMajorAxisKm: entry.semiMajorAxisKm,
-        eccentricity: entry.eccentricity,
-        inclinationDeg: (index % 2) * 1.5,
-        meanAnomalyAtEpochDeg: (index * 23) % 360,
-        orbitalPeriodSec: entry.orbitalPeriodSec,
-      },
-      epoch
-    ),
-  }));
+  const planetary = SOL_PLANETARY_MARKETS.map((entry, index) =>
+    buildSeedMarket({
+      solarSystemId: 'sol',
+      marketId: entry.marketId,
+      marketName: entry.marketName,
+      siteType: 'station',
+      siteName: `${entry.anchorBodyName} Orbital Market`,
+      priceMultiplier: entry.priceMultiplier,
+      driftPercentPerHour: entry.driftPercentPerHour,
+      restockIntervalMinutes: 60,
+      orbit: buildOrbit(
+        {
+          anchorBodyId: entry.anchorBodyId,
+          anchorBodyName: entry.anchorBodyName,
+          semiMajorAxisKm: entry.semiMajorAxisKm,
+          eccentricity: entry.eccentricity,
+          inclinationDeg: (index % 2) * 1.5,
+          meanAnomalyAtEpochDeg: (index * 23) % 360,
+          orbitalPeriodSec: entry.orbitalPeriodSec,
+        },
+        epoch
+      ),
+    })
+  );
 
-  const belt = SOL_ASTEROID_BELT_MARKETS.map((entry, index) => ({
-    marketId: entry.marketId,
-    solarSystemId: 'sol',
-    marketName: entry.marketName,
-    locationType: 'free-floating',
-    locationName: entry.locationName,
-    isStarterMarket: Boolean(entry.isStarterMarket),
-    priceMultiplier: entry.priceMultiplier,
-    driftPercentPerHour: entry.driftPercentPerHour,
-    restockIntervalMinutes: 60,
-    orbit: buildOrbit(
-      {
-        anchorBodyId: 'sol-asteroid-belt',
-        anchorBodyName: 'Main Asteroid Belt',
-        semiMajorAxisKm: entry.semiMajorAxisKm,
-        eccentricity: entry.eccentricity,
-        inclinationDeg: 3 + index * 0.7,
-        argumentOfPeriapsisDeg: (45 + index * 17) % 360,
-        meanAnomalyAtEpochDeg: (index * 81) % 360,
-        orbitalPeriodSec: entry.orbitalPeriodSec,
-      },
-      epoch
-    ),
-  }));
+  const belt = SOL_ASTEROID_BELT_MARKETS.map((entry, index) =>
+    buildSeedMarket({
+      solarSystemId: 'sol',
+      marketId: entry.marketId,
+      marketName: entry.marketName,
+      siteType: 'free-floating',
+      siteName: entry.locationName,
+      isStarterMarket: Boolean(entry.isStarterMarket),
+      priceMultiplier: entry.priceMultiplier,
+      driftPercentPerHour: entry.driftPercentPerHour,
+      restockIntervalMinutes: 60,
+      orbit: buildOrbit(
+        {
+          anchorBodyId: 'sol-asteroid-belt',
+          anchorBodyName: 'Main Asteroid Belt',
+          semiMajorAxisKm: entry.semiMajorAxisKm,
+          eccentricity: entry.eccentricity,
+          inclinationDeg: 3 + index * 0.7,
+          argumentOfPeriapsisDeg: (45 + index * 17) % 360,
+          meanAnomalyAtEpochDeg: (index * 81) % 360,
+          orbitalPeriodSec: entry.orbitalPeriodSec,
+        },
+        epoch
+      ),
+    })
+  );
 
   return [...belt, ...planetary];
 }
@@ -281,55 +326,57 @@ function buildAlphaCentauriSeedMarkets(asOfTimestamp) {
       : DEFAULT_ORBIT_EPOCH;
 
   const stations = ALPHA_CENTAURI_MARKETS.filter((entry) => entry.anchorBodyId).map(
-    (entry, index) => ({
-      marketId: entry.marketId,
-      solarSystemId: 'alpha-centauri',
-      marketName: entry.marketName,
-      locationType: 'station',
-      locationName: `${entry.anchorBodyName} Orbital Market`,
-      isStarterMarket: Boolean(entry.isStarterMarket),
-      priceMultiplier: entry.priceMultiplier,
-      driftPercentPerHour: entry.driftPercentPerHour,
-      restockIntervalMinutes: 60,
-      orbit: buildOrbit(
-        {
-          anchorBodyId: entry.anchorBodyId,
-          anchorBodyName: entry.anchorBodyName,
-          semiMajorAxisKm: entry.semiMajorAxisKm,
-          eccentricity: entry.eccentricity,
-          inclinationDeg: (index % 2) * 2.0,
-          meanAnomalyAtEpochDeg: (index * 37) % 360,
-          orbitalPeriodSec: entry.orbitalPeriodSec,
-        },
-        epoch
-      ),
-    })
+    (entry, index) =>
+      buildSeedMarket({
+        solarSystemId: 'alpha-centauri',
+        marketId: entry.marketId,
+        marketName: entry.marketName,
+        siteType: 'station',
+        siteName: `${entry.anchorBodyName} Orbital Market`,
+        isStarterMarket: Boolean(entry.isStarterMarket),
+        priceMultiplier: entry.priceMultiplier,
+        driftPercentPerHour: entry.driftPercentPerHour,
+        restockIntervalMinutes: 60,
+        orbit: buildOrbit(
+          {
+            anchorBodyId: entry.anchorBodyId,
+            anchorBodyName: entry.anchorBodyName,
+            semiMajorAxisKm: entry.semiMajorAxisKm,
+            eccentricity: entry.eccentricity,
+            inclinationDeg: (index % 2) * 2.0,
+            meanAnomalyAtEpochDeg: (index * 37) % 360,
+            orbitalPeriodSec: entry.orbitalPeriodSec,
+          },
+          epoch
+        ),
+      })
   );
 
   const belt = ALPHA_CENTAURI_MARKETS.filter((entry) => !entry.anchorBodyId).map(
-    (entry, index) => ({
-      marketId: entry.marketId,
-      solarSystemId: 'alpha-centauri',
-      marketName: entry.marketName,
-      locationType: 'free-floating',
-      locationName: entry.locationName,
-      priceMultiplier: entry.priceMultiplier,
-      driftPercentPerHour: entry.driftPercentPerHour,
-      restockIntervalMinutes: 60,
-      orbit: buildOrbit(
-        {
-          anchorBodyId: 'ac-dust-belt',
-          anchorBodyName: 'Centauri Dust Belt',
-          semiMajorAxisKm: entry.semiMajorAxisKm,
-          eccentricity: entry.eccentricity,
-          inclinationDeg: 4 + index * 1.2,
-          argumentOfPeriapsisDeg: (60 + index * 23) % 360,
-          meanAnomalyAtEpochDeg: (index * 97) % 360,
-          orbitalPeriodSec: entry.orbitalPeriodSec,
-        },
-        epoch
-      ),
-    })
+    (entry, index) =>
+      buildSeedMarket({
+        solarSystemId: 'alpha-centauri',
+        marketId: entry.marketId,
+        marketName: entry.marketName,
+        siteType: 'free-floating',
+        siteName: entry.locationName,
+        priceMultiplier: entry.priceMultiplier,
+        driftPercentPerHour: entry.driftPercentPerHour,
+        restockIntervalMinutes: 60,
+        orbit: buildOrbit(
+          {
+            anchorBodyId: 'ac-dust-belt',
+            anchorBodyName: 'Centauri Dust Belt',
+            semiMajorAxisKm: entry.semiMajorAxisKm,
+            eccentricity: entry.eccentricity,
+            inclinationDeg: 4 + index * 1.2,
+            argumentOfPeriapsisDeg: (60 + index * 23) % 360,
+            meanAnomalyAtEpochDeg: (index * 97) % 360,
+            orbitalPeriodSec: entry.orbitalPeriodSec,
+          },
+          epoch
+        ),
+      })
   );
 
   return [...stations, ...belt];
@@ -341,29 +388,31 @@ function buildBarnardsStarSeedMarkets(asOfTimestamp) {
       ? asOfTimestamp.trim()
       : DEFAULT_ORBIT_EPOCH;
 
-  return BARNARDS_STAR_MARKETS.map((entry, index) => ({
-    marketId: entry.marketId,
-    solarSystemId: 'barnards-star',
-    marketName: entry.marketName,
-    locationType: 'station',
-    locationName: `${entry.anchorBodyName} Orbital Market`,
-    isStarterMarket: Boolean(entry.isStarterMarket),
-    priceMultiplier: entry.priceMultiplier,
-    driftPercentPerHour: entry.driftPercentPerHour,
-    restockIntervalMinutes: 60,
-    orbit: buildOrbit(
-      {
-        anchorBodyId: entry.anchorBodyId,
-        anchorBodyName: entry.anchorBodyName,
-        semiMajorAxisKm: entry.semiMajorAxisKm,
-        eccentricity: entry.eccentricity,
-        inclinationDeg: (index % 3) * 1.8,
-        meanAnomalyAtEpochDeg: (index * 53) % 360,
-        orbitalPeriodSec: entry.orbitalPeriodSec,
-      },
-      epoch
-    ),
-  }));
+  return BARNARDS_STAR_MARKETS.map((entry, index) =>
+    buildSeedMarket({
+      solarSystemId: 'barnards-star',
+      marketId: entry.marketId,
+      marketName: entry.marketName,
+      siteType: 'station',
+      siteName: `${entry.anchorBodyName} Orbital Market`,
+      isStarterMarket: Boolean(entry.isStarterMarket),
+      priceMultiplier: entry.priceMultiplier,
+      driftPercentPerHour: entry.driftPercentPerHour,
+      restockIntervalMinutes: 60,
+      orbit: buildOrbit(
+        {
+          anchorBodyId: entry.anchorBodyId,
+          anchorBodyName: entry.anchorBodyName,
+          semiMajorAxisKm: entry.semiMajorAxisKm,
+          eccentricity: entry.eccentricity,
+          inclinationDeg: (index % 3) * 1.8,
+          meanAnomalyAtEpochDeg: (index * 53) % 360,
+          orbitalPeriodSec: entry.orbitalPeriodSec,
+        },
+        epoch
+      ),
+    })
+  );
 }
 
 function buildSeededMarketsForSolarSystem(solarSystemId, asOfTimestamp) {

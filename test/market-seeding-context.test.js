@@ -59,21 +59,30 @@ test('seedSolarSystemMarketsAsync uses cached database markets when seed version
       marketId: 'sol-belt-01',
       solarSystemId: 'sol',
       marketName: 'Persisted Belt One',
-      locationType: 'free-floating',
-      locationName: 'Persisted Belt One',
+      siteType: 'free-floating',
+      siteName: 'Persisted Belt One',
       isStarterMarket: true,
-      orbit: {
-        anchorBodyId: 'sol-asteroid-belt',
-        anchorBodyName: 'Main Asteroid Belt',
-        orbitType: 'elliptical',
-        semiMajorAxisKm: 6100,
-        eccentricity: 0.1,
-        inclinationDeg: 0,
-        longitudeOfAscendingNodeDeg: 0,
-        argumentOfPeriapsisDeg: 0,
-        meanAnomalyAtEpochDeg: 0,
-        orbitalPeriodSec: 140000,
-        epoch: '2026-05-05T00:00:00.000Z',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 6100, y: 0, z: 0 },
+        epochMs: 1746403200000,
+      },
+      trajectory: {
+        kind: 'orbital-elements',
+        orbit: {
+          anchorBodyId: 'sol-asteroid-belt',
+          anchorBodyName: 'Main Asteroid Belt',
+          orbitType: 'elliptical',
+          semiMajorAxisKm: 6100,
+          eccentricity: 0.1,
+          inclinationDeg: 0,
+          longitudeOfAscendingNodeDeg: 0,
+          argumentOfPeriapsisDeg: 0,
+          meanAnomalyAtEpochDeg: 0,
+          orbitalPeriodSec: 140000,
+          epoch: '2026-05-05T00:00:00.000Z',
+        },
       },
       restockIntervalMinutes: 60,
       lastRestockAt: '2026-05-05T00:00:00.000Z',
@@ -116,4 +125,6 @@ test('seedSolarSystemMarketsAsync uses cached database markets when seed version
   const fromCache = await context.getMarketsAsync({ solarSystemId: 'sol' });
   assert.equal(fromCache.length, 1);
   assert.equal(fromCache[0].marketName, 'Persisted Belt One');
+  assert.equal(fromCache[0].siteType, 'free-floating');
+  assert.deepEqual(fromCache[0].spatial.positionKm, { x: 6100, y: 0, z: 0 });
 });

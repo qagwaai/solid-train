@@ -11,12 +11,13 @@ const { SHIP_UPSERT_REQUEST_EVENT } = require('../model/ship-upsert');
 const { SHIP_LIST_BY_OWNER_REQUEST_EVENT } = require('../model/ship-list-by-owner');
 const { SHIP_TRANSFER_REQUEST_EVENT } = require('../model/ship-transfer');
 const { GAME_JOIN_REQUEST_EVENT } = require('../model/game-join');
-const { MISSION_UPSERT_REQUEST_EVENT } = require('../model/mission-upsert');
+const {
+  MISSION_UPSERT_REQUEST_EVENT,
+} = require('../model/mission-upsert');
 const { CELESTIAL_BODY_UPSERT_REQUEST_EVENT } = require('../model/celestial-body-upsert');
 const { CELESTIAL_BODY_LIST_REQUEST_EVENT } = require('../model/celestial-body-list');
 const { MISSION_LIST_REQUEST_EVENT } = require('../model/mission-list');
 const { ITEM_UPSERT_REQUEST_EVENT } = require('../model/item-upsert');
-const { UPSERT_ITEM_REQUEST_EVENT } = require('../model/item-upsert');
 const { ITEM_LIST_BY_CONTAINER_REQUEST_EVENT } = require('../model/item-list-by-container');
 const { ITEM_LIST_BY_LOCATION_REQUEST_EVENT } = require('../model/item-list-by-location');
 const { ITEM_REMOVE_REQUEST_EVENT } = require('../model/item-remove');
@@ -45,6 +46,41 @@ function toNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : '';
 }
 
+const RESPONSE_CHANNEL_BY_OPERATION = Object.freeze({
+  register: 'register-response',
+  login: 'login-response',
+  'character-list': 'character-list-response',
+  'character-add': 'character-add-response',
+  'character-delete': 'character-delete-response',
+  'character-edit': 'character-edit-response',
+  'ship-list': 'ship-list-response',
+  'ship-list-by-owner': 'ship-list-by-owner-response',
+  'ship-upsert': 'ship-upsert-response',
+  'ship-transfer': 'ship-transfer-response',
+  'game-join': 'game-join-response',
+  'mission-upsert': 'mission-upsert-response',
+  'list-missions': 'list-missions-response',
+  'celestial-body-upsert': 'celestial-body-upsert-response',
+  'celestial-body-list': 'celestial-body-list-response',
+  'item-upsert': 'item-upsert-response',
+  'item-list-by-container': 'item-list-by-container-response',
+  'item-list-by-location': 'item-list-by-location-response',
+  'item-remove': 'item-remove-response',
+  'launch-item': 'launch-item-response',
+  'tractor-beam-activate': 'tractor-beam-activate-response',
+  'market-list': 'market-list-response',
+  'market-list-by-location': 'market-list-by-location-response',
+  'market-quote': 'market-quote-response',
+  'market-inventory-list': 'market-inventory-list-response',
+  'market-ledger-list': 'market-ledger-list-response',
+  'market-buy': 'market-buy-response',
+  'market-sell': 'market-sell-response',
+  'solar-system-list': 'solar-system-list-response',
+  'solar-system-get': 'solar-system-get-response',
+  'star-list': 'star-list-response',
+  'star-get': 'star-get-response',
+});
+
 function normalizeRequestIdentityFromPayload(payload, fallbackOperation) {
   return normalizeRequestIdentity(
     {
@@ -72,10 +108,17 @@ function normalizeRequestIdentityFromPayload(payload, fallbackOperation) {
 }
 
 function resolveCorrelationMetadata(entry, payload) {
-  const fallbackOperation = entry.event.replace(/-request$/, '');
+  const fallbackOperation = entry.operationOverride || entry.event.replace(/-request$/, '');
+  const requestIdentity = normalizeRequestIdentityFromPayload(payload, fallbackOperation);
+  const canonicalOperation = toNonEmptyString(entry.canonicalOperation);
   return {
     correlationId: resolveCorrelationId(payload, toNonEmptyString),
-    requestIdentity: normalizeRequestIdentityFromPayload(payload, fallbackOperation),
+    requestIdentity: canonicalOperation
+      ? {
+          ...requestIdentity,
+          operation: canonicalOperation,
+        }
+      : requestIdentity,
   };
 }
 
@@ -85,6 +128,79 @@ function buildEchoPayload(eventName, payload, correlationMetadata) {
   }
 
   return applyCorrelationEcho(payload, correlationMetadata, toNonEmptyString);
+}
+
+function resolveOutboundEventName(entry, eventName) {
+  const rewriteMap = entry.responseEventRewrite || null;
+  if (!rewriteMap || typeof rewriteMap !== 'object') {
+    return eventName;
+  }
+
+  return rewriteMap[eventName] || eventName;
+}
+
+function validateEmitChannel(entry, eventName, correlationMetadata) {
+  if (eventName === 'invalid-session') {
+    return;
+  }
+
+  const operation = toNonEmptyString(correlationMetadata?.requestIdentity?.operation);
+  const expectedChannel = RESPONSE_CHANNEL_BY_OPERATION[operation];
+  if (!expectedChannel || eventName === expectedChannel) {
+    return;
+  }
+
+  const diagnostic = {
+    type: 'socket-emit-contract-violation',
+    handler: entry.handlerKey,
+    requestEvent: entry.event,
+    emittedEvent: eventName,
+    expectedEvent: expectedChannel,
+    operation,
+    correlationId: correlationMetadata.correlationId,
+  };
+  process.stderr.write(`[socket] ${JSON.stringify(diagnostic)}\n`);
+  throw new Error(
+    `Response channel mismatch: operation=${operation} expected=${expectedChannel} emitted=${eventName}`
+  );
+}
+
+function logEmit(entry, eventName, correlationMetadata) {
+  const operation = toNonEmptyString(correlationMetadata?.requestIdentity?.operation) || 'unknown';
+  const diagnostic = {
+    type: 'socket-emit',
+    handler: entry.handlerKey,
+    requestEvent: entry.event,
+    emittedEvent: eventName,
+    operation,
+    correlationId: correlationMetadata.correlationId,
+  };
+  process.stderr.write(`[socket] ${JSON.stringify(diagnostic)}\n`);
+}
+
+function createScopedSocket(entry, socket, correlationMetadata) {
+  const originalEmit = socket.emit.bind(socket);
+
+  return new Proxy(socket, {
+    get(target, property, receiver) {
+      if (property === 'emit') {
+        return (eventName, responsePayload) => {
+          const outboundEventName = resolveOutboundEventName(entry, eventName);
+          validateEmitChannel(entry, outboundEventName, correlationMetadata);
+          logEmit(entry, outboundEventName, correlationMetadata);
+          const echoedPayload = buildEchoPayload(
+            outboundEventName,
+            responsePayload,
+            correlationMetadata
+          );
+          return originalEmit(outboundEventName, echoedPayload);
+        };
+      }
+
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
 }
 
 // Central table for request-event to handler bindings used by server socket wiring.
@@ -147,16 +263,12 @@ const SOCKET_HANDLER_REGISTRY = [
     event: MISSION_LIST_REQUEST_EVENT,
     handlerKey: 'missionListMessageHandler',
     errorLabel: 'Mission list',
+    canonicalOperation: 'list-missions',
   },
   {
     event: ITEM_UPSERT_REQUEST_EVENT,
     handlerKey: 'itemUpsertMessageHandler',
     errorLabel: 'Item upsert',
-  },
-  {
-    event: UPSERT_ITEM_REQUEST_EVENT,
-    handlerKey: 'itemUpsertMessageHandler',
-    errorLabel: 'Item upsert (legacy alias)',
   },
   {
     event: ITEM_LIST_BY_CONTAINER_REQUEST_EVENT,
@@ -254,18 +366,12 @@ function registerSocketHandlers(socket, handlersByKey) {
 
     socket.on(entry.event, async (payload) => {
       const correlationMetadata = resolveCorrelationMetadata(entry, payload);
-      const originalEmit = socket.emit.bind(socket);
-      socket.emit = (eventName, responsePayload) => {
-        const echoedPayload = buildEchoPayload(eventName, responsePayload, correlationMetadata);
-        return originalEmit(eventName, echoedPayload);
-      };
+      const scopedSocket = createScopedSocket(entry, socket, correlationMetadata);
 
       try {
-        await handler.handle(socket, payload);
+        await handler.handle(scopedSocket, payload);
       } catch (error) {
         process.stderr.write(`[socket] ${entry.errorLabel} handler error: ${error.message}\n`);
-      } finally {
-        socket.emit = originalEmit;
       }
     });
   }

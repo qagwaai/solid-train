@@ -3,10 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { ItemUpsertMessageHandler } = require('../src/handlers/item-upsert-message-handler');
-const {
-  ITEM_UPSERT_RESPONSE_EVENT,
-  UPSERT_ITEM_RESPONSE_EVENT,
-} = require('../src/model/item-upsert');
+const { ITEM_UPSERT_RESPONSE_EVENT } = require('../src/model/item-upsert');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
@@ -462,7 +459,7 @@ test('ItemUpsertMessageHandler adds created ship-contained items to ship invento
   assert.equal(response.item.tier, 1);
 });
 
-test('ItemUpsertMessageHandler emits legacy upsert-item-response alias for compatibility', async () => {
+test('ItemUpsertMessageHandler emits only item-upsert-response', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
 
@@ -476,8 +473,9 @@ test('ItemUpsertMessageHandler emits legacy upsert-item-response alias for compa
   });
 
   assert.equal(response.success, true);
+  assert.equal(socket.events.length, 1);
   assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
-  assert.equal(socket.events[1].eventName, UPSERT_ITEM_RESPONSE_EVENT);
+  assert.notEqual(socket.events[0].eventName, 'upsert-item-response');
 });
 
 test('ItemUpsertMessageHandler keeps success when inventory reference sync hits DB version conflict', async () => {
@@ -553,8 +551,9 @@ test('ItemUpsertMessageHandler keeps success when inventory reference sync hits 
   assert.equal(response.item.state, 'destroyed');
   assert.equal(response.item.damageStatus, 'destroyed');
   assert.equal(response.item.container, null);
+  assert.equal(socket.events.length, 1);
   assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
-  assert.equal(socket.events[1].eventName, UPSERT_ITEM_RESPONSE_EVENT);
+  assert.notEqual(socket.events[0].eventName, 'upsert-item-response');
 });
 
 test('ItemUpsertMessageHandler retries inventory reference sync once after DB version conflict', async () => {
@@ -656,6 +655,7 @@ test('ItemUpsertMessageHandler retries inventory reference sync once after DB ve
   assert.equal(response.success, true);
   assert.equal(updateCharacterCallCount, 2);
   assert.equal(getCharactersCallCount, 1);
+  assert.equal(socket.events.length, 1);
   assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
-  assert.equal(socket.events[1].eventName, UPSERT_ITEM_RESPONSE_EVENT);
+  assert.notEqual(socket.events[0].eventName, 'upsert-item-response');
 });

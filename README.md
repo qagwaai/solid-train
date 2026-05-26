@@ -71,7 +71,7 @@ npx cross-env MONGODB_URI=mongodb://localhost:27017/my-db node src/server.js
 - `character-edit` / `character-edit-response`
 - `ship-list-request` / `ship-list-response`
 - `game-join` / `game-join-response`
-- `mission-upsert-request` / `mission-upsert-response` (alias: `add-mission-request` / `add-mission-response`)
+- `mission-upsert-request` / `mission-upsert-response`
 - `list-missions-request` / `list-missions-response`
 - `celestial-body-upsert-request` / `celestial-body-upsert-response`
 - `celestial-body-list-request` / `celestial-body-list-response`

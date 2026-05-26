@@ -45,23 +45,11 @@ function seedDefaultMarkets(ctx) {
 
 function createSeedMarketPayload(ctx, seedMarket, timestamp) {
   const source = ctx.toPlainObject(seedMarket) || {};
-  const orbit = source.orbit ? ctx.normalizeMarketOrbit(source.orbit) : null;
   const siteType = ctx.inferMarketSiteType(source);
   const siteName =
-    ctx.toNonEmptyString(source.siteName) ||
-    ctx.toNonEmptyString(source.locationName) ||
-    ctx.toNonEmptyString(source.marketName);
-  const positionKm = ctx.normalizeTriple(source.positionKm);
-  const spatial = positionKm
-    ? {
-        solarSystemId: ctx.toNonEmptyString(source.solarSystemId).toLowerCase(),
-        frame: 'barycentric',
-        positionKm,
-        epochMs: ctx.isFiniteNumber(source?.spatial?.epochMs)
-          ? source.spatial.epochMs
-          : Date.parse(orbit?.epoch || timestamp),
-      }
-    : undefined;
+    ctx.toNonEmptyString(source.siteName) || ctx.toNonEmptyString(source.marketName);
+  const spatial = ctx.normalizeSpatialState(source.spatial) || undefined;
+  const trajectory = ctx.normalizeTrajectoryDescriptor(source.trajectory) || undefined;
 
   return {
     ...seedMarket,
@@ -69,7 +57,7 @@ function createSeedMarketPayload(ctx, seedMarket, timestamp) {
     siteType,
     siteName,
     ...(spatial ? { spatial } : {}),
-    ...(orbit ? { trajectory: { kind: 'orbital-elements', orbit } } : {}),
+    ...(trajectory ? { trajectory } : {}),
     restockIntervalMinutes:
       Number.isInteger(seedMarket?.restockIntervalMinutes) && seedMarket.restockIntervalMinutes > 0
         ? seedMarket.restockIntervalMinutes

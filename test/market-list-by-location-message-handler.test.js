@@ -591,32 +591,40 @@ test('MarketListByLocationMessageHandler auto-hydrates seeded markets when cache
   assert.ok(response.markets.every((market) => market.route.kind === 'in-system'));
 });
 
-test('MarketListByLocationMessageHandler infers station type for legacy markets missing type fields', async () => {
+test('MarketListByLocationMessageHandler infers station type for markets missing site fields', async () => {
   const context = createTestContext();
   context.marketsByKey.clear();
 
-  context.cacheMarket({
-    marketId: 'legacy-sol-orbit-1',
-    solarSystemId: 'sol',
-    marketName: 'Legacy Orbital Exchange',
-    siteType: '',
-    locationType: '',
-    siteName: '',
-    locationName: '',
-    orbit: {
-      anchorBodyId: 'sol-earth',
-      semiMajorAxisKm: 4200,
-      eccentricity: 0,
-      inclinationDeg: 0,
-      longitudeOfAscendingNodeDeg: 0,
-      argumentOfPeriapsisDeg: 0,
-      meanAnomalyAtEpochDeg: 0,
-      orbitalPeriodSec: 86400,
-      epoch: '2026-04-17T00:00:00.000Z',
-    },
-    inventory: [],
-    ledger: [],
-  });
+  context.cacheMarket(
+    createMarket({
+      marketId: 'legacy-sol-orbit-1',
+      marketName: 'Legacy Orbital Exchange',
+      siteType: '',
+      siteName: '',
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 4200, y: 0, z: 0 },
+        epochMs: 1713312000000,
+      },
+      trajectory: {
+        kind: 'orbital-elements',
+        orbit: {
+          anchorBodyId: 'sol-earth',
+          semiMajorAxisKm: 4200,
+          eccentricity: 0,
+          inclinationDeg: 0,
+          longitudeOfAscendingNodeDeg: 0,
+          argumentOfPeriapsisDeg: 0,
+          meanAnomalyAtEpochDeg: 0,
+          orbitalPeriodSec: 86400,
+          epoch: '2026-04-17T00:00:00.000Z',
+        },
+      },
+      inventory: [],
+      ledger: [],
+    })
+  );
 
   seedPlayer(context, {
     playerName: 'LegacyPilot',

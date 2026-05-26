@@ -1,7 +1,8 @@
 # SW-COR Socket Correlation Contract Hardening — Execution Prompt Pack
 
-Status: Active
+Status: Completed (Maintenance Mode)
 Date: 2026-05-25
+Completed: 2026-05-25
 Repos: solid-train (Forge), laughing-octo-journey (Nova)
 Companion spec: docs/planning/socket-correlation-contract-spec.md
 
@@ -131,3 +132,4 @@ Change all [ ] to [x] for completed items.
 ## Change Log
 
 - 2026-05-25: Prompt pack created for SW-COR item-upsert hardening, Forge and Nova roles, and Orion validation review.
+- 2026-05-25: Completion recorded. Nova and Forge confirmed SW-COR + SW-08 complete.

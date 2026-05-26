@@ -2,8 +2,6 @@
 
 const ITEM_UPSERT_REQUEST_EVENT = 'item-upsert-request';
 const ITEM_UPSERT_RESPONSE_EVENT = 'item-upsert-response';
-const UPSERT_ITEM_REQUEST_EVENT = 'upsert-item-request';
-const UPSERT_ITEM_RESPONSE_EVENT = 'upsert-item-response';
 
 /**
  * @typedef {Object} Triple
@@ -88,6 +86,4 @@ const UPSERT_ITEM_RESPONSE_EVENT = 'upsert-item-response';
 module.exports = {
   ITEM_UPSERT_REQUEST_EVENT,
   ITEM_UPSERT_RESPONSE_EVENT,
-  UPSERT_ITEM_REQUEST_EVENT,
-  UPSERT_ITEM_RESPONSE_EVENT,
 };

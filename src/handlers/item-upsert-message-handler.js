@@ -1,7 +1,6 @@
 'use strict';
 
 const { ITEM_UPSERT_RESPONSE_EVENT } = require('../model/item-upsert');
-const { UPSERT_ITEM_RESPONSE_EVENT } = require('../model/item-upsert');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const {
   getItemByType,
@@ -395,7 +394,6 @@ class ItemUpsertMessageHandler {
     }
 
     socket.emit(ITEM_UPSERT_RESPONSE_EVENT, response);
-    socket.emit(UPSERT_ITEM_RESPONSE_EVENT, response);
     return response;
   }
 }

@@ -32,6 +32,10 @@ const {
 } = require('../src/model/character-edit');
 const { SHIP_LIST_REQUEST_EVENT, SHIP_LIST_RESPONSE_EVENT } = require('../src/model/ship-list');
 const {
+  SHIP_LIST_BY_OWNER_REQUEST_EVENT,
+  SHIP_LIST_BY_OWNER_RESPONSE_EVENT,
+} = require('../src/model/ship-list-by-owner');
+const {
   ITEM_UPSERT_REQUEST_EVENT,
   ITEM_UPSERT_RESPONSE_EVENT,
 } = require('../src/model/item-upsert');
@@ -47,10 +51,6 @@ const { GAME_JOIN_REQUEST_EVENT, GAME_JOIN_RESPONSE_EVENT } = require('../src/mo
 const {
   MISSION_UPSERT_REQUEST_EVENT: MISSION_ADD_REQUEST_EVENT,
   MISSION_UPSERT_RESPONSE_EVENT: MISSION_ADD_RESPONSE_EVENT,
-} = require('../src/model/mission-upsert');
-const {
-  MISSION_UPSERT_ALIAS_REQUEST_EVENT,
-  MISSION_UPSERT_ALIAS_RESPONSE_EVENT,
 } = require('../src/model/mission-upsert');
 const {
   CELESTIAL_BODY_UPSERT_REQUEST_EVENT,
@@ -109,6 +109,10 @@ async function getAvailablePort() {
     });
     probe.on('error', reject);
   });
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 test('resolvePort returns default port when not set', () => {
@@ -372,6 +376,184 @@ test('selected OpenAPI socket examples stay aligned with runtime correlation beh
   }
 });
 
+test('ship-list-by-owner operation emits only ship-list-by-owner-response', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const login = await registerAndLogin(
+      client,
+      'OwnerChannelPilot',
+      'owner-channel@example.com',
+      'owner-pass'
+    );
+
+    const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+    client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+      playerName: 'OwnerChannelPilot',
+      sessionKey: login.sessionKey,
+      correlationId: '7a6e72a8-42c4-4d3b-9f1a-49e0f71d6e30',
+      requestIdentity: {
+        operation: 'character-add',
+        entityType: 'character',
+        containerId: 'player-ownerchannelpilot',
+      },
+      characterName: 'OwnerChannelCharacter',
+    });
+    const addedCharacter = await addCharacterPromise;
+
+    const unexpectedMissionResponses = [];
+    const onMissionResponse = (payload) => unexpectedMissionResponses.push(payload);
+    client.on(MISSION_LIST_RESPONSE_EVENT, onMissionResponse);
+
+    const shipByOwnerPromise = waitForEvent(client, SHIP_LIST_BY_OWNER_RESPONSE_EVENT);
+    client.emit(SHIP_LIST_BY_OWNER_REQUEST_EVENT, {
+      playerName: 'OwnerChannelPilot',
+      sessionKey: login.sessionKey,
+      correlationId: '58f2cc38-68c6-48ba-ba3e-2ca78f65d926',
+      requestIdentity: {
+        operation: 'ship-list-by-owner',
+        entityType: 'ship',
+        containerId: `player-character:${addedCharacter.characterId}`,
+      },
+      owner: {
+        ownerType: 'player-character',
+        characterId: addedCharacter.characterId,
+      },
+    });
+
+    const shipByOwnerResponse = await shipByOwnerPromise;
+    await delay(80);
+    client.off(MISSION_LIST_RESPONSE_EVENT, onMissionResponse);
+
+    assert.equal(shipByOwnerResponse.success, true);
+    assert.equal(shipByOwnerResponse.requestIdentity.operation, 'ship-list-by-owner');
+    assert.equal(shipByOwnerResponse.correlationId, '58f2cc38-68c6-48ba-ba3e-2ca78f65d926');
+    assert.deepEqual(unexpectedMissionResponses, []);
+  } finally {
+    await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
+test('mission-list operation emits only list-missions-response', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const login = await registerAndLogin(
+      client,
+      'MissionChannelPilot',
+      'mission-channel@example.com',
+      'mission-pass'
+    );
+
+    const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+    client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+      playerName: 'MissionChannelPilot',
+      sessionKey: login.sessionKey,
+      correlationId: 'c83834a0-2c4e-4388-a8c0-58d37a173970',
+      requestIdentity: {
+        operation: 'character-add',
+        entityType: 'character',
+        containerId: 'player-missionchannelpilot',
+      },
+      characterName: 'MissionChannelCharacter',
+    });
+    const addedCharacter = await addCharacterPromise;
+
+    const unexpectedShipByOwnerResponses = [];
+    const onShipByOwnerResponse = (payload) => unexpectedShipByOwnerResponses.push(payload);
+    client.on(SHIP_LIST_BY_OWNER_RESPONSE_EVENT, onShipByOwnerResponse);
+
+    const missionListPromise = waitForEvent(client, MISSION_LIST_RESPONSE_EVENT);
+    client.emit(MISSION_LIST_REQUEST_EVENT, {
+      playerName: 'MissionChannelPilot',
+      characterId: addedCharacter.characterId,
+      sessionKey: login.sessionKey,
+      correlationId: '7a11cba8-bad6-4143-9424-ea1177cac8a0',
+      requestIdentity: {
+        operation: 'list-missions',
+        entityType: 'mission',
+        containerId: addedCharacter.characterId,
+      },
+    });
+
+    const missionListResponse = await missionListPromise;
+    await delay(80);
+    client.off(SHIP_LIST_BY_OWNER_RESPONSE_EVENT, onShipByOwnerResponse);
+
+    assert.equal(missionListResponse.success, true);
+    assert.equal(missionListResponse.requestIdentity.operation, 'list-missions');
+    assert.equal(missionListResponse.correlationId, '7a11cba8-bad6-4143-9424-ea1177cac8a0');
+    assert.deepEqual(unexpectedShipByOwnerResponses, []);
+  } finally {
+    await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
+test('mission-list requests with legacy operation value are canonicalized to list-missions', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const login = await registerAndLogin(
+      client,
+      'MissionLegacyOpPilot',
+      'mission-legacy-op@example.com',
+      'mission-pass'
+    );
+
+    const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+    client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+      playerName: 'MissionLegacyOpPilot',
+      sessionKey: login.sessionKey,
+      correlationId: 'dc89c2d5-d8b4-4b67-b34a-afd64a14faf9',
+      requestIdentity: {
+        operation: 'character-add',
+        entityType: 'character',
+        containerId: 'player-missionlegacyoppilot',
+      },
+      characterName: 'MissionLegacyOpCharacter',
+    });
+    const addedCharacter = await addCharacterPromise;
+
+    const missionListPromise = waitForEvent(client, MISSION_LIST_RESPONSE_EVENT);
+    client.emit(MISSION_LIST_REQUEST_EVENT, {
+      playerName: 'MissionLegacyOpPilot',
+      characterId: addedCharacter.characterId,
+      sessionKey: login.sessionKey,
+      correlationId: '984dce8e-b248-4d78-ba5f-95224e71d8c5',
+      requestIdentity: {
+        operation: 'mission-list',
+        entityType: 'mission',
+        containerId: addedCharacter.characterId,
+      },
+    });
+
+    const missionListResponse = await missionListPromise;
+
+    assert.equal(missionListResponse.success, true);
+    assert.equal(missionListResponse.requestIdentity.operation, 'list-missions');
+  } finally {
+    await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
 test('server broadcasts generic message payload to connected clients', async () => {
   const { server, io } = createServer();
   const port = await listen(server);
@@ -396,7 +578,7 @@ test('server broadcasts generic message payload to connected clients', async () 
   }
 });
 
-test('mission upsert alias request emits alias response event', async () => {
+test('mission-upsert canonical request emits mission-upsert-response and never add-mission-response', async () => {
   const { server, io } = createServer();
   const port = await listen(server);
 
@@ -406,33 +588,52 @@ test('mission upsert alias request emits alias response event', async () => {
   try {
     const loginResponse = await registerAndLogin(
       client,
-      'AliasPilot',
-      'alias@example.com',
-      'alias-pass'
+      'MissionRoutePilot',
+      'mission-route@example.com',
+      'mission-pass'
     );
 
     const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
     client.emit(CHARACTER_ADD_REQUEST_EVENT, {
-      playerName: 'AliasPilot',
+      playerName: 'MissionRoutePilot',
       sessionKey: loginResponse.sessionKey,
-      characterName: 'AliasCharacter',
+      correlationId: 'fedb3b9d-e90c-4c89-86d1-c097f00a0955',
+      requestIdentity: {
+        operation: 'character-add',
+        entityType: 'character',
+        containerId: 'player-missionroutepilot',
+      },
+      characterName: 'RouteCharacter',
     });
     const addCharacter = await addCharacterPromise;
-    assert.equal(addCharacter.success, true);
 
-    const aliasResponsePromise = waitForEvent(client, MISSION_UPSERT_ALIAS_RESPONSE_EVENT);
-    client.emit(MISSION_UPSERT_ALIAS_REQUEST_EVENT, {
-      playerName: 'AliasPilot',
+    const unexpectedLegacyResponses = [];
+    const onLegacyMissionResponse = (payload) => unexpectedLegacyResponses.push(payload);
+    client.on('add-mission-response', onLegacyMissionResponse);
+
+    const missionResponsePromise = waitForEvent(client, MISSION_ADD_RESPONSE_EVENT);
+    client.emit(MISSION_ADD_REQUEST_EVENT, {
+      playerName: 'MissionRoutePilot',
       characterId: addCharacter.characterId,
       missionId: 'first-target',
       status: 'started',
       sessionKey: loginResponse.sessionKey,
+      correlationId: '47e2cd79-3867-46fb-b7be-7c467b3c4656',
+      requestIdentity: {
+        operation: 'mission-upsert',
+        entityType: 'mission',
+        containerId: addCharacter.characterId,
+      },
     });
 
-    const aliasResponse = await aliasResponsePromise;
-    assert.equal(aliasResponse.success, true);
-    assert.equal(aliasResponse.characterId, addCharacter.characterId);
-    assert.equal(aliasResponse.mission.missionId, 'first-target');
+    const missionResponse = await missionResponsePromise;
+    await delay(80);
+    client.off('add-mission-response', onLegacyMissionResponse);
+
+    assert.equal(missionResponse.success, true);
+    assert.equal(missionResponse.correlationId, '47e2cd79-3867-46fb-b7be-7c467b3c4656');
+    assert.equal(missionResponse.requestIdentity.operation, 'mission-upsert');
+    assert.deepEqual(unexpectedLegacyResponses, []);
   } finally {
     await closeClient(client);
     io.close();

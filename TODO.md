@@ -16,6 +16,8 @@ Completed remediation and cleanup work was moved out of the active TODO flow.
   - [docs/history/2026-05-07_test-quality-review.md](docs/history/2026-05-07_test-quality-review.md)
 - Maintainability completion details:
   - [MAINTAINABILITY_REVIEW.md](MAINTAINABILITY_REVIEW.md)
+- Backend bug closures:
+  - 2026-05-25: M-11 socket response channel misrouting closed (see docs/planning/forge-bug-mission-channel-misrouting-2026-05-25.md)
 
 ## Current Non-Feature Backlog (Lower Priority)
 

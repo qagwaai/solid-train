@@ -169,9 +169,7 @@ test('Integration (Option 3): Persisted malformed siteType values are inferred f
     {
       $set: {
         siteType: 'orbital-station',
-        locationType: 'orbital-station',
         siteName: '',
-        locationName: 'Legacy Orbital',
       },
     }
   );

@@ -997,7 +997,7 @@ paths:
 
   /socket/mission-list:
     post:
-      summary: mission-list-request
+      summary: list-missions-request
       description: |
         Lists mission records for the active character.
 
@@ -1022,12 +1022,12 @@ paths:
                   sessionKey: session-123
                   correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
                   requestIdentity:
-                    operation: mission-list
+                    operation: list-missions
                     entityType: mission
                     containerId: character-1
       responses:
         '200':
-          description: mission-list-response
+          description: list-missions-response
           content:
             application/json:
               schema:
@@ -1042,7 +1042,7 @@ paths:
                     characterId: character-1
                     correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
                     requestIdentity:
-                      operation: mission-list
+                      operation: list-missions
                       entityType: mission
                       containerId: character-1
                     missions:
@@ -1057,7 +1057,7 @@ paths:
                     characterId: character-1
                     correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
                     requestIdentity:
-                      operation: mission-list
+                      operation: list-missions
                       entityType: mission
                       containerId: character-1
                     missions: []
@@ -1159,44 +1159,6 @@ paths:
                       entityType: mission
                       containerId: character-1
                     requestId: req-123
-
-  /socket/add-mission:
-    post:
-      summary: add-mission-request
-      description: |
-        Legacy alias for `mission-upsert-request`.
-
-        This endpoint accepts the same payload and has the same side effects as
-        `/socket/mission-upsert`.
-      operationId: socketAddMission
-      tags: [Mission]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MissionUpsertRequest'
-            examples:
-              legacyAliasRequest:
-                summary: Legacy add-mission alias using the same mission upsert payload
-                value:
-                  playerName: MissionPilot
-                  characterId: character-1
-                  missionId: first-target
-                  status: started
-                  correlationId: f5d5cc38-e8f1-4e58-b775-1b86800fbc8c
-                  requestIdentity:
-                    operation: mission-upsert
-                    entityType: mission
-                    containerId: character-1
-                  sessionKey: session-123
-      responses:
-        '200':
-          description: add-mission-response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MissionUpsertResponse'
 
   /socket/celestial-body-list:
     post:

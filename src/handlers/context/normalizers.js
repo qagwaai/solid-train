@@ -245,14 +245,14 @@ function normalizeMarketSiteTypeValue(ctx, value) {
 }
 
 function inferMarketSiteType(ctx, source) {
-  const explicit = normalizeMarketSiteTypeValue(ctx, source.siteType || source.locationType);
+  const explicit = normalizeMarketSiteTypeValue(ctx, source.siteType);
   if (explicit) {
     return explicit;
   }
 
   const marketId = toNonEmptyString(ctx, source.marketId).toLowerCase();
   const marketName = toNonEmptyString(ctx, source.marketName).toLowerCase();
-  const siteName = toNonEmptyString(ctx, source.siteName || source.locationName).toLowerCase();
+  const siteName = toNonEmptyString(ctx, source.siteName).toLowerCase();
 
   const combined = `${marketId} ${marketName} ${siteName}`;
   if (combined.includes('belt') || combined.includes('drift')) {
@@ -319,7 +319,8 @@ function normalizeMarket(ctx, market) {
   const source = toPlainObject(ctx, market) || {};
   const marketId = toNonEmptyString(ctx, source.marketId);
   const solarSystemId = toNonEmptyString(ctx, source.solarSystemId).toLowerCase();
-  const orbit = normalizeMarketOrbit(ctx, source.orbit || source.trajectory?.orbit);
+  const spatial = normalizeSpatialState(ctx, source.spatial);
+  const trajectory = normalizeTrajectoryDescriptor(ctx, source.trajectory);
   const rawInventory = Array.isArray(source.inventory)
     ? source.inventory
     : MARKET_CATALOG.map((catalogEntry) => getDefaultInventoryEntry(catalogEntry));
@@ -330,44 +331,12 @@ function normalizeMarket(ctx, market) {
     ? source.ledger.map((entry) => normalizeMarketLedgerEntry(ctx, entry))
     : [];
 
-  // Handle spatial: use provided spatial or compute from orbit + legacy positionKm
-  let spatial = normalizeSpatialState(ctx, source.spatial);
-  if (!spatial) {
-    // Backward compatibility: try to construct spatial from legacy fields
-    let positionKm = source.positionKm ? normalizeTriple(ctx, source.positionKm) : null;
-    if (!positionKm && orbit && orbit.semiMajorAxisKm > 0 && source.solarSystemId) {
-      // Fallback: use semi-major axis as approximate position (only for static markets)
-      positionKm = { x: orbit.semiMajorAxisKm, y: 0, z: 0 };
-    }
-
-    if (positionKm && solarSystemId) {
-      spatial = {
-        solarSystemId,
-        frame: 'barycentric',
-        positionKm,
-        epochMs: source.spatial?.epochMs || Date.parse(orbit?.epoch || new Date().toISOString()),
-      };
-    }
-  }
-
-  // Handle trajectory: preserve canonical trajectory if present, otherwise wrap normalized orbit.
-  let trajectory = normalizeTrajectoryDescriptor(ctx, source.trajectory);
-  if (!trajectory && orbit) {
-    trajectory = {
-      kind: 'orbital-elements',
-      orbit,
-    };
-  }
-
   const result = {
     marketId,
     solarSystemId,
     marketName: toNonEmptyString(ctx, source.marketName),
     siteType: inferMarketSiteType(ctx, source),
-    siteName:
-      toNonEmptyString(ctx, source.siteName) ||
-      toNonEmptyString(ctx, source.locationName) ||
-      toNonEmptyString(ctx, source.marketName),
+    siteName: toNonEmptyString(ctx, source.siteName) || toNonEmptyString(ctx, source.marketName),
     isStarterMarket: Boolean(source.isStarterMarket),
     priceMultiplier:
       isFiniteNumber(ctx, source.priceMultiplier) && source.priceMultiplier > 0
@@ -392,23 +361,6 @@ function normalizeMarket(ctx, market) {
 
   if (trajectory) {
     result.trajectory = trajectory;
-  }
-
-  // Preserve legacy fields for backward compatibility during transition
-  if (source.locationType && !source.siteType) {
-    result.locationType = toNonEmptyString(ctx, source.locationType);
-  }
-
-  if (source.locationName && !source.siteName) {
-    result.locationName = toNonEmptyString(ctx, source.locationName);
-  }
-
-  if (source.positionKm && !spatial) {
-    result.positionKm = source.positionKm;
-  }
-
-  if (source.orbit && !trajectory) {
-    result.orbit = orbit;
   }
 
   return result;

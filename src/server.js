@@ -10,10 +10,6 @@ const { Server } = require('socket.io');
 const swaggerUi = require('swagger-ui-express');
 const { MongoConnection } = require('./db/connection');
 const { DatabaseService } = require('./db/service');
-const {
-  MISSION_UPSERT_ALIAS_REQUEST_EVENT,
-  MISSION_UPSERT_ALIAS_RESPONSE_EVENT,
-} = require('./model/mission-upsert');
 const { MessageHandlerContext } = require('./handlers/message-handler-context');
 const { RegisterMessageHandler } = require('./handlers/register-message-handler');
 const { LoginMessageHandler } = require('./handlers/login-message-handler');
@@ -237,17 +233,6 @@ function createServer(options = {}) {
       starGetMessageHandler,
     });
 
-    // Keep alias wiring explicit because it emits a different response event name.
-    socket.on(MISSION_UPSERT_ALIAS_REQUEST_EVENT, (payload) => {
-      missionUpsertMessageHandler
-        .handle(socket, payload)
-        .then((response) => {
-          socket.emit(MISSION_UPSERT_ALIAS_RESPONSE_EVENT, response);
-        })
-        .catch((error) => {
-          process.stderr.write(`[socket] Mission upsert alias handler error: ${error.message}\n`);
-        });
-    });
   });
 
   return { port, server, io, messageHandlerContext };
