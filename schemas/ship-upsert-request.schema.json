@@ -42,7 +42,7 @@
                 "required": ["id", "itemType", "displayName"],
                 "properties": {
                   "id": { "type": "string" },
-                  "itemType": { "type": "string" },
+                   "itemType": { "$ref": "./canonical-item-type.schema.json" },
                   "displayName": { "type": "string" }
                 }
               },
@@ -50,14 +50,14 @@
                 "required": ["itemId", "itemType"],
                 "properties": {
                   "itemId": { "type": "string" },
-                  "itemType": { "type": "string" }
+                   "itemType": { "$ref": "./canonical-item-type.schema.json" }
                 }
               },
               {
                 "required": ["id", "itemType"],
                 "properties": {
                   "id": { "type": "string" },
-                  "itemType": { "type": "string" }
+                   "itemType": { "$ref": "./canonical-item-type.schema.json" }
                 }
               }
             ],

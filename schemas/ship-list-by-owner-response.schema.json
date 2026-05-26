@@ -49,7 +49,7 @@
               "required": ["id", "itemType", "launchable"],
               "properties": {
                 "id": { "type": "string" },
-                "itemType": { "type": "string" },
+                "itemType": { "$ref": "./canonical-item-type.schema.json" },
                 "displayName": { "type": "string" },
                 "tier": { "type": "integer", "minimum": 1 },
                 "launchable": { "type": "boolean" },

@@ -117,6 +117,17 @@ class ShipListByOwnerMessageHandler {
       }
     }
 
+    this.context.log(
+      `[ship-list-by-owner-publish] correlationId=${correlationId} requester=${player.playerName} ownerType=${owner.ownerType} ownerPlayerId=${this.context.toNonEmptyString(owner.playerId) || '-'} ownerCharacterId=${this.context.toNonEmptyString(owner.characterId) || '-'} shipCount=${ships.length} shipIds=${ships.map((ship) => this.context.toNonEmptyString(ship?.id)).filter((value) => Boolean(value)).join(',') || '-'} projectedInventoryItemIds=${ships.map((ship) => {
+        const ids = Array.isArray(ship?.inventory)
+          ? ship.inventory
+              .map((item) => this.context.toNonEmptyString(item?.id))
+              .filter((value) => Boolean(value))
+          : [];
+        return `${this.context.toNonEmptyString(ship?.id) || '-'}:[${ids.join('|') || '-'}]`;
+      }).join(',') || '-'}`
+    );
+
     return {
       success: true,
       message: 'Ship list by owner retrieved successfully',

@@ -27,7 +27,7 @@
     "targetCelestialBodyId": { "type": "string" },
     "hotkey": { "type": "integer", "enum": [1, 2, 3, 4, 5] },
     "itemId": { "type": "string" },
-    "itemType": { "type": "string" },
+    "itemType": { "$ref": "./canonical-item-type.schema.json" },
     "launchedItem": {
       "type": "object",
       "description": "Present on successful launch responses.",
@@ -72,6 +72,7 @@
                   "launchable"
                 ],
                 "properties": {
+                  "itemType": { "$ref": "./canonical-item-type.schema.json" },
                   "quantity": { "type": "number" },
                   "state": { "type": "string", "enum": ["deployed"] },
                   "container": { "type": "null" },

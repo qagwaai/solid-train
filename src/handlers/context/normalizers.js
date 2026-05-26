@@ -1,6 +1,9 @@
 'use strict';
 
 const { getItemByType } = require('../../model/canonical-items');
+const {
+  assertCanonicalRuntimeItemType,
+} = require('../../model/canonical-item-type-registry');
 
 const ALWAYS_LAUNCHABLE_ITEM_TYPES = new Set(['expendable-dart-drone']);
 
@@ -495,6 +498,7 @@ function convertLegacyItemKinematics(ctx, kinematics) {
 function normalizeItem(ctx, item) {
   const source = toPlainObject(ctx, item) || {};
   const itemType = toNonEmptyString(ctx, source.itemType);
+  assertCanonicalRuntimeItemType(itemType);
   const canonicalItem = itemType ? getItemByType(itemType) : null;
 
   if (!canonicalItem) {

@@ -65,11 +65,15 @@ async function shouldRecoverStarterDroneForMission(ctx, ship, options = {}) {
 
 async function hydrateShipAsync(ctx, ship, options = {}) {
   const normalizedShip = ctx.normalizeShip(ship);
+  const starterDroneCanonicalId = normalizedShip.id ? `${normalizedShip.id}-item-1` : null;
   const inventoryReferences = Array.isArray(normalizedShip.inventory)
     ? normalizedShip.inventory
     : [];
   const inventoryItemIds = inventoryReferences.map((reference) => reference.itemId);
   const referencedItems = await ctx.getItemsByIdsAsync(inventoryItemIds);
+  const historicalStarterItems = starterDroneCanonicalId
+    ? await ctx.getItemsByIdsAsync([starterDroneCanonicalId])
+    : [];
   const containedItems = normalizedShip.id
     ? await ctx.getItemsByContainerAsync(ITEM_CONTAINER_TYPE.SHIP, normalizedShip.id, {
         ship: normalizedShip,
@@ -100,7 +104,12 @@ async function hydrateShipAsync(ctx, ship, options = {}) {
     ? buildBackfilledStarterDroneItems(
         ctx,
         normalizedShip,
-        [...referencedItems, ...containedItems, ...backfilledSubsystemItems],
+        [
+          ...referencedItems,
+          ...historicalStarterItems,
+          ...containedItems,
+          ...backfilledSubsystemItems,
+        ],
         {
           playerName: options.playerName,
           characterId: options.characterId,

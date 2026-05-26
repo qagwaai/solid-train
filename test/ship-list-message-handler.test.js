@@ -841,6 +841,89 @@ test('ShipListMessageHandler backfills starter drone for first-target progressio
   }
 });
 
+test('ShipListMessageHandler does not reintroduce consumed starter drone id after launch consumption', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ColdBootNoReintroPilot',
+    playerId: 'player-cold-boot-no-reintro',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Starter',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'Scavenger Pod',
+            tier: 1,
+            createdAt: '2026-04-17T00:00:00.000Z',
+            inventory: [],
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            damageProfile: {
+              overallStatus: 'damaged',
+              summary: 'Starter cold boot damage profile',
+              origin: 'cold-boot-scripted',
+              updatedAt: '2026-04-17T00:00:00.000Z',
+              systems: [],
+            },
+          },
+        ],
+        missions: [
+          {
+            missionId: 'first-target',
+            status: 'started',
+            updatedAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
+  });
+  seedItems(context, [
+    {
+      id: 'ship-1-item-1',
+      itemType: 'expendable-dart-drone',
+      displayName: 'Expendable Dart Drone',
+      state: 'destroyed',
+      damageStatus: 'destroyed',
+      container: null,
+      owningPlayerId: 'player-cold-boot-no-reintro',
+      owningCharacterId: 'character-1',
+      spatial: null,
+      createdAt: '2026-04-17T00:00:00.000Z',
+      updatedAt: '2026-04-17T00:05:00.000Z',
+      destroyedAt: '2026-04-17T00:05:00.000Z',
+      destroyedReason: 'expended-on-target:cb-1',
+      launchable: false,
+    },
+  ]);
+
+  const handler = new ShipListMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'ColdBootNoReintroPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+  });
+
+  assert.equal(response.success, true);
+  const inventory = response.ships[0].inventory;
+  assert.equal(
+    inventory.some((item) => item.id === 'ship-1-item-1'),
+    false,
+    'Consumed starter drone id must not be reintroduced by ship-list projection'
+  );
+  assert.equal(
+    inventory.some((item) => item.itemType === 'expendable-dart-drone'),
+    false,
+    'No starter drone should be backfilled when canonical starter id exists as consumed'
+  );
+});
+
 test('ShipListMessageHandler does not backfill subsystem items for non-cold-boot ships', async () => {
   const context = createTestContext();
   seedPlayer(context, {

@@ -6,7 +6,7 @@
   "required": ["itemType", "displayName"],
   "properties": {
     "id": { "type": ["string", "null"] },
-    "itemType": { "type": "string" },
+    "itemType": { "$ref": "./canonical-item-type.schema.json" },
     "displayName": { "type": "string" },
     "description": { "type": ["string", "null"] },
     "category": {
@@ -49,7 +49,7 @@
           "items": {
             "type": "object",
             "properties": {
-              "itemType": { "type": "string" },
+              "itemType": { "$ref": "./canonical-item-type.schema.json" },
               "quantity": { "type": "number" }
             },
             "required": ["itemType", "quantity"]

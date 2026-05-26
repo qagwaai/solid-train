@@ -1936,10 +1936,25 @@ paths:
         - Every request must include `requestIdentity` with `operation`, `entityType`, and
           `containerId`.
         - `hotkey` must be one of `1` through `5`.
-        - The item must exist in the specified ship inventory.
+        - The item must exist in the ship's canonical projected inventory emitted by
+          `ship-list`/`ship-list-by-owner`.
         - `itemType` must match the persisted item record.
         - The item must be launchable and not already destroyed.
         - The target celestial body must exist.
+
+        Contract guarantees:
+        - Launch membership validation uses the same canonical inventory projection as
+          `ship-list` and `ship-list-by-owner`.
+        - Legacy `inventoryIds`/`inventoryItemIds` arrays are not used for launch
+          membership validation.
+        - Every validly framed `launch-item-request` receives exactly one terminal
+          `launch-item-response` (success or failure) for the same correlation id.
+        - On successful launch, the consumed `itemId` is removed from canonical ship
+          inventory projection and is absent from subsequent `ship-list` and
+          `ship-list-by-owner` snapshots unless explicitly re-added by a later
+          mutation.
+        - Launch yield item typing maps materials to canonical runtime item types and
+          does not emit runtime `raw-material-*` item types.
 
         Success side effects:
         - The launched item is consumed, marked `destroyed`, removed from ship inventory,
@@ -2030,9 +2045,9 @@ paths:
                           quantity: 16
                       yieldedItems:
                         - id: generated-1
-                          itemType: raw-material-nickel-iron
+                          itemType: iron
                           displayName: Nickel-Iron (Raw Material)
-                          tier: 3
+                          tier: 1
                           quantity: 16
                           state: deployed
                           container: null

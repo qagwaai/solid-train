@@ -31,7 +31,7 @@
       "required": ["x", "y", "z"]
     },
     "distanceKm": { "type": "number" },
-    "itemType": { "type": "string" },
+    "itemType": { "$ref": "./canonical-item-type.schema.json" },
     "limit": { "type": "integer" }
   }
 }

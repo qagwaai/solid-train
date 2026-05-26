@@ -90,6 +90,10 @@ const {
   MARKET_SELL_REQUEST_EVENT,
   MARKET_SELL_RESPONSE_EVENT,
 } = require('../src/model/market-sell');
+const {
+  LAUNCH_ITEM_REQUEST_EVENT,
+  LAUNCH_ITEM_RESPONSE_EVENT,
+} = require('../src/model/launch-item');
 
 async function getAvailablePort() {
   const net = require('node:net');
@@ -543,6 +547,270 @@ test('ship-list-by-owner restores starter drone composition for first-target pro
     );
     assert.ok(drones.length >= 1);
     assert.ok(drones.every((item) => item.launchable === true));
+  } finally {
+    await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
+test('cold-boot launch-item succeeds for drone id emitted by ship-list-by-owner canonical inventory', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const login = await registerAndLogin(
+      client,
+      'LaunchParityPilot',
+      'launch-parity@example.com',
+      'owner-pass'
+    );
+
+    const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+    client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      sessionKey: login.sessionKey,
+      correlationId: 'f07a1cab-4bf6-4bd2-a12d-6a9712db4f83',
+      requestIdentity: {
+        operation: 'character-add',
+        entityType: 'character',
+        containerId: 'player-launchparitypilot',
+      },
+      characterName: 'LaunchParityCharacter',
+    });
+    const addedCharacter = await addCharacterPromise;
+
+    const missionStartPromise = waitForEvent(client, MISSION_ADD_RESPONSE_EVENT);
+    client.emit(MISSION_ADD_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      characterId: addedCharacter.characterId,
+      missionId: 'first-target',
+      status: 'started',
+      sessionKey: login.sessionKey,
+      correlationId: '17ef6779-09cc-496c-bbcf-c705c4cf6626',
+      requestIdentity: {
+        operation: 'mission-upsert',
+        entityType: 'mission',
+        containerId: addedCharacter.characterId,
+      },
+    });
+    const missionStart = await missionStartPromise;
+    assert.equal(missionStart.success, true);
+
+    const shipListPromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
+    client.emit(SHIP_LIST_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      characterId: addedCharacter.characterId,
+      sessionKey: login.sessionKey,
+    });
+    const shipList = await shipListPromise;
+    assert.equal(shipList.success, true);
+    assert.ok(Array.isArray(shipList.ships));
+    assert.ok(shipList.ships.length >= 1);
+
+    const ship = shipList.ships[0];
+    const degradedInventoryRefs = ship.inventory
+      .filter((item) => item.itemType !== 'expendable-dart-drone')
+      .map((item) => ({ itemId: item.id, itemType: item.itemType }));
+
+    const shipUpsertPromise = waitForEvent(client, SHIP_UPSERT_RESPONSE_EVENT);
+    client.emit(SHIP_UPSERT_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      characterId: addedCharacter.characterId,
+      sessionKey: login.sessionKey,
+      correlationId: '7e41989e-7f38-4b24-b306-a5de95cbadf5',
+      requestIdentity: {
+        operation: 'ship-upsert',
+        entityType: 'ship',
+        containerId: ship.id,
+      },
+      ship: {
+        id: ship.id,
+        inventory: degradedInventoryRefs,
+      },
+    });
+    const shipUpsert = await shipUpsertPromise;
+    assert.equal(shipUpsert.success, true);
+
+    const shipByOwnerPromise = waitForEvent(client, SHIP_LIST_BY_OWNER_RESPONSE_EVENT);
+    client.emit(SHIP_LIST_BY_OWNER_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      sessionKey: login.sessionKey,
+      correlationId: '74d67ec6-78b9-49ec-8f4a-9f2e6c4ce186',
+      requestIdentity: {
+        operation: 'ship-list-by-owner',
+        entityType: 'ship',
+        containerId: `player-character:${addedCharacter.characterId}`,
+      },
+      owner: {
+        ownerType: 'player-character',
+        characterId: addedCharacter.characterId,
+      },
+    });
+    const shipByOwner = await shipByOwnerPromise;
+    assert.equal(shipByOwner.success, true);
+    assert.ok(Array.isArray(shipByOwner.ships));
+    assert.ok(shipByOwner.ships.length >= 1);
+
+    const launchShip = shipByOwner.ships[0];
+    const starterDrone = Array.isArray(launchShip.inventory)
+      ? launchShip.inventory.find((item) => item.itemType === 'expendable-dart-drone')
+      : null;
+    assert.ok(starterDrone);
+
+    const upsertTargetPromise = waitForEvent(client, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
+    client.emit(CELESTIAL_BODY_UPSERT_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      sessionKey: login.sessionKey,
+      correlationId: '41d7f0a8-a235-4f63-a551-cab5fd332495',
+      requestIdentity: {
+        operation: 'celestial-body-upsert',
+        entityType: 'celestial-body',
+        containerId: addedCharacter.characterId,
+      },
+      celestialBody: createCelestialBody({
+        id: 'cb-launch-parity-1',
+        catalogId: 'CAT-001',
+        sourceScanId: 'scan-launch-parity-1',
+        createdByCharacterId: addedCharacter.characterId,
+        missionId: 'first-target',
+        composition: {
+          rarity: 'Rare',
+          material: 'Iron',
+          textureColor: '#8f99a7',
+        },
+      }),
+    });
+    const targetUpsert = await upsertTargetPromise;
+    assert.equal(targetUpsert.success, true);
+
+    const launchPromise = waitForEvent(client, LAUNCH_ITEM_RESPONSE_EVENT);
+    client.emit(LAUNCH_ITEM_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      characterId: addedCharacter.characterId,
+      shipId: launchShip.id,
+      sessionKey: login.sessionKey,
+      correlationId: '0cd7df76-f6f1-4cd3-a2e1-1529e5f20897',
+      requestIdentity: {
+        operation: 'launch-item',
+        entityType: starterDrone.itemType,
+        containerId: launchShip.id,
+      },
+      targetCelestialBodyId: 'cb-launch-parity-1',
+      hotkey: 1,
+      itemId: starterDrone.id,
+      itemType: starterDrone.itemType,
+    });
+    const launch = await launchPromise;
+
+    assert.equal(launch.success, true);
+    assert.notEqual(launch.message, 'Item is not in ship inventory');
+    assert.equal(launch.resolution.outcome, 'target-destroyed');
+    assert.equal(launch.resolution.targetDestroyed, true);
+    assert.equal(launch.resolution.targetCelestialBody.missionId, 'first-target');
+    assert.equal(launch.resolution.yieldedItems[0].itemType, 'iron');
+
+    const postLaunchShipListPromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
+    client.emit(SHIP_LIST_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      characterId: addedCharacter.characterId,
+      sessionKey: login.sessionKey,
+      correlationId: 'df95b5b8-84f0-4774-b532-00574779d6d8',
+      requestIdentity: {
+        operation: 'ship-list',
+        entityType: 'ship',
+        containerId: launchShip.id,
+      },
+    });
+    const postLaunchShipList = await postLaunchShipListPromise;
+    assert.equal(postLaunchShipList.success, true);
+    const postLaunchShip = Array.isArray(postLaunchShipList.ships)
+      ? postLaunchShipList.ships.find((candidate) => candidate.id === launchShip.id)
+      : null;
+    assert.ok(postLaunchShip);
+    assert.equal(
+      Array.isArray(postLaunchShip.inventory)
+        ? postLaunchShip.inventory.some((item) => item.id === starterDrone.id)
+        : false,
+      false,
+      'ship-list must not reintroduce consumed launched item id'
+    );
+
+    const postLaunchByOwnerPromise = waitForEvent(client, SHIP_LIST_BY_OWNER_RESPONSE_EVENT);
+    client.emit(SHIP_LIST_BY_OWNER_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      sessionKey: login.sessionKey,
+      correlationId: 'fe747ebb-a565-4e84-a86c-a076d6f03e53',
+      requestIdentity: {
+        operation: 'ship-list-by-owner',
+        entityType: 'ship',
+        containerId: `player-character:${addedCharacter.characterId}`,
+      },
+      owner: {
+        ownerType: 'player-character',
+        characterId: addedCharacter.characterId,
+      },
+    });
+    const postLaunchByOwner = await postLaunchByOwnerPromise;
+    assert.equal(postLaunchByOwner.success, true);
+    const postLaunchByOwnerShip = Array.isArray(postLaunchByOwner.ships)
+      ? postLaunchByOwner.ships.find((candidate) => candidate.id === launchShip.id)
+      : null;
+    assert.ok(postLaunchByOwnerShip);
+    assert.equal(
+      Array.isArray(postLaunchByOwnerShip.inventory)
+        ? postLaunchByOwnerShip.inventory.some((item) => item.id === starterDrone.id)
+        : false,
+      false,
+      'ship-list-by-owner must not reintroduce consumed launched item id'
+    );
+
+    const postLaunchShipListRepeatPromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
+    client.emit(SHIP_LIST_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      characterId: addedCharacter.characterId,
+      sessionKey: login.sessionKey,
+      correlationId: '7b1e16b2-0388-4bfd-9522-2bb8cb4f912d',
+      requestIdentity: {
+        operation: 'ship-list',
+        entityType: 'ship',
+        containerId: launchShip.id,
+      },
+    });
+    const postLaunchShipListRepeat = await postLaunchShipListRepeatPromise;
+    assert.equal(postLaunchShipListRepeat.success, true);
+    const postLaunchShipRepeat = Array.isArray(postLaunchShipListRepeat.ships)
+      ? postLaunchShipListRepeat.ships.find((candidate) => candidate.id === launchShip.id)
+      : null;
+    assert.ok(postLaunchShipRepeat);
+    assert.equal(
+      Array.isArray(postLaunchShipRepeat.inventory)
+        ? postLaunchShipRepeat.inventory.some((item) => item.id === starterDrone.id)
+        : false,
+      false,
+      'consumed launch item id must remain absent across subsequent ship-list snapshots'
+    );
+
+    const missionListPromise = waitForEvent(client, MISSION_LIST_RESPONSE_EVENT);
+    client.emit(MISSION_LIST_REQUEST_EVENT, {
+      playerName: 'LaunchParityPilot',
+      characterId: addedCharacter.characterId,
+      sessionKey: login.sessionKey,
+      correlationId: 'ee1f9515-3515-4d45-a0d0-771df00f8d0d',
+      requestIdentity: {
+        operation: 'mission-list',
+        entityType: 'mission',
+        containerId: addedCharacter.characterId,
+      },
+    });
+    const missionList = await missionListPromise;
+    const firstTargetMission = missionList.missions.find((mission) => mission.missionId === 'first-target');
+
+    assert.ok(firstTargetMission);
+    assert.equal(firstTargetMission.status, 'completed');
   } finally {
     await closeClient(client);
     io.close();

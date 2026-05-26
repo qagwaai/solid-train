@@ -27,7 +27,7 @@
       "required": ["itemType", "displayName"],
       "properties": {
         "id": { "type": ["string", "null"] },
-        "itemType": { "type": "string" },
+        "itemType": { "$ref": "./canonical-item-type.schema.json" },
         "displayName": { "type": "string" },
         "tier": {
           "type": "integer",

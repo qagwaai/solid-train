@@ -187,7 +187,8 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   assert.equal(response.resolution.yieldedMaterials[0].quantity, 16);
   assert.equal(response.resolution.yieldedItems.length, 1);
   assert.equal(response.resolution.yieldedItems[0].quantity, 16);
-  assert.equal(response.resolution.yieldedItems[0].tier, 3);
+  assert.equal(response.resolution.yieldedItems[0].itemType, 'iron');
+  assert.equal(response.resolution.yieldedItems[0].tier, 1);
   assert.equal(response.resolution.yieldedItems[0].state, 'deployed');
   assert.equal(response.resolution.yieldedItems[0].container, null);
   assert.ok(response.resolution.yieldedItems[0].spatial);
@@ -208,8 +209,8 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   const materialItemIds = response.resolution.yieldedItems.map((entry) => entry.id);
   const materialItems = await context.getItemsByIdsAsync(materialItemIds);
   assert.equal(materialItems.length, 1);
-  assert.equal(materialItems[0].itemType, 'raw-material-nickel-iron');
-  assert.equal(materialItems[0].tier, 3);
+  assert.equal(materialItems[0].itemType, 'iron');
+  assert.equal(materialItems[0].tier, 1);
   assert.equal(materialItems[0].quantity, 16);
   assert.equal(materialItems[0].state, 'deployed');
   assert.equal(materialItems[0].container, null);
@@ -226,9 +227,64 @@ test('LaunchItemMessageHandler resolves expendable dart launch against a celesti
   assert.equal(target.state, 'destroyed');
   assert.equal(target.destroyedReason, 'impacted-by:expendable-dart-drone');
   assert.equal(target.debris.length, 1);
-  assert.equal(target.debris[0].itemType, 'raw-material-nickel-iron');
+  assert.equal(target.debris[0].itemType, 'iron');
+
+  const missions = context.getCharacters('pilotone')[0].missions;
+  const starterMission = missions.find((mission) => mission.missionId === 'first-target');
+  assert.ok(starterMission);
+  assert.equal(starterMission.status, 'completed');
+  assert.ok(Array.isArray(response.missionProgression.unlockedMissionIds));
+  assert.ok(response.missionProgression.unlockedMissionIds.includes('m-01'));
+  assert.ok(response.missionProgression.unlockedMissionIds.includes('sq-02'));
+  assert.ok(response.missionProgression.unlockedMissionIds.includes('sq-03'));
 
   assert.equal(socket.events[0].eventName, LAUNCH_ITEM_RESPONSE_EVENT);
+});
+
+test('LaunchItemMessageHandler validates ship membership against canonical projected inventory', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'Scavenger Pod',
+            inventory: [],
+            createdAt: '2026-04-17T00:00:00.000Z',
+            damageProfile: {
+              overallStatus: 'damaged',
+              summary: 'Starter cold boot damage profile',
+              origin: 'cold-boot-scripted',
+              updatedAt: '2026-04-17T00:00:00.000Z',
+              systems: [],
+            },
+          },
+        ],
+        missions: [
+          {
+            missionId: 'first-target',
+            status: 'started',
+            updatedAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
+  });
+  seedItems(context, [createSeedItem()]);
+  seedCelestialBodies(context, [createSeedTarget()]);
+
+  const handler = new LaunchItemMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), createLaunchPayload());
+
+  assert.equal(response.success, true);
+  assert.equal(response.message, 'Launch successful: target destroyed and materials yielded');
+  assert.equal(response.resolution.outcome, 'target-destroyed');
 });
 
 test('LaunchItemMessageHandler deploys yielded materials for non-first-target missions', async () => {
@@ -245,7 +301,8 @@ test('LaunchItemMessageHandler deploys yielded materials for non-first-target mi
 
   assert.equal(response.success, true);
   assert.equal(response.resolution.yieldedItems.length, 1);
-  assert.equal(response.resolution.yieldedItems[0].tier, 3);
+  assert.equal(response.resolution.yieldedItems[0].itemType, 'iron');
+  assert.equal(response.resolution.yieldedItems[0].tier, 1);
   assert.equal(response.resolution.yieldedItems[0].state, 'deployed');
   assert.equal(response.resolution.yieldedItems[0].container, null);
   assert.ok(response.resolution.yieldedItems[0].spatial);
@@ -254,6 +311,49 @@ test('LaunchItemMessageHandler deploys yielded materials for non-first-target mi
   const character = context.findCharacter('PilotOne', 'character-1');
   assert.equal(character.ships[0].inventory.length, 0);
   assert.equal(socket.events[0].eventName, LAUNCH_ITEM_RESPONSE_EVENT);
+});
+
+test('LaunchItemMessageHandler emits terminal launch-item-response failure for unsupported yield material', async () => {
+  const context = createTestContext();
+  seedLaunchScenario(context);
+
+  const target = context.getCelestialBody('cb-1');
+  target.composition.material = 'Unmapped Crystal';
+
+  const handler = new LaunchItemMessageHandler(context);
+  const socket = createMockSocket();
+  const response = await handler.handle(socket, createLaunchPayload());
+
+  assert.equal(response.success, false);
+  assert.equal(response.message, 'Unsupported launch yield material(s): Unmapped Crystal');
+  assert.equal(socket.events.length, 1);
+  assert.equal(socket.events[0].eventName, LAUNCH_ITEM_RESPONSE_EVENT);
+
+  const [unconsumedItem] = await context.getItemsByIdsAsync(['item-1']);
+  assert.equal(unconsumedItem.state, ITEM_STATE.CONTAINED);
+
+  const unchangedTarget = context.getCelestialBody('cb-1');
+  assert.equal(unchangedTarget.state, 'active');
+});
+
+test('LaunchItemMessageHandler emits terminal launch-item-response failure on unexpected internal errors', async () => {
+  const context = createTestContext();
+  seedLaunchScenario(context);
+
+  context.addItemsAsync = async () => {
+    throw new Error('forced-add-items-failure');
+  };
+
+  const handler = new LaunchItemMessageHandler(context);
+  const socket = createMockSocket();
+  const response = await handler.handle(socket, createLaunchPayload());
+
+  assert.equal(response.success, false);
+  assert.equal(response.message, 'Launch failed: internal runtime error');
+  assert.equal(response.correlationId, '0b16ca57-4773-4348-9c69-20598ba55bae');
+  assert.equal(socket.events.length, 1);
+  assert.equal(socket.events[0].eventName, LAUNCH_ITEM_RESPONSE_EVENT);
+  assert.equal(socket.events[0].payload.success, false);
 });
 
 test('LaunchItemMessageHandler returns success no-effect for unsupported launch item types', async () => {

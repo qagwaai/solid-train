@@ -45,7 +45,7 @@
         ],
         "properties": {
           "itemId": { "type": "string" },
-          "itemType": { "type": "string" },
+          "itemType": { "$ref": "./canonical-item-type.schema.json" },
           "displayName": { "type": "string" },
           "rarity": { "type": "string" },
           "stock": { "type": "integer", "minimum": 0 },

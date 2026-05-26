@@ -133,7 +133,7 @@
         "material": { "type": "string" },
         "rarity": { "type": "string" },
         "quantity": { "type": "integer" },
-        "itemType": { "type": "string" }
+        "itemType": { "$ref": "./canonical-item-type.schema.json" }
       },
       "required": ["material", "rarity", "quantity", "itemType"]
     },

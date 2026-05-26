@@ -42,7 +42,7 @@
     },
     "itemId": { "type": "string" },
     "itemType": {
-      "type": "string",
+      "$ref": "./canonical-item-type.schema.json",
       "description": "Expected persisted item type for the launched item. Must match the stored item record."
     }
   }

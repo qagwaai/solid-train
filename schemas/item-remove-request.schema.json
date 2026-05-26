@@ -31,7 +31,7 @@
     "characterId": { "type": "string" },
     "shipId": { "type": "string" },
     "itemId": { "type": "string" },
-    "itemType": { "type": "string" },
+    "itemType": { "$ref": "./canonical-item-type.schema.json" },
     "reason": { "type": "string" }
   }
 }

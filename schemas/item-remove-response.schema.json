@@ -34,7 +34,7 @@
     "characterId": { "type": "string" },
     "shipId": { "type": "string" },
     "itemId": { "type": "string" },
-    "itemType": { "type": "string" },
+    "itemType": { "$ref": "./canonical-item-type.schema.json" },
     "item": {
       "$ref": "./item.schema.json",
       "description": "Present on successful item-remove responses."

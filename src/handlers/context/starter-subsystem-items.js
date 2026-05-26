@@ -129,6 +129,14 @@ function buildBackfilledStarterDroneItems(ctx, ship, existingItems, options = {}
     return [];
   }
 
+  const starterDroneItemId = `${ship.id}-item-1`;
+  const hasStarterDroneRecord = (Array.isArray(existingItems) ? existingItems : []).some(
+    (item) => item && ctx.toNonEmptyString(item.id) === starterDroneItemId
+  );
+  if (hasStarterDroneRecord) {
+    return [];
+  }
+
   const hasStarterDrone = (Array.isArray(existingItems) ? existingItems : []).some((item) => {
     if (!item) {
       return false;
@@ -153,7 +161,7 @@ function buildBackfilledStarterDroneItems(ctx, ship, existingItems, options = {}
 
   return [
     ctx.normalizeItem({
-      id: `${ship.id}-item-1`,
+      id: starterDroneItemId,
       itemType: STARTER_DRONE_ITEM_TYPE,
       displayName: STARTER_DRONE_DISPLAY_NAME,
       launchable: true,

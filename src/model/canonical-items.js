@@ -880,16 +880,6 @@ const rawMaterialsSource = [
     sellPrice: null,
   },
   {
-    itemType: 'raw-material-nickel-iron',
-    displayName: 'Nickel-Iron (Raw Material)',
-    description: 'Composite raw material yielded from asteroid launch debris.',
-    rarity: ITEM_RARITY.RARE,
-    miningRequirement: null,
-    typicalLocation: null,
-    buyPrice: null,
-    sellPrice: null,
-  },
-  {
     itemType: 'unobtainium',
     displayName: 'Unobtainium',
     description: 'Ultimate-tier units',
