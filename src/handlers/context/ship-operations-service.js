@@ -3,13 +3,26 @@
 const orbitalMath = require('./orbital-math');
 const { ITEM_STATE, ITEM_CONTAINER_TYPE } = require('../../model/canonical-items');
 const {
+  STARTER_DRONE_ITEM_TYPE,
   COLD_BOOT_STARTER_SUBSYSTEMS,
   buildBackfilledSubsystemItems,
+  buildBackfilledStarterDroneItems,
+  isStarterPodShip,
+  isColdBootStarterShip,
 } = require('./starter-subsystem-items');
+const { DEFAULT_STARTER_MISSION_ID } = require('../../model/mission');
 
 const COLD_BOOT_STARTER_SUBSYSTEM_ITEM_TYPES = new Set(
   COLD_BOOT_STARTER_SUBSYSTEMS.map((subsystem) => subsystem.itemType)
 );
+const STARTER_DRONE_REQUIRED_MISSION_STATUSES = new Set([
+  'available',
+  'started',
+  'in-progress',
+  'failed',
+  'abandoned',
+  'paused',
+]);
 
 function isProjectedShipInventoryItem(shipId, item) {
   if (!shipId || !item) {
@@ -30,6 +43,26 @@ function getShipPositionKm(ctx, ship) {
   return orbitalMath.getShipPositionKm(ctx, ship);
 }
 
+async function shouldRecoverStarterDroneForMission(ctx, ship, options = {}) {
+  if (!isStarterPodShip(ctx, ship)) {
+    return false;
+  }
+
+  const playerName = ctx.toNonEmptyString(options.playerName);
+  const characterId = ctx.toNonEmptyString(options.characterId);
+  if (!playerName || !characterId) {
+    return false;
+  }
+
+  const missions = await ctx.getMissionsAsync(playerName, characterId);
+  const starterMission = Array.isArray(missions)
+    ? missions.find((mission) => ctx.toNonEmptyString(mission?.missionId) === DEFAULT_STARTER_MISSION_ID)
+    : null;
+  const starterMissionStatus = ctx.toNonEmptyString(starterMission?.status).toLowerCase();
+
+  return Boolean(starterMissionStatus) && STARTER_DRONE_REQUIRED_MISSION_STATUSES.has(starterMissionStatus);
+}
+
 async function hydrateShipAsync(ctx, ship, options = {}) {
   const normalizedShip = ctx.normalizeShip(ship);
   const inventoryReferences = Array.isArray(normalizedShip.inventory)
@@ -47,7 +80,7 @@ async function hydrateShipAsync(ctx, ship, options = {}) {
       })
     : [];
 
-  const backfilledItems = buildBackfilledSubsystemItems(
+  const backfilledSubsystemItems = buildBackfilledSubsystemItems(
     ctx,
     normalizedShip,
     [...referencedItems, ...containedItems],
@@ -58,6 +91,25 @@ async function hydrateShipAsync(ctx, ship, options = {}) {
       owningCharacterId: options.owningCharacterId,
     }
   );
+  const shouldRecoverStarterDrone = await shouldRecoverStarterDroneForMission(
+    ctx,
+    normalizedShip,
+    options
+  );
+  const backfilledStarterDroneItems = shouldRecoverStarterDrone
+    ? buildBackfilledStarterDroneItems(
+        ctx,
+        normalizedShip,
+        [...referencedItems, ...containedItems, ...backfilledSubsystemItems],
+        {
+          playerName: options.playerName,
+          characterId: options.characterId,
+          owningPlayerId: options.owningPlayerId,
+          owningCharacterId: options.owningCharacterId,
+        }
+      )
+    : [];
+  const backfilledItems = [...backfilledSubsystemItems, ...backfilledStarterDroneItems];
 
   const itemsById = new Map();
   for (const item of containedItems) {
@@ -78,12 +130,18 @@ async function hydrateShipAsync(ctx, ship, options = {}) {
     (item) =>
       !inventoryItemIds.includes(item.id) && isProjectedShipInventoryItem(normalizedShip.id, item)
   );
-  const additionalStarterContainedItems = containedItems.filter(
-    (item) =>
-      !inventoryItemIds.includes(item.id) &&
-      COLD_BOOT_STARTER_SUBSYSTEM_ITEM_TYPES.has(item.itemType) &&
-      isProjectedShipInventoryItem(normalizedShip.id, item)
-  );
+  const additionalStarterContainedItems = containedItems.filter((item) => {
+    if (inventoryItemIds.includes(item.id)) {
+      return false;
+    }
+
+    const itemType = ctx.toNonEmptyString(item?.itemType);
+    const isRecoverableStarterItem =
+      COLD_BOOT_STARTER_SUBSYSTEM_ITEM_TYPES.has(itemType) ||
+      (itemType === STARTER_DRONE_ITEM_TYPE && shouldRecoverStarterDrone);
+
+    return isRecoverableStarterItem && isProjectedShipInventoryItem(normalizedShip.id, item);
+  });
 
   const projectedInventory = [
     ...referencedInOrder,

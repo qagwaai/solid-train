@@ -801,6 +801,12 @@ paths:
         - The response includes a normalized `owner` descriptor with explicit nullable
           fields (`playerId`, `characterId`, `npcId`, `factionId`).
         - Each returned ship includes a canonical `ownership` object.
+        - Each returned ship includes canonical `inventory` item payloads (not just
+          inventory references) when inventory exists server-side.
+        - Canonical `expendable-dart-drone` items are emitted with `launchable: true`.
+        - For cold-boot `Scavenger Pod` ships in first-target progression states,
+          inventory composition includes an `expendable-dart-drone` entry to preserve
+          launch progression readiness.
         - Invalid sessions return `success: false`, `reason: INVALID_SESSION`, and
           `ships: []`.
       operationId: socketShipListByOwner
@@ -851,6 +857,17 @@ paths:
                       factionId: null
                     ships:
                       - id: ship-1
+                        inventory:
+                          - id: character-1-ship-1-item-1
+                            itemType: expendable-dart-drone
+                            displayName: Expendable Dart Drone
+                            tier: 1
+                            state: contained
+                            damageStatus: intact
+                            launchable: true
+                            container:
+                              containerType: ship
+                              containerId: ship-1
                         ownership:
                           ownerType: player-character
                           playerId: player-1

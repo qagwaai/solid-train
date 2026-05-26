@@ -39,8 +39,42 @@
       "type": "array",
       "items": {
         "type": "object",
+        "required": ["id", "inventory"],
         "properties": {
           "id": { "type": "string" },
+          "inventory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "itemType", "launchable"],
+              "properties": {
+                "id": { "type": "string" },
+                "itemType": { "type": "string" },
+                "displayName": { "type": "string" },
+                "tier": { "type": "integer", "minimum": 1 },
+                "launchable": { "type": "boolean" },
+                "state": { "type": "string" },
+                "damageStatus": { "type": "string" },
+                "container": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "object",
+                      "required": ["containerType", "containerId"],
+                      "properties": {
+                        "containerType": { "type": "string" },
+                        "containerId": { "type": "string" }
+                      },
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": true
+            }
+          },
           "ownership": {
             "type": "object",
             "properties": {

@@ -432,7 +432,117 @@ test('ship-list-by-owner operation emits only ship-list-by-owner-response', asyn
     assert.equal(shipByOwnerResponse.success, true);
     assert.equal(shipByOwnerResponse.requestIdentity.operation, 'ship-list-by-owner');
     assert.equal(shipByOwnerResponse.correlationId, '58f2cc38-68c6-48ba-ba3e-2ca78f65d926');
+    assert.ok(Array.isArray(shipByOwnerResponse.ships));
+    assert.ok(shipByOwnerResponse.ships.length >= 1);
+    assert.ok(Array.isArray(shipByOwnerResponse.ships[0].inventory));
+    assert.ok(shipByOwnerResponse.ships[0].inventory.length >= 1);
+
+    const starterDrone = shipByOwnerResponse.ships[0].inventory.find(
+      (item) => item.itemType === 'expendable-dart-drone'
+    );
+    assert.ok(starterDrone);
+    assert.equal(starterDrone.launchable, true);
     assert.deepEqual(unexpectedMissionResponses, []);
+  } finally {
+    await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
+test('ship-list-by-owner restores starter drone composition for first-target progression when refs are degraded', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const login = await registerAndLogin(
+      client,
+      'OwnerRecoveryPilot',
+      'owner-recovery@example.com',
+      'owner-pass'
+    );
+
+    const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+    client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+      playerName: 'OwnerRecoveryPilot',
+      sessionKey: login.sessionKey,
+      correlationId: '0bfc103f-57e1-4f67-9a2a-16d5f66af6aa',
+      requestIdentity: {
+        operation: 'character-add',
+        entityType: 'character',
+        containerId: 'player-ownerrecoverypilot',
+      },
+      characterName: 'OwnerRecoveryCharacter',
+    });
+    const addedCharacter = await addCharacterPromise;
+
+    const shipListPromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
+    client.emit(SHIP_LIST_REQUEST_EVENT, {
+      playerName: 'OwnerRecoveryPilot',
+      characterId: addedCharacter.characterId,
+      sessionKey: login.sessionKey,
+    });
+    const shipList = await shipListPromise;
+
+    assert.equal(shipList.success, true);
+    assert.ok(Array.isArray(shipList.ships));
+    assert.ok(shipList.ships.length >= 1);
+    const ship = shipList.ships[0];
+    assert.ok(Array.isArray(ship.inventory));
+
+    const degradedInventoryRefs = ship.inventory
+      .filter((item) => item.itemType !== 'expendable-dart-drone')
+      .map((item) => ({ itemId: item.id, itemType: item.itemType }));
+
+    const shipUpsertPromise = waitForEvent(client, SHIP_UPSERT_RESPONSE_EVENT);
+    client.emit(SHIP_UPSERT_REQUEST_EVENT, {
+      playerName: 'OwnerRecoveryPilot',
+      characterId: addedCharacter.characterId,
+      sessionKey: login.sessionKey,
+      correlationId: '8519a53b-f61a-4c62-b63d-6928f6782e4f',
+      requestIdentity: {
+        operation: 'ship-upsert',
+        entityType: 'ship',
+        containerId: ship.id,
+      },
+      ship: {
+        id: ship.id,
+        inventory: degradedInventoryRefs,
+      },
+    });
+    const shipUpsert = await shipUpsertPromise;
+    assert.equal(shipUpsert.success, true);
+
+    const shipByOwnerPromise = waitForEvent(client, SHIP_LIST_BY_OWNER_RESPONSE_EVENT);
+    client.emit(SHIP_LIST_BY_OWNER_REQUEST_EVENT, {
+      playerName: 'OwnerRecoveryPilot',
+      sessionKey: login.sessionKey,
+      correlationId: '4c1045b1-c494-45bf-b26a-afd54bb84f0e',
+      requestIdentity: {
+        operation: 'ship-list-by-owner',
+        entityType: 'ship',
+        containerId: `player-character:${addedCharacter.characterId}`,
+      },
+      owner: {
+        ownerType: 'player-character',
+        characterId: addedCharacter.characterId,
+      },
+    });
+    const shipByOwner = await shipByOwnerPromise;
+
+    assert.equal(shipByOwner.success, true);
+    assert.ok(Array.isArray(shipByOwner.ships));
+    assert.ok(shipByOwner.ships.length >= 1);
+    assert.ok(Array.isArray(shipByOwner.ships[0].inventory));
+
+    const drones = shipByOwner.ships[0].inventory.filter(
+      (item) => item.itemType === 'expendable-dart-drone'
+    );
+    assert.ok(drones.length >= 1);
+    assert.ok(drones.every((item) => item.launchable === true));
   } finally {
     await closeClient(client);
     io.close();

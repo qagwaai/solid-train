@@ -9,8 +9,13 @@ class ShipListByOwnerMessageHandler {
     this.context = context;
   }
 
-  buildResponse(payload) {
+  async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
+    const correlationId =
+      this.context.toNonEmptyString(payload?.correlationId) ||
+      this.context.toNonEmptyString(payload?.requestId) ||
+      this.context.toNonEmptyString(payload?.messageId) ||
+      '-';
     const ownerRaw = payload?.owner;
 
     if (!playerName) {
@@ -61,7 +66,13 @@ class ShipListByOwnerMessageHandler {
         continue;
       }
 
+      const scopedPlayer = this.context.getPlayer(normalizedPlayerName);
+      const scopedPlayerName =
+        this.context.toNonEmptyString(scopedPlayer?.playerName) || normalizedPlayerName;
+      const scopedPlayerId = this.context.toNonEmptyString(scopedPlayer?.playerId);
+
       for (const character of characters) {
+        const characterId = this.context.toNonEmptyString(character?.id);
         const characterShips = Array.isArray(character?.ships) ? character.ships : [];
         for (const ship of characterShips) {
           const normalizedShip = this.context.normalizeShip(ship);
@@ -83,10 +94,20 @@ class ShipListByOwnerMessageHandler {
           };
 
           if (matchesOwner(normalizedOwnership, owner)) {
-            ships.push({
+            const ownerScopedShip = {
               ...normalizedShip,
               ownership: normalizedOwnership,
+            };
+
+            const hydratedShip = await this.context.hydrateShipAsync(ownerScopedShip, {
+              correlationId,
+              playerName: scopedPlayerName,
+              characterId,
+              owningPlayerId: scopedPlayerId,
+              owningCharacterId: characterId,
             });
+
+            ships.push(hydratedShip);
           }
         }
       }
@@ -121,7 +142,7 @@ class ShipListByOwnerMessageHandler {
     this.context.detachIdleGameCharacters();
     this.context.touchJoinedCharacters(payload);
 
-    const response = this.buildResponse(payload);
+    const response = await this.buildResponse(payload);
     socket.emit(SHIP_LIST_BY_OWNER_RESPONSE_EVENT, response);
     return response;
   }

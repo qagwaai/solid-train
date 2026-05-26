@@ -8,6 +8,8 @@ const {
 
 const COLD_BOOT_STARTER_MODELS = new Set(['scavenger pod', 'scavenger-pod']);
 const COLD_BOOT_ORIGIN = 'cold-boot-scripted';
+const STARTER_DRONE_ITEM_TYPE = 'expendable-dart-drone';
+const STARTER_DRONE_DISPLAY_NAME = 'Expendable Dart Drone';
 
 const COLD_BOOT_STARTER_SUBSYSTEMS = [
   {
@@ -28,11 +30,15 @@ const COLD_BOOT_STARTER_SUBSYSTEMS = [
   },
 ];
 
-function isColdBootStarterShip(ctx, ship) {
+function isStarterPodShip(ctx, ship) {
   const normalizedModel = ctx.toNonEmptyString(ship?.model).toLowerCase();
+  return COLD_BOOT_STARTER_MODELS.has(normalizedModel);
+}
+
+function isColdBootStarterShip(ctx, ship) {
   const normalizedOrigin = ctx.toNonEmptyString(ship?.damageProfile?.origin).toLowerCase();
 
-  return COLD_BOOT_STARTER_MODELS.has(normalizedModel) && normalizedOrigin === COLD_BOOT_ORIGIN;
+  return isStarterPodShip(ctx, ship) && normalizedOrigin === COLD_BOOT_ORIGIN;
 }
 
 function resolveOwningPlayerId(ctx, options, existingItems) {
@@ -118,8 +124,61 @@ function buildBackfilledSubsystemItems(ctx, ship, existingItems, options = {}) {
   );
 }
 
+function buildBackfilledStarterDroneItems(ctx, ship, existingItems, options = {}) {
+  if (!ship?.id || !isStarterPodShip(ctx, ship)) {
+    return [];
+  }
+
+  const hasStarterDrone = (Array.isArray(existingItems) ? existingItems : []).some((item) => {
+    if (!item) {
+      return false;
+    }
+
+    return (
+      ctx.toNonEmptyString(item?.itemType) === STARTER_DRONE_ITEM_TYPE &&
+      item?.state !== ITEM_STATE.DESTROYED &&
+      item?.container?.containerType === ITEM_CONTAINER_TYPE.SHIP &&
+      item?.container?.containerId === ship.id
+    );
+  });
+
+  if (hasStarterDrone) {
+    return [];
+  }
+
+  const owningPlayerId = resolveOwningPlayerId(ctx, options, existingItems);
+  const owningCharacterId = resolveOwningCharacterId(ctx, options, existingItems);
+  const createdAt = ctx.toNonEmptyString(ship.createdAt) || ctx.getCurrentTimestamp();
+  const updatedAt = createdAt;
+
+  return [
+    ctx.normalizeItem({
+      id: `${ship.id}-item-1`,
+      itemType: STARTER_DRONE_ITEM_TYPE,
+      displayName: STARTER_DRONE_DISPLAY_NAME,
+      launchable: true,
+      state: ITEM_STATE.CONTAINED,
+      damageStatus: ITEM_DAMAGE_STATUS.INTACT,
+      container: {
+        containerType: ITEM_CONTAINER_TYPE.SHIP,
+        containerId: ship.id,
+      },
+      owningPlayerId,
+      owningCharacterId,
+      spatial: null,
+      createdAt,
+      updatedAt,
+      destroyedAt: null,
+      destroyedReason: null,
+    }),
+  ];
+}
+
 module.exports = {
+  STARTER_DRONE_ITEM_TYPE,
   COLD_BOOT_STARTER_SUBSYSTEMS,
+  isStarterPodShip,
   isColdBootStarterShip,
   buildBackfilledSubsystemItems,
+  buildBackfilledStarterDroneItems,
 };

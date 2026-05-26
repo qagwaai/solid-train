@@ -772,6 +772,75 @@ test('ShipListMessageHandler backfills cold-boot starter subsystem inventory ite
   assert.equal(socket.events[0].eventName, SHIP_LIST_RESPONSE_EVENT);
 });
 
+test('ShipListMessageHandler backfills starter drone for first-target progression states', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'ColdBootMissionPilot',
+    playerId: 'player-cold-boot-mission',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Starter',
+        ships: [
+          {
+            id: 'ship-1',
+            shipName: 'Scavenger Pod',
+            model: 'Scavenger Pod',
+            tier: 1,
+            createdAt: '2026-04-17T00:00:00.000Z',
+            inventory: [],
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 0, y: 0, z: 0 },
+              epochMs: 0,
+            },
+            damageProfile: {
+              overallStatus: 'damaged',
+              summary: 'Starter cold boot damage profile',
+              origin: 'cold-boot-scripted',
+              updatedAt: '2026-04-17T00:00:00.000Z',
+              systems: [],
+            },
+          },
+        ],
+        missions: [
+          {
+            missionId: 'first-target',
+            status: 'started',
+            updatedAt: '2026-04-17T00:00:00.000Z',
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new ShipListMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'ColdBootMissionPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+  });
+
+  assert.equal(response.success, true);
+  const inventory = response.ships[0].inventory;
+  const byType = new Map(inventory.map((item) => [item.itemType, item]));
+
+  assert.ok(byType.has('expendable-dart-drone'));
+  assert.equal(byType.get('expendable-dart-drone').launchable, true);
+  assert.equal(byType.get('expendable-dart-drone').state, 'contained');
+
+  for (const itemType of [
+    'propulsion-manifold',
+    'sensor-array',
+    'power-distribution-bus',
+    'ship-tractor-beam',
+  ]) {
+    assert.ok(byType.has(itemType));
+  }
+});
+
 test('ShipListMessageHandler does not backfill subsystem items for non-cold-boot ships', async () => {
   const context = createTestContext();
   seedPlayer(context, {

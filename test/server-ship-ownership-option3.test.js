@@ -114,6 +114,14 @@ test('Option3 server contract: ship-list-by-owner returns strict owner-scoped pa
     assert.equal(typeof firstShip.id, 'string');
     assert.ok(firstShip.id.length > 0);
     assert.deepEqual(firstShip.ownership, response.owner);
+    assert.ok(Array.isArray(firstShip.inventory));
+    assert.ok(firstShip.inventory.length > 0);
+
+    const starterDrone = firstShip.inventory.find(
+      (item) => item.itemType === 'expendable-dart-drone'
+    );
+    assert.ok(starterDrone);
+    assert.equal(starterDrone.launchable, true);
   } finally {
     await closeClient(client);
     io.close();
