@@ -1,7 +1,7 @@
 {
   "checksums": {
-    "openApiSha256": "b47d9f009485eeea12dab3d8e89c3d4a72a9e4e138d33cae93888fb3d156bd01",
-    "schemaBundleSha256": "7896e4704ad65b5a71239896a69dc4e1cac0f4332bca425b416468f8b64061f4"
+    "openApiSha256": "8f31a8e9161d43bc947d28c99c938d45877e8a3d1b302bbbd16639816b2ba7c2",
+    "schemaBundleSha256": "dae18617359566c31375d9992c9de061f97c56e1ef5b489c025cc2102dc360f2"
   },
   "components": {
     "schemaRefMap": {
@@ -37,6 +37,8 @@
       "ItemListByContainerResponse": "item-list-by-container-response.schema.json",
       "ItemListByLocationRequest": "item-list-by-location-request.schema.json",
       "ItemListByLocationResponse": "item-list-by-location-response.schema.json",
+      "ItemRemoveRequest": "item-remove-request.schema.json",
+      "ItemRemoveResponse": "item-remove-response.schema.json",
       "ItemUpsertRequest": "item-upsert-request.schema.json",
       "ItemUpsertResponse": "item-upsert-response.schema.json",
       "LaunchItemRequest": "launch-item-request.schema.json",
@@ -83,6 +85,8 @@
       "StarGetResponse": "star-get-response.schema.json",
       "StarListRequest": "star-list-request.schema.json",
       "StarListResponse": "star-list-response.schema.json",
+      "TractorBeamActivateRequest": "tractor-beam-activate-request.schema.json",
+      "TractorBeamActivateResponse": "tractor-beam-activate-response.schema.json",
       "UnknownMessage": "unknown-message.schema.json",
       "WelcomeEvent": "welcome-event.schema.json"
     },
@@ -148,7 +152,7 @@
                 "items": {
                   "properties": {
                     "itemType": {
-                      "type": "string"
+                      "$ref": "./canonical-item-type.schema.json"
                     },
                     "quantity": {
                       "type": "number"
@@ -163,7 +167,7 @@
             "type": ["object", "null"]
           },
           "itemType": {
-            "type": "string"
+            "$ref": "./canonical-item-type.schema.json"
           },
           "launchable": {
             "type": ["boolean", "null"]
@@ -196,6 +200,11 @@
       "CelestialBodyListRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "createdByCharacterId": {
             "type": "string"
           },
@@ -231,6 +240,21 @@
             "required": ["x", "y", "z"],
             "type": "object"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -246,7 +270,13 @@
             "type": "array"
           }
         },
-        "required": ["playerName", "sessionKey", "solarSystemId"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "solarSystemId"
+        ],
         "title": "celestial-body-list-request",
         "type": "object"
       },
@@ -410,7 +440,7 @@
           "debrisEntry": {
             "properties": {
               "itemType": {
-                "type": "string"
+                "$ref": "./canonical-item-type.schema.json"
               },
               "material": {
                 "type": "string"
@@ -531,6 +561,11 @@
             },
             "type": "array"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "distanceKm": {
             "type": "number"
           },
@@ -555,6 +590,21 @@
             "required": ["x", "y", "z"],
             "type": "object"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "solarSystemId": {
             "type": "string"
           },
@@ -562,7 +612,15 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "solarSystemId", "celestialBodies"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "solarSystemId",
+          "celestialBodies",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "celestial-body-list-response",
         "type": "object"
       },
@@ -750,14 +808,40 @@
             },
             "type": "object"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "celestialBody"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "celestialBody"
+        ],
         "title": "celestial-body-upsert-request",
         "type": "object"
       },
@@ -769,17 +853,37 @@
             "description": "Present on successful celestial body upsert responses.",
             "type": "object"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName"],
+        "required": ["success", "message", "playerName", "correlationId", "requestIdentity"],
         "title": "celestial-body-upsert-response",
         "type": "object"
       },
@@ -789,14 +893,40 @@
           "characterName": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "characterName"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "characterName"
+        ],
         "title": "character-add-request",
         "type": "object"
       },
@@ -809,17 +939,45 @@
           "characterName": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "characterName", "characterId"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterName",
+          "characterId",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "character-add-response",
         "type": "object"
       },
@@ -829,14 +987,34 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "characterId"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "characterId"],
         "title": "character-delete-request",
         "type": "object"
       },
@@ -846,17 +1024,44 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "characterId"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "character-delete-response",
         "type": "object"
       },
@@ -869,14 +1074,41 @@
           "characterName": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "characterId", "characterName"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "characterId",
+          "characterName"
+        ],
         "title": "character-edit-request",
         "type": "object"
       },
@@ -889,31 +1121,79 @@
           "characterName": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "characterId", "characterName"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "characterName",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "character-edit-response",
         "type": "object"
       },
       "CharacterListRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity"],
         "title": "character-list-request",
         "type": "object"
       },
@@ -964,23 +1244,55 @@
             },
             "type": "array"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "characters"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characters",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "character-list-response",
         "type": "object"
       },
       "ContextDistanceRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "destination": {
             "type": "string"
           },
@@ -990,6 +1302,21 @@
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -997,13 +1324,25 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "source", "destination"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "source",
+          "destination"
+        ],
         "title": "context-distance-request",
         "type": "object"
       },
       "ContextDistanceResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "destination": {
             "type": "string"
           },
@@ -1019,6 +1358,21 @@
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "source": {
             "type": "string"
           },
@@ -1026,13 +1380,27 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "source", "destination", "distance"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "source",
+          "destination",
+          "distance",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "context-distance-response",
         "type": "object"
       },
       "ContextRoutingRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "destination": {
             "type": "string"
           },
@@ -1042,6 +1410,21 @@
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -1049,13 +1432,25 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "source", "destination"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "source",
+          "destination"
+        ],
         "title": "context-routing-request",
         "type": "object"
       },
       "ContextRoutingResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "destination": {
             "type": "string"
           },
@@ -1068,6 +1463,21 @@
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "route": {
             "type": "array"
           },
@@ -1078,7 +1488,16 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "source", "destination", "route"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "source",
+          "destination",
+          "route",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "context-routing-response",
         "type": "object"
       },
@@ -1086,6 +1505,11 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
           "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
             "type": "string"
           },
           "endAt": {
@@ -1101,6 +1525,21 @@
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -1109,13 +1548,18 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity"],
         "title": "credit-ledger-list-request",
         "type": "object"
       },
       "CreditLedgerListResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "entries": {
             "type": "array"
           },
@@ -1131,6 +1575,21 @@
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           },
@@ -1138,7 +1597,17 @@
             "type": "integer"
           }
         },
-        "required": ["success", "message", "playerName", "entries", "total", "offset", "limit"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "entries",
+          "total",
+          "offset",
+          "limit",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "credit-ledger-list-response",
         "type": "object"
       },
@@ -1169,14 +1638,34 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "characterId"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "characterId"],
         "title": "game-join-request",
         "type": "object"
       },
@@ -1186,40 +1675,92 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "characterId"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "game-join-response",
         "type": "object"
       },
       "GameLeaveRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
           },
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity"],
         "title": "game-leave-request",
         "type": "object"
       },
       "GameLeaveResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
@@ -1229,6 +1770,21 @@
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -1236,7 +1792,14 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "sessionKey"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "game-leave-response",
         "type": "object"
       },
@@ -1402,7 +1965,7 @@
                 "items": {
                   "properties": {
                     "itemType": {
-                      "type": "string"
+                      "$ref": "./canonical-item-type.schema.json"
                     },
                     "quantity": {
                       "type": "number"
@@ -1420,7 +1983,7 @@
             "type": ["string", "null"]
           },
           "itemType": {
-            "type": "string"
+            "$ref": "./canonical-item-type.schema.json"
           },
           "launchable": {
             "type": ["boolean", "null"]
@@ -1521,14 +2084,41 @@
           "containerType": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "containerType", "containerId"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "containerType",
+          "containerId"
+        ],
         "title": "item-list-by-container-request",
         "type": "object"
       },
@@ -1540,6 +2130,11 @@
           },
           "containerType": {
             "enum": ["ship", "market"],
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
             "type": "string"
           },
           "items": {
@@ -1554,22 +2149,51 @@
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "containerType", "containerId", "items"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "containerType",
+          "containerId",
+          "items",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "item-list-by-container-response",
         "type": "object"
       },
       "ItemListByLocationRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "distanceKm": {
             "type": "number"
           },
           "itemType": {
-            "type": "string"
+            "$ref": "./canonical-item-type.schema.json"
           },
           "limit": {
             "type": "integer"
@@ -1592,6 +2216,21 @@
             "required": ["x", "y", "z"],
             "type": "object"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -1599,13 +2238,26 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "solarSystemId", "positionKm", "distanceKm"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "solarSystemId",
+          "positionKm",
+          "distanceKm"
+        ],
         "title": "item-list-by-location-request",
         "type": "object"
       },
       "ItemListByLocationResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "distanceKm": {
             "type": "number"
           },
@@ -1652,6 +2304,21 @@
             "required": ["x", "y", "z"],
             "type": "object"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "solarSystemId": {
             "type": "string"
           },
@@ -1659,13 +2326,146 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "solarSystemId", "items"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "solarSystemId",
+          "items",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "item-list-by-location-response",
+        "type": "object"
+      },
+      "ItemRemoveRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "itemType": {
+            "$ref": "./canonical-item-type.schema.json"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "shipId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "characterId",
+          "shipId",
+          "itemId"
+        ],
+        "title": "item-remove-request",
+        "type": "object"
+      },
+      "ItemRemoveResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "item": {
+            "$ref": "./item.schema.json",
+            "description": "Present on successful item-remove responses."
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "itemType": {
+            "$ref": "./canonical-item-type.schema.json"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "shipId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "correlationId",
+          "requestIdentity",
+          "playerName",
+          "characterId",
+          "shipId",
+          "itemId",
+          "itemType"
+        ],
+        "title": "item-remove-response",
         "type": "object"
       },
       "ItemUpsertRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "item": {
             "description": "Item create or partial update payload. For existing items, omitted fields preserve stored values. Explicit null clears item.container, item.spatial, or item.motion when those properties are present.",
             "properties": {
@@ -1712,7 +2512,7 @@
                 "type": ["string", "null"]
               },
               "itemType": {
-                "type": "string"
+                "$ref": "./canonical-item-type.schema.json"
               },
               "launchable": {
                 "type": ["boolean", "null"]
@@ -1799,17 +2599,38 @@
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "description": "Identity block echoed by the backend so clients can demultiplex concurrent responses safely.",
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "item"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "item"],
         "title": "item-upsert-request",
         "type": "object"
       },
       "ItemUpsertResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "item": {
             "$ref": "./item.schema.json",
             "description": "Present on successful item upsert responses."
@@ -1820,11 +2641,27 @@
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "description": "Echo of the requestIdentity block from the request.",
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName"],
+        "required": ["success", "message", "playerName", "correlationId", "requestIdentity"],
         "title": "item-upsert-response",
         "type": "object"
       },
@@ -1832,6 +2669,11 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
           "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
             "type": "string"
           },
           "hotkey": {
@@ -1843,11 +2685,27 @@
             "type": "string"
           },
           "itemType": {
-            "description": "Expected persisted item type for the launched item. Must match the stored item record.",
-            "type": "string"
+            "$ref": "./canonical-item-type.schema.json",
+            "description": "Expected persisted item type for the launched item. Must match the stored item record."
           },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "description": "Identity block echoed by the backend so clients can demultiplex concurrent responses safely.",
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
@@ -1862,6 +2720,8 @@
         "required": [
           "playerName",
           "sessionKey",
+          "correlationId",
+          "requestIdentity",
           "characterId",
           "shipId",
           "targetCelestialBodyId",
@@ -1878,6 +2738,11 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "hotkey": {
             "enum": [1, 2, 3, 4, 5],
             "type": "integer"
@@ -1886,7 +2751,7 @@
             "type": "string"
           },
           "itemType": {
-            "type": "string"
+            "$ref": "./canonical-item-type.schema.json"
           },
           "launchedItem": {
             "additionalProperties": true,
@@ -1898,6 +2763,22 @@
           },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "description": "Echo of the requestIdentity block from the request.",
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "resolution": {
             "description": "Present on successful launch responses.",
@@ -1928,6 +2809,9 @@
                       "properties": {
                         "container": {
                           "type": "null"
+                        },
+                        "itemType": {
+                          "$ref": "./canonical-item-type.schema.json"
                         },
                         "motion": {
                           "properties": {
@@ -2045,7 +2929,7 @@
             "type": "string"
           }
         },
-        "required": ["message"],
+        "required": ["message", "correlationId", "requestIdentity"],
         "title": "launch-item-response",
         "type": "object"
       },
@@ -2092,6 +2976,11 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "itemId": {
             "description": "Catalog or market inventory item id. The server normalizes matching case-insensitively.",
             "type": "string"
@@ -2111,6 +3000,21 @@
             "description": "Optional caller correlation id echoed in the response.",
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -2125,6 +3029,8 @@
         "required": [
           "playerName",
           "sessionKey",
+          "correlationId",
+          "requestIdentity",
           "marketId",
           "solarSystemId",
           "characterId",
@@ -2137,6 +3043,11 @@
       "MarketBuyResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
@@ -2147,6 +3058,21 @@
           "requestId": {
             "description": "Echoed caller correlation id when one was provided on the request.",
             "type": ["string", "null"]
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "success": {
             "type": "boolean"
@@ -2215,13 +3141,18 @@
             "type": "object"
           }
         },
-        "required": ["success", "message"],
+        "required": ["success", "message", "correlationId", "requestIdentity"],
         "title": "market-buy-response",
         "type": "object"
       },
       "MarketInventoryListRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "limit": {
             "type": "integer"
           },
@@ -2234,6 +3165,21 @@
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -2241,7 +3187,14 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "marketId", "solarSystemId"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "marketId",
+          "solarSystemId"
+        ],
         "title": "market-inventory-list-request",
         "type": "object"
       },
@@ -2250,6 +3203,11 @@
         "properties": {
           "asOf": {
             "format": "date-time",
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
             "type": "string"
           },
           "inventory": {
@@ -2262,7 +3220,7 @@
                   "type": "string"
                 },
                 "itemType": {
-                  "type": "string"
+                  "$ref": "./canonical-item-type.schema.json"
                 },
                 "marketCanBuy": {
                   "type": "boolean"
@@ -2323,6 +3281,21 @@
             "description": "Stable machine-readable failure reason when success is false.",
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "solarSystemId": {
             "type": "string"
           },
@@ -2333,7 +3306,16 @@
             "type": "integer"
           }
         },
-        "required": ["success", "message", "inventory", "total", "offset", "limit"],
+        "required": [
+          "success",
+          "message",
+          "inventory",
+          "total",
+          "offset",
+          "limit",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "market-inventory-list-response",
         "type": "object"
       },
@@ -2341,6 +3323,11 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
           "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
             "type": "string"
           },
           "direction": {
@@ -2365,6 +3352,21 @@
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -2376,13 +3378,25 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "marketId", "solarSystemId"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "marketId",
+          "solarSystemId"
+        ],
         "title": "market-ledger-list-request",
         "type": "object"
       },
       "MarketLedgerListResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "entries": {
             "items": {
               "properties": {
@@ -2458,6 +3472,21 @@
             "description": "Echoed caller correlation id when one was provided on the request.",
             "type": ["string", "null"]
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "solarSystemId": {
             "type": "string"
           },
@@ -2468,13 +3497,27 @@
             "type": "integer"
           }
         },
-        "required": ["success", "message", "entries", "total", "offset", "limit"],
+        "required": [
+          "success",
+          "message",
+          "entries",
+          "total",
+          "offset",
+          "limit",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "market-ledger-list-response",
         "type": "object"
       },
       "MarketListByLocationRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "distanceAu": {
             "type": "number"
           },
@@ -2505,6 +3548,21 @@
             "required": ["x", "y", "z"],
             "type": "object"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -2512,13 +3570,26 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "solarSystemId", "positionKm", "distanceAu"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "solarSystemId",
+          "positionKm",
+          "distanceAu"
+        ],
         "title": "market-list-by-location-request",
         "type": "object"
       },
       "MarketListByLocationResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "distanceAu": {
             "type": "number"
           },
@@ -2626,6 +3697,21 @@
             "required": ["x", "y", "z"],
             "type": "object"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "solarSystemId": {
             "type": "string"
           },
@@ -2640,7 +3726,9 @@
           "solarSystemId",
           "markets",
           "isDocked",
-          "dockedMarketId"
+          "dockedMarketId",
+          "correlationId",
+          "requestIdentity"
         ],
         "title": "market-list-by-location-response",
         "type": "object"
@@ -2648,8 +3736,28 @@
       "MarketListRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
@@ -2658,13 +3766,18 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity"],
         "title": "market-list-request",
         "type": "object"
       },
       "MarketListResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "markets": {
             "items": {
               "properties": {
@@ -2733,6 +3846,21 @@
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "solarSystemId": {
             "type": ["string", "null"]
           },
@@ -2740,7 +3868,14 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "markets"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "markets",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "market-list-response",
         "type": "object"
       },
@@ -2748,6 +3883,11 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
           "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
             "type": "string"
           },
           "direction": {
@@ -2768,6 +3908,21 @@
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -2779,6 +3934,8 @@
           "playerName",
           "characterId",
           "sessionKey",
+          "correlationId",
+          "requestIdentity",
           "marketId",
           "solarSystemId",
           "itemId",
@@ -2792,6 +3949,11 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
           "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
             "type": "string"
           },
           "message": {
@@ -2850,11 +4012,26 @@
             "description": "Echoed caller correlation id when one was provided on the request.",
             "type": ["string", "null"]
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message"],
+        "required": ["success", "message", "correlationId", "requestIdentity"],
         "title": "market-quote-response",
         "type": "object"
       },
@@ -2862,6 +4039,11 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
           "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
             "type": "string"
           },
           "itemId": {
@@ -2883,6 +4065,21 @@
             "description": "Optional caller correlation id echoed in the response.",
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -2897,6 +4094,8 @@
         "required": [
           "playerName",
           "sessionKey",
+          "correlationId",
+          "requestIdentity",
           "marketId",
           "solarSystemId",
           "characterId",
@@ -2909,6 +4108,11 @@
       "MarketSellResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
@@ -2919,6 +4123,21 @@
           "requestId": {
             "description": "Echoed caller correlation id when one was provided on the request.",
             "type": ["string", "null"]
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "success": {
             "type": "boolean"
@@ -2987,7 +4206,7 @@
             "type": "object"
           }
         },
-        "required": ["success", "message"],
+        "required": ["success", "message", "correlationId", "requestIdentity"],
         "title": "market-sell-response",
         "type": "object"
       },
@@ -3018,23 +4237,45 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
           },
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "description": "Client-supplied identity block that is echoed unchanged in every emitted list-missions-response.",
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
           "statuses": {
             "items": {
+              "enum": ["available", "active", "completed"],
               "type": "string"
             },
             "type": "array"
           }
         },
-        "required": ["playerName", "characterId", "sessionKey"],
+        "required": ["playerName", "characterId", "sessionKey", "correlationId", "requestIdentity"],
         "title": "mission-list-request",
         "type": "object"
       },
@@ -3044,10 +4285,33 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Exact echo of the request correlationId for the originating list-missions-request.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
           "missions": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "missionId": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["available", "active", "completed"],
+                  "type": "string"
+                },
+                "updatedAt": {
+                  "format": "date-time",
+                  "type": "string"
+                }
+              },
+              "required": ["missionId", "status"],
+              "type": "object"
+            },
             "type": "array"
           },
           "playerName": {
@@ -3056,11 +4320,35 @@
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "description": "Exact echo (deep-equal) of the full requestIdentity object supplied in the request, including additional properties when present.",
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "characterId", "missions"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "missions",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "mission-list-response",
         "type": "object"
       },
@@ -3068,6 +4356,11 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
           "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
             "type": "string"
           },
           "missionId": {
@@ -3081,19 +4374,39 @@
             "description": "Optional request correlation id echoed in the response when provided.",
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
           "status": {
-            "description": "Mission lifecycle status. Supported values are available, started, in-progress, failed, completed, locked, abandoned, paused, and turned-in.",
-            "type": "string"
-          },
-          "statusDetail": {
-            "description": "Optional freeform detail preserved with the mission status update.",
+            "description": "Mission board status lane value.",
+            "enum": ["available", "active", "completed"],
             "type": "string"
           }
         },
-        "required": ["playerName", "characterId", "missionId", "sessionKey", "status"],
+        "required": [
+          "playerName",
+          "characterId",
+          "missionId",
+          "sessionKey",
+          "status",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "mission-upsert-request",
         "type": "object"
       },
@@ -3103,6 +4416,11 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
@@ -3110,32 +4428,11 @@
             "additionalProperties": false,
             "description": "Present on successful mission upsert responses.",
             "properties": {
-              "completedAt": {
-                "format": "date-time",
-                "type": "string"
-              },
-              "failedAt": {
-                "format": "date-time",
-                "type": "string"
-              },
-              "failureReason": {
-                "type": "string"
-              },
-              "inProgressAt": {
-                "format": "date-time",
-                "type": "string"
-              },
               "missionId": {
                 "type": "string"
               },
-              "startedAt": {
-                "format": "date-time",
-                "type": "string"
-              },
               "status": {
-                "type": "string"
-              },
-              "statusDetail": {
+                "enum": ["available", "active", "completed"],
                 "type": "string"
               },
               "updatedAt": {
@@ -3153,11 +4450,33 @@
             "description": "Echoed caller correlation id when one was supplied on the request.",
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "success": {
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "characterId"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "mission-upsert-response",
         "type": "object"
       },
@@ -3234,6 +4553,11 @@
       "ShipListByOwnerRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "owner": {
             "additionalProperties": true,
             "properties": {
@@ -3260,17 +4584,37 @@
           "playerName": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "owner"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "owner"],
         "title": "ship-list-by-owner-request",
         "type": "object"
       },
       "ShipListByOwnerResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
@@ -3299,12 +4643,79 @@
             "enum": ["INVALID_SESSION"],
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "ships": {
             "items": {
               "additionalProperties": true,
               "properties": {
                 "id": {
                   "type": "string"
+                },
+                "inventory": {
+                  "items": {
+                    "additionalProperties": true,
+                    "properties": {
+                      "container": {
+                        "oneOf": [
+                          {
+                            "type": "null"
+                          },
+                          {
+                            "additionalProperties": true,
+                            "properties": {
+                              "containerId": {
+                                "type": "string"
+                              },
+                              "containerType": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["containerType", "containerId"],
+                            "type": "object"
+                          }
+                        ]
+                      },
+                      "damageStatus": {
+                        "type": "string"
+                      },
+                      "displayName": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "itemType": {
+                        "$ref": "./canonical-item-type.schema.json"
+                      },
+                      "launchable": {
+                        "type": "boolean"
+                      },
+                      "state": {
+                        "type": "string"
+                      },
+                      "tier": {
+                        "minimum": 1,
+                        "type": "integer"
+                      }
+                    },
+                    "required": ["id", "itemType", "launchable"],
+                    "type": "object"
+                  },
+                  "type": "array"
                 },
                 "ownership": {
                   "additionalProperties": true,
@@ -3328,6 +4739,7 @@
                   "type": "object"
                 }
               },
+              "required": ["id", "inventory"],
               "type": "object"
             },
             "type": "array"
@@ -3336,7 +4748,7 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "ships"],
+        "required": ["success", "message", "ships", "correlationId", "requestIdentity"],
         "title": "ship-list-by-owner-response",
         "type": "object"
       },
@@ -3346,14 +4758,34 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "characterId", "sessionKey"],
+        "required": ["playerName", "characterId", "sessionKey", "correlationId", "requestIdentity"],
         "title": "ship-list-request",
         "type": "object"
       },
@@ -3363,11 +4795,31 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "ships": {
             "items": {
@@ -3566,7 +5018,15 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "characterId", "ships"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "ships",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "ship-list-response",
         "type": "object"
       },
@@ -3576,12 +5036,32 @@
           "claimToken": {
             "type": ["string", "null"]
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "fromOwner": {
             "additionalProperties": true,
             "type": ["object", "null"]
           },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
@@ -3613,13 +5093,25 @@
             "type": "object"
           }
         },
-        "required": ["playerName", "sessionKey", "shipId", "toOwner"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "shipId",
+          "toOwner"
+        ],
         "title": "ship-transfer-request",
         "type": "object"
       },
       "ShipTransferResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "fromOwner": {
             "additionalProperties": true,
             "properties": {
@@ -3675,6 +5167,21 @@
             ],
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "shipId": {
             "type": "string"
           },
@@ -3710,7 +5217,7 @@
             "type": "object"
           }
         },
-        "required": ["success", "message"],
+        "required": ["success", "message", "correlationId", "requestIdentity"],
         "title": "ship-transfer-response",
         "type": "object"
       },
@@ -3720,8 +5227,28 @@
           "characterId": {
             "type": "string"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
@@ -3748,7 +5275,7 @@
                           "type": "string"
                         },
                         "itemType": {
-                          "type": "string"
+                          "$ref": "./canonical-item-type.schema.json"
                         }
                       },
                       "required": ["id", "itemType", "displayName"]
@@ -3759,7 +5286,7 @@
                           "type": "string"
                         },
                         "itemType": {
-                          "type": "string"
+                          "$ref": "./canonical-item-type.schema.json"
                         }
                       },
                       "required": ["itemId", "itemType"]
@@ -3770,7 +5297,7 @@
                           "type": "string"
                         },
                         "itemType": {
-                          "type": "string"
+                          "$ref": "./canonical-item-type.schema.json"
                         }
                       },
                       "required": ["id", "itemType"]
@@ -3811,7 +5338,14 @@
             "type": "object"
           }
         },
-        "required": ["playerName", "characterId", "sessionKey", "ship"],
+        "required": [
+          "playerName",
+          "characterId",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "ship"
+        ],
         "title": "ship-upsert-request",
         "type": "object"
       },
@@ -3819,6 +5353,11 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
           "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
             "type": "string"
           },
           "message": {
@@ -3836,6 +5375,21 @@
             ],
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "ship": {
             "additionalProperties": true,
             "description": "Present on successful ship upsert responses.",
@@ -3845,7 +5399,14 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "characterId"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "ship-upsert-response",
         "type": "object"
       },
@@ -3856,11 +5417,31 @@
             "format": "date-time",
             "type": "string"
           },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "playerName": {
             "type": "string"
           },
           "requestId": {
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "sessionKey": {
             "type": "string"
@@ -3869,7 +5450,13 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "solarSystemId"],
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "solarSystemId"
+        ],
         "title": "solar-system-get-request",
         "type": "object"
       },
@@ -4030,7 +5617,7 @@
           "debrisEntry": {
             "properties": {
               "itemType": {
-                "type": "string"
+                "$ref": "./canonical-item-type.schema.json"
               },
               "material": {
                 "type": "string"
@@ -4258,6 +5845,11 @@
             },
             "type": "array"
           },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
@@ -4267,6 +5859,21 @@
           "requestId": {
             "description": "Echoed caller correlation id when one was supplied on the request.",
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "solarSystem": {
             "$ref": "#/definitions/solarSystemSummary",
@@ -4285,13 +5892,25 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "solarSystemId"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "solarSystemId",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "solar-system-get-response",
         "type": "object"
       },
       "SolarSystemListRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "limit": {
             "type": "integer"
           },
@@ -4304,6 +5923,21 @@
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "search": {
             "type": "string"
           },
@@ -4314,7 +5948,7 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity"],
         "title": "solar-system-list-request",
         "type": "object"
       },
@@ -4446,6 +6080,11 @@
           }
         },
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
@@ -4455,6 +6094,21 @@
           "requestId": {
             "description": "Echoed caller correlation id when one was supplied on the request.",
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "solarSystems": {
             "items": {
@@ -4466,13 +6120,25 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "solarSystems"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "solarSystems",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "solar-system-list-response",
         "type": "object"
       },
       "StarGetRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "hygId": {
             "type": "string"
           },
@@ -4482,11 +6148,26 @@
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey", "hygId"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "hygId"],
         "title": "star-get-request",
         "type": "object"
       },
@@ -4606,6 +6287,11 @@
           }
         },
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "hygId": {
             "type": "string"
           },
@@ -4619,6 +6305,21 @@
             "description": "Echoed caller correlation id when one was supplied on the request.",
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "star": {
             "$ref": "#/definitions/starCatalogEntry",
             "description": "Present on successful star lookup responses."
@@ -4627,13 +6328,25 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "hygId"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "hygId",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "star-get-response",
         "type": "object"
       },
       "StarListRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
           "limit": {
             "type": "integer"
           },
@@ -4646,6 +6359,21 @@
           "requestId": {
             "type": "string"
           },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
           "sessionKey": {
             "type": "string"
           },
@@ -4656,7 +6384,7 @@
             "type": "string"
           }
         },
-        "required": ["playerName", "sessionKey"],
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity"],
         "title": "star-list-request",
         "type": "object"
       },
@@ -4776,6 +6504,11 @@
           }
         },
         "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "type": "string"
           },
@@ -4785,6 +6518,21 @@
           "requestId": {
             "description": "Echoed caller correlation id when one was supplied on the request.",
             "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
           },
           "stars": {
             "items": {
@@ -4796,8 +6544,133 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerName", "stars"],
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "stars",
+          "correlationId",
+          "requestIdentity"
+        ],
         "title": "star-list-response",
+        "type": "object"
+      },
+      "TractorBeamActivateRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "shipId": {
+            "type": "string"
+          },
+          "targetCelestialBodyId": {
+            "type": "string"
+          },
+          "targetItemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "characterId",
+          "shipId"
+        ],
+        "title": "tractor-beam-activate-request",
+        "type": "object"
+      },
+      "TractorBeamActivateResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "activated": {
+            "type": "boolean"
+          },
+          "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "shipId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "targetCelestialBodyId": {
+            "type": ["string", "null"]
+          },
+          "targetItemId": {
+            "type": ["string", "null"]
+          },
+          "tractorBeamItemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "correlationId",
+          "requestIdentity",
+          "playerName",
+          "characterId",
+          "shipId",
+          "targetItemId",
+          "targetCelestialBodyId"
+        ],
+        "title": "tractor-beam-activate-response",
         "type": "object"
       },
       "UnknownMessage": {
@@ -4838,7 +6711,6 @@
   "surfaces": {
     "apiEndpoints": ["/health", "/items"],
     "socketEndpoints": [
-      "/socket/add-mission",
       "/socket/celestial-body-list",
       "/socket/celestial-body-upsert",
       "/socket/character-add",
@@ -4854,6 +6726,7 @@
       "/socket/invalid-session",
       "/socket/item-list-by-container",
       "/socket/item-list-by-location",
+      "/socket/item-remove",
       "/socket/item-upsert",
       "/socket/launch-item",
       "/socket/login",
@@ -4877,10 +6750,10 @@
       "/socket/solar-system-list",
       "/socket/star-get",
       "/socket/star-list",
+      "/socket/tractor-beam-activate",
       "/socket/welcome"
     ],
     "socketEvents": [
-      "add-mission",
       "celestial-body-list",
       "celestial-body-upsert",
       "character-add",
@@ -4896,6 +6769,7 @@
       "invalid-session",
       "item-list-by-container",
       "item-list-by-location",
+      "item-remove",
       "item-upsert",
       "launch-item",
       "login",
@@ -4919,6 +6793,7 @@
       "solar-system-list",
       "star-get",
       "star-list",
+      "tractor-beam-activate",
       "welcome"
     ]
   }

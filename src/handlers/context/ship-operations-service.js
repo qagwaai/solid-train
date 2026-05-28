@@ -17,11 +17,7 @@ const COLD_BOOT_STARTER_SUBSYSTEM_ITEM_TYPES = new Set(
 );
 const STARTER_DRONE_REQUIRED_MISSION_STATUSES = new Set([
   'available',
-  'started',
-  'in-progress',
-  'failed',
-  'abandoned',
-  'paused',
+  'active',
 ]);
 
 function isProjectedShipInventoryItem(shipId, item) {

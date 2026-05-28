@@ -17,7 +17,6 @@ const MISSION_UPSERT_RESPONSE_EVENT = 'mission-upsert-response';
  * @property {string} missionId
  * @property {string} sessionKey
  * @property {string} status
- * @property {string} [statusDetail]
  * @property {string} [requestId]
  * @property {string} correlationId
  * @property {MissionUpsertRequestIdentity} requestIdentity

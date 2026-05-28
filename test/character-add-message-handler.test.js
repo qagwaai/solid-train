@@ -91,12 +91,6 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
       missionId: 'first-target',
       status: 'available',
       updatedAt: '2026-04-17T00:00:00.000Z',
-      startedAt: undefined,
-      inProgressAt: undefined,
-      failedAt: undefined,
-      completedAt: undefined,
-      failureReason: undefined,
-      statusDetail: undefined,
     },
   ]);
   assert.deepEqual(characters[0].creditLedger, [

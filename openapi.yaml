@@ -1084,7 +1084,7 @@ paths:
                       containerId: character-1
                     missions:
                       - missionId: first-target
-                        status: started
+                        status: active
                 successfulMissionListLegacyOperationEcho:
                   summary: Success echoes requestIdentity exactly, including legacy operation value
                   value:
@@ -1124,13 +1124,14 @@ paths:
         - Every request must include `requestIdentity` with `operation`, `entityType`, and
           `containerId`.
 
-        Accepted `status` values are the canonical mission lifecycle states handled by
-        the server: `available`, `started`, `in-progress`, `failed`, `completed`,
-        `locked`, `abandoned`, `paused`, and `turned-in`.
+        Accepted `status` values are the canonical mission board lane states:
+        `available`, `active`, and `completed`.
 
         Behavior notes:
-        - The server preserves previously recorded milestone timestamps and adds the
-          timestamp for the newly reached lifecycle milestone.
+        - Unknown status values are rejected with terminal failure and structured
+          validation messaging.
+        - Mission responses include only canonical lane status and optional `updatedAt`
+          metadata.
         - When a mission reaches an unlock source status such as `completed`, the
           server may create newly unlocked missions with `status: available`.
         - Starting the `first-target` mission also seeds its starter asteroid field.
@@ -1145,12 +1146,12 @@ paths:
               $ref: '#/components/schemas/MissionUpsertRequest'
             examples:
               startMission:
-                summary: Start a mission and record its first lifecycle timestamp
+                summary: Set a mission to active lane status
                 value:
                   playerName: MissionPilot
                   characterId: character-1
                   missionId: first-target
-                  status: started
+                  status: active
                   sessionKey: session-123
                   correlationId: f5d5cc38-e8f1-4e58-b775-1b86800fbc8c
                   requestIdentity:
@@ -1194,14 +1195,13 @@ paths:
                     requestId: req-123
                     mission:
                       missionId: first-target
-                      status: started
-                      startedAt: '2026-05-18T00:00:00.000Z'
+                      status: active
                       updatedAt: '2026-05-18T00:00:00.000Z'
                 failedMissionUpsert:
                   summary: Failure omits the mission payload but may still echo requestId
                   value:
                     success: false
-                    message: 'status must be one of: available, started, in-progress, failed, completed, locked, abandoned, paused, turned-in'
+                    message: 'status must be one of: available, active, completed'
                     playerName: MissionPilot
                     characterId: character-1
                     correlationId: 64af3477-f07e-4648-b0f1-fcf1fb646638

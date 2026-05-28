@@ -1,5 +1,22 @@
 {
-  "issues": [],
+  "exception": {
+    "errors": [
+      "Exception file not found: D:\\at-template\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
+    ],
+    "path": "D:\\at-template\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
+  },
+  "issues": [
+    {
+      "category": "endpoint/event removal or rename",
+      "consumerSurfaces": ["Mission progression"],
+      "detail": "Socket contract endpoint removed or renamed: /socket/add-mission",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "socket:/socket/add-mission",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Restore socket event alias or keep old event contract during migration window."
+    }
+  ],
   "metadata": {
     "baselineMissing": false,
     "baselinePath": "artifacts\\contracts\\baseline-contract-artifact.json",
@@ -10,20 +27,20 @@
   },
   "summary": {
     "byCategory": {
-      "endpoint/event removal or rename": 0,
+      "endpoint/event removal or rename": 1,
       "enum narrowing/mismatch": 0,
       "removed required fields": 0,
       "type mismatches": 0
     },
     "bypassApproved": false,
     "enforcementMode": "hard-fail",
-    "hardFailEnforced": false,
+    "hardFailEnforced": true,
     "impactedConsumers": ["laughing-octo-journey"],
     "mode": "hard-fail",
-    "nextAction": "No action required.",
-    "owner": "unassigned",
+    "nextAction": "Complete the missing exception fields or approvals, then rerun the gate.",
+    "owner": "backend-lead",
     "softFailEnforced": false,
-    "totalIssues": 0
+    "totalIssues": 1
   },
   "taxonomy": {
     "ENDPOINT_EVENT_REMOVAL": "endpoint/event removal or rename",

@@ -2,14 +2,8 @@
 
 const MISSION_STATUS_VALUES = [
   'available',
-  'started',
-  'in-progress',
-  'failed',
+  'active',
   'completed',
-  'locked',
-  'abandoned',
-  'paused',
-  'turned-in',
 ];
 
 const DEFAULT_MISSION_STATUS = 'available';
@@ -41,19 +35,13 @@ const MISSION_PREREQUISITES_BY_ID = {
   'sq-04': ['m-04'],
 };
 
-const MISSION_UNLOCK_SOURCE_STATUSES = new Set(['completed', 'turned-in']);
+const MISSION_UNLOCK_SOURCE_STATUSES = new Set(['completed']);
 
 /**
  * @typedef {Object} CharacterMissionProgress
  * @property {string} missionId
  * @property {string} status
- * @property {string} [startedAt]
- * @property {string} [inProgressAt]
- * @property {string} [failedAt]
- * @property {string} [completedAt]
  * @property {string} [updatedAt]
- * @property {string} [failureReason]
- * @property {string} [statusDetail]
  */
 
 module.exports = {

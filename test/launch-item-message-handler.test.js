@@ -269,7 +269,7 @@ test('LaunchItemMessageHandler validates ship membership against canonical proje
         missions: [
           {
             missionId: 'first-target',
-            status: 'started',
+            status: 'active',
             updatedAt: '2026-04-17T00:00:00.000Z',
           },
         ],

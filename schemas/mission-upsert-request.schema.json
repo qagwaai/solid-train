@@ -21,11 +21,8 @@
     "sessionKey": { "type": "string" },
     "status": {
       "type": "string",
-      "description": "Mission lifecycle status. Supported values are available, started, in-progress, failed, completed, locked, abandoned, paused, and turned-in."
-    },
-    "statusDetail": {
-      "type": "string",
-      "description": "Optional freeform detail preserved with the mission status update."
+      "description": "Mission board status lane value.",
+      "enum": ["available", "active", "completed"]
     },
     "correlationId": {
       "type": "string",

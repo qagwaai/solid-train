@@ -44,7 +44,7 @@ test('MissionUpsertMessageHandler echoes correlationId and requestIdentity on su
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'first-target',
-    status: 'started',
+    status: 'active',
     sessionKey: 'session-1',
     correlationId: 'f5d5cc38-e8f1-4e58-b775-1b86800fbc8c',
     requestIdentity: createRequestIdentity(),
@@ -79,7 +79,7 @@ test('MissionUpsertMessageHandler upserts mission progress to a character', asyn
     playerName: 'missionpilot',
     characterId: 'character-1',
     missionId: 'first-target',
-    status: 'started',
+    status: 'active',
     sessionKey: 'session-1',
   });
 
@@ -88,14 +88,13 @@ test('MissionUpsertMessageHandler upserts mission progress to a character', asyn
   assert.equal(response.playerName, 'MissionPilot');
   assert.equal(response.characterId, 'character-1');
   assert.equal(response.mission.missionId, 'first-target');
-  assert.equal(response.mission.status, 'started');
-  assert.equal(response.mission.startedAt, '2026-04-17T00:00:00.000Z');
+  assert.equal(response.mission.status, 'active');
   assert.equal(response.mission.updatedAt, '2026-04-17T00:00:00.000Z');
 
   const missions = context.getCharacters('missionpilot')[0].missions;
   const mission = missions.find((entry) => entry.missionId === 'first-target');
   assert.ok(mission);
-  assert.equal(mission.status, 'started');
+  assert.equal(mission.status, 'active');
   assert.equal(socket.events[0].eventName, MISSION_UPSERT_RESPONSE_EVENT);
   assert.notEqual(socket.events[0].eventName, 'add-mission-response');
 });
@@ -105,8 +104,7 @@ test('MissionUpsertMessageHandler updates existing mission (upsert)', async () =
   seedMissionPilot(context, [
     {
       missionId: 'first-target',
-      status: 'started',
-      startedAt: '2026-04-01T00:00:00.000Z',
+      status: 'active',
       updatedAt: '2026-04-01T00:00:00.000Z',
     },
   ]);
@@ -118,21 +116,19 @@ test('MissionUpsertMessageHandler updates existing mission (upsert)', async () =
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'first-target',
-    status: 'in-progress',
+    status: 'completed',
     sessionKey: 'session-1',
   });
 
   assert.equal(response.success, true);
-  assert.equal(response.mission.status, 'in-progress');
-  assert.equal(response.mission.startedAt, '2026-04-01T00:00:00.000Z');
-  assert.equal(response.mission.inProgressAt, '2026-04-17T00:00:00.000Z');
+  assert.equal(response.mission.status, 'completed');
   assert.equal(response.mission.updatedAt, '2026-04-17T00:00:00.000Z');
 
   const mission = context
     .getCharacters('missionpilot')[0]
     .missions.find((entry) => entry.missionId === 'first-target');
   assert.ok(mission);
-  assert.equal(mission.status, 'in-progress');
+  assert.equal(mission.status, 'completed');
   assert.equal(socket.events[0].eventName, MISSION_UPSERT_RESPONSE_EVENT);
 });
 
@@ -205,7 +201,7 @@ test('MissionUpsertMessageHandler emits invalid session before mutation', async 
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'first-target',
-    status: 'started',
+    status: 'active',
     sessionKey: 'wrong-session',
   });
 
@@ -217,14 +213,8 @@ test('MissionUpsertMessageHandler emits invalid session before mutation', async 
 test('MissionUpsertMessageHandler handles all canonical status values', async () => {
   const canonicalStatuses = [
     'available',
-    'started',
-    'in-progress',
-    'failed',
+    'active',
     'completed',
-    'locked',
-    'abandoned',
-    'paused',
-    'turned-in',
   ];
 
   for (const status of canonicalStatuses) {
@@ -277,7 +267,7 @@ test('MissionUpsertMessageHandler seeds first-target asteroid field on mission s
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'first-target',
-    status: 'started',
+    status: 'active',
     sessionKey: 'session-1',
   });
 
@@ -343,7 +333,7 @@ test('MissionUpsertMessageHandler does not duplicate first-target asteroid field
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'first-target',
-    status: 'started',
+    status: 'active',
     sessionKey: 'session-1',
   });
 
@@ -351,7 +341,7 @@ test('MissionUpsertMessageHandler does not duplicate first-target asteroid field
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'first-target',
-    status: 'started',
+    status: 'active',
     sessionKey: 'session-1',
   });
 
@@ -363,7 +353,7 @@ test('MissionUpsertMessageHandler does not duplicate first-target asteroid field
   assert.equal(seededField.length, 10);
 });
 
-test('MissionUpsertMessageHandler persists statusDetail exactly as sent', async () => {
+test('MissionUpsertMessageHandler rejects non-canonical status with structured message', async () => {
   const context = createTestContext();
   seedMissionPilot(context, []);
 
@@ -372,17 +362,12 @@ test('MissionUpsertMessageHandler persists statusDetail exactly as sent', async 
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'm-01',
-    status: 'in-progress',
-    statusDetail: '  Keep spacing exactly.  ',
+    status: 'paused',
     sessionKey: 'session-1',
   });
 
-  assert.equal(response.success, true);
-  assert.equal(response.mission.statusDetail, '  Keep spacing exactly.  ');
-  const mission = context
-    .getCharacters('missionpilot')[0]
-    .missions.find((entry) => entry.missionId === 'm-01');
-  assert.equal(mission.statusDetail, '  Keep spacing exactly.  ');
+  assert.equal(response.success, false);
+  assert.equal(response.message, 'status must be one of: available, active, completed');
 });
 
 test('MissionUpsertMessageHandler completing first-target unlocks dependent missions once', async () => {
@@ -428,7 +413,7 @@ test('MissionUpsertMessageHandler echoes requestId when present', async () => {
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'm-01',
-    status: 'started',
+    status: 'active',
     requestId: 'req-123',
     sessionKey: 'session-1',
   });
@@ -448,7 +433,7 @@ test('MissionUpsertMessageHandler emits mission-upsert-response and never add-mi
     playerName: 'MissionPilot',
     characterId: 'character-1',
     missionId: 'first-target',
-    status: 'started',
+    status: 'active',
     sessionKey: 'session-1',
     correlationId: 'e1297d52-37b0-4420-a5a3-4535a634ee29',
     requestIdentity: createRequestIdentity(),

@@ -22,7 +22,13 @@
         "containerId": { "type": "string" }
       }
     },
-    "statuses": { "type": "array", "items": { "type": "string" } },
+    "statuses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["available", "active", "completed"]
+      }
+    },
     "requestId": { "type": "string" }
   }
 }

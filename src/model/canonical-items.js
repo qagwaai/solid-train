@@ -46,6 +46,8 @@ const ITEM_CONTAINER_TYPE = Object.freeze({
 });
 
 const ITEM_RARITY_VALUES = Object.freeze(Object.values(ITEM_RARITY));
+/** @type {Set<string>} */
+const ITEM_RARITY_SET = new Set(ITEM_RARITY_VALUES);
 const ITEM_CATEGORY_VALUES = Object.freeze(Object.values(ITEM_CATEGORY));
 const ITEM_STATE_VALUES = Object.freeze(Object.values(ITEM_STATE));
 const ITEM_DAMAGE_STATUS_VALUES = Object.freeze(Object.values(ITEM_DAMAGE_STATUS));
@@ -77,7 +79,7 @@ function normalizeRarity(rawRarity) {
   }
 
   const normalized = String(rawRarity).trim().toLowerCase();
-  if (!ITEM_RARITY_VALUES.includes(normalized)) {
+  if (!ITEM_RARITY_SET.has(normalized)) {
     throw new Error(`Unsupported item rarity: ${rawRarity}`);
   }
 

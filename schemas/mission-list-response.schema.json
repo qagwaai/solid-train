@@ -23,7 +23,22 @@
     },
     "playerName": { "type": "string" },
     "characterId": { "type": "string" },
-    "missions": { "type": "array" },
+    "missions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["missionId", "status"],
+        "properties": {
+          "missionId": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["available", "active", "completed"]
+          },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
     "requestId": { "type": "string" }
   }
 }

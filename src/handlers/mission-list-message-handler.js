@@ -3,6 +3,10 @@
 const { MISSION_LIST_RESPONSE_EVENT } = require('../model/mission-list');
 const { MISSION_CATALOG_IDS, MISSION_STATUS_VALUES } = require('../model/mission');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const {
+  resolveCorrelationId,
+  normalizeRequestIdentity: normalizeCorrelationRequestIdentity,
+} = require('./correlation-metadata');
 
 const MISSION_STATUS_SET = new Set(MISSION_STATUS_VALUES);
 const MISSION_CATALOG_INDEX = new Map(
@@ -17,14 +21,43 @@ class MissionListMessageHandler {
     this.context = context;
   }
 
-  sanitizeStatuses(statuses) {
+  normalizeRequestIdentity(requestIdentity, payload) {
+    return normalizeCorrelationRequestIdentity(
+      {
+        requestIdentity,
+        operation: 'list-missions',
+        entityTypeCandidates: ['mission'],
+        containerIdCandidates: [payload?.characterId, '-'],
+      },
+      this.context.toNonEmptyString.bind(this.context)
+    );
+  }
+
+  validateStatuses(statuses) {
     if (!Array.isArray(statuses)) {
-      return [];
+      return {
+        success: true,
+        statuses: [],
+      };
     }
 
-    return statuses
+    const normalizedStatuses = statuses
       .map((status) => this.context.toNonEmptyString(status))
-      .filter((status) => Boolean(status) && MISSION_STATUS_SET.has(status));
+      .filter((status) => Boolean(status));
+    const invalidStatuses = normalizedStatuses.filter((status) => !MISSION_STATUS_SET.has(status));
+
+    if (invalidStatuses.length > 0) {
+      return {
+        success: false,
+        invalidStatuses,
+        message: `statuses contains unsupported values: ${invalidStatuses.join(', ')}. Allowed values: ${MISSION_STATUS_VALUES.join(', ')}`,
+      };
+    }
+
+    return {
+      success: true,
+      statuses: normalizedStatuses,
+    };
   }
 
   attachRequestId(response, payload) {
@@ -43,23 +76,24 @@ class MissionListMessageHandler {
       status: normalized.status,
     };
 
-    const optionalFields = [
-      'startedAt',
-      'inProgressAt',
-      'failedAt',
-      'completedAt',
-      'updatedAt',
-      'failureReason',
-      'statusDetail',
-    ];
-
-    for (const field of optionalFields) {
-      if (normalized[field] !== undefined) {
-        responseMission[field] = normalized[field];
-      }
+    if (normalized.updatedAt !== undefined) {
+      responseMission.updatedAt = normalized.updatedAt;
     }
 
     return responseMission;
+  }
+
+  buildInvalidStatusFailure(payload, playerName, characterId, message) {
+    return this.attachRequestId(
+      {
+        success: false,
+        message,
+        playerName,
+        characterId,
+        missions: [],
+      },
+      payload
+    );
   }
 
   sortMissions(missions) {
@@ -129,8 +163,33 @@ class MissionListMessageHandler {
       );
     }
 
-    const statuses = this.sanitizeStatuses(payload?.statuses);
+    const statusValidation = this.validateStatuses(payload?.statuses);
+    if (!statusValidation.success) {
+      return this.buildInvalidStatusFailure(payload, player.playerName, characterId, statusValidation.message);
+    }
+
+    const statuses = statusValidation.statuses;
     const missions = await this.context.getMissionsAsync(playerName, characterId);
+
+    const invalidPersistedMissions = missions.filter(
+      (mission) => !MISSION_STATUS_SET.has(this.context.toNonEmptyString(mission?.status))
+    );
+    if (invalidPersistedMissions.length > 0) {
+      const invalidStatuses = [
+        ...new Set(
+          invalidPersistedMissions
+            .map((mission) => this.context.toNonEmptyString(mission?.status))
+            .filter((status) => Boolean(status))
+        ),
+      ];
+      return this.buildInvalidStatusFailure(
+        payload,
+        player.playerName,
+        characterId,
+        `mission data contains unsupported status values: ${invalidStatuses.join(', ')}. Allowed values: ${MISSION_STATUS_VALUES.join(', ')}`
+      );
+    }
+
     const filteredMissions = statuses.length
       ? missions.filter((mission) => statuses.includes(mission.status))
       : missions;
@@ -156,6 +215,11 @@ class MissionListMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('list-missions-request', payload);
+    const correlationId = resolveCorrelationId(
+      payload,
+      this.context.toNonEmptyString.bind(this.context)
+    );
+    const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
@@ -167,6 +231,11 @@ class MissionListMessageHandler {
     this.context.touchJoinedCharacters(payload);
 
     const response = await this.buildResponse(payload);
+    if (!response.success && /unsupported status/.test(this.context.toNonEmptyString(response.message))) {
+      this.context.log(
+        `[mission-list-validation] operation=list-missions entityType=${requestIdentity.entityType} containerId=${requestIdentity.containerId} correlationId=${correlationId} player=${this.context.toNonEmptyString(payload?.playerName) || '-'} characterId=${this.context.toNonEmptyString(payload?.characterId) || '-'} message=${this.context.toNonEmptyString(response.message)}`
+      );
+    }
     socket.emit(MISSION_LIST_RESPONSE_EVENT, response);
     return response;
   }

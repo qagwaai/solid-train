@@ -588,7 +588,7 @@ test('cold-boot launch-item succeeds for drone id emitted by ship-list-by-owner 
       playerName: 'LaunchParityPilot',
       characterId: addedCharacter.characterId,
       missionId: 'first-target',
-      status: 'started',
+      status: 'active',
       sessionKey: login.sessionKey,
       correlationId: '17ef6779-09cc-496c-bbcf-c705c4cf6626',
       requestIdentity: {
@@ -998,7 +998,7 @@ test('mission-upsert canonical request emits mission-upsert-response and never a
       playerName: 'MissionRoutePilot',
       characterId: addCharacter.characterId,
       missionId: 'first-target',
-      status: 'started',
+      status: 'active',
       sessionKey: loginResponse.sessionKey,
       correlationId: '47e2cd79-3867-46fb-b7be-7c467b3c4656',
       requestIdentity: {
@@ -1814,7 +1814,7 @@ test('mission add stores mission progress and mission list returns it', async ()
     playerName: 'MissionSocketPilot',
     characterId: addCharacter.characterId,
     missionId: 'first-target',
-    status: 'started',
+    status: 'active',
     sessionKey: loginResponse.sessionKey,
   });
   const addMission = await addMissionPromise;
@@ -1824,13 +1824,13 @@ test('mission add stores mission progress and mission list returns it', async ()
   assert.equal(addMission.playerName, 'MissionSocketPilot');
   assert.equal(addMission.characterId, addCharacter.characterId);
   assert.equal(addMission.mission.missionId, 'first-target');
-  assert.equal(addMission.mission.status, 'started');
+  assert.equal(addMission.mission.status, 'active');
 
   const listMissionsPromise = waitForEvent(client, MISSION_LIST_RESPONSE_EVENT);
   client.emit(MISSION_LIST_REQUEST_EVENT, {
     playerName: 'MissionSocketPilot',
     characterId: addCharacter.characterId,
-    statuses: ['started'],
+    statuses: ['active'],
     sessionKey: loginResponse.sessionKey,
   });
   const listMissions = await listMissionsPromise;
@@ -1841,7 +1841,7 @@ test('mission add stores mission progress and mission list returns it', async ()
   assert.equal(listMissions.characterId, addCharacter.characterId);
   assert.equal(listMissions.missions.length, 1);
   assert.equal(listMissions.missions[0].missionId, 'first-target');
-  assert.equal(listMissions.missions[0].status, 'started');
+  assert.equal(listMissions.missions[0].status, 'active');
 
   await closeClient(client);
   io.close();

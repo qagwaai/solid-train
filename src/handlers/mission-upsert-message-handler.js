@@ -18,7 +18,7 @@ const {
 
 const STARTER_MISSION_ASTEROID_STATE = 'unscanned';
 const STARTER_MISSION_ASTEROID_COUNT = 10;
-const STARTER_MISSION_ACTIVATION_STATUSES = new Set(['started', 'in-progress']);
+const STARTER_MISSION_ACTIVATION_STATUSES = new Set(['active']);
 const MISSION_STATUS_SET = new Set(MISSION_STATUS_VALUES);
 const STARTER_MISSION_CLUSTER_ID = 'first-target-primary-cluster';
 const STARTER_MISSION_CLUSTER_CENTER_KM = Object.freeze({ x: 0, y: 0, z: 0 });
@@ -71,20 +71,8 @@ class MissionUpsertMessageHandler {
       status: normalized.status,
     };
 
-    const optionalFields = [
-      'startedAt',
-      'inProgressAt',
-      'failedAt',
-      'completedAt',
-      'updatedAt',
-      'failureReason',
-      'statusDetail',
-    ];
-
-    for (const field of optionalFields) {
-      if (normalized[field] !== undefined) {
-        responseMission[field] = normalized[field];
-      }
+    if (normalized.updatedAt !== undefined) {
+      responseMission.updatedAt = normalized.updatedAt;
     }
 
     return responseMission;
@@ -122,8 +110,6 @@ class MissionUpsertMessageHandler {
     const characterId = this.context.toNonEmptyString(payload?.characterId);
     const missionId = this.context.toNonEmptyString(payload?.missionId);
     const status = this.context.toNonEmptyString(payload?.status);
-    const statusDetail =
-      typeof payload?.statusDetail === 'string' ? payload.statusDetail : undefined;
 
     if (!playerName || !characterId || !missionId || !status) {
       return this.attachRequestId(
@@ -196,7 +182,6 @@ class MissionUpsertMessageHandler {
         mission: {
           missionId,
           status,
-          ...(statusDetail !== undefined ? { statusDetail } : {}),
         },
       },
       payload
@@ -217,18 +202,12 @@ class MissionUpsertMessageHandler {
       updatedAt: timestamp,
     };
 
-    if (mission.status === 'started' && !nextMission.startedAt) {
-      nextMission.startedAt = timestamp;
-    }
-    if (mission.status === 'in-progress' && !nextMission.inProgressAt) {
-      nextMission.inProgressAt = timestamp;
-    }
-    if (mission.status === 'failed' && !nextMission.failedAt) {
-      nextMission.failedAt = timestamp;
-    }
-    if (mission.status === 'completed' && !nextMission.completedAt) {
-      nextMission.completedAt = timestamp;
-    }
+    delete nextMission.startedAt;
+    delete nextMission.inProgressAt;
+    delete nextMission.failedAt;
+    delete nextMission.completedAt;
+    delete nextMission.failureReason;
+    delete nextMission.statusDetail;
 
     return nextMission;
   }
@@ -437,6 +416,12 @@ class MissionUpsertMessageHandler {
     response.correlationId = correlationId;
     response.requestIdentity = requestIdentity;
 
+    if (!response.success && /^status must be one of:/.test(this.context.toNonEmptyString(response.message))) {
+      this.context.log(
+        `[mission-upsert-validation] operation=mission-upsert entityType=${requestIdentity.entityType} containerId=${requestIdentity.containerId} correlationId=${correlationId} player=${this.context.toNonEmptyString(payload?.playerName) || '-'} characterId=${this.context.toNonEmptyString(payload?.characterId) || '-'} message=${this.context.toNonEmptyString(response.message)}`
+      );
+    }
+
     if (response.success) {
       try {
         logCharacterShipInventorySnapshot(
@@ -452,6 +437,18 @@ class MissionUpsertMessageHandler {
         const existingMission = existingMissions.find(
           (mission) => mission.missionId === response.mission.missionId
         );
+
+        const existingStatus = this.context.toNonEmptyString(existingMission?.status);
+        if (existingStatus && !MISSION_STATUS_SET.has(existingStatus)) {
+          response.success = false;
+          response.message = `existing mission data has unsupported status: ${existingStatus}. Allowed values: ${MISSION_STATUS_VALUES.join(', ')}`;
+          delete response.mission;
+          this.context.log(
+            `[mission-upsert-validation] operation=mission-upsert entityType=${requestIdentity.entityType} containerId=${requestIdentity.containerId} correlationId=${correlationId} player=${this.context.toNonEmptyString(payload?.playerName) || '-'} characterId=${this.context.toNonEmptyString(payload?.characterId) || '-'} message=${this.context.toNonEmptyString(response.message)}`
+          );
+          socket.emit(MISSION_UPSERT_RESPONSE_EVENT, response);
+          return response;
+        }
 
         const missionWithTimestamps = this.enrichMissionTimestamps(
           response.mission,

@@ -230,8 +230,6 @@ class LaunchItemMessageHandler {
       completedAt: completedStarterMission.completedAt,
       unlockedMissionIds,
     };
-
-    return `raw-material-${normalized || 'unknown-composite'}`;
   }
 
   computeLaunchSeed(parsed) {

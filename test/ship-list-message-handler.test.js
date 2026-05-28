@@ -808,7 +808,7 @@ test('ShipListMessageHandler backfills starter drone for first-target progressio
         missions: [
           {
             missionId: 'first-target',
-            status: 'started',
+            status: 'active',
             updatedAt: '2026-04-17T00:00:00.000Z',
           },
         ],
@@ -877,7 +877,7 @@ test('ShipListMessageHandler does not reintroduce consumed starter drone id afte
         missions: [
           {
             missionId: 'first-target',
-            status: 'started',
+            status: 'active',
             updatedAt: '2026-04-17T00:00:00.000Z',
           },
         ],

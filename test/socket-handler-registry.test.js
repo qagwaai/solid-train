@@ -323,7 +323,7 @@ test('registerSocketHandlers blocks legacy add-mission-response for mission-upse
           message: 'Mission recorded successfully',
           mission: {
             missionId: 'first-target',
-            status: 'started',
+            status: 'active',
           },
         });
       },
@@ -335,7 +335,7 @@ test('registerSocketHandlers blocks legacy add-mission-response for mission-upse
     characterId: 'character-1',
     sessionKey: 'session-1',
     missionId: 'first-target',
-    status: 'started',
+    status: 'active',
     correlationId: 'f5d5cc38-e8f1-4e58-b775-1b86800fbc8c',
     requestIdentity: {
       operation: 'mission-upsert',
@@ -357,7 +357,7 @@ test('registerSocketHandlers emits mission-upsert-response for canonical mission
           message: 'Mission recorded successfully',
           mission: {
             missionId: 'first-target',
-            status: 'started',
+            status: 'active',
           },
         });
       },
@@ -369,7 +369,7 @@ test('registerSocketHandlers emits mission-upsert-response for canonical mission
     characterId: 'character-1',
     sessionKey: 'session-1',
     missionId: 'first-target',
-    status: 'started',
+    status: 'active',
     correlationId: 'f5d5cc38-e8f1-4e58-b775-1b86800fbc8c',
     requestIdentity: {
       operation: 'mission-upsert',
@@ -392,7 +392,7 @@ test('registerSocketHandlers does not register add-mission-request anymore', asy
           message: 'Mission recorded successfully',
           mission: {
             missionId: 'first-target',
-            status: 'started',
+            status: 'active',
           },
         });
       },

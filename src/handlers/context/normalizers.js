@@ -593,13 +593,7 @@ function normalizeMission(ctx, mission) {
     ...source,
     missionId: toNonEmptyString(ctx, source.missionId),
     status: toNonEmptyString(ctx, source.status),
-    startedAt: toNonEmptyString(ctx, source.startedAt) || undefined,
-    inProgressAt: toNonEmptyString(ctx, source.inProgressAt) || undefined,
-    failedAt: toNonEmptyString(ctx, source.failedAt) || undefined,
-    completedAt: toNonEmptyString(ctx, source.completedAt) || undefined,
     updatedAt: toNonEmptyString(ctx, source.updatedAt) || undefined,
-    failureReason: typeof source.failureReason === 'string' ? source.failureReason : undefined,
-    statusDetail: typeof source.statusDetail === 'string' ? source.statusDetail : undefined,
   };
 }
 
