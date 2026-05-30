@@ -37,7 +37,7 @@ Nova document (laughing-octo-journey):
 | Milestone | Forge (solid-train) | Nova (laughing-octo-journey) | QA Evidence | Status |
 | --- | --- | --- | --- | --- |
 | M0 Contract baseline lock | Complete | Acknowledged | Evidence accepted | Closed |
-| M1 Producer emission compliance | Authorized to start | N/A | Pending | Open |
+| M1 Producer emission compliance | Complete | N/A | Evidence accepted | Closed |
 | M2 Lane rendering and filters | N/A | Not started | Pending | Open |
 | M3 Strict violation behavior | Shared | Shared | Pending | Open |
 | M4 Dual gate enforcement | Shared | Shared | Pending | Open |
@@ -67,12 +67,14 @@ When SW-01 drift is detected:
 
 | Date | Repo | Update | Owner |
 | --- | --- | --- | --- |
+| 2026-05-30 | solid-train | SW-01 M1 producer emission compliance complete with canonical mission-list emission and strict invalid-status rejection evidence | Forge |
 | 2026-05-30 | solid-train | SW-01 M0 closed with Forge/Nova/QA/Orion sign-offs; M1 kickoff authorized | Orion |
 | 2026-05-30 | solid-train | SW-01 M0 contract lock implemented; Nova handoff packet published for acknowledgment | Forge |
 | 2026-05-26 | solid-train | SW-01 Forge planning set created | Orion |
 
 ## Change Log
 
+- 2026-05-30: M1 closed: mission-list producer emission paths verified canonical (`available`, `active`, `completed`), invalid injection hard-fail behavior validated, and diagnostics/correlation evidence captured.
 - 2026-05-30: Nova acknowledgment posted in `sw-01-m0-nova-handoff.md`; M0 checklist sign-offs recorded and M1 kickoff authorized.
 - 2026-05-30: Canonical mission status values updated to lowercase (`available`, `active`, `completed`) across SW-01 planning artifacts.
 - 2026-05-30: SW-01 M0 Nova handoff packet published (`sw-01-m0-nova-handoff.md`) with strict failure semantics and gate commands.

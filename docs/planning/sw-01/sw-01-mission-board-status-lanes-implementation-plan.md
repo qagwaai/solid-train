@@ -134,6 +134,14 @@ M1: Producer emission compliance
 2. Unit tests pass for valid mappings.
 3. Injected invalid status fails emission path.
 
+Status update (2026-05-30): Complete.
+Evidence:
+1. `src/handlers/mission-list-message-handler.js`
+2. `test/mission-list-message-handler.test.js`
+3. `test/sw01-mission-status-contract-hardening.test.js`
+4. `npm run contract:lint:mission-status` (pass)
+5. `npm run contract:lint:mission-status:negative-fixture` (expected fail)
+
 M2: Integration contract confidence
 
 1. Mission list integration tests pass on canonical values.

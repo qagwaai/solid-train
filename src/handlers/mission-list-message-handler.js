@@ -244,7 +244,7 @@ class MissionListMessageHandler {
     this.context.touchJoinedCharacters(payload);
 
     const response = await this.buildResponse(payload);
-    if (!response.success && /unsupported status/.test(this.context.toNonEmptyString(response.message))) {
+    if (!response.success && /unsupported (status|values)/.test(this.context.toNonEmptyString(response.message))) {
       this.context.log(
         `[mission-list-validation] operation=list-missions entityType=${requestIdentity.entityType} containerId=${requestIdentity.containerId} correlationId=${correlationId} player=${this.context.toNonEmptyString(payload?.playerName) || '-'} characterId=${this.context.toNonEmptyString(payload?.characterId) || '-'} message=${this.context.toNonEmptyString(response.message)}`
       );

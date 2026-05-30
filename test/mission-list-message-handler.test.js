@@ -164,3 +164,102 @@ test('MissionListMessageHandler rejects unknown requested statuses with terminal
   assert.match(response.message, /unsupported values: paused/);
   assert.deepEqual(response.missions, []);
 });
+
+test('MissionListMessageHandler rejects mixed status filters without silent sanitization', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'MissionPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        missions: [{ missionId: 'first-target', status: 'available' }],
+      },
+    ],
+  });
+
+  const handler = new MissionListMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    statuses: ['active', 'paused'],
+  });
+
+  assert.equal(response.success, false);
+  assert.match(response.message, /unsupported values: paused/);
+  assert.deepEqual(response.missions, []);
+});
+
+test('MissionListMessageHandler fails outbound emission when persisted mission status is non-canonical', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'MissionPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        missions: [{ missionId: 'first-target', status: 'accepted' }],
+      },
+    ],
+  });
+
+  const handler = new MissionListMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+  });
+
+  assert.equal(response.success, false);
+  assert.match(response.message, /mission data contains unsupported status values: accepted/);
+  assert.deepEqual(response.missions, []);
+});
+
+test('MissionListMessageHandler logs correlation diagnostics for unsupported status failures', async () => {
+  const context = createTestContext();
+  const logMessages = [];
+  const originalLog = context.log.bind(context);
+  context.log = (message) => {
+    logMessages.push(String(message));
+    originalLog(message);
+  };
+
+  seedPlayer(context, {
+    playerName: 'MissionPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'RangerOne',
+        missions: [{ missionId: 'first-target', status: 'available' }],
+      },
+    ],
+  });
+
+  const handler = new MissionListMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    statuses: ['paused'],
+    correlationId: '7a11cba8-bad6-4143-9424-ea1177cac8a0',
+    requestIdentity: {
+      operation: 'mission-list',
+      entityType: 'mission',
+      containerId: 'character-1',
+    },
+  });
+
+  assert.equal(response.success, false);
+
+  const validationLog = logMessages.find((message) => message.includes('[mission-list-validation]'));
+  assert.ok(validationLog);
+  assert.match(validationLog, /operation=list-missions/);
+  assert.match(validationLog, /entityType=mission/);
+  assert.match(validationLog, /containerId=character-1/);
+  assert.match(validationLog, /correlationId=7a11cba8-bad6-4143-9424-ea1177cac8a0/);
+  assert.match(validationLog, /unsupported values: paused/);
+});
