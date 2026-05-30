@@ -6,6 +6,7 @@ const {
   MISSION_CATALOG_IDS,
   MISSION_CATALOG_ID_SET,
   MISSION_PREREQUISITES_BY_ID,
+  MISSION_STATUS_SET,
   MISSION_STATUS_VALUES,
   MISSION_UNLOCK_SOURCE_STATUSES,
 } = require('../model/mission');
@@ -19,7 +20,6 @@ const {
 const STARTER_MISSION_ASTEROID_STATE = 'unscanned';
 const STARTER_MISSION_ASTEROID_COUNT = 10;
 const STARTER_MISSION_ACTIVATION_STATUSES = new Set(['active']);
-const MISSION_STATUS_SET = new Set(MISSION_STATUS_VALUES);
 const STARTER_MISSION_CLUSTER_ID = 'first-target-primary-cluster';
 const STARTER_MISSION_CLUSTER_CENTER_KM = Object.freeze({ x: 0, y: 0, z: 0 });
 const STARTER_MISSION_ASTEROID_MATERIALS = [
@@ -66,6 +66,12 @@ class MissionUpsertMessageHandler {
 
   formatMissionForResponse(mission) {
     const normalized = this.context.normalizeMission(mission);
+    if (!MISSION_STATUS_SET.has(normalized.status)) {
+      throw new Error(
+        `mission normalization produced unsupported status: ${normalized.status || '(empty)'}. Allowed values: ${MISSION_STATUS_VALUES.join(', ')}`
+      );
+    }
+
     const responseMission = {
       missionId: normalized.missionId,
       status: normalized.status,
@@ -486,7 +492,11 @@ class MissionUpsertMessageHandler {
       } catch (error) {
         this.context.log(`[mission-upsert-handler] Failed to upsert mission: ${error.message}`);
         response.success = false;
-        response.message = 'Failed to record mission: database error';
+        if (/unsupported status/i.test(this.context.toNonEmptyString(error?.message))) {
+          response.message = this.context.toNonEmptyString(error.message);
+        } else {
+          response.message = 'Failed to record mission: database error';
+        }
         delete response.mission;
       }
     }

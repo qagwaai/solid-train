@@ -259,6 +259,7 @@ function createShipModelArtifacts({
       status: {
         type: String,
         required: true,
+        enum: ['available', 'active', 'completed'],
       },
       startedAt: {
         type: String,

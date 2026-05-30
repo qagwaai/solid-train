@@ -13,9 +13,9 @@ Capture the backend gaps identified during SW-01 planning review so they are res
 
 SW-01 requires a strict, contract-first mission status model with three canonical outbound statuses only:
 
-1. `AVAILABLE`
-2. `ACTIVE`
-3. `COMPLETED`
+1. `available`
+2. `active`
+3. `completed`
 
 The current solid-train implementation does not meet that target yet. The items below should be treated as required pre-implementation work, not optional cleanup.
 
@@ -29,7 +29,7 @@ Current state:
 
 Why this matters:
 
-- SW-01 requires the producer contract to emit only `AVAILABLE`, `ACTIVE`, and `COMPLETED`.
+- SW-01 requires the producer contract to emit only `available`, `active`, and `completed`.
 - The current enum is the primary source for validation and filtering behavior, so leaving it unchanged would preserve drift at the root.
 
 Action needed before implementation:

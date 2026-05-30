@@ -207,12 +207,21 @@ test('DatabaseService mission methods cover invalid playerName, missing entities
 
   const replaced = await service.addOrUpdateMission('MissionPilot', 'character-1', {
     missionId: 'm-1',
-    status: 'accepted',
+    status: 'completed',
     updatedAt: '2026-05-07T01:00:00.000Z',
   });
   const replacedCharacter = replaced.characters.find((entry) => entry.id === 'character-1');
   assert.equal(replacedCharacter.missions.length, 1);
-  assert.equal(replacedCharacter.missions[0].status, 'accepted');
+  assert.equal(replacedCharacter.missions[0].status, 'completed');
+
+  await assert.rejects(
+    service.addOrUpdateMission('MissionPilot', 'character-1', {
+      missionId: 'm-1',
+      status: 'accepted',
+      updatedAt: '2026-05-07T01:05:00.000Z',
+    }),
+    /Mission persistence rejected unsupported status: accepted/
+  );
 
   assert.deepEqual(await service.getMissions('', 'character-1'), []);
   assert.deepEqual(await service.getMissions('unknown-player', 'character-1'), []);

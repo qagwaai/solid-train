@@ -37,7 +37,7 @@ Out of scope:
 ## 3. Contract-First Delivery Sequence
 
 1. Update producer contract first
-- Canonicalize mission status enum to AVAILABLE, ACTIVE, COMPLETED.
+- Canonicalize mission status enum to available, active, completed.
 
 2. Update producer emitters second
 - Ensure all mission list producers emit canonical enum only.
@@ -209,7 +209,7 @@ Mitigation: Runtime telemetry alert on first non-canonical emission.
 
 ## 9. Done Criteria
 
-1. Producer contract enumerates only AVAILABLE, ACTIVE, COMPLETED.
+1. Producer contract enumerates only available, active, completed.
 2. Producer runtime emits canonical statuses only.
 3. Strict CI gates fail on any drift or invalid status.
 4. Cross-repo alignment with Nova is documented and validated.

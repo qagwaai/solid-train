@@ -1,14 +1,13 @@
 'use strict';
 
 const { MISSION_LIST_RESPONSE_EVENT } = require('../model/mission-list');
-const { MISSION_CATALOG_IDS, MISSION_STATUS_VALUES } = require('../model/mission');
+const { MISSION_CATALOG_IDS, MISSION_STATUS_SET, MISSION_STATUS_VALUES } = require('../model/mission');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const {
   resolveCorrelationId,
   normalizeRequestIdentity: normalizeCorrelationRequestIdentity,
 } = require('./correlation-metadata');
 
-const MISSION_STATUS_SET = new Set(MISSION_STATUS_VALUES);
 const MISSION_CATALOG_INDEX = new Map(
   MISSION_CATALOG_IDS.map((missionId, index) => [missionId, index])
 );
@@ -41,9 +40,7 @@ class MissionListMessageHandler {
       };
     }
 
-    const normalizedStatuses = statuses
-      .map((status) => this.context.toNonEmptyString(status))
-      .filter((status) => Boolean(status));
+    const normalizedStatuses = statuses.map((status) => this.context.toNonEmptyString(status));
     const invalidStatuses = normalizedStatuses.filter((status) => !MISSION_STATUS_SET.has(status));
 
     if (invalidStatuses.length > 0) {
@@ -71,6 +68,12 @@ class MissionListMessageHandler {
 
   formatMissionForResponse(mission) {
     const normalized = this.context.normalizeMission(mission);
+    if (!MISSION_STATUS_SET.has(normalized.status)) {
+      throw new Error(
+        `mission normalization produced unsupported status: ${normalized.status || '(empty)'}. Allowed values: ${MISSION_STATUS_VALUES.join(', ')}`
+      );
+    }
+
     const responseMission = {
       missionId: normalized.missionId,
       status: normalized.status,
@@ -195,16 +198,26 @@ class MissionListMessageHandler {
       : missions;
     const sortedMissions = this.sortMissions(filteredMissions);
 
-    return this.attachRequestId(
-      {
-        success: true,
-        message: 'Mission list retrieved successfully',
-        playerName: player.playerName,
+    try {
+      return this.attachRequestId(
+        {
+          success: true,
+          message: 'Mission list retrieved successfully',
+          playerName: player.playerName,
+          characterId,
+          missions: sortedMissions.map((mission) => this.formatMissionForResponse(mission)),
+        },
+        payload
+      );
+    } catch (error) {
+      return this.buildInvalidStatusFailure(
+        payload,
+        player.playerName,
         characterId,
-        missions: sortedMissions.map((mission) => this.formatMissionForResponse(mission)),
-      },
-      payload
-    );
+        this.context.toNonEmptyString(error?.message) ||
+          `mission normalization failed for unsupported status. Allowed values: ${MISSION_STATUS_VALUES.join(', ')}`
+      );
+    }
   }
 
   /**

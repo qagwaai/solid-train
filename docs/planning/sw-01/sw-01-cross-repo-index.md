@@ -15,8 +15,9 @@ Forge documents (solid-train):
 1. [Requirements](sw-01-mission-board-status-lanes-requirements.md)
 2. [Implementation Plan](sw-01-mission-board-status-lanes-implementation-plan.md)
 3. [Pre-Implementation Findings](sw-01-pre-implementation-findings.md)
-4. [Runbook](sw-01-mission-board-status-lanes-runbook.md)
-5. [Closure Checklist](sw-01-closure-checklist.md)
+4. [M0 Contract Lock Execution Checklist](sw-01-m0-contract-lock-execution-checklist.md)
+5. [Runbook](sw-01-mission-board-status-lanes-runbook.md)
+6. [Closure Checklist](sw-01-closure-checklist.md)
 
 Nova document (laughing-octo-journey):
 
@@ -29,13 +30,14 @@ Nova document (laughing-octo-journey):
 3. Strict fail behavior is required for unknown mission statuses.
 4. No legacy compatibility paths are retained.
 5. Canary-only release progression before broad rollout.
+6. Canonical mission status values are lowercase: `available`, `active`, `completed`.
 
 ## Milestone Sync Board
 
 | Milestone | Forge (solid-train) | Nova (laughing-octo-journey) | QA Evidence | Status |
 | --- | --- | --- | --- | --- |
-| M0 Contract baseline lock | Not started | Not started | Pending | Open |
-| M1 Producer emission compliance | Not started | N/A | Pending | Open |
+| M0 Contract baseline lock | Complete | Acknowledged | Evidence accepted | Closed |
+| M1 Producer emission compliance | Authorized to start | N/A | Pending | Open |
 | M2 Lane rendering and filters | N/A | Not started | Pending | Open |
 | M3 Strict violation behavior | Shared | Shared | Pending | Open |
 | M4 Dual gate enforcement | Shared | Shared | Pending | Open |
@@ -65,9 +67,15 @@ When SW-01 drift is detected:
 
 | Date | Repo | Update | Owner |
 | --- | --- | --- | --- |
+| 2026-05-30 | solid-train | SW-01 M0 closed with Forge/Nova/QA/Orion sign-offs; M1 kickoff authorized | Orion |
+| 2026-05-30 | solid-train | SW-01 M0 contract lock implemented; Nova handoff packet published for acknowledgment | Forge |
 | 2026-05-26 | solid-train | SW-01 Forge planning set created | Orion |
 
 ## Change Log
 
+- 2026-05-30: Nova acknowledgment posted in `sw-01-m0-nova-handoff.md`; M0 checklist sign-offs recorded and M1 kickoff authorized.
+- 2026-05-30: Canonical mission status values updated to lowercase (`available`, `active`, `completed`) across SW-01 planning artifacts.
+- 2026-05-30: SW-01 M0 Nova handoff packet published (`sw-01-m0-nova-handoff.md`) with strict failure semantics and gate commands.
+- 2026-05-30: Added Forge-first M0 contract lock execution checklist as the active SW-01 start artifact.
 - 2026-05-26: Added pre-implementation findings to capture current backend gaps before SW-01 execution.
 - 2026-05-26: Initial SW-01 cross-repo index created and linked to Forge and Nova plans.

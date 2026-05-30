@@ -7,9 +7,9 @@ Repo: solid-train
 ## 1. Contract Completion
 
 1. Mission status enum in producer schema is canonical only:
-- AVAILABLE
-- ACTIVE
-- COMPLETED
+- available
+- active
+- completed
 
 2. Deprecated or ambiguous status values removed.
 3. Contract artifact regenerated and deterministic.

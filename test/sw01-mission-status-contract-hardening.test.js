@@ -9,6 +9,13 @@ const { MISSION_STATUS_VALUES } = require('../src/model/mission');
 const ROOT = path.resolve(__dirname, '..');
 const OPENAPI_PATH = path.join(ROOT, 'openapi.yaml');
 const SCHEMAS_DIR = path.join(ROOT, 'schemas');
+const NEGATIVE_FIXTURE_PATH = path.join(
+  ROOT,
+  'test',
+  'fixtures',
+  'sw01',
+  'mission-status-invalid-request.json'
+);
 
 const CANONICAL_MISSION_STATUSES = Object.freeze(['available', 'active', 'completed']);
 
@@ -113,4 +120,11 @@ test('openapi mission sections avoid legacy statuses and show canonical status e
   assert.ok(/status:\s*active/i.test(missionListSection) || /status:\s*completed/i.test(missionListSection));
   assert.ok(/status:\s*active/i.test(missionUpsertSection));
   assert.ok(/status must be one of: available, active, completed/i.test(missionUpsertSection));
+});
+
+test('negative invalid-status fixture is non-canonical by design', () => {
+  const invalidFixture = readJson(NEGATIVE_FIXTURE_PATH);
+  assert.equal(Array.isArray(invalidFixture.statuses), true);
+  assert.ok(invalidFixture.statuses.length > 0);
+  assert.equal(CANONICAL_MISSION_STATUSES.includes(invalidFixture.statuses[0]), false);
 });

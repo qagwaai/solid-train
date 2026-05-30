@@ -1,0 +1,12 @@
+{
+  "playerName": "MissionPilot",
+  "characterId": "character-1",
+  "sessionKey": "session-123",
+  "correlationId": "7a11cba8-bad6-4143-9424-ea1177cac8a0",
+  "requestIdentity": {
+    "operation": "mission-list",
+    "entityType": "mission",
+    "containerId": "character-1"
+  },
+  "statuses": ["paused"]
+}
