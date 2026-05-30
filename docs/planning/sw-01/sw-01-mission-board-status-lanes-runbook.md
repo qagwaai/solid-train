@@ -22,9 +22,28 @@ Use this runbook when SW-01 contract gates fail, mission status payload checks f
 2. Regenerate contract artifact.
 3. Run strict contract gate command set for SW-01.
 4. Run mission status unit and integration tests.
+	- `node --test test/server.test.js --test-name-pattern "mission-list integration|mission add stores mission progress|mission-list operation emits only|mission-list responses strictly echo|mission list emits invalid session"`
+	- `node --test test/db-service-branch.mongo.integration.test.js`
 5. Run negative fixture test injecting invalid mission status.
 6. Compare generated artifact against expected canonical enum.
 7. If cross-repo drift is reported, validate Nova inventory compatibility.
+
+SW-01 M3 parity command set:
+
+1. `npm run contract:artifact`
+2. `npm run contract:lint:mission-status`
+3. `npm run contract:compat-check:sw01` (expected pass)
+4. `npm run contract:compat-drift:sw01:enum` (expected fail; enum casing drift)
+5. `npm run contract:compat-drift:sw01:unsupported-status` (expected fail; unsupported status expectation drift)
+6. `npm run contract:compat-drift:sw01:shape` (expected fail; payload shape drift)
+7. `npm run contract:compat-check:sw01` (expected pass after drift probes)
+
+Expected hard-fail diagnostics include:
+
+1. Severity and owner.
+2. Producer location.
+3. Impacted consumer surface.
+4. Remediation hint.
 
 ## 4. Resolution Paths
 

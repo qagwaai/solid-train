@@ -148,17 +148,46 @@ M2: Integration contract confidence
 2. Contract tests fail on non-canonical enum.
 3. Local parity commands match CI outcomes.
 
+Status update (2026-05-30): Complete.
+Evidence:
+1. `test/server.test.js` (`mission-list` integration coverage)
+2. `test/db-service-branch.mongo.integration.test.js` (persistence boundary integration coverage)
+3. `test/sw01-mission-status-contract-hardening.test.js` (schema/OpenAPI strict enum checks)
+4. `node --test test/server.test.js --test-name-pattern "mission-list integration|mission add stores mission progress|mission-list operation emits only|mission-list responses strictly echo|mission list emits invalid session"` (pass)
+5. `node --test test/db-service-branch.mongo.integration.test.js` (pass)
+6. `npm run contract:lint:mission-status` (pass)
+7. `npm run contract:lint:mission-status:negative-fixture` (expected fail, exit 1)
+
 M3: Cross-repo gate alignment
 
 1. Nova consumer inventory and Forge producer contract are aligned.
 2. PR with drift fails hard in gate path.
 3. Remediation output is actionable for both teams.
 
+Status update (2026-05-30): Complete.
+Evidence:
+1. `scripts/sw01/run-cross-repo-gate.js` (prints actionable owner/severity/producer/surface/remediation hints)
+2. `test/fixtures/sw01/m3/nova-consumer-inventory-aligned.json` (Nova-aligned mission-list inventory)
+3. `test/fixtures/sw01/m3/mission-list-drift-enum-mismatch.json` (intentional enum casing drift)
+4. `test/fixtures/sw01/m3/nova-consumer-inventory-legacy-status.json` (intentional unsupported `accepted` status expectation)
+5. `test/fixtures/sw01/m3/mission-list-drift-shape-mismatch.json` (intentional payload shape drift)
+6. `npm run contract:compat-check:sw01` (pass, hard-fail mode with zero drift)
+7. `npm run contract:compat-drift:sw01:enum` (expected fail, actionable diagnostics)
+8. `npm run contract:compat-drift:sw01:unsupported-status` (expected fail, actionable diagnostics)
+9. `npm run contract:compat-drift:sw01:shape` (expected fail, actionable diagnostics)
+10. `npm run contract:compat-check:sw01` after drift checks (pass re-confirmation)
+
 M4: Canary quality gate
 
 1. Canary runtime shows zero non-canonical status emissions.
 2. No P1 or P2 defects in agreed soak window.
 3. Rollback drill completed successfully.
+
+Recommendation (2026-05-30): Go for M4 execution.
+Rationale:
+1. Contract and producer baselines are locked and reproducible.
+2. Cross-repo hard-fail drift gates are deterministic and emit actionable ownership/remediation diagnostics.
+3. Baseline alignment remains green after intentional drift failure validation.
 
 M5: Release decision gate
 
