@@ -177,19 +177,45 @@ Evidence:
 9. `npm run contract:compat-drift:sw01:shape` (expected fail, actionable diagnostics)
 10. `npm run contract:compat-check:sw01` after drift checks (pass re-confirmation)
 
-M4: Canary quality gate
+M4: Dual gate enforcement
+
+1. Forge mission-status compliance gate is hard-fail and active in PR path.
+2. Nova contract/preflight compatibility gate is hard-fail and active in PR path.
+3. Intentional drift scenarios fail in both gate layers with actionable diagnostics.
+
+Status update (2026-05-30): Complete.
+Evidence:
+1. `.github/workflows/sw-08-contract-safety-gate.yml` (PR steps run Forge hard gate and Nova preflight hard gate)
+2. `package.json` (`contract:gate:sw01:forge`, `contract:preflight:sw01:nova`, `contract:gate:sw01:dual`, `contract:gate:sw01:forge:drift:enum`, `contract:gate:sw01:forge:drift:unsupported-status`, `contract:gate:sw01:forge:drift:shape`)
+3. `npm run contract:gate:sw01:forge` (pass)
+4. `npm run contract:preflight:sw01:nova` (pass)
+5. `npm run contract:gate:sw01:forge:drift:enum` (expected hard fail)
+6. `npm run contract:gate:sw01:forge:drift:unsupported-status` (expected hard fail)
+7. `npm run contract:gate:sw01:forge:drift:shape` (expected hard fail)
+8. `npm run contract:lint:mission-status:negative-fixture` (expected hard fail)
+9. `npm run contract:compat-drift:sw01:enum` (expected hard fail)
+10. `npm run contract:compat-drift:sw01:unsupported-status` (expected hard fail)
+11. `npm run contract:compat-drift:sw01:shape` (expected hard fail)
+12. `npm run contract:gate:sw01:forge && npm run contract:preflight:sw01:nova` after drift checks (pass re-confirmation)
+13. `artifacts/contracts/sw01-m4-forge-pass-report.json`
+14. `artifacts/contracts/sw01-m4-forge-drift-enum-report.json`
+15. `artifacts/contracts/sw01-m4-forge-drift-unsupported-status-report.json`
+16. `artifacts/contracts/sw01-m4-forge-drift-shape-report.json`
+17. `artifacts/contracts/sw01-m4-nova-preflight-report.json`
+
+M5: Canary quality gate
 
 1. Canary runtime shows zero non-canonical status emissions.
 2. No P1 or P2 defects in agreed soak window.
 3. Rollback drill completed successfully.
 
-Recommendation (2026-05-30): Go for M4 execution.
+Recommendation (2026-05-30): Go for M5 execution.
 Rationale:
-1. Contract and producer baselines are locked and reproducible.
-2. Cross-repo hard-fail drift gates are deterministic and emit actionable ownership/remediation diagnostics.
-3. Baseline alignment remains green after intentional drift failure validation.
+1. Forge and Nova hard-fail gates are now active in PR path with deterministic local parity.
+2. Enum, unsupported status, and payload shape drifts fail with actionable ownership/remediation diagnostics.
+3. Canonical pass path remains green after drift probes.
 
-M5: Release decision gate
+M6: Release decision gate
 
 1. Go/no-go decision recorded.
 2. Closure checklist complete.

@@ -1,0 +1,101 @@
+{
+  "exception": {
+    "errors": [
+      "Exception file not found: C:\\Development\\Projects\\Github\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
+    ],
+    "path": "C:\\Development\\Projects\\Github\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
+  },
+  "issues": [
+    {
+      "category": "removed required fields",
+      "consumerSurfaces": ["Mission progression"],
+      "detail": "Required property removed or renamed: correlationId",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:MissionListResponse.properties.correlationId",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Restore property or keep compatibility alias during migration window."
+    },
+    {
+      "category": "removed required fields",
+      "consumerSurfaces": ["Item/catalog", "Mission progression"],
+      "detail": "Required property removed or renamed: status",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:MissionListResponse.properties.missions.items.properties.status",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Restore property or keep compatibility alias during migration window."
+    },
+    {
+      "category": "removed required fields",
+      "consumerSurfaces": ["Item/catalog", "Mission progression"],
+      "detail": "Required field no longer required in new contract: status",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:MissionListResponse.properties.missions.items.required.status",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Keep field required or provide compatibility guarantee plus migration note."
+    },
+    {
+      "category": "removed required fields",
+      "consumerSurfaces": ["Mission progression"],
+      "detail": "Required property removed or renamed: requestIdentity",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:MissionListResponse.properties.requestIdentity",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Restore property or keep compatibility alias during migration window."
+    },
+    {
+      "category": "removed required fields",
+      "consumerSurfaces": ["Mission progression"],
+      "detail": "Required field no longer required in new contract: correlationId",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:MissionListResponse.required.correlationId",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Keep field required or provide compatibility guarantee plus migration note."
+    },
+    {
+      "category": "removed required fields",
+      "consumerSurfaces": ["Mission progression"],
+      "detail": "Required field no longer required in new contract: requestIdentity",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:MissionListResponse.required.requestIdentity",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Keep field required or provide compatibility guarantee plus migration note."
+    }
+  ],
+  "metadata": {
+    "baselineMissing": false,
+    "baselinePath": "test\\fixtures\\sw01\\m3\\nova-consumer-inventory-aligned.json",
+    "currentPath": "test\\fixtures\\sw01\\m3\\mission-list-drift-shape-mismatch.json",
+    "exceptionFound": false,
+    "exceptionPath": "docs\\planning\\sw-08-approved-bypass.json",
+    "generatedBy": "scripts/sw08/check-contract-drift.js"
+  },
+  "summary": {
+    "byCategory": {
+      "endpoint/event removal or rename": 0,
+      "enum narrowing/mismatch": 0,
+      "removed required fields": 6,
+      "type mismatches": 0
+    },
+    "bypassApproved": false,
+    "enforcementMode": "hard-fail",
+    "hardFailEnforced": true,
+    "impactedConsumers": ["laughing-octo-journey"],
+    "mode": "hard-fail",
+    "nextAction": "Complete the missing exception fields or approvals, then rerun the gate.",
+    "owner": "backend-lead",
+    "softFailEnforced": false,
+    "totalIssues": 6
+  },
+  "taxonomy": {
+    "ENDPOINT_EVENT_REMOVAL": "endpoint/event removal or rename",
+    "ENUM_MISMATCH": "enum narrowing/mismatch",
+    "REMOVED_REQUIRED": "removed required fields",
+    "TYPE_MISMATCH": "type mismatches"
+  }
+}

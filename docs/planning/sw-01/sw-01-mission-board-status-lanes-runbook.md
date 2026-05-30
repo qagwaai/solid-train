@@ -45,6 +45,27 @@ Expected hard-fail diagnostics include:
 3. Impacted consumer surface.
 4. Remediation hint.
 
+SW-01 M4 dual-gate parity command set:
+
+1. `npm run contract:gate:sw01:forge` (expected pass)
+2. `npm run contract:preflight:sw01:nova` (expected pass)
+3. `npm run contract:gate:sw01:forge:drift:enum` (expected hard fail)
+4. `npm run contract:gate:sw01:forge:drift:unsupported-status` (expected hard fail)
+5. `npm run contract:gate:sw01:forge:drift:shape` (expected hard fail)
+6. `npm run contract:lint:mission-status:negative-fixture` (expected hard fail)
+7. `npm run contract:compat-drift:sw01:enum` (expected hard fail)
+8. `npm run contract:compat-drift:sw01:unsupported-status` (expected hard fail)
+9. `npm run contract:compat-drift:sw01:shape` (expected hard fail)
+10. `npm run contract:gate:sw01:forge && npm run contract:preflight:sw01:nova` (expected pass after drift probes)
+
+Dual-gate hard-fail diagnostics must include:
+
+1. Severity and owner.
+2. Producer location.
+3. Impacted consumer surface.
+4. Remediation hint.
+5. Correlation-aware request context where request fixtures are involved.
+
 ## 4. Resolution Paths
 
 Schema drift fix:

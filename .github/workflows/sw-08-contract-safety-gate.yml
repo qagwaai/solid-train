@@ -48,6 +48,14 @@ jobs:
         if: github.event_name == 'pull_request'
         run: npm run contract:gate:hard
 
+      - name: Run SW-01 Forge mission-status hard gate
+        if: github.event_name == 'pull_request'
+        run: npm run contract:gate:sw01:forge
+
+      - name: Run SW-01 Nova preflight hard gate
+        if: github.event_name == 'pull_request'
+        run: npm run contract:preflight:sw01:nova
+
       - name: Run main-branch report-only drift detection
         if: github.event_name == 'push'
         run: npm run contract:drift
@@ -70,5 +78,14 @@ jobs:
             artifacts/contracts/stage3-expired-report.json
             artifacts/contracts/stage3-missing-approval-report.json
             artifacts/contracts/stage3-compat-report.json
+            artifacts/contracts/sw01-m4-nova-preflight-report.json
+            artifacts/contracts/sw01-m4-forge-pass-report.json
+            artifacts/contracts/sw01-m4-forge-drift-enum-report.json
+            artifacts/contracts/sw01-m4-forge-drift-unsupported-status-report.json
+            artifacts/contracts/sw01-m4-forge-drift-shape-report.json
+            artifacts/contracts/sw01-m3-alignment-report.json
+            artifacts/contracts/sw01-m3-drift-enum-report.json
+            artifacts/contracts/sw01-m3-drift-unsupported-status-report.json
+            artifacts/contracts/sw01-m3-drift-shape-report.json
             artifacts/contracts/sw08-trend-report.json
           if-no-files-found: error

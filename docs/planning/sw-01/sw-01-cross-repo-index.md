@@ -40,8 +40,8 @@ Nova document (laughing-octo-journey):
 | M1 Producer emission compliance | Complete | N/A | Evidence accepted | Closed |
 | M2 Integration contract confidence | Complete | N/A | Evidence accepted | Closed |
 | M3 Cross-repo gate alignment | Complete | Shared inventory validated | Evidence accepted | Closed |
-| M4 Dual gate enforcement | Ready | Ready | M3 recommendation approved | Ready |
-| M5 Canary validation | Shared | Shared | Pending | Open |
+| M4 Dual gate enforcement | Complete | Complete | Evidence accepted | Closed |
+| M5 Canary validation | Ready | Ready | M4 recommendation approved | Ready |
 | M6 Release decision | Shared | Shared | Pending | Open |
 
 ## Merge and Release Sequence
@@ -67,6 +67,8 @@ When SW-01 drift is detected:
 
 | Date | Repo | Update | Owner |
 | --- | --- | --- | --- |
+| 2026-05-30 | solid-train | SW-01 M4 dual gate enforcement complete: Forge hard-fail gate and Nova preflight hard-fail gate active in PR workflow; local parity confirms deterministic pass/fail/re-pass behavior | Forge |
+| 2026-05-30 | solid-train | SW-01 M5 recommendation: go for canary validation based on dual-gate enforcement evidence and clean post-drift recovery | Orion |
 | 2026-05-30 | solid-train | SW-01 M3 cross-repo gate alignment complete: hard alignment pass plus deterministic hard-fail drift checks for enum casing, unsupported status, and payload shape; actionable diagnostics verified | Forge |
 | 2026-05-30 | solid-train | SW-01 M4 recommendation: go for canary quality gate execution based on stable M0-M3 evidence chain | Orion |
 | 2026-05-30 | solid-train | SW-01 M2 integration contract confidence complete with server + persistence + contract gate evidence; closure recommended | Forge |
@@ -77,6 +79,8 @@ When SW-01 drift is detected:
 
 ## Change Log
 
+- 2026-05-30: M4 closed with dual-gate activation in PR path: Forge mission-status hard gate plus Nova preflight hard gate. Deterministic local parity run confirms pass/fail/re-pass behavior.
+- 2026-05-30: M5 recommendation updated to go for canary validation following dual-gate closure.
 - 2026-05-30: M3 closed with SW-01 mission-list-specific cross-repo compatibility fixtures and hard-fail drift commands; alignment pass and drift diagnostics (owner, severity, producer location, impacted consumer surface, remediation hint) verified locally.
 - 2026-05-30: M4 recommendation marked go based on deterministic M0-M3 gate chain and post-drift re-pass evidence.
 - 2026-05-30: M2 closed: mission-list integration paths validated green on canonical statuses, non-canonical integration/contract paths fail intentionally with clear diagnostics, and local parity commands match CI intent.
