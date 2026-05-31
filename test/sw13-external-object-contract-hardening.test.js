@@ -86,6 +86,10 @@ test('openapi registers external-object-descriptor component', () => {
     openApiText,
     /\r?\n\s{4}ExternalObjectDescriptor:\r?\n\s{6}\$ref:\s*'\.\/schemas\/external-object-descriptor\.schema\.json'/
   );
+  assert.match(
+    openApiText,
+    /\r?\n\s{4}ExternalObjectDescriptorPayload:\r?\n\s{6}\$ref:\s*'\.\/schemas\/external-object-descriptor-payload\.schema\.json'/
+  );
 });
 
 test('celestial schemas reference external object descriptor contract', () => {

@@ -1,7 +1,7 @@
 {
   "checksums": {
-    "openApiSha256": "dfacdd926ba75b24ee55059cc51a36f301501d58c235b83c81e651660de53f71",
-    "schemaBundleSha256": "f6b25f5708cf4de0bd7d2930f9ccc0bc7bae9281087dafde72689ac69ef9d9cf"
+    "openApiSha256": "c37683dd0042c1e4b5626d904b68b4a5f1d6e24b886067de8a4d28d346472121",
+    "schemaBundleSha256": "db81b7b6f54a1583e82e96005edcbe6cf59caf1161a447ec3f2c9a55793c76c5"
   },
   "components": {
     "schemaRefMap": {
@@ -26,6 +26,7 @@
       "CreditLedgerListResponse": "credit-ledger-list-response.schema.json",
       "ErrorResponse": "error-response.schema.json",
       "ExternalObjectDescriptor": "external-object-descriptor.schema.json",
+      "ExternalObjectDescriptorPayload": "external-object-descriptor-payload.schema.json",
       "GameJoinRequest": "game-join-request.schema.json",
       "GameJoinResponse": "game-join-response.schema.json",
       "GameLeaveRequest": "game-leave-request.schema.json",
@@ -1825,6 +1826,61 @@
           "emissiveProfile"
         ],
         "title": "external-object-descriptor",
+        "type": "object"
+      },
+      "ExternalObjectDescriptorPayload": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "examples": [
+          {
+            "descriptors": [
+              {
+                "descriptorId": "ships-scout",
+                "displayLabel": "Scout Hull",
+                "domain": "ships",
+                "emissiveProfile": "low",
+                "factionCue": "independent",
+                "fallbackTier": "standard",
+                "materialProfile": "alloy",
+                "objectFamily": "scout",
+                "roleCue": "navigation",
+                "schemaVersion": "sw-13-m0-v1",
+                "silhouetteProfile": "needle"
+              },
+              {
+                "descriptorId": "stations-trade-hub",
+                "displayLabel": "Trade Hub Station",
+                "domain": "stations",
+                "emissiveProfile": "navigation",
+                "factionCue": "consortium",
+                "fallbackTier": "hero",
+                "materialProfile": "infrastructure",
+                "objectFamily": "trade-hub",
+                "roleCue": "trade",
+                "schemaVersion": "sw-13-m0-v1",
+                "silhouetteProfile": "ring"
+              }
+            ],
+            "schemaVersion": "sw-13-m0-v1"
+          }
+        ],
+        "properties": {
+          "descriptors": {
+            "description": "Deterministic descriptor inventory sorted by descriptorId for selector-stable consumption.",
+            "items": {
+              "$ref": "./external-object-descriptor.schema.json"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "schemaVersion": {
+            "const": "sw-13-m0-v1",
+            "description": "Pinned descriptor payload contract version for SW-13 M0-M2 family payloads.",
+            "type": "string"
+          }
+        },
+        "required": ["schemaVersion", "descriptors"],
+        "title": "external-object-descriptor-payload",
         "type": "object"
       },
       "GameJoinRequest": {

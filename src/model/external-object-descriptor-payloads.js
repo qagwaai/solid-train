@@ -84,6 +84,93 @@ const ASTEROID_DESCRIPTOR_SEED = Object.freeze({
   }),
 });
 
+const SHIP_DESCRIPTOR_SEED = Object.freeze({
+  scout: Object.freeze({
+    roleCue: 'navigation',
+    factionCue: 'independent',
+    fallbackTier: 'minimal',
+    displayLabel: 'Scout Hull',
+    silhouetteProfile: 'needle',
+    materialProfile: 'alloy',
+    emissiveProfile: 'low',
+  }),
+  hauler: Object.freeze({
+    roleCue: 'trade',
+    factionCue: 'consortium',
+    fallbackTier: 'standard',
+    displayLabel: 'Hauler Hull',
+    silhouetteProfile: 'broad',
+    materialProfile: 'composite',
+    emissiveProfile: 'low',
+  }),
+  frigate: Object.freeze({
+    roleCue: 'military',
+    factionCue: 'frontier-union',
+    fallbackTier: 'hero',
+    displayLabel: 'Frigate Hull',
+    silhouetteProfile: 'spire',
+    materialProfile: 'alloy',
+    emissiveProfile: 'medium',
+  }),
+  interceptor: Object.freeze({
+    roleCue: 'military',
+    factionCue: 'imperial-remnant',
+    fallbackTier: 'hero',
+    displayLabel: 'Interceptor Hull',
+    silhouetteProfile: 'needle',
+    materialProfile: 'metallic',
+    emissiveProfile: 'high',
+  }),
+  industrial: Object.freeze({
+    roleCue: 'industrial',
+    factionCue: 'consortium',
+    fallbackTier: 'standard',
+    displayLabel: 'Industrial Hull',
+    silhouetteProfile: 'modular',
+    materialProfile: 'infrastructure',
+    emissiveProfile: 'navigation',
+  }),
+});
+
+const STATION_DESCRIPTOR_SEED = Object.freeze({
+  'trade-hub': Object.freeze({
+    roleCue: 'trade',
+    factionCue: 'consortium',
+    fallbackTier: 'hero',
+    displayLabel: 'Trade Hub Station',
+    silhouetteProfile: 'ring',
+    materialProfile: 'infrastructure',
+    emissiveProfile: 'navigation',
+  }),
+  refinery: Object.freeze({
+    roleCue: 'industrial',
+    factionCue: 'frontier-union',
+    fallbackTier: 'standard',
+    displayLabel: 'Refinery Station',
+    silhouetteProfile: 'modular',
+    materialProfile: 'infrastructure',
+    emissiveProfile: 'medium',
+  }),
+  'naval-outpost': Object.freeze({
+    roleCue: 'military',
+    factionCue: 'imperial-remnant',
+    fallbackTier: 'hero',
+    displayLabel: 'Naval Outpost Station',
+    silhouetteProfile: 'spire',
+    materialProfile: 'alloy',
+    emissiveProfile: 'high',
+  }),
+  'research-platform': Object.freeze({
+    roleCue: 'civilian',
+    factionCue: 'independent',
+    fallbackTier: 'minimal',
+    displayLabel: 'Research Platform Station',
+    silhouetteProfile: 'clustered',
+    materialProfile: 'composite',
+    emissiveProfile: 'low',
+  }),
+});
+
 const ASTEROID_STYLE_BAND_BY_FAMILY = Object.freeze({
   'rocky-irregular': 'rocky-baseline',
   'metallic-cluster': 'resource-rich',
@@ -133,6 +220,28 @@ function createAsteroidDescriptorPayloads() {
   );
 }
 
+function createShipDescriptorPayloads() {
+  const families = EXTERNAL_OBJECT_FAMILY_BY_DOMAIN[EXTERNAL_OBJECT_DOMAIN.SHIPS];
+
+  return Object.freeze(
+    families
+      .map((family) => buildDescriptor(EXTERNAL_OBJECT_DOMAIN.SHIPS, family, SHIP_DESCRIPTOR_SEED[family]))
+      .sort(compareByDescriptorId)
+  );
+}
+
+function createStationDescriptorPayloads() {
+  const families = EXTERNAL_OBJECT_FAMILY_BY_DOMAIN[EXTERNAL_OBJECT_DOMAIN.STATIONS];
+
+  return Object.freeze(
+    families
+      .map((family) =>
+        buildDescriptor(EXTERNAL_OBJECT_DOMAIN.STATIONS, family, STATION_DESCRIPTOR_SEED[family])
+      )
+      .sort(compareByDescriptorId)
+  );
+}
+
 function createDebrisAndAsteroidDescriptorPayload() {
   return Object.freeze({
     schemaVersion: EXTERNAL_OBJECT_SCHEMA_VERSION,
@@ -143,11 +252,26 @@ function createDebrisAndAsteroidDescriptorPayload() {
   });
 }
 
+function createShipAndStationDescriptorPayload() {
+  return Object.freeze({
+    schemaVersion: EXTERNAL_OBJECT_SCHEMA_VERSION,
+    descriptors: Object.freeze([
+      ...createShipDescriptorPayloads(),
+      ...createStationDescriptorPayloads(),
+    ].sort(compareByDescriptorId)),
+  });
+}
+
 module.exports = {
   DEBRIS_DESCRIPTOR_SEED,
   ASTEROID_DESCRIPTOR_SEED,
+  SHIP_DESCRIPTOR_SEED,
+  STATION_DESCRIPTOR_SEED,
   ASTEROID_STYLE_BAND_BY_FAMILY,
   createDebrisDescriptorPayloads,
   createAsteroidDescriptorPayloads,
+  createShipDescriptorPayloads,
+  createStationDescriptorPayloads,
   createDebrisAndAsteroidDescriptorPayload,
+  createShipAndStationDescriptorPayload,
 };

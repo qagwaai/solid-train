@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "external-object-descriptor-payload",
+  "type": "object",
+  "required": ["schemaVersion", "descriptors"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "sw-13-m0-v1",
+      "description": "Pinned descriptor payload contract version for SW-13 M0-M2 family payloads."
+    },
+    "descriptors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "./external-object-descriptor.schema.json"
+      },
+      "description": "Deterministic descriptor inventory sorted by descriptorId for selector-stable consumption."
+    }
+  },
+  "examples": [
+    {
+      "schemaVersion": "sw-13-m0-v1",
+      "descriptors": [
+        {
+          "descriptorId": "ships-scout",
+          "schemaVersion": "sw-13-m0-v1",
+          "domain": "ships",
+          "objectFamily": "scout",
+          "roleCue": "navigation",
+          "factionCue": "independent",
+          "fallbackTier": "minimal",
+          "displayLabel": "Scout Hull",
+          "silhouetteProfile": "needle",
+          "materialProfile": "alloy",
+          "emissiveProfile": "low"
+        },
+        {
+          "descriptorId": "stations-trade-hub",
+          "schemaVersion": "sw-13-m0-v1",
+          "domain": "stations",
+          "objectFamily": "trade-hub",
+          "roleCue": "trade",
+          "factionCue": "consortium",
+          "fallbackTier": "hero",
+          "displayLabel": "Trade Hub Station",
+          "silhouetteProfile": "ring",
+          "materialProfile": "infrastructure",
+          "emissiveProfile": "navigation"
+        }
+      ]
+    }
+  ],
+  "additionalProperties": false
+}

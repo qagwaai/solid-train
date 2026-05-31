@@ -19,6 +19,7 @@ Forge documents (solid-train):
 5. [Runbook](sw-13-external-object-presentation-runbook.md)
 6. [Closure Checklist](sw-13-closure-checklist.md)
 7. [M0 Nova Handoff](sw-13-m0-nova-handoff.md)
+8. [M2 Orion Decision Lock Note](sw-13-m2-orion-decision-lock-note.md)
 
 Nova documents (laughing-octo-journey):
 
@@ -40,7 +41,7 @@ Nova documents (laughing-octo-journey):
 | --- | --- | --- | --- | --- |
 | M0 Contract baseline lock | Planned | Planned | Pending | Open |
 | M1 Producer emission compliance | Planned | N/A | Pending | Open |
-| M2 Integration contract confidence | Planned | Planned | Pending | Open |
+| M2 Integration contract confidence | Complete (Forge scope) | Planned | Forge evidence attached; Nova evidence pending | In Progress |
 | M3 Cross-repo gate alignment | Planned | Planned | Pending | Open |
 | M4 Dual gate enforcement | Planned | Planned | Pending | Open |
 | M5 Canary validation | Planned | Planned | Pending | Open |
@@ -70,7 +71,11 @@ When SW-13 drift is detected:
 | Date | Repo | Update | Owner |
 | --- | --- | --- | --- |
 | 2026-05-30 | solid-train | SW-13 Forge planning set created (requirements, implementation, findings, runbook, closure, M0 artifacts) | Orion |
+| 2026-05-30 | solid-train | Orion M2 decision lock captured: full-9 ship/station coverage, fallback tier behavior assertions, no additional API surface required for M2 | Orion |
+| 2026-05-30 | solid-train | M2 Forge evidence pass recorded: deterministic full-9 ship/station payload fixture, tier-behavior assertions (hero/standard/minimal), OpenAPI component-level contract surface confirmed, and SW-13 lint/gate checks green | Forge |
 
 ## Change Log
 
 - 2026-05-30: Initial SW-13 Forge cross-repo index created and linked to Forge and Nova artifacts.
+- 2026-05-30: Added M2 Orion decision lock note and linked Forge evidence targets for Nova M2 pass.
+- 2026-05-30: Updated M2 milestone board row to Complete (Forge scope) with Nova evidence pending.

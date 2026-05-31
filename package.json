@@ -15,7 +15,7 @@
     "contract:artifact": "node scripts/sw08/generate-contract-artifact.js --out artifacts/contracts/contract-artifact.json",
     "contract:lint:item-types": "node --test test/launch-item-contract-hardening.test.js",
     "contract:lint:mission-status": "node --test test/sw01-mission-status-contract-hardening.test.js",
-    "contract:lint:sw13-descriptor": "node --test test/sw13-external-object-contract-hardening.test.js",
+    "contract:lint:sw13-descriptor": "node --test test/sw13-external-object-contract-hardening.test.js test/sw13-external-object-descriptor-m2-ship-station.test.js",
     "contract:lint:mission-status:negative-fixture": "node scripts/sw01/assert-invalid-mission-status-fixture.js",
     "contract:drift": "node scripts/sw08/check-contract-drift.js --baseline artifacts/contracts/baseline-contract-artifact.json --current artifacts/contracts/contract-artifact.json --report artifacts/contracts/drift-report.json --mode report-only",
     "contract:gate": "npm run contract:artifact && npm run contract:lint:item-types && npm run contract:lint:mission-status && npm run contract:gate:hard",
