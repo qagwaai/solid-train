@@ -1,7 +1,7 @@
 {
   "checksums": {
-    "openApiSha256": "8f31a8e9161d43bc947d28c99c938d45877e8a3d1b302bbbd16639816b2ba7c2",
-    "schemaBundleSha256": "dae18617359566c31375d9992c9de061f97c56e1ef5b489c025cc2102dc360f2"
+    "openApiSha256": "dfacdd926ba75b24ee55059cc51a36f301501d58c235b83c81e651660de53f71",
+    "schemaBundleSha256": "f6b25f5708cf4de0bd7d2930f9ccc0bc7bae9281087dafde72689ac69ef9d9cf"
   },
   "components": {
     "schemaRefMap": {
@@ -25,6 +25,7 @@
       "CreditLedgerListRequest": "credit-ledger-list-request.schema.json",
       "CreditLedgerListResponse": "credit-ledger-list-response.schema.json",
       "ErrorResponse": "error-response.schema.json",
+      "ExternalObjectDescriptor": "external-object-descriptor.schema.json",
       "GameJoinRequest": "game-join-request.schema.json",
       "GameJoinResponse": "game-join-response.schema.json",
       "GameLeaveRequest": "game-leave-request.schema.json",
@@ -340,6 +341,9 @@
               "distanceKm": {
                 "type": "number"
               },
+              "externalObjectDescriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
               "hygId": {
                 "type": ["string", "null"]
               },
@@ -439,6 +443,9 @@
           },
           "debrisEntry": {
             "properties": {
+              "externalObjectDescriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
               "itemType": {
                 "$ref": "./canonical-item-type.schema.json"
               },
@@ -675,6 +682,10 @@
               },
               "createdByCharacterId": {
                 "type": "string"
+              },
+              "externalObjectDescriptor": {
+                "$ref": "./external-object-descriptor.schema.json",
+                "description": "Optional SW-13 canonical descriptor attached to the celestial body for external-object presentation identity."
               },
               "id": {
                 "type": "string"
@@ -1630,6 +1641,190 @@
         },
         "required": ["success", "message"],
         "title": "error-response",
+        "type": "object"
+      },
+      "ExternalObjectDescriptor": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "domain": {
+                  "const": "debris"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "objectFamily": {
+                  "enum": ["salvage-fragment", "wreckage-panel", "cargo-canister", "field-shard"]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "domain": {
+                  "const": "ships"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "objectFamily": {
+                  "enum": ["scout", "hauler", "frigate", "interceptor", "industrial"]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "domain": {
+                  "const": "gates"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "objectFamily": {
+                  "enum": ["ring-gate", "segmented-arch", "relay-spindle"]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "domain": {
+                  "const": "stations"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "objectFamily": {
+                  "enum": ["trade-hub", "refinery", "naval-outpost", "research-platform"]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "domain": {
+                  "const": "asteroids"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "objectFamily": {
+                  "enum": ["rocky-irregular", "metallic-cluster", "icy-body", "cinematic-hero"]
+                }
+              }
+            }
+          }
+        ],
+        "properties": {
+          "descriptorId": {
+            "description": "Stable identifier for descriptor content references and fixture assertions.",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "displayLabel": {
+            "description": "Human-readable label for diagnostics and optional UI overlays.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "domain": {
+            "description": "Top-level object domain used by selection and downstream rendering adapters.",
+            "enum": ["debris", "ships", "gates", "stations", "asteroids"],
+            "type": "string"
+          },
+          "emissiveProfile": {
+            "description": "Emissive cue profile for readability under motion and darkness.",
+            "enum": ["none", "low", "medium", "high", "navigation"],
+            "type": "string"
+          },
+          "factionCue": {
+            "description": "Faction identity cue for silhouette context and narrative-aligned presentation.",
+            "enum": [
+              "neutral",
+              "independent",
+              "consortium",
+              "frontier-union",
+              "imperial-remnant",
+              "pirate-clan",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "fallbackTier": {
+            "description": "Deterministic fallback tier reference for balanced-performance profile handling.",
+            "enum": ["hero", "standard", "minimal"],
+            "type": "string"
+          },
+          "materialProfile": {
+            "description": "Material treatment category to keep rendering semantics explicit.",
+            "enum": ["scrap", "alloy", "composite", "infrastructure", "rocky", "metallic", "icy"],
+            "type": "string"
+          },
+          "objectFamily": {
+            "description": "Canonical family taxonomy value for stable visual identity selection.",
+            "type": "string"
+          },
+          "roleCue": {
+            "description": "Role identity cue consumed by selectors and telemetry for readability decisions.",
+            "enum": [
+              "salvage",
+              "industrial",
+              "trade",
+              "military",
+              "navigation",
+              "infrastructure",
+              "hazard",
+              "civilian",
+              "neutral"
+            ],
+            "type": "string"
+          },
+          "schemaVersion": {
+            "const": "sw-13-m0-v1",
+            "description": "Pinned contract version for baseline lock and drift detection.",
+            "type": "string"
+          },
+          "silhouetteProfile": {
+            "description": "Distance-safe silhouette cue for at-a-glance recognition.",
+            "enum": [
+              "fragmented",
+              "needle",
+              "broad",
+              "modular",
+              "ring",
+              "spire",
+              "clustered",
+              "irregular"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "descriptorId",
+          "schemaVersion",
+          "domain",
+          "objectFamily",
+          "roleCue",
+          "factionCue",
+          "fallbackTier",
+          "displayLabel",
+          "silhouetteProfile",
+          "materialProfile",
+          "emissiveProfile"
+        ],
+        "title": "external-object-descriptor",
         "type": "object"
       },
       "GameJoinRequest": {
@@ -5517,6 +5712,9 @@
               "distanceFromClusterCenterKm": {
                 "type": "number"
               },
+              "externalObjectDescriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
               "hygId": {
                 "type": ["string", "null"]
               },
@@ -5616,6 +5814,9 @@
           },
           "debrisEntry": {
             "properties": {
+              "externalObjectDescriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
               "itemType": {
                 "$ref": "./canonical-item-type.schema.json"
               },

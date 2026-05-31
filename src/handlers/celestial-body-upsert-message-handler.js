@@ -166,6 +166,41 @@ class CelestialBodyUpsertMessageHandler {
             textureColor: this.context.toNonEmptyString(celestialBody.composition.textureColor),
           }
         : null,
+      ...(celestialBody?.externalObjectDescriptor
+        ? {
+            externalObjectDescriptor: {
+              descriptorId: this.context.toNonEmptyString(
+                celestialBody.externalObjectDescriptor.descriptorId
+              ),
+              schemaVersion: this.context.toNonEmptyString(
+                celestialBody.externalObjectDescriptor.schemaVersion
+              ),
+              domain: this.context.toNonEmptyString(celestialBody.externalObjectDescriptor.domain),
+              objectFamily: this.context.toNonEmptyString(
+                celestialBody.externalObjectDescriptor.objectFamily
+              ),
+              roleCue: this.context.toNonEmptyString(celestialBody.externalObjectDescriptor.roleCue),
+              factionCue: this.context.toNonEmptyString(
+                celestialBody.externalObjectDescriptor.factionCue
+              ),
+              fallbackTier: this.context.toNonEmptyString(
+                celestialBody.externalObjectDescriptor.fallbackTier
+              ),
+              displayLabel: this.context.toNonEmptyString(
+                celestialBody.externalObjectDescriptor.displayLabel
+              ),
+              silhouetteProfile: this.context.toNonEmptyString(
+                celestialBody.externalObjectDescriptor.silhouetteProfile
+              ),
+              materialProfile: this.context.toNonEmptyString(
+                celestialBody.externalObjectDescriptor.materialProfile
+              ),
+              emissiveProfile: this.context.toNonEmptyString(
+                celestialBody.externalObjectDescriptor.emissiveProfile
+              ),
+            },
+          }
+        : {}),
       ...(celestialBody?.clusterId !== undefined
         ? { clusterId: this.context.toNonEmptyString(celestialBody.clusterId) }
         : {}),

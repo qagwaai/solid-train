@@ -3594,6 +3594,8 @@ components:
       $ref: './schemas/credit-ledger-list-response.schema.json'
     ErrorResponse:
       $ref: './schemas/error-response.schema.json'
+    ExternalObjectDescriptor:
+      $ref: './schemas/external-object-descriptor.schema.json'
     GameJoinRequest:
       $ref: './schemas/game-join-request.schema.json'
     GameJoinResponse:

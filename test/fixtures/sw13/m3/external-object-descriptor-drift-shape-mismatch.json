@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "sw-13-m3-fixture-v1",
+  "surfaces": {
+    "apiEndpoints": [],
+    "socketEndpoints": [
+      "/socket/celestial-body-upsert",
+      "/socket/celestial-body-list",
+      "/socket/solar-system-get"
+    ],
+    "socketEvents": ["celestial-body-upsert", "celestial-body-list", "solar-system-get"]
+  },
+  "components": {
+    "schemas": {
+      "ExternalObjectDescriptor": {
+        "type": "object",
+        "required": [
+          "descriptorId",
+          "schemaVersion",
+          "domain",
+          "objectFamily",
+          "roleCue",
+          "factionCue",
+          "silhouetteProfile",
+          "materialProfile",
+          "emissiveProfile"
+        ],
+        "properties": {
+          "descriptorId": {
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string",
+            "enum": ["debris", "ships", "gates", "stations", "asteroids"]
+          },
+          "objectFamily": { "type": "string" },
+          "roleCue": {
+            "type": "string",
+            "enum": [
+              "salvage",
+              "industrial",
+              "trade",
+              "military",
+              "navigation",
+              "infrastructure",
+              "hazard",
+              "civilian",
+              "neutral"
+            ]
+          },
+          "factionCue": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "independent",
+              "consortium",
+              "frontier-union",
+              "imperial-remnant",
+              "pirate-clan",
+              "unknown"
+            ]
+          },
+          "fallbackTier": {
+            "type": "integer"
+          },
+          "displayLabel": { "type": "array" },
+          "silhouetteProfile": {
+            "type": "string",
+            "enum": [
+              "fragmented",
+              "needle",
+              "broad",
+              "modular",
+              "ring",
+              "spire",
+              "clustered",
+              "irregular"
+            ]
+          },
+          "materialProfile": {
+            "type": "string",
+            "enum": ["scrap", "alloy", "composite", "infrastructure", "rocky", "metallic", "icy"]
+          },
+          "emissiveProfile": {
+            "type": "string",
+            "enum": ["none", "low", "medium", "high", "navigation"]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

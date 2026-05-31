@@ -1,0 +1,131 @@
+{
+  "exception": {
+    "errors": [
+      "Exception file not found: C:\\Development\\Projects\\Github\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
+    ],
+    "path": "C:\\Development\\Projects\\Github\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
+  },
+  "issues": [
+    {
+      "category": "endpoint/event removal or rename",
+      "consumerSurfaces": ["Celestial/routing/travel"],
+      "detail": "Schema removed or renamed: CelestialBodyListResponse",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:CelestialBodyListResponse",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Restore schema alias or keep compatibility reference during migration window."
+    },
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Enum narrowed; removed values: [asteroids, debris, gates, ships, stations]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.domain",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    },
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Enum narrowed; removed values: [high, low, medium, navigation, none]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.emissiveProfile",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    },
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Enum narrowed; removed values: [consortium, frontier-union, imperial-remnant, independent, neutral, pirate-clan, unknown]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.factionCue",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    },
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Enum narrowed; removed values: [hero, minimal, standard]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.fallbackTier",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    },
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Enum narrowed; removed values: [alloy, composite, icy, infrastructure, metallic, rocky, scrap]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.materialProfile",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    },
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Enum narrowed; removed values: [civilian, hazard, industrial, infrastructure, military, navigation, neutral, salvage, trade]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.roleCue",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    },
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Enum narrowed; removed values: [sw-13-m0-v1]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.schemaVersion",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    },
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Enum narrowed; removed values: [broad, clustered, fragmented, irregular, modular, needle, ring, spire]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.silhouetteProfile",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    }
+  ],
+  "metadata": {
+    "baselineMissing": false,
+    "baselinePath": "test\\fixtures\\sw13\\m3\\nova-consumer-inventory-aligned.json",
+    "currentPath": "test\\fixtures\\sw13\\m3\\external-object-descriptor-drift-enum-mismatch.json",
+    "exceptionFound": false,
+    "exceptionPath": "docs\\planning\\sw-08-approved-bypass.json",
+    "generatedBy": "scripts/sw08/check-contract-drift.js"
+  },
+  "summary": {
+    "byCategory": {
+      "endpoint/event removal or rename": 1,
+      "enum narrowing/mismatch": 8,
+      "removed required fields": 0,
+      "type mismatches": 0
+    },
+    "bypassApproved": false,
+    "enforcementMode": "hard-fail",
+    "hardFailEnforced": true,
+    "impactedConsumers": ["laughing-octo-journey"],
+    "mode": "hard-fail",
+    "nextAction": "Complete the missing exception fields or approvals, then rerun the gate.",
+    "owner": "backend-lead",
+    "softFailEnforced": false,
+    "totalIssues": 9
+  },
+  "taxonomy": {
+    "ENDPOINT_EVENT_REMOVAL": "endpoint/event removal or rename",
+    "ENUM_MISMATCH": "enum narrowing/mismatch",
+    "REMOVED_REQUIRED": "removed required fields",
+    "TYPE_MISMATCH": "type mismatches"
+  }
+}

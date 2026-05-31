@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "sw-13-m3-fixture-v1",
+  "surfaces": {
+    "apiEndpoints": [],
+    "socketEndpoints": [
+      "/socket/celestial-body-upsert",
+      "/socket/celestial-body-list",
+      "/socket/solar-system-get"
+    ],
+    "socketEvents": ["celestial-body-upsert", "celestial-body-list", "solar-system-get"]
+  },
+  "components": {
+    "schemas": {
+      "ExternalObjectDescriptor": {
+        "type": "object",
+        "required": [
+          "descriptorId",
+          "schemaVersion",
+          "domain",
+          "objectFamily",
+          "roleCue",
+          "factionCue",
+          "fallbackTier",
+          "displayLabel",
+          "silhouetteProfile",
+          "materialProfile",
+          "emissiveProfile"
+        ],
+        "properties": {
+          "descriptorId": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "schemaVersion": {
+            "type": "string",
+            "enum": ["SW-13-M0-V1"]
+          },
+          "domain": {
+            "type": "string",
+            "enum": ["DEBRIS", "SHIPS", "GATES", "STATIONS", "ASTEROIDS"]
+          },
+          "objectFamily": { "type": "string" },
+          "roleCue": {
+            "type": "string",
+            "enum": [
+              "SALVAGE",
+              "INDUSTRIAL",
+              "TRADE",
+              "MILITARY",
+              "NAVIGATION",
+              "INFRASTRUCTURE",
+              "HAZARD",
+              "CIVILIAN",
+              "NEUTRAL"
+            ]
+          },
+          "factionCue": {
+            "type": "string",
+            "enum": [
+              "NEUTRAL",
+              "INDEPENDENT",
+              "CONSORTIUM",
+              "FRONTIER-UNION",
+              "IMPERIAL-REMNANT",
+              "PIRATE-CLAN",
+              "UNKNOWN"
+            ]
+          },
+          "fallbackTier": {
+            "type": "string",
+            "enum": ["HERO", "STANDARD", "MINIMAL"]
+          },
+          "displayLabel": { "type": "string", "minLength": 1 },
+          "silhouetteProfile": {
+            "type": "string",
+            "enum": [
+              "FRAGMENTED",
+              "NEEDLE",
+              "BROAD",
+              "MODULAR",
+              "RING",
+              "SPIRE",
+              "CLUSTERED",
+              "IRREGULAR"
+            ]
+          },
+          "materialProfile": {
+            "type": "string",
+            "enum": ["SCRAP", "ALLOY", "COMPOSITE", "INFRASTRUCTURE", "ROCKY", "METALLIC", "ICY"]
+          },
+          "emissiveProfile": {
+            "type": "string",
+            "enum": ["NONE", "LOW", "MEDIUM", "HIGH", "NAVIGATION"]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -3,64 +3,74 @@
     "errors": [
       "Exception file not found: C:\\Development\\Projects\\Github\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
     ],
-    "path": "docs\\planning\\sw-08-approved-bypass.json"
+    "path": "C:\\Development\\Projects\\Github\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
   },
   "issues": [
     {
       "category": "endpoint/event removal or rename",
-      "consumerSurfaces": ["Character/ship"],
-      "detail": "Socket contract endpoint removed or renamed: /socket/ship-transfer",
+      "consumerSurfaces": ["Celestial/routing/travel"],
+      "detail": "Schema removed or renamed: CelestialBodyListResponse",
       "knownConsumers": ["laughing-octo-journey"],
       "owner": "backend-lead",
-      "producerLocation": "socket:/socket/ship-transfer",
+      "producerLocation": "schema:CelestialBodyListResponse",
       "severity": "high",
-      "suggestedCompatibilityStrategy": "Restore socket event alias or keep old event contract during migration window."
-    },
-    {
-      "category": "enum narrowing/mismatch",
-      "consumerSurfaces": ["Unmapped surface"],
-      "detail": "Enum narrowed; removed values: [beta]",
-      "knownConsumers": ["laughing-octo-journey"],
-      "owner": "backend-lead",
-      "producerLocation": "schema:FixtureContract.properties.mode",
-      "severity": "high",
-      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+      "suggestedCompatibilityStrategy": "Restore schema alias or keep compatibility reference during migration window."
     },
     {
       "category": "removed required fields",
       "consumerSurfaces": ["Unmapped surface"],
-      "detail": "Required field no longer required in new contract: mode",
+      "detail": "Required field no longer required in new contract: displayLabel",
       "knownConsumers": ["laughing-octo-journey"],
       "owner": "backend-lead",
-      "producerLocation": "schema:FixtureContract.required.mode",
+      "producerLocation": "schema:ExternalObjectDescriptor.required.displayLabel",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Keep field required or provide compatibility guarantee plus migration note."
+    },
+    {
+      "category": "removed required fields",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Required field no longer required in new contract: fallbackTier",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:ExternalObjectDescriptor.required.fallbackTier",
       "severity": "high",
       "suggestedCompatibilityStrategy": "Keep field required or provide compatibility guarantee plus migration note."
     },
     {
       "category": "type mismatches",
       "consumerSurfaces": ["Unmapped surface"],
-      "detail": "Type changed from [integer] to [string]",
+      "detail": "Type changed from [string] to [integer]",
       "knownConsumers": ["laughing-octo-journey"],
       "owner": "backend-lead",
-      "producerLocation": "schema:FixtureContract.properties.count",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.descriptorId",
       "severity": "high",
       "suggestedCompatibilityStrategy": "Preserve prior type support or add compatibility translation in producer payload."
     },
     {
       "category": "type mismatches",
       "consumerSurfaces": ["Unmapped surface"],
-      "detail": "Type changed from [string] to [number]",
+      "detail": "Type changed from [string] to [array]",
       "knownConsumers": ["laughing-octo-journey"],
       "owner": "backend-lead",
-      "producerLocation": "schema:FixtureContract.properties.id",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.displayLabel",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Preserve prior type support or add compatibility translation in producer payload."
+    },
+    {
+      "category": "type mismatches",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Type changed from [string] to [integer]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:ExternalObjectDescriptor.properties.fallbackTier",
       "severity": "high",
       "suggestedCompatibilityStrategy": "Preserve prior type support or add compatibility translation in producer payload."
     }
   ],
   "metadata": {
     "baselineMissing": false,
-    "baselinePath": "test\\fixtures\\sw08\\drift-old.json",
-    "currentPath": "test\\fixtures\\sw08\\drift-new.json",
+    "baselinePath": "test\\fixtures\\sw13\\m3\\nova-consumer-inventory-aligned.json",
+    "currentPath": "test\\fixtures\\sw13\\m3\\external-object-descriptor-drift-shape-mismatch.json",
     "exceptionFound": false,
     "exceptionPath": "docs\\planning\\sw-08-approved-bypass.json",
     "generatedBy": "scripts/sw08/check-contract-drift.js"
@@ -68,19 +78,19 @@
   "summary": {
     "byCategory": {
       "endpoint/event removal or rename": 1,
-      "enum narrowing/mismatch": 1,
-      "removed required fields": 1,
-      "type mismatches": 2
+      "enum narrowing/mismatch": 0,
+      "removed required fields": 2,
+      "type mismatches": 3
     },
     "bypassApproved": false,
-    "enforcementMode": "soft-fail",
-    "hardFailEnforced": false,
+    "enforcementMode": "hard-fail",
+    "hardFailEnforced": true,
     "impactedConsumers": ["laughing-octo-journey"],
-    "mode": "soft-fail",
+    "mode": "hard-fail",
     "nextAction": "Complete the missing exception fields or approvals, then rerun the gate.",
     "owner": "backend-lead",
-    "softFailEnforced": true,
-    "totalIssues": 5
+    "softFailEnforced": false,
+    "totalIssues": 6
   },
   "taxonomy": {
     "ENDPOINT_EVENT_REMOVAL": "endpoint/event removal or rename",

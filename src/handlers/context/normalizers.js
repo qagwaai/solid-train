@@ -663,6 +663,23 @@ function normalizeCelestialBody(ctx, celestialBody) {
           textureColor: toNonEmptyString(ctx, source.composition.textureColor),
         }
       : null,
+    ...(source.externalObjectDescriptor
+      ? {
+          externalObjectDescriptor: {
+            descriptorId: toNonEmptyString(ctx, source.externalObjectDescriptor.descriptorId),
+            schemaVersion: toNonEmptyString(ctx, source.externalObjectDescriptor.schemaVersion),
+            domain: toNonEmptyString(ctx, source.externalObjectDescriptor.domain),
+            objectFamily: toNonEmptyString(ctx, source.externalObjectDescriptor.objectFamily),
+            roleCue: toNonEmptyString(ctx, source.externalObjectDescriptor.roleCue),
+            factionCue: toNonEmptyString(ctx, source.externalObjectDescriptor.factionCue),
+            fallbackTier: toNonEmptyString(ctx, source.externalObjectDescriptor.fallbackTier),
+            displayLabel: toNonEmptyString(ctx, source.externalObjectDescriptor.displayLabel),
+            silhouetteProfile: toNonEmptyString(ctx, source.externalObjectDescriptor.silhouetteProfile),
+            materialProfile: toNonEmptyString(ctx, source.externalObjectDescriptor.materialProfile),
+            emissiveProfile: toNonEmptyString(ctx, source.externalObjectDescriptor.emissiveProfile),
+          },
+        }
+      : {}),
     state: toNonEmptyString(ctx, source.state) || 'active',
     destroyedAt: toNonEmptyString(ctx, source.destroyedAt) || null,
     destroyedReason: toNonEmptyString(ctx, source.destroyedReason) || null,
@@ -673,6 +690,23 @@ function normalizeCelestialBody(ctx, celestialBody) {
           rarity: toNonEmptyString(ctx, entry?.rarity),
           quantity: Number.isInteger(entry?.quantity) && entry.quantity > 0 ? entry.quantity : 1,
           itemType: toNonEmptyString(ctx, entry?.itemType),
+          ...(entry?.externalObjectDescriptor
+            ? {
+                externalObjectDescriptor: {
+                  descriptorId: toNonEmptyString(ctx, entry.externalObjectDescriptor.descriptorId),
+                  schemaVersion: toNonEmptyString(ctx, entry.externalObjectDescriptor.schemaVersion),
+                  domain: toNonEmptyString(ctx, entry.externalObjectDescriptor.domain),
+                  objectFamily: toNonEmptyString(ctx, entry.externalObjectDescriptor.objectFamily),
+                  roleCue: toNonEmptyString(ctx, entry.externalObjectDescriptor.roleCue),
+                  factionCue: toNonEmptyString(ctx, entry.externalObjectDescriptor.factionCue),
+                  fallbackTier: toNonEmptyString(ctx, entry.externalObjectDescriptor.fallbackTier),
+                  displayLabel: toNonEmptyString(ctx, entry.externalObjectDescriptor.displayLabel),
+                  silhouetteProfile: toNonEmptyString(ctx, entry.externalObjectDescriptor.silhouetteProfile),
+                  materialProfile: toNonEmptyString(ctx, entry.externalObjectDescriptor.materialProfile),
+                  emissiveProfile: toNonEmptyString(ctx, entry.externalObjectDescriptor.emissiveProfile),
+                },
+              }
+            : {}),
         }))
       : [],
     ...(source.bodyType ? { bodyType: toNonEmptyString(ctx, source.bodyType) } : {}),
