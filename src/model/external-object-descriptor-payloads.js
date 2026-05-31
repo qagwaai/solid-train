@@ -171,6 +171,75 @@ const STATION_DESCRIPTOR_SEED = Object.freeze({
   }),
 });
 
+const GATE_DESCRIPTOR_SEED = Object.freeze({
+  'ring-gate': Object.freeze({
+    roleCue: 'navigation',
+    factionCue: 'consortium',
+    fallbackTier: 'hero',
+    displayLabel: 'Ring Gate Landmark',
+    silhouetteProfile: 'ring',
+    materialProfile: 'infrastructure',
+    emissiveProfile: 'navigation',
+  }),
+  'segmented-arch': Object.freeze({
+    roleCue: 'navigation',
+    factionCue: 'frontier-union',
+    fallbackTier: 'standard',
+    displayLabel: 'Segmented Arch Gate Landmark',
+    silhouetteProfile: 'spire',
+    materialProfile: 'alloy',
+    emissiveProfile: 'medium',
+  }),
+  'relay-spindle': Object.freeze({
+    roleCue: 'infrastructure',
+    factionCue: 'independent',
+    fallbackTier: 'minimal',
+    displayLabel: 'Relay Spindle Gate Landmark',
+    silhouetteProfile: 'needle',
+    materialProfile: 'infrastructure',
+    emissiveProfile: 'low',
+  }),
+});
+
+const GATE_APPROACH_METADATA_BY_FAMILY = Object.freeze({
+  'ring-gate': Object.freeze({
+    approachCue: 'direct-centerline',
+    landmarkFraming: 'full-ring',
+    navBeaconCue: 'continuous',
+    hazardCue: 'low',
+    warningEscalation: 'none',
+    recommendedStandOffKm: 1400,
+    approachWindowKm: Object.freeze({
+      min: 1000,
+      max: 2200,
+    }),
+  }),
+  'segmented-arch': Object.freeze({
+    approachCue: 'offset-spiral',
+    landmarkFraming: 'segmented-arch',
+    navBeaconCue: 'pulse',
+    hazardCue: 'medium',
+    warningEscalation: 'required',
+    recommendedStandOffKm: 1200,
+    approachWindowKm: Object.freeze({
+      min: 800,
+      max: 1800,
+    }),
+  }),
+  'relay-spindle': Object.freeze({
+    approachCue: 'vector-handoff',
+    landmarkFraming: 'spindle-column',
+    navBeaconCue: 'triplet',
+    hazardCue: 'medium',
+    warningEscalation: 'required',
+    recommendedStandOffKm: 900,
+    approachWindowKm: Object.freeze({
+      min: 600,
+      max: 1500,
+    }),
+  }),
+});
+
 const ASTEROID_STYLE_BAND_BY_FAMILY = Object.freeze({
   'rocky-irregular': 'rocky-baseline',
   'metallic-cluster': 'resource-rich',
@@ -242,6 +311,16 @@ function createStationDescriptorPayloads() {
   );
 }
 
+function createGateDescriptorPayloads() {
+  const families = EXTERNAL_OBJECT_FAMILY_BY_DOMAIN[EXTERNAL_OBJECT_DOMAIN.GATES];
+
+  return Object.freeze(
+    families
+      .map((family) => buildDescriptor(EXTERNAL_OBJECT_DOMAIN.GATES, family, GATE_DESCRIPTOR_SEED[family]))
+      .sort(compareByDescriptorId)
+  );
+}
+
 function createDebrisAndAsteroidDescriptorPayload() {
   return Object.freeze({
     schemaVersion: EXTERNAL_OBJECT_SCHEMA_VERSION,
@@ -262,16 +341,38 @@ function createShipAndStationDescriptorPayload() {
   });
 }
 
+function createGateLandmarkDescriptorPayload() {
+  const descriptors = createGateDescriptorPayloads();
+
+  return Object.freeze({
+    schemaVersion: EXTERNAL_OBJECT_SCHEMA_VERSION,
+    gates: Object.freeze(
+      descriptors
+        .map((descriptor) => ({
+          descriptor,
+          approachMetadata: {
+            ...GATE_APPROACH_METADATA_BY_FAMILY[descriptor.objectFamily],
+          },
+        }))
+        .sort((left, right) => left.descriptor.descriptorId.localeCompare(right.descriptor.descriptorId))
+    ),
+  });
+}
+
 module.exports = {
   DEBRIS_DESCRIPTOR_SEED,
   ASTEROID_DESCRIPTOR_SEED,
   SHIP_DESCRIPTOR_SEED,
   STATION_DESCRIPTOR_SEED,
+  GATE_DESCRIPTOR_SEED,
+  GATE_APPROACH_METADATA_BY_FAMILY,
   ASTEROID_STYLE_BAND_BY_FAMILY,
   createDebrisDescriptorPayloads,
   createAsteroidDescriptorPayloads,
   createShipDescriptorPayloads,
   createStationDescriptorPayloads,
+  createGateDescriptorPayloads,
   createDebrisAndAsteroidDescriptorPayload,
   createShipAndStationDescriptorPayload,
+  createGateLandmarkDescriptorPayload,
 };

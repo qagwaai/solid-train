@@ -20,6 +20,7 @@ Forge documents (solid-train):
 6. [Closure Checklist](sw-13-closure-checklist.md)
 7. [M0 Nova Handoff](sw-13-m0-nova-handoff.md)
 8. [M2 Orion Decision Lock Note](sw-13-m2-orion-decision-lock-note.md)
+9. [M3 Orion Decision Lock Note](sw-13-m3-orion-decision-lock-note.md)
 
 Nova documents (laughing-octo-journey):
 
@@ -73,9 +74,11 @@ When SW-13 drift is detected:
 | 2026-05-30 | solid-train | SW-13 Forge planning set created (requirements, implementation, findings, runbook, closure, M0 artifacts) | Orion |
 | 2026-05-30 | solid-train | Orion M2 decision lock captured: full-9 ship/station coverage, fallback tier behavior assertions, no additional API surface required for M2 | Orion |
 | 2026-05-30 | solid-train | M2 Forge evidence pass recorded: deterministic full-9 ship/station payload fixture, tier-behavior assertions (hero/standard/minimal), OpenAPI component-level contract surface confirmed, and SW-13 lint/gate checks green | Forge |
+| 2026-05-30 | solid-train | Orion M3 decision lock captured and enforced in Forge tests: all-family per-run gate coverage and medium hazard mandatory warning escalation | Orion |
 
 ## Change Log
 
 - 2026-05-30: Initial SW-13 Forge cross-repo index created and linked to Forge and Nova artifacts.
 - 2026-05-30: Added M2 Orion decision lock note and linked Forge evidence targets for Nova M2 pass.
 - 2026-05-30: Updated M2 milestone board row to Complete (Forge scope) with Nova evidence pending.
+- 2026-05-30: Added M3 Orion decision lock note and linked gate-landmark evidence assertions.

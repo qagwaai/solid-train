@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "sw-13-m0-v1",
+  "gates": [
+    {
+      "descriptor": {
+        "descriptorId": "gates-relay-spindle",
+        "schemaVersion": "sw-13-m0-v1",
+        "domain": "gates",
+        "objectFamily": "relay-spindle",
+        "roleCue": "infrastructure",
+        "factionCue": "independent",
+        "fallbackTier": "minimal",
+        "displayLabel": "Relay Spindle Gate Landmark",
+        "silhouetteProfile": "needle",
+        "materialProfile": "infrastructure",
+        "emissiveProfile": "low"
+      },
+      "approachMetadata": {
+        "approachCue": "vector-handoff",
+        "landmarkFraming": "spindle-column",
+        "navBeaconCue": "triplet",
+        "hazardCue": "medium",
+        "warningEscalation": "required",
+        "recommendedStandOffKm": 900,
+        "approachWindowKm": {
+          "min": 600,
+          "max": 1500
+        }
+      }
+    },
+    {
+      "descriptor": {
+        "descriptorId": "gates-ring-gate",
+        "schemaVersion": "sw-13-m0-v1",
+        "domain": "gates",
+        "objectFamily": "ring-gate",
+        "roleCue": "navigation",
+        "factionCue": "consortium",
+        "fallbackTier": "hero",
+        "displayLabel": "Ring Gate Landmark",
+        "silhouetteProfile": "ring",
+        "materialProfile": "infrastructure",
+        "emissiveProfile": "navigation"
+      },
+      "approachMetadata": {
+        "approachCue": "direct-centerline",
+        "landmarkFraming": "full-ring",
+        "navBeaconCue": "continuous",
+        "hazardCue": "low",
+        "warningEscalation": "none",
+        "recommendedStandOffKm": 1400,
+        "approachWindowKm": {
+          "min": 1000,
+          "max": 2200
+        }
+      }
+    },
+    {
+      "descriptor": {
+        "descriptorId": "gates-segmented-arch",
+        "schemaVersion": "sw-13-m0-v1",
+        "domain": "gates",
+        "objectFamily": "segmented-arch",
+        "roleCue": "navigation",
+        "factionCue": "frontier-union",
+        "fallbackTier": "standard",
+        "displayLabel": "Segmented Arch Gate Landmark",
+        "silhouetteProfile": "spire",
+        "materialProfile": "alloy",
+        "emissiveProfile": "medium"
+      },
+      "approachMetadata": {
+        "approachCue": "offset-spiral",
+        "landmarkFraming": "segmented-arch",
+        "navBeaconCue": "pulse",
+        "hazardCue": "medium",
+        "warningEscalation": "required",
+        "recommendedStandOffKm": 1200,
+        "approachWindowKm": {
+          "min": 800,
+          "max": 1800
+        }
+      }
+    }
+  ]
+}

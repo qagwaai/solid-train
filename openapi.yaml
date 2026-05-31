@@ -3596,6 +3596,8 @@ components:
       $ref: './schemas/error-response.schema.json'
     ExternalObjectDescriptor:
       $ref: './schemas/external-object-descriptor.schema.json'
+    ExternalObjectGateLandmarkPayload:
+      $ref: './schemas/external-object-gate-landmark-payload.schema.json'
     ExternalObjectDescriptorPayload:
       $ref: './schemas/external-object-descriptor-payload.schema.json'
     GameJoinRequest:

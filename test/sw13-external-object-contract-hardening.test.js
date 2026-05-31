@@ -88,6 +88,10 @@ test('openapi registers external-object-descriptor component', () => {
   );
   assert.match(
     openApiText,
+    /\r?\n\s{4}ExternalObjectGateLandmarkPayload:\r?\n\s{6}\$ref:\s*'\.\/schemas\/external-object-gate-landmark-payload\.schema\.json'/
+  );
+  assert.match(
+    openApiText,
     /\r?\n\s{4}ExternalObjectDescriptorPayload:\r?\n\s{6}\$ref:\s*'\.\/schemas\/external-object-descriptor-payload\.schema\.json'/
   );
 });
