@@ -1,0 +1,132 @@
+{
+  "evidence": {
+    "approachMetadataFieldKeys": [
+      "approachCue",
+      "approachWindowKm",
+      "hazardCue",
+      "landmarkFraming",
+      "navBeaconCue",
+      "recommendedStandOffKm",
+      "warningEscalation"
+    ],
+    "approachMetadataMismatch": [],
+    "descriptorFieldKeys": [
+      "descriptorId",
+      "displayLabel",
+      "domain",
+      "emissiveProfile",
+      "factionCue",
+      "fallbackTier",
+      "materialProfile",
+      "objectFamily",
+      "roleCue",
+      "schemaVersion",
+      "silhouetteProfile"
+    ],
+    "descriptorShapeMismatch": [],
+    "fallbackTierValues": [
+      "hero",
+      "minimal",
+      "standard"
+    ],
+    "generatedBy": "scripts/sw13/review-descriptor-size-consistency.js",
+    "legacyFieldHits": [],
+    "payloadFiles": {
+      "m1DebrisAsteroids": "test/fixtures/sw13/external-object-descriptor-m1-debris-asteroids.json",
+      "m2ShipsStations": "test/fixtures/sw13/external-object-descriptor-m2-ships-stations.json",
+      "m3GateLandmarks": "test/fixtures/sw13/external-object-gate-landmark-m3.json"
+    },
+    "payloadOrderingChecks": [
+      {
+        "bundle": "m1DebrisAsteroids",
+        "sortedByDescriptorId": true
+      },
+      {
+        "bundle": "m2ShipsStations",
+        "sortedByDescriptorId": true
+      },
+      {
+        "bundle": "m3GateLandmarks",
+        "sortedByDescriptorId": true
+      }
+    ],
+    "schemaVersions": [
+      "sw-13-m0-v1"
+    ]
+  },
+  "summary": {
+    "approachMetadataSize": {
+      "gateApproachMetadata": {
+        "average": 212,
+        "count": 3,
+        "max": 214,
+        "min": 210,
+        "total": 636
+      }
+    },
+    "consistencyChecks": {
+      "approachMetadataShapeConsistent": true,
+      "descriptorShapeConsistent": true,
+      "deterministicOrdering": true,
+      "fallbackTierLocked": true,
+      "noLegacyFallbackFields": true,
+      "schemaVersionLocked": true
+    },
+    "descriptorCountByDomain": {
+      "asteroids": 4,
+      "debris": 4,
+      "gates": 3,
+      "ships": 5,
+      "stations": 4
+    },
+    "descriptorSizeByDomain": {
+      "asteroids": {
+        "average": 314,
+        "count": 4,
+        "max": 330,
+        "min": 292,
+        "total": 1255
+      },
+      "debris": {
+        "average": 303,
+        "count": 4,
+        "max": 310,
+        "min": 297,
+        "total": 1213
+      },
+      "gates": {
+        "average": 320,
+        "count": 3,
+        "max": 328,
+        "min": 308,
+        "total": 960
+      },
+      "ships": {
+        "average": 294,
+        "count": 5,
+        "max": 314,
+        "min": 282,
+        "total": 1471
+      },
+      "stations": {
+        "average": 318,
+        "count": 4,
+        "max": 332,
+        "min": 308,
+        "total": 1272
+      }
+    },
+    "lockedFallbackTiers": [
+      "hero",
+      "minimal",
+      "standard"
+    ],
+    "lockedSchemaVersion": "sw-13-m0-v1",
+    "payloadByteSizeByBundle": {
+      "m1DebrisAsteroids": 3320,
+      "m2ShipsStations": 3694,
+      "m3GateLandmarks": 2517
+    },
+    "scope": "SW-13 M4 Forge descriptor size and payload consistency review"
+  }
+}

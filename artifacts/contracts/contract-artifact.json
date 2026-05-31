@@ -1,7 +1,7 @@
 {
   "checksums": {
     "openApiSha256": "e0023323f997245ed6b8fce73dd4cfa25d55a12a19eb1d2386cb867311413a64",
-    "schemaBundleSha256": "ea366d1ee41cc6ac7bb8c8c305092e3609e53f1bc17dff7d40e359c2f77e910e"
+    "schemaBundleSha256": "700b0c874896c3331453a2621cf8a067195257b1b32a43c0fec8709790a8ddf9"
   },
   "components": {
     "schemaRefMap": {
@@ -1867,10 +1867,11 @@
         ],
         "properties": {
           "descriptors": {
-            "description": "Deterministic descriptor inventory sorted by descriptorId for selector-stable consumption.",
+            "description": "Deterministic descriptor inventory sorted by descriptorId for selector-stable consumption with bounded family bundle size.",
             "items": {
               "$ref": "./external-object-descriptor.schema.json"
             },
+            "maxItems": 16,
             "minItems": 1,
             "type": "array"
           },
@@ -1986,7 +1987,7 @@
         ],
         "properties": {
           "gates": {
-            "description": "Deterministic gate landmark inventory sorted by descriptor descriptorId.",
+            "description": "Deterministic gate landmark inventory sorted by descriptor descriptorId with bounded canonical gate family count.",
             "items": {
               "additionalProperties": false,
               "properties": {
@@ -2000,6 +2001,7 @@
               "required": ["descriptor", "approachMetadata"],
               "type": "object"
             },
+            "maxItems": 3,
             "minItems": 1,
             "type": "array"
           },
