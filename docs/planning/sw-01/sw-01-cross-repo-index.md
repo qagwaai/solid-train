@@ -67,6 +67,9 @@ When SW-01 drift is detected:
 
 | Date | Repo | Update | Owner |
 | --- | --- | --- | --- |
+| 2026-05-30 | solid-train | SW-01 Nova M4 dual-gate enforcement reported complete with PR hard-fail gate wiring, deterministic drift hard-fail evidence (enum/unsupported/shape), and canonical re-pass confirmation | Nova |
+| 2026-05-30 | solid-train | SW-01 Nova M3 violation-path behavior reported complete with strict visible contract-violation UI, stable telemetry field contract, and passing component + route smoke evidence | Nova |
+| 2026-05-30 | solid-train | SW-01 Nova M2 lane rendering/filtering reported complete with strict unknown-status violation UI, telemetry diagnostics context, and passing component + route smoke evidence | Nova |
 | 2026-05-30 | solid-train | SW-01 M4 dual gate enforcement complete: Forge hard-fail gate and Nova preflight hard-fail gate active in PR workflow; local parity confirms deterministic pass/fail/re-pass behavior | Forge |
 | 2026-05-30 | solid-train | SW-01 M5 recommendation: go for canary validation based on dual-gate enforcement evidence and clean post-drift recovery | Orion |
 | 2026-05-30 | solid-train | SW-01 M3 cross-repo gate alignment complete: hard alignment pass plus deterministic hard-fail drift checks for enum casing, unsupported status, and payload shape; actionable diagnostics verified | Forge |
@@ -79,6 +82,9 @@ When SW-01 drift is detected:
 
 ## Change Log
 
+- 2026-05-30: Recorded Nova-side M4 closure evidence (PR hard-fail gate active, deterministic drift hard-fail coverage for enum/unsupported/shape, and canonical re-pass validation).
+- 2026-05-30: Recorded Nova-side M3 closure evidence (strict visible violation-path behavior, stable telemetry diagnostics fields, and mission-board component/route smoke pass).
+- 2026-05-30: Recorded Nova-side M2 closure evidence (lane rendering/filtering complete, strict unknown-status violation visibility, telemetry diagnostics context, and mission-board component/route smoke pass).
 - 2026-05-30: M4 closed with dual-gate activation in PR path: Forge mission-status hard gate plus Nova preflight hard gate. Deterministic local parity run confirms pass/fail/re-pass behavior.
 - 2026-05-30: M5 recommendation updated to go for canary validation following dual-gate closure.
 - 2026-05-30: M3 closed with SW-01 mission-list-specific cross-repo compatibility fixtures and hard-fail drift commands; alignment pass and drift diagnostics (owner, severity, producer location, impacted consumer surface, remediation hint) verified locally.
