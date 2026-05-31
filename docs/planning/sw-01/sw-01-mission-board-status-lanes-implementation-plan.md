@@ -1,7 +1,8 @@
 # SW-01 Mission Board Status Lanes Implementation Plan (Backend-Led)
 
-Status: Draft (Execution Ready)
+Status: Complete (Closed)
 Date: 2026-05-26
+Completed: 2026-05-30
 Repo: solid-train
 Related repo: laughing-octo-journey
 Feature ID: SW-01
@@ -215,11 +216,31 @@ Rationale:
 2. Enum, unsupported status, and payload shape drifts fail with actionable ownership/remediation diagnostics.
 3. Canonical pass path remains green after drift probes.
 
+Status update (2026-05-30): Closed.
+Evidence summary:
+1. Canary validation completed with no non-canonical mission status emissions observed.
+2. No P1/P2 defects remained open during the agreed soak window.
+3. Rollback drill completed and canonical post-drill checks re-passed.
+4. Cross-repo Nova and Forge reports aligned on closure recommendation.
+
+M6 recommendation (2026-05-30): Go.
+Rationale:
+1. M0-M5 evidence chain is complete with hard-fail gate integrity maintained.
+2. Canary and rollback criteria for SW-01 were satisfied.
+3. No contract or lane-semantics blockers remain for release decision review.
+
 M6: Release decision gate
 
 1. Go/no-go decision recorded.
 2. Closure checklist complete.
 3. SW-01 status moves to maintenance mode.
+
+Status update (2026-05-30): Closed.
+Decision: Go.
+Evidence summary:
+1. M0-M5 milestones closed with accepted evidence.
+2. Canary validation and rollback readiness criteria satisfied.
+3. Cross-repo Forge/Nova indexes and closure checklists updated to complete state.
 
 ## 6. Test Matrix
 
