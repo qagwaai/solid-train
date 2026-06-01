@@ -46,6 +46,84 @@ function createCelestialModelArtifacts({
         type: String,
         required: true,
       },
+      externalObjectDescriptor: {
+        type: new mongoose.Schema(
+          {
+            descriptorId: {
+              type: String,
+              required: true,
+            },
+            schemaVersion: {
+              type: String,
+              enum: ['sw-13-m0-v1'],
+              required: true,
+            },
+            domain: {
+              type: String,
+              enum: ['debris', 'ships', 'gates', 'stations', 'asteroids'],
+              required: true,
+            },
+            objectFamily: {
+              type: String,
+              required: true,
+            },
+            roleCue: {
+              type: String,
+              enum: [
+                'salvage',
+                'industrial',
+                'trade',
+                'military',
+                'navigation',
+                'infrastructure',
+                'hazard',
+                'civilian',
+                'neutral',
+              ],
+              required: true,
+            },
+            factionCue: {
+              type: String,
+              enum: [
+                'neutral',
+                'independent',
+                'consortium',
+                'frontier-union',
+                'imperial-remnant',
+                'pirate-clan',
+                'unknown',
+              ],
+              required: true,
+            },
+            fallbackTier: {
+              type: String,
+              enum: ['hero', 'standard', 'minimal'],
+              required: true,
+            },
+            displayLabel: {
+              type: String,
+              required: true,
+            },
+            silhouetteProfile: {
+              type: String,
+              enum: ['fragmented', 'needle', 'broad', 'modular', 'ring', 'spire', 'clustered', 'irregular'],
+              required: true,
+            },
+            materialProfile: {
+              type: String,
+              enum: ['scrap', 'alloy', 'composite', 'infrastructure', 'rocky', 'metallic', 'icy'],
+              required: true,
+            },
+            emissiveProfile: {
+              type: String,
+              enum: ['none', 'low', 'medium', 'high', 'navigation'],
+              required: true,
+            },
+          },
+          { _id: false }
+        ),
+        default: null,
+      },
     },
     { _id: false }
   );
@@ -168,6 +246,84 @@ function createCelestialModelArtifacts({
       composition: {
         type: asteroidMaterialProfileSchema,
         required: true,
+      },
+      externalObjectDescriptor: {
+        type: new mongoose.Schema(
+          {
+            descriptorId: {
+              type: String,
+              required: true,
+            },
+            schemaVersion: {
+              type: String,
+              enum: ['sw-13-m0-v1'],
+              required: true,
+            },
+            domain: {
+              type: String,
+              enum: ['debris', 'ships', 'gates', 'stations', 'asteroids'],
+              required: true,
+            },
+            objectFamily: {
+              type: String,
+              required: true,
+            },
+            roleCue: {
+              type: String,
+              enum: [
+                'salvage',
+                'industrial',
+                'trade',
+                'military',
+                'navigation',
+                'infrastructure',
+                'hazard',
+                'civilian',
+                'neutral',
+              ],
+              required: true,
+            },
+            factionCue: {
+              type: String,
+              enum: [
+                'neutral',
+                'independent',
+                'consortium',
+                'frontier-union',
+                'imperial-remnant',
+                'pirate-clan',
+                'unknown',
+              ],
+              required: true,
+            },
+            fallbackTier: {
+              type: String,
+              enum: ['hero', 'standard', 'minimal'],
+              required: true,
+            },
+            displayLabel: {
+              type: String,
+              required: true,
+            },
+            silhouetteProfile: {
+              type: String,
+              enum: ['fragmented', 'needle', 'broad', 'modular', 'ring', 'spire', 'clustered', 'irregular'],
+              required: true,
+            },
+            materialProfile: {
+              type: String,
+              enum: ['scrap', 'alloy', 'composite', 'infrastructure', 'rocky', 'metallic', 'icy'],
+              required: true,
+            },
+            emissiveProfile: {
+              type: String,
+              enum: ['none', 'low', 'medium', 'high', 'navigation'],
+              required: true,
+            },
+          },
+          { _id: false }
+        ),
+        default: null,
       },
       state: {
         type: String,

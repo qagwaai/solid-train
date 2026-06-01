@@ -1848,6 +1848,153 @@ test('mission add stores mission progress and mission list returns it', async ()
   server.close();
 });
 
+test('mission-list integration emits only canonical statuses across completed/active/available paths', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const loginResponse = await registerAndLogin(
+      client,
+      'MissionIntegrationPilot',
+      'mission-integration@example.com',
+      'mission-integration-pass'
+    );
+
+    const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+    client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+      playerName: 'MissionIntegrationPilot',
+      sessionKey: loginResponse.sessionKey,
+      characterName: 'LaneVerifier',
+    });
+    const addCharacter = await addCharacterPromise;
+    assert.equal(addCharacter.success, true);
+
+    const activateFirstTargetPromise = waitForEvent(client, MISSION_ADD_RESPONSE_EVENT);
+    client.emit(MISSION_ADD_REQUEST_EVENT, {
+      playerName: 'MissionIntegrationPilot',
+      characterId: addCharacter.characterId,
+      missionId: 'first-target',
+      status: 'active',
+      sessionKey: loginResponse.sessionKey,
+    });
+    const activateFirstTarget = await activateFirstTargetPromise;
+    assert.equal(activateFirstTarget.success, true);
+
+    const completeFirstTargetPromise = waitForEvent(client, MISSION_ADD_RESPONSE_EVENT);
+    client.emit(MISSION_ADD_REQUEST_EVENT, {
+      playerName: 'MissionIntegrationPilot',
+      characterId: addCharacter.characterId,
+      missionId: 'first-target',
+      status: 'completed',
+      sessionKey: loginResponse.sessionKey,
+    });
+    const completeFirstTarget = await completeFirstTargetPromise;
+    assert.equal(completeFirstTarget.success, true);
+
+    const activateM01Promise = waitForEvent(client, MISSION_ADD_RESPONSE_EVENT);
+    client.emit(MISSION_ADD_REQUEST_EVENT, {
+      playerName: 'MissionIntegrationPilot',
+      characterId: addCharacter.characterId,
+      missionId: 'm-01',
+      status: 'active',
+      sessionKey: loginResponse.sessionKey,
+    });
+    const activateM01 = await activateM01Promise;
+    assert.equal(activateM01.success, true);
+
+    const missionListPromise = waitForEvent(client, MISSION_LIST_RESPONSE_EVENT);
+    client.emit(MISSION_LIST_REQUEST_EVENT, {
+      playerName: 'MissionIntegrationPilot',
+      characterId: addCharacter.characterId,
+      sessionKey: loginResponse.sessionKey,
+      correlationId: 'ab5d2e36-a7de-4f95-ab70-26743231a652',
+      requestIdentity: {
+        operation: 'mission-list',
+        entityType: 'mission',
+        containerId: addCharacter.characterId,
+      },
+    });
+    const missionList = await missionListPromise;
+
+    assert.equal(missionList.success, true);
+    assert.equal(missionList.correlationId, 'ab5d2e36-a7de-4f95-ab70-26743231a652');
+    assert.equal(Array.isArray(missionList.missions), true);
+    assert.ok(missionList.missions.length >= 3);
+
+    const emittedStatuses = missionList.missions.map((mission) => mission.status);
+    const canonicalStatuses = new Set(['available', 'active', 'completed']);
+    for (const status of emittedStatuses) {
+      assert.ok(canonicalStatuses.has(status), `Non-canonical status emitted: ${status}`);
+    }
+
+    assert.ok(emittedStatuses.includes('completed'));
+    assert.ok(emittedStatuses.includes('active'));
+    assert.ok(emittedStatuses.includes('available'));
+  } finally {
+    await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
+test('mission-list integration rejects mixed canonical and non-canonical status filters with strict failure', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const loginResponse = await registerAndLogin(
+      client,
+      'MissionFilterPilot',
+      'mission-filter@example.com',
+      'mission-filter-pass'
+    );
+
+    const addCharacterPromise = waitForEvent(client, CHARACTER_ADD_RESPONSE_EVENT);
+    client.emit(CHARACTER_ADD_REQUEST_EVENT, {
+      playerName: 'MissionFilterPilot',
+      sessionKey: loginResponse.sessionKey,
+      characterName: 'FilterVerifier',
+    });
+    const addCharacter = await addCharacterPromise;
+    assert.equal(addCharacter.success, true);
+
+    const missionListPromise = waitForEvent(client, MISSION_LIST_RESPONSE_EVENT);
+    client.emit(MISSION_LIST_REQUEST_EVENT, {
+      playerName: 'MissionFilterPilot',
+      characterId: addCharacter.characterId,
+      statuses: ['active', 'paused'],
+      sessionKey: loginResponse.sessionKey,
+      correlationId: '7a11cba8-bad6-4143-9424-ea1177cac8a0',
+      requestIdentity: {
+        operation: 'mission-list',
+        entityType: 'mission',
+        containerId: addCharacter.characterId,
+      },
+    });
+    const missionList = await missionListPromise;
+
+    assert.equal(missionList.success, false);
+    assert.match(missionList.message, /unsupported values: paused/);
+    assert.deepEqual(missionList.missions, []);
+    assert.equal(missionList.correlationId, '7a11cba8-bad6-4143-9424-ea1177cac8a0');
+    assert.deepEqual(missionList.requestIdentity, {
+      operation: 'mission-list',
+      entityType: 'mission',
+      containerId: addCharacter.characterId,
+    });
+  } finally {
+    await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
 test('mission list emits invalid session for wrong session key', async () => {
   const { server, io } = createServer();
   const port = await listen(server);

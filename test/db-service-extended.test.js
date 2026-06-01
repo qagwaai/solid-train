@@ -196,12 +196,21 @@ test('DatabaseService mission methods add, replace, and list missions', async ()
 
     const replaced = await service.addOrUpdateMission('pilot', 'c-1', {
       missionId: 'm-1',
-      status: 'accepted',
+      status: 'completed',
       updatedAt: '2026-05-02T00:00:00.000Z',
     });
     assert.equal(replaced.characters[0].missions.length, 1);
-    assert.equal(replaced.characters[0].missions[0].status, 'accepted');
+    assert.equal(replaced.characters[0].missions[0].status, 'completed');
     assert.equal(player.modifiedPaths.length, 1);
+
+    await assert.rejects(
+      service.addOrUpdateMission('pilot', 'c-1', {
+        missionId: 'm-1',
+        status: 'accepted',
+        updatedAt: '2026-05-03T00:00:00.000Z',
+      }),
+      /Mission persistence rejected unsupported status: accepted/
+    );
 
     const missions = await service.getMissions('pilot', 'c-1');
     assert.equal(missions.length, 1);

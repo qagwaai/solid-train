@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "sw-13-m0-v1",
+  "descriptors": [
+    {
+      "descriptorId": "asteroids-cinematic-hero",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "asteroids",
+      "objectFamily": "cinematic-hero",
+      "roleCue": "hazard",
+      "factionCue": "unknown",
+      "fallbackTier": "hero",
+      "displayLabel": "Cinematic Hero Asteroid",
+      "silhouetteProfile": "spire",
+      "materialProfile": "rocky",
+      "emissiveProfile": "medium"
+    },
+    {
+      "descriptorId": "asteroids-icy-body",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "asteroids",
+      "objectFamily": "icy-body",
+      "roleCue": "hazard",
+      "factionCue": "neutral",
+      "fallbackTier": "minimal",
+      "displayLabel": "Icy Body Asteroid",
+      "silhouetteProfile": "broad",
+      "materialProfile": "icy",
+      "emissiveProfile": "low"
+    },
+    {
+      "descriptorId": "asteroids-metallic-cluster",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "asteroids",
+      "objectFamily": "metallic-cluster",
+      "roleCue": "industrial",
+      "factionCue": "neutral",
+      "fallbackTier": "standard",
+      "displayLabel": "Metallic Cluster Asteroid",
+      "silhouetteProfile": "clustered",
+      "materialProfile": "metallic",
+      "emissiveProfile": "low"
+    },
+    {
+      "descriptorId": "asteroids-rocky-irregular",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "asteroids",
+      "objectFamily": "rocky-irregular",
+      "roleCue": "hazard",
+      "factionCue": "neutral",
+      "fallbackTier": "standard",
+      "displayLabel": "Rocky Irregular Asteroid",
+      "silhouetteProfile": "irregular",
+      "materialProfile": "rocky",
+      "emissiveProfile": "none"
+    },
+    {
+      "descriptorId": "debris-cargo-canister",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "debris",
+      "objectFamily": "cargo-canister",
+      "roleCue": "trade",
+      "factionCue": "independent",
+      "fallbackTier": "standard",
+      "displayLabel": "Cargo Canister",
+      "silhouetteProfile": "modular",
+      "materialProfile": "composite",
+      "emissiveProfile": "low"
+    },
+    {
+      "descriptorId": "debris-field-shard",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "debris",
+      "objectFamily": "field-shard",
+      "roleCue": "salvage",
+      "factionCue": "unknown",
+      "fallbackTier": "minimal",
+      "displayLabel": "Field Shard",
+      "silhouetteProfile": "irregular",
+      "materialProfile": "metallic",
+      "emissiveProfile": "none"
+    },
+    {
+      "descriptorId": "debris-salvage-fragment",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "debris",
+      "objectFamily": "salvage-fragment",
+      "roleCue": "salvage",
+      "factionCue": "neutral",
+      "fallbackTier": "standard",
+      "displayLabel": "Salvage Fragment",
+      "silhouetteProfile": "fragmented",
+      "materialProfile": "scrap",
+      "emissiveProfile": "low"
+    },
+    {
+      "descriptorId": "debris-wreckage-panel",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "debris",
+      "objectFamily": "wreckage-panel",
+      "roleCue": "hazard",
+      "factionCue": "unknown",
+      "fallbackTier": "standard",
+      "displayLabel": "Wreckage Panel",
+      "silhouetteProfile": "broad",
+      "materialProfile": "alloy",
+      "emissiveProfile": "none"
+    }
+  ]
+}

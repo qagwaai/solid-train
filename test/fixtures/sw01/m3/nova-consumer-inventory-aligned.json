@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "sw-01-m3-fixture-v1",
+  "surfaces": {
+    "apiEndpoints": [],
+    "socketEndpoints": ["/socket/mission-list"],
+    "socketEvents": ["list-missions"]
+  },
+  "components": {
+    "schemas": {
+      "MissionListRequest": {
+        "type": "object",
+        "required": ["playerName", "characterId", "sessionKey", "correlationId", "requestIdentity"],
+        "properties": {
+          "playerName": { "type": "string" },
+          "characterId": { "type": "string" },
+          "sessionKey": { "type": "string" },
+          "correlationId": { "type": "string" },
+          "requestIdentity": {
+            "type": "object",
+            "required": ["operation", "entityType", "containerId"],
+            "properties": {
+              "operation": { "type": "string" },
+              "entityType": { "type": "string" },
+              "containerId": { "type": "string" }
+            }
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["available", "active", "completed"]
+            }
+          }
+        }
+      },
+      "MissionListResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "message",
+          "playerName",
+          "characterId",
+          "missions",
+          "correlationId",
+          "requestIdentity"
+        ],
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "playerName": { "type": "string" },
+          "characterId": { "type": "string" },
+          "correlationId": { "type": "string" },
+          "requestIdentity": {
+            "type": "object",
+            "required": ["operation", "entityType", "containerId"],
+            "properties": {
+              "operation": { "type": "string" },
+              "entityType": { "type": "string" },
+              "containerId": { "type": "string" }
+            }
+          },
+          "missions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["missionId", "status"],
+              "properties": {
+                "missionId": { "type": "string" },
+                "status": {
+                  "type": "string",
+                  "enum": ["available", "active", "completed"]
+                },
+                "updatedAt": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

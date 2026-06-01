@@ -1,6 +1,6 @@
 # SW-01 Cross-Repo Coordination Index
 
-Status: Draft (Execution Ready)
+Status: Complete (Closed)
 Date: 2026-05-26
 Scope: SW-01 Mission Board Status Lanes across solid-train and laughing-octo-journey
 
@@ -15,8 +15,9 @@ Forge documents (solid-train):
 1. [Requirements](sw-01-mission-board-status-lanes-requirements.md)
 2. [Implementation Plan](sw-01-mission-board-status-lanes-implementation-plan.md)
 3. [Pre-Implementation Findings](sw-01-pre-implementation-findings.md)
-4. [Runbook](sw-01-mission-board-status-lanes-runbook.md)
-5. [Closure Checklist](sw-01-closure-checklist.md)
+4. [M0 Contract Lock Execution Checklist](sw-01-m0-contract-lock-execution-checklist.md)
+5. [Runbook](sw-01-mission-board-status-lanes-runbook.md)
+6. [Closure Checklist](sw-01-closure-checklist.md)
 
 Nova document (laughing-octo-journey):
 
@@ -29,18 +30,19 @@ Nova document (laughing-octo-journey):
 3. Strict fail behavior is required for unknown mission statuses.
 4. No legacy compatibility paths are retained.
 5. Canary-only release progression before broad rollout.
+6. Canonical mission status values are lowercase: `available`, `active`, `completed`.
 
 ## Milestone Sync Board
 
 | Milestone | Forge (solid-train) | Nova (laughing-octo-journey) | QA Evidence | Status |
 | --- | --- | --- | --- | --- |
-| M0 Contract baseline lock | Not started | Not started | Pending | Open |
-| M1 Producer emission compliance | Not started | N/A | Pending | Open |
-| M2 Lane rendering and filters | N/A | Not started | Pending | Open |
-| M3 Strict violation behavior | Shared | Shared | Pending | Open |
-| M4 Dual gate enforcement | Shared | Shared | Pending | Open |
-| M5 Canary validation | Shared | Shared | Pending | Open |
-| M6 Release decision | Shared | Shared | Pending | Open |
+| M0 Contract baseline lock | Complete | Acknowledged | Evidence accepted | Closed |
+| M1 Producer emission compliance | Complete | N/A | Evidence accepted | Closed |
+| M2 Integration contract confidence | Complete | N/A | Evidence accepted | Closed |
+| M3 Cross-repo gate alignment | Complete | Shared inventory validated | Evidence accepted | Closed |
+| M4 Dual gate enforcement | Complete | Complete | Evidence accepted | Closed |
+| M5 Canary validation | Complete | Complete | Evidence accepted | Closed |
+| M6 Release decision | Go | Go | Release decision recorded | Closed |
 
 ## Merge and Release Sequence
 
@@ -65,9 +67,39 @@ When SW-01 drift is detected:
 
 | Date | Repo | Update | Owner |
 | --- | --- | --- | --- |
+| 2026-05-30 | solid-train | SW-01 marked complete; M6 release decision recorded as Go and milestone chain M0-M6 closed | Orion |
+| 2026-05-30 | solid-train | SW-01 M5 canary validation closed: no non-canonical status emissions, soak criteria satisfied, rollback drill completed, and post-drill canonical checks green | Orion |
+| 2026-05-30 | solid-train | SW-01 M6 recommendation updated to Go based on completed M0-M5 evidence chain and resolved canary operability gaps | Orion |
+| 2026-05-30 | solid-train | SW-01 Nova M4 dual-gate enforcement reported complete with PR hard-fail gate wiring, deterministic drift hard-fail evidence (enum/unsupported/shape), and canonical re-pass confirmation | Nova |
+| 2026-05-30 | solid-train | SW-01 Nova M3 violation-path behavior reported complete with strict visible contract-violation UI, stable telemetry field contract, and passing component + route smoke evidence | Nova |
+| 2026-05-30 | solid-train | SW-01 Nova M2 lane rendering/filtering reported complete with strict unknown-status violation UI, telemetry diagnostics context, and passing component + route smoke evidence | Nova |
+| 2026-05-30 | solid-train | SW-01 M4 dual gate enforcement complete: Forge hard-fail gate and Nova preflight hard-fail gate active in PR workflow; local parity confirms deterministic pass/fail/re-pass behavior | Forge |
+| 2026-05-30 | solid-train | SW-01 M5 recommendation: go for canary validation based on dual-gate enforcement evidence and clean post-drift recovery | Orion |
+| 2026-05-30 | solid-train | SW-01 M3 cross-repo gate alignment complete: hard alignment pass plus deterministic hard-fail drift checks for enum casing, unsupported status, and payload shape; actionable diagnostics verified | Forge |
+| 2026-05-30 | solid-train | SW-01 M4 recommendation: go for canary quality gate execution based on stable M0-M3 evidence chain | Orion |
+| 2026-05-30 | solid-train | SW-01 M2 integration contract confidence complete with server + persistence + contract gate evidence; closure recommended | Forge |
+| 2026-05-30 | solid-train | SW-01 M1 producer emission compliance complete with canonical mission-list emission and strict invalid-status rejection evidence | Forge |
+| 2026-05-30 | solid-train | SW-01 M0 closed with Forge/Nova/QA/Orion sign-offs; M1 kickoff authorized | Orion |
+| 2026-05-30 | solid-train | SW-01 M0 contract lock implemented; Nova handoff packet published for acknowledgment | Forge |
 | 2026-05-26 | solid-train | SW-01 Forge planning set created | Orion |
 
 ## Change Log
 
+- 2026-05-30: SW-01 marked complete; M6 decision closed as Go.
+- 2026-05-30: M5 marked closed after coordinated Forge + Nova canary validation evidence satisfied emission, soak, and rollback criteria.
+- 2026-05-30: M6 recommendation updated to Go.
+- 2026-05-30: Recorded Nova-side M4 closure evidence (PR hard-fail gate active, deterministic drift hard-fail coverage for enum/unsupported/shape, and canonical re-pass validation).
+- 2026-05-30: Recorded Nova-side M3 closure evidence (strict visible violation-path behavior, stable telemetry diagnostics fields, and mission-board component/route smoke pass).
+- 2026-05-30: Recorded Nova-side M2 closure evidence (lane rendering/filtering complete, strict unknown-status violation visibility, telemetry diagnostics context, and mission-board component/route smoke pass).
+- 2026-05-30: M4 closed with dual-gate activation in PR path: Forge mission-status hard gate plus Nova preflight hard gate. Deterministic local parity run confirms pass/fail/re-pass behavior.
+- 2026-05-30: M5 recommendation updated to go for canary validation following dual-gate closure.
+- 2026-05-30: M3 closed with SW-01 mission-list-specific cross-repo compatibility fixtures and hard-fail drift commands; alignment pass and drift diagnostics (owner, severity, producer location, impacted consumer surface, remediation hint) verified locally.
+- 2026-05-30: M4 recommendation marked go based on deterministic M0-M3 gate chain and post-drift re-pass evidence.
+- 2026-05-30: M2 closed: mission-list integration paths validated green on canonical statuses, non-canonical integration/contract paths fail intentionally with clear diagnostics, and local parity commands match CI intent.
+- 2026-05-30: M1 closed: mission-list producer emission paths verified canonical (`available`, `active`, `completed`), invalid injection hard-fail behavior validated, and diagnostics/correlation evidence captured.
+- 2026-05-30: Nova acknowledgment posted in `sw-01-m0-nova-handoff.md`; M0 checklist sign-offs recorded and M1 kickoff authorized.
+- 2026-05-30: Canonical mission status values updated to lowercase (`available`, `active`, `completed`) across SW-01 planning artifacts.
+- 2026-05-30: SW-01 M0 Nova handoff packet published (`sw-01-m0-nova-handoff.md`) with strict failure semantics and gate commands.
+- 2026-05-30: Added Forge-first M0 contract lock execution checklist as the active SW-01 start artifact.
 - 2026-05-26: Added pre-implementation findings to capture current backend gaps before SW-01 execution.
 - 2026-05-26: Initial SW-01 cross-repo index created and linked to Forge and Nova plans.

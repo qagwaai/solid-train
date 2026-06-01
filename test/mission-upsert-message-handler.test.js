@@ -370,6 +370,31 @@ test('MissionUpsertMessageHandler rejects non-canonical status with structured m
   assert.equal(response.message, 'status must be one of: available, active, completed');
 });
 
+test('MissionUpsertMessageHandler surfaces persistence unsupported-status failures without generic fallback', async () => {
+  const context = createTestContext();
+  seedMissionPilot(context, []);
+  context.addOrUpdateMissionAsync = async () => {
+    throw new Error(
+      'Mission persistence rejected unsupported status: accepted. Allowed values: available, active, completed'
+    );
+  };
+
+  const handler = new MissionUpsertMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'MissionPilot',
+    characterId: 'character-1',
+    missionId: 'm-01',
+    status: 'active',
+    sessionKey: 'session-1',
+  });
+
+  assert.equal(response.success, false);
+  assert.equal(
+    response.message,
+    'Mission persistence rejected unsupported status: accepted. Allowed values: available, active, completed'
+  );
+});
+
 test('MissionUpsertMessageHandler completing first-target unlocks dependent missions once', async () => {
   const context = createTestContext();
   seedMissionPilot(context, []);

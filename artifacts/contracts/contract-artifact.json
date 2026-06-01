@@ -1,7 +1,7 @@
 {
   "checksums": {
-    "openApiSha256": "8f31a8e9161d43bc947d28c99c938d45877e8a3d1b302bbbd16639816b2ba7c2",
-    "schemaBundleSha256": "dae18617359566c31375d9992c9de061f97c56e1ef5b489c025cc2102dc360f2"
+    "openApiSha256": "e0023323f997245ed6b8fce73dd4cfa25d55a12a19eb1d2386cb867311413a64",
+    "schemaBundleSha256": "700b0c874896c3331453a2621cf8a067195257b1b32a43c0fec8709790a8ddf9"
   },
   "components": {
     "schemaRefMap": {
@@ -25,6 +25,9 @@
       "CreditLedgerListRequest": "credit-ledger-list-request.schema.json",
       "CreditLedgerListResponse": "credit-ledger-list-response.schema.json",
       "ErrorResponse": "error-response.schema.json",
+      "ExternalObjectDescriptor": "external-object-descriptor.schema.json",
+      "ExternalObjectDescriptorPayload": "external-object-descriptor-payload.schema.json",
+      "ExternalObjectGateLandmarkPayload": "external-object-gate-landmark-payload.schema.json",
       "GameJoinRequest": "game-join-request.schema.json",
       "GameJoinResponse": "game-join-response.schema.json",
       "GameLeaveRequest": "game-leave-request.schema.json",
@@ -340,6 +343,9 @@
               "distanceKm": {
                 "type": "number"
               },
+              "externalObjectDescriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
               "hygId": {
                 "type": ["string", "null"]
               },
@@ -439,6 +445,9 @@
           },
           "debrisEntry": {
             "properties": {
+              "externalObjectDescriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
               "itemType": {
                 "$ref": "./canonical-item-type.schema.json"
               },
@@ -675,6 +684,10 @@
               },
               "createdByCharacterId": {
                 "type": "string"
+              },
+              "externalObjectDescriptor": {
+                "$ref": "./external-object-descriptor.schema.json",
+                "description": "Optional SW-13 canonical descriptor attached to the celestial body for external-object presentation identity."
               },
               "id": {
                 "type": "string"
@@ -1630,6 +1643,376 @@
         },
         "required": ["success", "message"],
         "title": "error-response",
+        "type": "object"
+      },
+      "ExternalObjectDescriptor": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "domain": {
+                  "const": "debris"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "objectFamily": {
+                  "enum": ["salvage-fragment", "wreckage-panel", "cargo-canister", "field-shard"]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "domain": {
+                  "const": "ships"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "objectFamily": {
+                  "enum": ["scout", "hauler", "frigate", "interceptor", "industrial"]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "domain": {
+                  "const": "gates"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "objectFamily": {
+                  "enum": ["ring-gate", "segmented-arch", "relay-spindle"]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "domain": {
+                  "const": "stations"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "objectFamily": {
+                  "enum": ["trade-hub", "refinery", "naval-outpost", "research-platform"]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "domain": {
+                  "const": "asteroids"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "objectFamily": {
+                  "enum": ["rocky-irregular", "metallic-cluster", "icy-body", "cinematic-hero"]
+                }
+              }
+            }
+          }
+        ],
+        "properties": {
+          "descriptorId": {
+            "description": "Stable identifier for descriptor content references and fixture assertions.",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "displayLabel": {
+            "description": "Human-readable label for diagnostics and optional UI overlays.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "domain": {
+            "description": "Top-level object domain used by selection and downstream rendering adapters.",
+            "enum": ["debris", "ships", "gates", "stations", "asteroids"],
+            "type": "string"
+          },
+          "emissiveProfile": {
+            "description": "Emissive cue profile for readability under motion and darkness.",
+            "enum": ["none", "low", "medium", "high", "navigation"],
+            "type": "string"
+          },
+          "factionCue": {
+            "description": "Faction identity cue for silhouette context and narrative-aligned presentation.",
+            "enum": [
+              "neutral",
+              "independent",
+              "consortium",
+              "frontier-union",
+              "imperial-remnant",
+              "pirate-clan",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "fallbackTier": {
+            "description": "Deterministic fallback tier reference for balanced-performance profile handling.",
+            "enum": ["hero", "standard", "minimal"],
+            "type": "string"
+          },
+          "materialProfile": {
+            "description": "Material treatment category to keep rendering semantics explicit.",
+            "enum": ["scrap", "alloy", "composite", "infrastructure", "rocky", "metallic", "icy"],
+            "type": "string"
+          },
+          "objectFamily": {
+            "description": "Canonical family taxonomy value for stable visual identity selection.",
+            "type": "string"
+          },
+          "roleCue": {
+            "description": "Role identity cue consumed by selectors and telemetry for readability decisions.",
+            "enum": [
+              "salvage",
+              "industrial",
+              "trade",
+              "military",
+              "navigation",
+              "infrastructure",
+              "hazard",
+              "civilian",
+              "neutral"
+            ],
+            "type": "string"
+          },
+          "schemaVersion": {
+            "const": "sw-13-m0-v1",
+            "description": "Pinned contract version for baseline lock and drift detection.",
+            "type": "string"
+          },
+          "silhouetteProfile": {
+            "description": "Distance-safe silhouette cue for at-a-glance recognition.",
+            "enum": [
+              "fragmented",
+              "needle",
+              "broad",
+              "modular",
+              "ring",
+              "spire",
+              "clustered",
+              "irregular"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "descriptorId",
+          "schemaVersion",
+          "domain",
+          "objectFamily",
+          "roleCue",
+          "factionCue",
+          "fallbackTier",
+          "displayLabel",
+          "silhouetteProfile",
+          "materialProfile",
+          "emissiveProfile"
+        ],
+        "title": "external-object-descriptor",
+        "type": "object"
+      },
+      "ExternalObjectDescriptorPayload": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "examples": [
+          {
+            "descriptors": [
+              {
+                "descriptorId": "ships-scout",
+                "displayLabel": "Scout Hull",
+                "domain": "ships",
+                "emissiveProfile": "low",
+                "factionCue": "independent",
+                "fallbackTier": "minimal",
+                "materialProfile": "alloy",
+                "objectFamily": "scout",
+                "roleCue": "navigation",
+                "schemaVersion": "sw-13-m0-v1",
+                "silhouetteProfile": "needle"
+              },
+              {
+                "descriptorId": "stations-trade-hub",
+                "displayLabel": "Trade Hub Station",
+                "domain": "stations",
+                "emissiveProfile": "navigation",
+                "factionCue": "consortium",
+                "fallbackTier": "hero",
+                "materialProfile": "infrastructure",
+                "objectFamily": "trade-hub",
+                "roleCue": "trade",
+                "schemaVersion": "sw-13-m0-v1",
+                "silhouetteProfile": "ring"
+              }
+            ],
+            "schemaVersion": "sw-13-m0-v1"
+          }
+        ],
+        "properties": {
+          "descriptors": {
+            "description": "Deterministic descriptor inventory sorted by descriptorId for selector-stable consumption with bounded family bundle size.",
+            "items": {
+              "$ref": "./external-object-descriptor.schema.json"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "schemaVersion": {
+            "const": "sw-13-m0-v1",
+            "description": "Pinned descriptor payload contract version for SW-13 M0-M2 family payloads.",
+            "type": "string"
+          }
+        },
+        "required": ["schemaVersion", "descriptors"],
+        "title": "external-object-descriptor-payload",
+        "type": "object"
+      },
+      "ExternalObjectGateLandmarkPayload": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "definitions": {
+          "gateApproachMetadata": {
+            "additionalProperties": false,
+            "properties": {
+              "approachCue": {
+                "description": "Navigation approach cue used to maintain unmistakable gate approach semantics.",
+                "enum": ["direct-centerline", "offset-spiral", "vector-handoff"],
+                "type": "string"
+              },
+              "approachWindowKm": {
+                "additionalProperties": false,
+                "description": "Window bounds for cue-stable approach behavior.",
+                "properties": {
+                  "max": {
+                    "minimum": 1,
+                    "type": "number"
+                  },
+                  "min": {
+                    "minimum": 1,
+                    "type": "number"
+                  }
+                },
+                "required": ["min", "max"],
+                "type": "object"
+              },
+              "hazardCue": {
+                "description": "Approach hazard cue for navigation decision support.",
+                "enum": ["low", "medium", "high"],
+                "type": "string"
+              },
+              "landmarkFraming": {
+                "description": "Camera-facing framing cue used for long-range landmark readability.",
+                "enum": ["full-ring", "segmented-arch", "spindle-column"],
+                "type": "string"
+              },
+              "navBeaconCue": {
+                "description": "Beacon rhythm cue used by navigation-facing approach overlays.",
+                "enum": ["continuous", "pulse", "triplet"],
+                "type": "string"
+              },
+              "recommendedStandOffKm": {
+                "description": "Recommended standoff distance before committing to the gate approach corridor.",
+                "minimum": 1,
+                "type": "number"
+              },
+              "warningEscalation": {
+                "description": "Mandatory warning escalation policy for route-smoke evidence and approach UX assertions.",
+                "enum": ["none", "required"],
+                "type": "string"
+              }
+            },
+            "required": [
+              "approachCue",
+              "landmarkFraming",
+              "navBeaconCue",
+              "hazardCue",
+              "warningEscalation",
+              "recommendedStandOffKm",
+              "approachWindowKm"
+            ],
+            "type": "object"
+          }
+        },
+        "examples": [
+          {
+            "gates": [
+              {
+                "approachMetadata": {
+                  "approachCue": "direct-centerline",
+                  "approachWindowKm": {
+                    "max": 2200,
+                    "min": 1000
+                  },
+                  "hazardCue": "low",
+                  "landmarkFraming": "full-ring",
+                  "navBeaconCue": "continuous",
+                  "recommendedStandOffKm": 1400,
+                  "warningEscalation": "none"
+                },
+                "descriptor": {
+                  "descriptorId": "gates-ring-gate",
+                  "displayLabel": "Ring Gate Landmark",
+                  "domain": "gates",
+                  "emissiveProfile": "navigation",
+                  "factionCue": "consortium",
+                  "fallbackTier": "hero",
+                  "materialProfile": "infrastructure",
+                  "objectFamily": "ring-gate",
+                  "roleCue": "navigation",
+                  "schemaVersion": "sw-13-m0-v1",
+                  "silhouetteProfile": "ring"
+                }
+              }
+            ],
+            "schemaVersion": "sw-13-m0-v1"
+          }
+        ],
+        "properties": {
+          "gates": {
+            "description": "Deterministic gate landmark inventory sorted by descriptor descriptorId with bounded canonical gate family count.",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "approachMetadata": {
+                  "$ref": "#/definitions/gateApproachMetadata"
+                },
+                "descriptor": {
+                  "$ref": "./external-object-descriptor.schema.json"
+                }
+              },
+              "required": ["descriptor", "approachMetadata"],
+              "type": "object"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "type": "array"
+          },
+          "schemaVersion": {
+            "const": "sw-13-m0-v1",
+            "description": "Pinned SW-13 schema version for jump gate landmark payloads.",
+            "type": "string"
+          }
+        },
+        "required": ["schemaVersion", "gates"],
+        "title": "external-object-gate-landmark-payload",
         "type": "object"
       },
       "GameJoinRequest": {
@@ -5517,6 +5900,9 @@
               "distanceFromClusterCenterKm": {
                 "type": "number"
               },
+              "externalObjectDescriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
               "hygId": {
                 "type": ["string", "null"]
               },
@@ -5616,6 +6002,9 @@
           },
           "debrisEntry": {
             "properties": {
+              "externalObjectDescriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
               "itemType": {
                 "$ref": "./canonical-item-type.schema.json"
               },

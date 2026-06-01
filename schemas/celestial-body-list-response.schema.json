@@ -75,7 +75,10 @@
         "material": { "type": "string" },
         "rarity": { "type": "string" },
         "quantity": { "type": "integer" },
-        "itemType": { "$ref": "./canonical-item-type.schema.json" }
+        "itemType": { "$ref": "./canonical-item-type.schema.json" },
+        "externalObjectDescriptor": {
+          "$ref": "./external-object-descriptor.schema.json"
+        }
       },
       "required": ["material", "rarity", "quantity", "itemType"]
     },
@@ -96,6 +99,9 @@
         "physical": { "$ref": "#/definitions/physicalState" },
         "observability": { "$ref": "#/definitions/observabilityState" },
         "composition": { "$ref": "#/definitions/compositionState" },
+        "externalObjectDescriptor": {
+          "$ref": "./external-object-descriptor.schema.json"
+        },
         "state": { "type": "string", "enum": ["unscanned", "active", "destroyed"] },
         "destroyedAt": { "type": ["string", "null"] },
         "destroyedReason": { "type": ["string", "null"] },

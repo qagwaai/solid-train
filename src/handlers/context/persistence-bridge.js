@@ -1,5 +1,7 @@
 'use strict';
 
+const { isCanonicalMissionStatus, MISSION_STATUS_VALUES } = require('../../model/mission');
+
 /**
  * Resolve player from DB when available, then hydrate in-memory cache.
  * @param {Object} ctx
@@ -143,6 +145,13 @@ async function addShipAsync(ctx, playerName, characterId, shipData) {
 }
 
 async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData) {
+  const status = ctx.toNonEmptyString(missionData?.status);
+  if (!isCanonicalMissionStatus(status)) {
+    throw new Error(
+      `Mission persistence rejected unsupported status: ${status || '(empty)'}. Allowed values: ${MISSION_STATUS_VALUES.join(', ')}`
+    );
+  }
+
   await ctx.withDb('adding/updating mission in DB', (databaseService) =>
     databaseService.addOrUpdateMission(playerName, characterId, missionData)
   );

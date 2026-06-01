@@ -1,7 +1,8 @@
 # SW-01 Mission Board Status Lanes Requirements (Backend-Led)
 
-Status: Draft (Execution Ready)
+Status: Complete (Closed)
 Date: 2026-05-26
+Completed: 2026-05-30
 Repo: solid-train
 Related repo: laughing-octo-journey
 Owner: Forge lead (primary), Nova lead (co-owner), QA lead (validation)
@@ -34,9 +35,11 @@ Primary source-of-truth:
 
 Status enum (SW-01 canonical):
 
-1. AVAILABLE
-2. ACTIVE
-3. COMPLETED
+1. available
+2. active
+3. completed
+
+Canonical data values are lowercase. Any title-case labels are presentation-only.
 
 ## 4. Breaking Change Policy (SW-01)
 
@@ -57,7 +60,7 @@ Forbidden producer behavior:
 ## 5. Functional Requirements
 
 1. Mission status emission
-- All mission list producers emit only AVAILABLE, ACTIVE, or COMPLETED.
+- All mission list producers emit only available, active, or completed.
 
 2. Deterministic lane semantics
 - Status values must map one-to-one with Nova lane model.
@@ -93,10 +96,14 @@ Forbidden producer behavior:
 2. Consumer compatibility gate
 - Hard-fail when Nova consumer inventory disagrees with producer status schema.
 
-3. Negative fixture coverage
+3. Dual gate enforcement
+- Forge producer gate and Nova preflight gate must both be active and blocking in PR workflow.
+- Local parity commands must match CI pass/fail behavior.
+
+4. Negative fixture coverage
 - Intentional invalid status fixture must fail reliably in CI.
 
-4. Canary validation
+5. Canary validation
 - SW-01 release promotion blocked if canary sees non-canonical status emissions.
 
 ## 8. Acceptance Criteria

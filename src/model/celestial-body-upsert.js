@@ -54,6 +54,21 @@ const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
  */
 
 /**
+ * @typedef {Object} ExternalObjectDescriptor
+ * @property {string} descriptorId
+ * @property {'sw-13-m0-v1'} schemaVersion
+ * @property {'debris'|'ships'|'gates'|'stations'|'asteroids'} domain
+ * @property {string} objectFamily
+ * @property {'salvage'|'industrial'|'trade'|'military'|'navigation'|'infrastructure'|'hazard'|'civilian'|'neutral'} roleCue
+ * @property {'neutral'|'independent'|'consortium'|'frontier-union'|'imperial-remnant'|'pirate-clan'|'unknown'} factionCue
+ * @property {'hero'|'standard'|'minimal'} fallbackTier
+ * @property {string} displayLabel
+ * @property {'fragmented'|'needle'|'broad'|'modular'|'ring'|'spire'|'clustered'|'irregular'} silhouetteProfile
+ * @property {'scrap'|'alloy'|'composite'|'infrastructure'|'rocky'|'metallic'|'icy'} materialProfile
+ * @property {'none'|'low'|'medium'|'high'|'navigation'} emissiveProfile
+ */
+
+/**
  * @typedef {Object} CelestialBodyUpsertEntity
  * @property {string} [id]
  * @property {string} catalogId
@@ -68,6 +83,7 @@ const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
  * @property {PhysicalState} [physical]
  * @property {ObservabilityState} observability
  * @property {AsteroidMaterialProfile} [composition]
+ * @property {ExternalObjectDescriptor} [externalObjectDescriptor]
  * @property {string} [clusterId]
  * @property {Triple} [clusterCenterKm]
  * @property {Triple} [localOffsetKm]

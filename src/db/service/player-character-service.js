@@ -1,5 +1,7 @@
 'use strict';
 
+const { isCanonicalMissionStatus, MISSION_STATUS_VALUES } = require('../../model/mission');
+
 /**
  * Player/character persistence operations used by DatabaseService.
  * Functions return plain objects to keep handler-facing payloads serialization-safe.
@@ -220,6 +222,13 @@ async function addShip(ctx, Player, playerName, characterId, shipData) {
 
 async function addOrUpdateMission(ctx, Player, playerName, characterId, missionData) {
   try {
+    const status = ctx.toNonEmptyString(missionData?.status);
+    if (!isCanonicalMissionStatus(status)) {
+      throw new Error(
+        `Mission persistence rejected unsupported status: ${status || '(empty)'}. Allowed values: ${MISSION_STATUS_VALUES.join(', ')}`
+      );
+    }
+
     const playerNameQuery = ctx.buildPlayerNameQuery(playerName);
     if (!playerNameQuery) {
       return null;

@@ -54,7 +54,7 @@ async function shouldRecoverStarterDroneForMission(ctx, ship, options = {}) {
   const starterMission = Array.isArray(missions)
     ? missions.find((mission) => ctx.toNonEmptyString(mission?.missionId) === DEFAULT_STARTER_MISSION_ID)
     : null;
-  const starterMissionStatus = ctx.toNonEmptyString(starterMission?.status).toLowerCase();
+  const starterMissionStatus = ctx.toNonEmptyString(starterMission?.status);
 
   return Boolean(starterMissionStatus) && STARTER_DRONE_REQUIRED_MISSION_STATUSES.has(starterMissionStatus);
 }

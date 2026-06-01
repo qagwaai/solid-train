@@ -6,6 +6,8 @@ const MISSION_STATUS_VALUES = [
   'completed',
 ];
 
+const MISSION_STATUS_SET = new Set(MISSION_STATUS_VALUES);
+
 const DEFAULT_MISSION_STATUS = 'available';
 const DEFAULT_STARTER_MISSION_ID = 'first-target';
 const MISSION_CATALOG_IDS = [
@@ -37,6 +39,10 @@ const MISSION_PREREQUISITES_BY_ID = {
 
 const MISSION_UNLOCK_SOURCE_STATUSES = new Set(['completed']);
 
+function isCanonicalMissionStatus(status) {
+  return MISSION_STATUS_SET.has(status);
+}
+
 /**
  * @typedef {Object} CharacterMissionProgress
  * @property {string} missionId
@@ -46,10 +52,12 @@ const MISSION_UNLOCK_SOURCE_STATUSES = new Set(['completed']);
 
 module.exports = {
   MISSION_STATUS_VALUES,
+  MISSION_STATUS_SET,
   DEFAULT_MISSION_STATUS,
   DEFAULT_STARTER_MISSION_ID,
   MISSION_CATALOG_IDS,
   MISSION_CATALOG_ID_SET,
   MISSION_PREREQUISITES_BY_ID,
   MISSION_UNLOCK_SOURCE_STATUSES,
+  isCanonicalMissionStatus,
 };

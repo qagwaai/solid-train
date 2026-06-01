@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "sw-13-m0-v1",
+  "descriptors": [
+    {
+      "descriptorId": "ships-frigate",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "ships",
+      "objectFamily": "frigate",
+      "roleCue": "military",
+      "factionCue": "frontier-union",
+      "fallbackTier": "hero",
+      "displayLabel": "Frigate Hull",
+      "silhouetteProfile": "spire",
+      "materialProfile": "alloy",
+      "emissiveProfile": "medium"
+    },
+    {
+      "descriptorId": "ships-hauler",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "ships",
+      "objectFamily": "hauler",
+      "roleCue": "trade",
+      "factionCue": "consortium",
+      "fallbackTier": "standard",
+      "displayLabel": "Hauler Hull",
+      "silhouetteProfile": "broad",
+      "materialProfile": "composite",
+      "emissiveProfile": "low"
+    },
+    {
+      "descriptorId": "ships-industrial",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "ships",
+      "objectFamily": "industrial",
+      "roleCue": "industrial",
+      "factionCue": "consortium",
+      "fallbackTier": "standard",
+      "displayLabel": "Industrial Hull",
+      "silhouetteProfile": "modular",
+      "materialProfile": "infrastructure",
+      "emissiveProfile": "navigation"
+    },
+    {
+      "descriptorId": "ships-interceptor",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "ships",
+      "objectFamily": "interceptor",
+      "roleCue": "military",
+      "factionCue": "imperial-remnant",
+      "fallbackTier": "hero",
+      "displayLabel": "Interceptor Hull",
+      "silhouetteProfile": "needle",
+      "materialProfile": "metallic",
+      "emissiveProfile": "high"
+    },
+    {
+      "descriptorId": "ships-scout",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "ships",
+      "objectFamily": "scout",
+      "roleCue": "navigation",
+      "factionCue": "independent",
+      "fallbackTier": "minimal",
+      "displayLabel": "Scout Hull",
+      "silhouetteProfile": "needle",
+      "materialProfile": "alloy",
+      "emissiveProfile": "low"
+    },
+    {
+      "descriptorId": "stations-naval-outpost",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "stations",
+      "objectFamily": "naval-outpost",
+      "roleCue": "military",
+      "factionCue": "imperial-remnant",
+      "fallbackTier": "hero",
+      "displayLabel": "Naval Outpost Station",
+      "silhouetteProfile": "spire",
+      "materialProfile": "alloy",
+      "emissiveProfile": "high"
+    },
+    {
+      "descriptorId": "stations-refinery",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "stations",
+      "objectFamily": "refinery",
+      "roleCue": "industrial",
+      "factionCue": "frontier-union",
+      "fallbackTier": "standard",
+      "displayLabel": "Refinery Station",
+      "silhouetteProfile": "modular",
+      "materialProfile": "infrastructure",
+      "emissiveProfile": "medium"
+    },
+    {
+      "descriptorId": "stations-research-platform",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "stations",
+      "objectFamily": "research-platform",
+      "roleCue": "civilian",
+      "factionCue": "independent",
+      "fallbackTier": "minimal",
+      "displayLabel": "Research Platform Station",
+      "silhouetteProfile": "clustered",
+      "materialProfile": "composite",
+      "emissiveProfile": "low"
+    },
+    {
+      "descriptorId": "stations-trade-hub",
+      "schemaVersion": "sw-13-m0-v1",
+      "domain": "stations",
+      "objectFamily": "trade-hub",
+      "roleCue": "trade",
+      "factionCue": "consortium",
+      "fallbackTier": "hero",
+      "displayLabel": "Trade Hub Station",
+      "silhouetteProfile": "ring",
+      "materialProfile": "infrastructure",
+      "emissiveProfile": "navigation"
+    }
+  ]
+}

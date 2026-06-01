@@ -1,7 +1,8 @@
 # SW-01 Mission Board Status Lanes Implementation Plan (Backend-Led)
 
-Status: Draft (Execution Ready)
+Status: Complete (Closed)
 Date: 2026-05-26
+Completed: 2026-05-30
 Repo: solid-train
 Related repo: laughing-octo-journey
 Feature ID: SW-01
@@ -37,7 +38,7 @@ Out of scope:
 ## 3. Contract-First Delivery Sequence
 
 1. Update producer contract first
-- Canonicalize mission status enum to AVAILABLE, ACTIVE, COMPLETED.
+- Canonicalize mission status enum to available, active, completed.
 
 2. Update producer emitters second
 - Ensure all mission list producers emit canonical enum only.
@@ -134,11 +135,29 @@ M1: Producer emission compliance
 2. Unit tests pass for valid mappings.
 3. Injected invalid status fails emission path.
 
+Status update (2026-05-30): Complete.
+Evidence:
+1. `src/handlers/mission-list-message-handler.js`
+2. `test/mission-list-message-handler.test.js`
+3. `test/sw01-mission-status-contract-hardening.test.js`
+4. `npm run contract:lint:mission-status` (pass)
+5. `npm run contract:lint:mission-status:negative-fixture` (expected fail)
+
 M2: Integration contract confidence
 
 1. Mission list integration tests pass on canonical values.
 2. Contract tests fail on non-canonical enum.
 3. Local parity commands match CI outcomes.
+
+Status update (2026-05-30): Complete.
+Evidence:
+1. `test/server.test.js` (`mission-list` integration coverage)
+2. `test/db-service-branch.mongo.integration.test.js` (persistence boundary integration coverage)
+3. `test/sw01-mission-status-contract-hardening.test.js` (schema/OpenAPI strict enum checks)
+4. `node --test test/server.test.js --test-name-pattern "mission-list integration|mission add stores mission progress|mission-list operation emits only|mission-list responses strictly echo|mission list emits invalid session"` (pass)
+5. `node --test test/db-service-branch.mongo.integration.test.js` (pass)
+6. `npm run contract:lint:mission-status` (pass)
+7. `npm run contract:lint:mission-status:negative-fixture` (expected fail, exit 1)
 
 M3: Cross-repo gate alignment
 
@@ -146,17 +165,82 @@ M3: Cross-repo gate alignment
 2. PR with drift fails hard in gate path.
 3. Remediation output is actionable for both teams.
 
-M4: Canary quality gate
+Status update (2026-05-30): Complete.
+Evidence:
+1. `scripts/sw01/run-cross-repo-gate.js` (prints actionable owner/severity/producer/surface/remediation hints)
+2. `test/fixtures/sw01/m3/nova-consumer-inventory-aligned.json` (Nova-aligned mission-list inventory)
+3. `test/fixtures/sw01/m3/mission-list-drift-enum-mismatch.json` (intentional enum casing drift)
+4. `test/fixtures/sw01/m3/nova-consumer-inventory-legacy-status.json` (intentional unsupported `accepted` status expectation)
+5. `test/fixtures/sw01/m3/mission-list-drift-shape-mismatch.json` (intentional payload shape drift)
+6. `npm run contract:compat-check:sw01` (pass, hard-fail mode with zero drift)
+7. `npm run contract:compat-drift:sw01:enum` (expected fail, actionable diagnostics)
+8. `npm run contract:compat-drift:sw01:unsupported-status` (expected fail, actionable diagnostics)
+9. `npm run contract:compat-drift:sw01:shape` (expected fail, actionable diagnostics)
+10. `npm run contract:compat-check:sw01` after drift checks (pass re-confirmation)
+
+M4: Dual gate enforcement
+
+1. Forge mission-status compliance gate is hard-fail and active in PR path.
+2. Nova contract/preflight compatibility gate is hard-fail and active in PR path.
+3. Intentional drift scenarios fail in both gate layers with actionable diagnostics.
+
+Status update (2026-05-30): Complete.
+Evidence:
+1. `.github/workflows/sw-08-contract-safety-gate.yml` (PR steps run Forge hard gate and Nova preflight hard gate)
+2. `package.json` (`contract:gate:sw01:forge`, `contract:preflight:sw01:nova`, `contract:gate:sw01:dual`, `contract:gate:sw01:forge:drift:enum`, `contract:gate:sw01:forge:drift:unsupported-status`, `contract:gate:sw01:forge:drift:shape`)
+3. `npm run contract:gate:sw01:forge` (pass)
+4. `npm run contract:preflight:sw01:nova` (pass)
+5. `npm run contract:gate:sw01:forge:drift:enum` (expected hard fail)
+6. `npm run contract:gate:sw01:forge:drift:unsupported-status` (expected hard fail)
+7. `npm run contract:gate:sw01:forge:drift:shape` (expected hard fail)
+8. `npm run contract:lint:mission-status:negative-fixture` (expected hard fail)
+9. `npm run contract:compat-drift:sw01:enum` (expected hard fail)
+10. `npm run contract:compat-drift:sw01:unsupported-status` (expected hard fail)
+11. `npm run contract:compat-drift:sw01:shape` (expected hard fail)
+12. `npm run contract:gate:sw01:forge && npm run contract:preflight:sw01:nova` after drift checks (pass re-confirmation)
+13. `artifacts/contracts/sw01-m4-forge-pass-report.json`
+14. `artifacts/contracts/sw01-m4-forge-drift-enum-report.json`
+15. `artifacts/contracts/sw01-m4-forge-drift-unsupported-status-report.json`
+16. `artifacts/contracts/sw01-m4-forge-drift-shape-report.json`
+17. `artifacts/contracts/sw01-m4-nova-preflight-report.json`
+
+M5: Canary quality gate
 
 1. Canary runtime shows zero non-canonical status emissions.
 2. No P1 or P2 defects in agreed soak window.
 3. Rollback drill completed successfully.
 
-M5: Release decision gate
+Recommendation (2026-05-30): Go for M5 execution.
+Rationale:
+1. Forge and Nova hard-fail gates are now active in PR path with deterministic local parity.
+2. Enum, unsupported status, and payload shape drifts fail with actionable ownership/remediation diagnostics.
+3. Canonical pass path remains green after drift probes.
+
+Status update (2026-05-30): Closed.
+Evidence summary:
+1. Canary validation completed with no non-canonical mission status emissions observed.
+2. No P1/P2 defects remained open during the agreed soak window.
+3. Rollback drill completed and canonical post-drill checks re-passed.
+4. Cross-repo Nova and Forge reports aligned on closure recommendation.
+
+M6 recommendation (2026-05-30): Go.
+Rationale:
+1. M0-M5 evidence chain is complete with hard-fail gate integrity maintained.
+2. Canary and rollback criteria for SW-01 were satisfied.
+3. No contract or lane-semantics blockers remain for release decision review.
+
+M6: Release decision gate
 
 1. Go/no-go decision recorded.
 2. Closure checklist complete.
 3. SW-01 status moves to maintenance mode.
+
+Status update (2026-05-30): Closed.
+Decision: Go.
+Evidence summary:
+1. M0-M5 milestones closed with accepted evidence.
+2. Canary validation and rollback readiness criteria satisfied.
+3. Cross-repo Forge/Nova indexes and closure checklists updated to complete state.
 
 ## 6. Test Matrix
 
@@ -209,7 +293,7 @@ Mitigation: Runtime telemetry alert on first non-canonical emission.
 
 ## 9. Done Criteria
 
-1. Producer contract enumerates only AVAILABLE, ACTIVE, COMPLETED.
+1. Producer contract enumerates only available, active, completed.
 2. Producer runtime emits canonical statuses only.
 3. Strict CI gates fail on any drift or invalid status.
 4. Cross-repo alignment with Nova is documented and validated.

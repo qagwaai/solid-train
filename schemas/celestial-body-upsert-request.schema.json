@@ -100,6 +100,10 @@
           },
           "required": ["rarity", "material", "textureColor"]
         },
+        "externalObjectDescriptor": {
+          "$ref": "./external-object-descriptor.schema.json",
+          "description": "Optional SW-13 canonical descriptor attached to the celestial body for external-object presentation identity."
+        },
         "clusterId": { "type": "string" },
         "clusterCenterKm": {
           "type": "object",

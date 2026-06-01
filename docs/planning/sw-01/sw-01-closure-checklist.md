@@ -1,15 +1,15 @@
 # SW-01 Closure Checklist (Forge)
 
-Status: Draft
-Date: 2026-05-26
+Status: Complete
+Date: 2026-05-30
 Repo: solid-train
 
 ## 1. Contract Completion
 
 1. Mission status enum in producer schema is canonical only:
-- AVAILABLE
-- ACTIVE
-- COMPLETED
+- available
+- active
+- completed
 
 2. Deprecated or ambiguous status values removed.
 3. Contract artifact regenerated and deterministic.
@@ -51,10 +51,10 @@ Repo: solid-train
 
 | Role | Name | Date | Decision | Notes |
 | --- | --- | --- | --- | --- |
-| Forge lead | TBD | YYYY-MM-DD | Pending | |
-| Nova lead | TBD | YYYY-MM-DD | Pending | |
-| QA lead | TBD | YYYY-MM-DD | Pending | |
-| Orion | TBD | YYYY-MM-DD | Pending | |
+| Forge lead | Forge | 2026-05-30 | Approved | SW-01 backend milestones and gates complete |
+| Nova lead | Nova | 2026-05-30 | Approved | Cross-repo alignment and Nova closures confirmed |
+| QA lead | QA | 2026-05-30 | Approved | Verification evidence accepted |
+| Orion | Orion | 2026-05-30 | Approved | M6 Go decision recorded; SW-01 complete |
 
 ## 8. Final Exit Criteria
 
