@@ -2606,6 +2606,11 @@ paths:
       description: |
         Lists nearby markets from a barycentric position.
 
+        SW-13C ship-external route entity feed authority:
+        - This endpoint is the authoritative Forge contract source for route entity feeds consumed by ship-external-view.
+        - Route feed entities are returned under `markets[].route`.
+        - Optional route feed arrays are `gates[]`, `stations[]`, and `encounterShips[]`.
+
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).
         - Every request must include `requestIdentity` with `operation`, `entityType`, and
@@ -2690,6 +2695,14 @@ paths:
                               destSystemId: alpha-centauri
                               traversalCostAu: 5
                               traversalTimeHours: 48
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 900
+                                  y: 220
+                                  z: -40
+                                epochMs: 1713360000000
                               descriptor:
                                 descriptorId: gates-ring-gate
                                 schemaVersion: sw-13-m0-v1
@@ -2768,6 +2781,232 @@ paths:
                                 materialProfile: metallic
                                 emissiveProfile: high
                         isDocked: true
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                gatesOnlyRouteFeed:
+                  summary: Route payload with gates feed only
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: GatePilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - free-floating
+                    isDocked: false
+                    dockedMarketId: null
+                    markets:
+                      - marketId: sol-belt-1
+                        solarSystemId: sol
+                        marketName: Belt Relay Market
+                        siteType: free-floating
+                        siteName: Sol Belt Relay
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 240
+                            y: 20
+                            z: -5
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0.000001
+                        route:
+                          kind: in-system
+                          gates:
+                            - gateId: sol-ac-g1
+                              sourceSystemId: sol
+                              destSystemId: alpha-centauri
+                              traversalCostAu: 5
+                              traversalTimeHours: 48
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 900
+                                  y: 220
+                                  z: -40
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: gates-ring-gate
+                                schemaVersion: sw-13-m0-v1
+                                domain: gates
+                                objectFamily: ring-gate
+                                roleCue: navigation
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Ring Gate Landmark
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                              approachMetadata:
+                                approachCue: direct-centerline
+                                landmarkFraming: full-ring
+                                navBeaconCue: continuous
+                                hazardCue: low
+                                warningEscalation: none
+                                recommendedStandOffKm: 1400
+                                approachWindowKm:
+                                  min: 1000
+                                  max: 2200
+                        isDocked: false
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                stationsOnlyRouteFeed:
+                  summary: Route payload with stations feed only
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: StationPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - station
+                    isDocked: true
+                    dockedMarketId: market-near
+                    markets:
+                      - marketId: market-near
+                        solarSystemId: sol
+                        marketName: Near Market
+                        siteType: station
+                        siteName: Ceres Main
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 100
+                            y: 0
+                            z: 0
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0
+                        route:
+                          kind: in-system
+                          stations:
+                            - marketId: market-near
+                              solarSystemId: sol
+                              marketName: Near Market
+                              siteType: station
+                              siteName: Ceres Main
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 100
+                                  y: 0
+                                  z: 0
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: stations-trade-hub
+                                schemaVersion: sw-13-m0-v1
+                                domain: stations
+                                objectFamily: trade-hub
+                                roleCue: trade
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Trade Hub Station
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                        isDocked: true
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                encounterShipsOnlyRouteFeed:
+                  summary: Route payload with encounterShips feed only
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: EncounterPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - free-floating
+                    isDocked: false
+                    dockedMarketId: null
+                    markets:
+                      - marketId: sol-belt-1
+                        solarSystemId: sol
+                        marketName: Belt Relay Market
+                        siteType: free-floating
+                        siteName: Sol Belt Relay
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 240
+                            y: 20
+                            z: -5
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0.000001
+                        route:
+                          kind: in-system
+                          encounterShips:
+                            - shipId: npc-raider-1
+                              shipName: Raider Harrier
+                              model: Raider Interceptor
+                              tier: 2
+                              ownership:
+                                ownerType: npc-pirate
+                                npcId: pirate-raider-1
+                                factionId: pirate-clan
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 250
+                                  y: 60
+                                  z: 10
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: ships-interceptor
+                                schemaVersion: sw-13-m0-v1
+                                domain: ships
+                                objectFamily: interceptor
+                                roleCue: military
+                                factionCue: imperial-remnant
+                                fallbackTier: hero
+                                displayLabel: Interceptor Hull
+                                silhouetteProfile: needle
+                                materialProfile: metallic
+                                emissiveProfile: high
+                        isDocked: false
                         priceMultiplier: 1
                         driftPercentPerHour: 0
                         restockIntervalMinutes: 60

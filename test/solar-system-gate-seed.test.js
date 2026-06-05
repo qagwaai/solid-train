@@ -14,11 +14,15 @@ test('buildSeededGateNetwork returns expected gate count and canonical traversal
   assert.ok(solToAlpha);
   assert.equal(solToAlpha.traversalCostAu, 5);
   assert.equal(solToAlpha.traversalTimeHours, 48);
+  assert.equal(solToAlpha.spatial.solarSystemId, 'sol');
+  assert.equal(solToAlpha.spatial.frame, 'barycentric');
+  assert.equal(typeof solToAlpha.spatial.epochMs, 'number');
 
   const alphaToBarnard = seededGates.find((gate) => gate.gateId === 'ac-bs-g1');
   assert.ok(alphaToBarnard);
   assert.equal(alphaToBarnard.traversalCostAu, 7);
   assert.equal(alphaToBarnard.traversalTimeHours, 72);
+  assert.equal(alphaToBarnard.spatial.solarSystemId, 'alpha-centauri');
 });
 
 test('MessageHandlerContext loadGateNetworkAsync seeds graph and supports routed query', async () => {
@@ -39,6 +43,7 @@ test('MessageHandlerContext loadGateNetworkAsync seeds graph and supports routed
   assert.equal(solOutgoing[0].gateId, 'sol-ac-g1');
   assert.equal(solOutgoing[0].traversalCostAu, 5);
   assert.equal(solOutgoing[0].traversalTimeHours, 48);
+  assert.equal(solOutgoing[0].spatial.solarSystemId, 'sol');
 
   const route = await context.getHopPathBetweenSystems('sol', 'barnards-star');
   assert.deepEqual(route, { hops: 2, path: ['sol-ac-g1', 'ac-bs-g1'] });

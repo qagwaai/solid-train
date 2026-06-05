@@ -127,6 +127,10 @@ class MarketListByLocationMessageHandler {
       return null;
     }
 
+    if (!this.isValidSpatial(gate.spatial)) {
+      return null;
+    }
+
     const gateTemplate = pickByStableHash(GATE_LANDMARK_PAYLOAD.gates, gate.gateId);
     if (!gateTemplate) {
       return null;
@@ -140,6 +144,9 @@ class MarketListByLocationMessageHandler {
       traversalTimeHours: this.context.isFiniteNumber(gate.traversalTimeHours)
         ? gate.traversalTimeHours
         : 0,
+      spatial: {
+        ...gate.spatial,
+      },
       descriptor: cloneDescriptor(gateTemplate.descriptor),
       approachMetadata: {
         ...gateTemplate.approachMetadata,

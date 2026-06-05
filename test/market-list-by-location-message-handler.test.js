@@ -536,6 +536,12 @@ test('MarketListByLocationMessageHandler emits route feeds for gates only', asyn
           destSystemId: 'alpha-centauri',
           traversalCostAu: 5,
           traversalTimeHours: 48,
+          spatial: {
+            solarSystemId: 'sol',
+            frame: 'barycentric',
+            positionKm: { x: 900, y: 220, z: -40 },
+            epochMs: 1713360000000,
+          },
         },
       ];
     },
@@ -584,6 +590,7 @@ test('MarketListByLocationMessageHandler emits route feeds for gates only', asyn
   assert.equal(response.markets.length, 1);
   assert.ok(Array.isArray(response.markets[0].route.gates));
   assert.equal(response.markets[0].route.gates.length, 1);
+  assert.equal(response.markets[0].route.gates[0].spatial.solarSystemId, 'sol');
   assert.equal(response.markets[0].route.stations, undefined);
   assert.equal(response.markets[0].route.encounterShips, undefined);
 });
@@ -734,6 +741,12 @@ test('MarketListByLocationMessageHandler emits mixed route feeds when all source
           destSystemId: 'alpha-centauri',
           traversalCostAu: 5,
           traversalTimeHours: 48,
+          spatial: {
+            solarSystemId: 'sol',
+            frame: 'barycentric',
+            positionKm: { x: 900, y: 220, z: -40 },
+            epochMs: 1713360000000,
+          },
         },
       ];
     },

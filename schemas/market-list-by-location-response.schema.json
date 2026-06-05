@@ -22,6 +22,7 @@
         "destSystemId",
         "traversalCostAu",
         "traversalTimeHours",
+        "spatial",
         "descriptor",
         "approachMetadata"
       ],
@@ -31,6 +32,26 @@
         "destSystemId": { "type": "string" },
         "traversalCostAu": { "type": "number", "minimum": 0 },
         "traversalTimeHours": { "type": "number", "minimum": 0 },
+        "spatial": {
+          "type": "object",
+          "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+          "properties": {
+            "solarSystemId": { "type": "string" },
+            "frame": { "type": "string", "enum": ["barycentric"] },
+            "positionKm": {
+              "type": "object",
+              "required": ["x", "y", "z"],
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" }
+              },
+              "additionalProperties": false
+            },
+            "epochMs": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
         "descriptor": { "$ref": "./external-object-descriptor.schema.json" },
         "approachMetadata": {
           "$ref": "./external-object-gate-landmark-payload.schema.json#/definitions/gateApproachMetadata"

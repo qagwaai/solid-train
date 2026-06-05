@@ -20,6 +20,7 @@ async function getJumpGatesAsync(ctx, JumpGate) {
       destSystemId: gate.destSystemId,
       traversalCostAu: gate.traversalCostAu,
       traversalTimeHours: gate.traversalTimeHours,
+      spatial: gate.spatial || null,
     }));
   } catch (error) {
     ctx.log(`[db-service] Error loading jump gates: ${error.message}`);
