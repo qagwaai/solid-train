@@ -2682,7 +2682,91 @@ paths:
                         trajectory:
                           kind: orbital-elements
                         distanceAu: 0
-                        route: {}
+                        route:
+                          kind: in-system
+                          gates:
+                            - gateId: sol-ac-g1
+                              sourceSystemId: sol
+                              destSystemId: alpha-centauri
+                              traversalCostAu: 5
+                              traversalTimeHours: 48
+                              descriptor:
+                                descriptorId: gates-ring-gate
+                                schemaVersion: sw-13-m0-v1
+                                domain: gates
+                                objectFamily: ring-gate
+                                roleCue: navigation
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Ring Gate Landmark
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                              approachMetadata:
+                                approachCue: direct-centerline
+                                landmarkFraming: full-ring
+                                navBeaconCue: continuous
+                                hazardCue: low
+                                warningEscalation: none
+                                recommendedStandOffKm: 1400
+                                approachWindowKm:
+                                  min: 1000
+                                  max: 2200
+                          stations:
+                            - marketId: market-near
+                              solarSystemId: sol
+                              marketName: Near Market
+                              siteType: station
+                              siteName: Ceres Main
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 100
+                                  y: 0
+                                  z: 0
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: stations-trade-hub
+                                schemaVersion: sw-13-m0-v1
+                                domain: stations
+                                objectFamily: trade-hub
+                                roleCue: trade
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Trade Hub Station
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                          encounterShips:
+                            - shipId: npc-raider-1
+                              shipName: Raider Harrier
+                              model: Raider Interceptor
+                              tier: 2
+                              ownership:
+                                ownerType: npc-pirate
+                                npcId: pirate-raider-1
+                                factionId: pirate-clan
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 250
+                                  y: 60
+                                  z: 10
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: ships-interceptor
+                                schemaVersion: sw-13-m0-v1
+                                domain: ships
+                                objectFamily: interceptor
+                                roleCue: military
+                                factionCue: imperial-remnant
+                                fallbackTier: hero
+                                displayLabel: Interceptor Hull
+                                silhouetteProfile: needle
+                                materialProfile: metallic
+                                emissiveProfile: high
                         isDocked: true
                         priceMultiplier: 1
                         driftPercentPerHour: 0

@@ -470,11 +470,23 @@ test('MarketListByLocationMessageHandler locationTypes station filter excludes f
 test('MarketListByLocationMessageHandler route is in-system when no gate network is configured', async () => {
   const context = createTestContext();
   context.marketsByKey.clear();
+  context.databaseService = {
+    async getJumpGatesAsync() {
+      return [];
+    },
+    async findShipsNearPosition() {
+      return [];
+    },
+    async getCelestialBodyById() {
+      return null;
+    },
+  };
 
   context.cacheMarket(
     createMarket({
       marketId: 'market-1',
       solarSystemId: 'sol',
+      siteType: 'free-floating',
       trajectory: {
         orbit: {
           anchorBodyId: 'sol',
@@ -510,6 +522,292 @@ test('MarketListByLocationMessageHandler route is in-system when no gate network
   assert.equal(response.success, true);
   assert.equal(response.markets.length, 1);
   assert.deepEqual(response.markets[0].route, { kind: 'in-system' });
+});
+
+test('MarketListByLocationMessageHandler emits route feeds for gates only', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
+  context.databaseService = {
+    async getJumpGatesAsync() {
+      return [
+        {
+          gateId: 'sol-ac-g1',
+          sourceSystemId: 'sol',
+          destSystemId: 'alpha-centauri',
+          traversalCostAu: 5,
+          traversalTimeHours: 48,
+        },
+      ];
+    },
+    async findShipsNearPosition() {
+      return [];
+    },
+  };
+
+  context.cacheMarket(
+    createMarket({
+      marketId: 'sol-belt-1',
+      siteType: 'free-floating',
+      trajectory: {
+        orbit: {
+          anchorBodyId: 'sol',
+          semiMajorAxisKm: 100,
+          eccentricity: 0,
+          inclinationDeg: 0,
+          longitudeOfAscendingNodeDeg: 0,
+          argumentOfPeriapsisDeg: 0,
+          meanAnomalyAtEpochDeg: 0,
+          orbitalPeriodSec: 86400,
+          epoch: '2026-04-17T00:00:00.000Z',
+        },
+      },
+    })
+  );
+
+  seedPlayer(context, {
+    playerName: 'GatePilot',
+    sessionKey: 'session-1',
+  });
+
+  const handler = new MarketListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+  const response = await handler.handle(socket, {
+    playerName: 'GatePilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceAu: 1000000,
+    locationTypes: ['free-floating'],
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.markets.length, 1);
+  assert.ok(Array.isArray(response.markets[0].route.gates));
+  assert.equal(response.markets[0].route.gates.length, 1);
+  assert.equal(response.markets[0].route.stations, undefined);
+  assert.equal(response.markets[0].route.encounterShips, undefined);
+});
+
+test('MarketListByLocationMessageHandler emits route feeds for stations only', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
+  context.databaseService = {
+    async getJumpGatesAsync() {
+      return [];
+    },
+    async findShipsNearPosition() {
+      return [];
+    },
+  };
+
+  context.cacheMarket(
+    createMarket({
+      marketId: 'sol-station-1',
+      siteType: 'station',
+      trajectory: {
+        orbit: {
+          anchorBodyId: 'sol',
+          semiMajorAxisKm: 100,
+          eccentricity: 0,
+          inclinationDeg: 0,
+          longitudeOfAscendingNodeDeg: 0,
+          argumentOfPeriapsisDeg: 0,
+          meanAnomalyAtEpochDeg: 0,
+          orbitalPeriodSec: 86400,
+          epoch: '2026-04-17T00:00:00.000Z',
+        },
+      },
+    })
+  );
+
+  seedPlayer(context, {
+    playerName: 'StationPilot',
+    sessionKey: 'session-1',
+  });
+
+  const handler = new MarketListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+  const response = await handler.handle(socket, {
+    playerName: 'StationPilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceAu: 1000000,
+    locationTypes: ['station'],
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.markets.length, 1);
+  assert.ok(Array.isArray(response.markets[0].route.stations));
+  assert.equal(response.markets[0].route.stations.length, 1);
+  assert.equal(response.markets[0].route.gates, undefined);
+  assert.equal(response.markets[0].route.encounterShips, undefined);
+});
+
+test('MarketListByLocationMessageHandler emits route feeds for encounterShips only', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
+  context.databaseService = {
+    async getJumpGatesAsync() {
+      return [];
+    },
+  };
+
+  context.cacheMarket(
+    createMarket({
+      marketId: 'sol-belt-1',
+      siteType: 'free-floating',
+      trajectory: {
+        orbit: {
+          anchorBodyId: 'sol',
+          semiMajorAxisKm: 100,
+          eccentricity: 0,
+          inclinationDeg: 0,
+          longitudeOfAscendingNodeDeg: 0,
+          argumentOfPeriapsisDeg: 0,
+          meanAnomalyAtEpochDeg: 0,
+          orbitalPeriodSec: 86400,
+          epoch: '2026-04-17T00:00:00.000Z',
+        },
+      },
+    })
+  );
+
+  seedPlayer(context, {
+    playerName: 'EncounterPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'char-1',
+        characterName: 'Captain',
+        ships: [
+          {
+            id: 'npc-raider-1',
+            shipName: 'Raider Harrier',
+            model: 'Raider Interceptor',
+            tier: 2,
+            ownership: {
+              ownerType: 'npc-pirate',
+              npcId: 'pirate-1',
+              factionId: 'pirate-clan',
+            },
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 100, y: 0, z: 0 },
+              epochMs: 1713360000000,
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new MarketListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+  const response = await handler.handle(socket, {
+    playerName: 'EncounterPilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceAu: 1000000,
+    locationTypes: ['free-floating'],
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.markets.length, 1);
+  assert.ok(Array.isArray(response.markets[0].route.encounterShips));
+  assert.equal(response.markets[0].route.encounterShips.length, 1);
+  assert.equal(response.markets[0].route.gates, undefined);
+  assert.equal(response.markets[0].route.stations, undefined);
+});
+
+test('MarketListByLocationMessageHandler emits mixed route feeds when all sources exist', async () => {
+  const context = createTestContext();
+  context.marketsByKey.clear();
+  context.databaseService = {
+    async getJumpGatesAsync() {
+      return [
+        {
+          gateId: 'sol-ac-g1',
+          sourceSystemId: 'sol',
+          destSystemId: 'alpha-centauri',
+          traversalCostAu: 5,
+          traversalTimeHours: 48,
+        },
+      ];
+    },
+  };
+
+  context.cacheMarket(
+    createMarket({
+      marketId: 'sol-station-1',
+      siteType: 'station',
+      trajectory: {
+        orbit: {
+          anchorBodyId: 'sol',
+          semiMajorAxisKm: 100,
+          eccentricity: 0,
+          inclinationDeg: 0,
+          longitudeOfAscendingNodeDeg: 0,
+          argumentOfPeriapsisDeg: 0,
+          meanAnomalyAtEpochDeg: 0,
+          orbitalPeriodSec: 86400,
+          epoch: '2026-04-17T00:00:00.000Z',
+        },
+      },
+    })
+  );
+
+  seedPlayer(context, {
+    playerName: 'MixedPilot',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'char-1',
+        characterName: 'Captain',
+        ships: [
+          {
+            id: 'npc-raider-1',
+            shipName: 'Raider Harrier',
+            model: 'Raider Interceptor',
+            tier: 2,
+            ownership: {
+              ownerType: 'npc-pirate',
+              npcId: 'pirate-1',
+              factionId: 'pirate-clan',
+            },
+            spatial: {
+              solarSystemId: 'sol',
+              frame: 'barycentric',
+              positionKm: { x: 100, y: 0, z: 0 },
+              epochMs: 1713360000000,
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new MarketListByLocationMessageHandler(context);
+  const socket = createMockSocket();
+  const response = await handler.handle(socket, {
+    playerName: 'MixedPilot',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceAu: 1000000,
+    locationTypes: ['station'],
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.markets.length, 1);
+  assert.ok(Array.isArray(response.markets[0].route.gates));
+  assert.ok(Array.isArray(response.markets[0].route.stations));
+  assert.ok(Array.isArray(response.markets[0].route.encounterShips));
+  assert.equal(response.markets[0].route.gates.length, 1);
+  assert.equal(response.markets[0].route.stations.length, 1);
+  assert.equal(response.markets[0].route.encounterShips.length, 1);
 });
 
 test('MarketListByLocationMessageHandler matches solarSystemId case-insensitively', async () => {

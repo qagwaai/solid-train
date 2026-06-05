@@ -458,6 +458,73 @@ class DatabaseService {
     }
   }
 
+  async findShipsNearPosition(query = {}) {
+    try {
+      const solarSystemId = this.toNonEmptyString(query?.solarSystemId);
+      const positionKm = query?.positionKm;
+      const distanceKm = query?.distanceKm;
+      const ownerTypes = Array.isArray(query?.ownerTypes)
+        ? query.ownerTypes
+            .map((ownerType) => this.toNonEmptyString(ownerType))
+            .filter((ownerType) => Boolean(ownerType))
+        : [];
+      const limit = Number.isInteger(query?.limit) && query.limit > 0 ? query.limit : null;
+
+      if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
+        return [];
+      }
+
+      const boundsQuery = {
+        'spatial.solarSystemId': solarSystemId,
+        'spatial.positionKm.x': {
+          $gte: positionKm.x - distanceKm,
+          $lte: positionKm.x + distanceKm,
+        },
+        'spatial.positionKm.y': {
+          $gte: positionKm.y - distanceKm,
+          $lte: positionKm.y + distanceKm,
+        },
+        'spatial.positionKm.z': {
+          $gte: positionKm.z - distanceKm,
+          $lte: positionKm.z + distanceKm,
+        },
+      };
+
+      if (ownerTypes.length > 0) {
+        boundsQuery['ownership.ownerType'] = { $in: ownerTypes };
+      }
+
+      const candidateShips = await ShipRecord.find(boundsQuery).lean();
+      const exactMatches = candidateShips
+        .map((ship) => {
+          if (!this.isTriple(ship?.spatial?.positionKm)) {
+            return null;
+          }
+
+          const candidateDistanceKm = this.calculateDistanceKm(positionKm, ship.spatial.positionKm);
+          if (candidateDistanceKm > distanceKm) {
+            return null;
+          }
+
+          return {
+            ship,
+            distanceKm: candidateDistanceKm,
+          };
+        })
+        .filter((entry) => Boolean(entry))
+        .sort((left, right) => left.distanceKm - right.distanceKm);
+
+      if (!limit) {
+        return exactMatches;
+      }
+
+      return exactMatches.slice(0, limit);
+    } catch (error) {
+      this.log(`[db-service] Error finding ships near position: ${error.message}`);
+      throw error;
+    }
+  }
+
   async transferShipOwnership(transfer) {
     try {
       const shipId = this.toNonEmptyString(transfer?.shipId);

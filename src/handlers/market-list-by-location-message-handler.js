@@ -2,6 +2,68 @@
 
 const { MARKET_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../model/market-list-by-location');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const {
+  createGateLandmarkDescriptorPayload,
+  createShipDescriptorPayloads,
+  createStationDescriptorPayloads,
+} = require('../model/external-object-descriptor-payloads');
+
+const ASTRONOMICAL_UNIT_KM = 149_597_870.7;
+const GATE_LANDMARK_PAYLOAD = createGateLandmarkDescriptorPayload();
+const SHIP_DESCRIPTOR_PAYLOAD = createShipDescriptorPayloads();
+const STATION_DESCRIPTOR_PAYLOAD = createStationDescriptorPayloads();
+
+function stableHashFromString(value) {
+  const source = typeof value === 'string' ? value : '';
+  let hash = 0;
+  for (let index = 0; index < source.length; index += 1) {
+    hash = (hash * 31 + source.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
+
+function pickByStableHash(items, seed) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return null;
+  }
+
+  const index = stableHashFromString(seed) % items.length;
+  return items[index] || null;
+}
+
+function cloneDescriptor(descriptor) {
+  return descriptor ? { ...descriptor } : null;
+}
+
+function normalizeShipFamilyFromModel(model) {
+  const normalizedModel = typeof model === 'string' ? model.trim().toLowerCase() : '';
+
+  if (normalizedModel.includes('scout')) {
+    return 'scout';
+  }
+  if (normalizedModel.includes('hauler')) {
+    return 'hauler';
+  }
+  if (normalizedModel.includes('frigate')) {
+    return 'frigate';
+  }
+  if (normalizedModel.includes('interceptor')) {
+    return 'interceptor';
+  }
+  if (normalizedModel.includes('industrial')) {
+    return 'industrial';
+  }
+
+  return null;
+}
+
+function findShipDescriptorByFamily(family) {
+  if (!family) {
+    return null;
+  }
+
+  return SHIP_DESCRIPTOR_PAYLOAD.find((descriptor) => descriptor.objectFamily === family) || null;
+}
 
 class MarketListByLocationMessageHandler {
   /**
@@ -40,6 +102,234 @@ class MarketListByLocationMessageHandler {
     }
 
     return value;
+  }
+
+  buildRouteEntityFeeds(route, feeds) {
+    const nextRoute = route && typeof route === 'object' ? { ...route } : { kind: 'in-system' };
+
+    if (Array.isArray(feeds?.gates) && feeds.gates.length > 0) {
+      nextRoute.gates = feeds.gates;
+    }
+
+    if (Array.isArray(feeds?.stations) && feeds.stations.length > 0) {
+      nextRoute.stations = feeds.stations;
+    }
+
+    if (Array.isArray(feeds?.encounterShips) && feeds.encounterShips.length > 0) {
+      nextRoute.encounterShips = feeds.encounterShips;
+    }
+
+    return nextRoute;
+  }
+
+  buildGateFeedEntry(gate) {
+    if (!gate || typeof gate !== 'object') {
+      return null;
+    }
+
+    const gateTemplate = pickByStableHash(GATE_LANDMARK_PAYLOAD.gates, gate.gateId);
+    if (!gateTemplate) {
+      return null;
+    }
+
+    return {
+      gateId: this.context.toNonEmptyString(gate.gateId),
+      sourceSystemId: this.context.toNonEmptyString(gate.sourceSystemId),
+      destSystemId: this.context.toNonEmptyString(gate.destSystemId),
+      traversalCostAu: this.context.isFiniteNumber(gate.traversalCostAu) ? gate.traversalCostAu : 0,
+      traversalTimeHours: this.context.isFiniteNumber(gate.traversalTimeHours)
+        ? gate.traversalTimeHours
+        : 0,
+      descriptor: cloneDescriptor(gateTemplate.descriptor),
+      approachMetadata: {
+        ...gateTemplate.approachMetadata,
+      },
+    };
+  }
+
+  buildStationFeedEntry(stationMarket) {
+    if (!stationMarket || typeof stationMarket !== 'object') {
+      return null;
+    }
+
+    const stationDescriptor = pickByStableHash(STATION_DESCRIPTOR_PAYLOAD, stationMarket.marketId);
+    if (!stationDescriptor) {
+      return null;
+    }
+
+    if (!this.isValidSpatial(stationMarket.spatial)) {
+      return null;
+    }
+
+    return {
+      marketId: this.context.toNonEmptyString(stationMarket.marketId),
+      solarSystemId: this.context.toNonEmptyString(stationMarket.solarSystemId),
+      marketName: this.context.toNonEmptyString(stationMarket.marketName),
+      siteType: 'station',
+      siteName: this.context.toNonEmptyString(stationMarket.siteName),
+      spatial: {
+        ...stationMarket.spatial,
+      },
+      descriptor: cloneDescriptor(stationDescriptor),
+    };
+  }
+
+  buildEncounterShipFeedEntry(ship) {
+    if (!ship || typeof ship !== 'object') {
+      return null;
+    }
+
+    const ownership =
+      ship.ownership && typeof ship.ownership === 'object' ? ship.ownership : { ownerType: 'unknown' };
+    if (ownership.ownerType !== 'npc-pirate') {
+      return null;
+    }
+
+    if (!this.isValidSpatial(ship.spatial)) {
+      return null;
+    }
+
+    const modeledFamily = normalizeShipFamilyFromModel(ship.model);
+    const descriptor =
+      findShipDescriptorByFamily(modeledFamily) || pickByStableHash(SHIP_DESCRIPTOR_PAYLOAD, ship.id);
+
+    return {
+      shipId: this.context.toNonEmptyString(ship.id),
+      shipName: this.context.toNonEmptyString(ship.shipName),
+      model: this.context.toNonEmptyString(ship.model),
+      tier: Number.isInteger(ship.tier) && ship.tier > 0 ? ship.tier : 1,
+      ownership: {
+        ownerType: this.context.toNonEmptyString(ownership.ownerType) || 'unknown',
+        npcId: this.context.toNonEmptyString(ownership.npcId) || null,
+        factionId: this.context.toNonEmptyString(ownership.factionId) || null,
+      },
+      spatial: {
+        ...ship.spatial,
+      },
+      descriptor: cloneDescriptor(descriptor),
+    };
+  }
+
+  async listRouteGatesAsync(solarSystemId) {
+    let gateEntities = [];
+
+    if (this.context.databaseService?.getJumpGatesAsync) {
+      gateEntities = await this.context.databaseService.getJumpGatesAsync();
+    } else {
+      const gateGraph = await this.context.loadGateNetworkAsync();
+      gateEntities = gateGraph.get(solarSystemId) || [];
+    }
+
+    return gateEntities
+      .filter((gate) => this.context.toNonEmptyString(gate.sourceSystemId) === solarSystemId)
+      .map((gate) => this.buildGateFeedEntry(gate))
+      .filter((gateEntry) => Boolean(gateEntry));
+  }
+
+  async listRouteStationsAsync(solarSystemId, positionKm, distanceAu) {
+    const nearbyStations = await this.context.getMarketsByLocationAsync({
+      solarSystemId,
+      positionKm,
+      distanceAu,
+      locationTypes: ['station'],
+      limit: 16,
+    });
+
+    return nearbyStations
+      .map((stationMarket) => this.buildStationFeedEntry(stationMarket))
+      .filter((stationEntry) => Boolean(stationEntry));
+  }
+
+  async listEncounterShipsFromDatabaseAsync(solarSystemId, positionKm, distanceKm) {
+    if (!this.context.databaseService?.findShipsNearPosition) {
+      return [];
+    }
+
+    const dbResults = await this.context.databaseService.findShipsNearPosition({
+      solarSystemId,
+      positionKm,
+      distanceKm,
+      ownerTypes: ['npc-pirate'],
+      limit: 16,
+    });
+
+    return dbResults
+      .map((entry) => this.context.normalizeShip(entry.ship))
+      .map((ship) => this.buildEncounterShipFeedEntry(ship))
+      .filter((shipEntry) => Boolean(shipEntry));
+  }
+
+  listEncounterShipsFromInMemoryState(solarSystemId, positionKm, distanceKm) {
+    const encounterShips = [];
+
+    for (const characterList of this.context.charactersByPlayer.values()) {
+      for (const character of Array.isArray(characterList) ? characterList : []) {
+        for (const rawShip of Array.isArray(character?.ships) ? character.ships : []) {
+          const normalizedShip = this.context.normalizeShip(rawShip);
+          if (normalizedShip?.ownership?.ownerType !== 'npc-pirate') {
+            continue;
+          }
+
+          if (!this.isValidSpatial(normalizedShip.spatial)) {
+            continue;
+          }
+
+          if (normalizedShip.spatial.solarSystemId !== solarSystemId) {
+            continue;
+          }
+
+          const shipDistanceKm = this.context.calculateDistanceKm(
+            positionKm,
+            normalizedShip.spatial.positionKm
+          );
+          if (shipDistanceKm > distanceKm) {
+            continue;
+          }
+
+          const shipEntry = this.buildEncounterShipFeedEntry(normalizedShip);
+          if (shipEntry) {
+            encounterShips.push(shipEntry);
+          }
+        }
+      }
+    }
+
+    return encounterShips;
+  }
+
+  async listEncounterShipsAsync(solarSystemId, positionKm, distanceAu) {
+    const distanceKm = distanceAu * ASTRONOMICAL_UNIT_KM;
+    const dbShips = await this.listEncounterShipsFromDatabaseAsync(
+      solarSystemId,
+      positionKm,
+      distanceKm
+    );
+    const inMemoryShips = this.listEncounterShipsFromInMemoryState(solarSystemId, positionKm, distanceKm);
+
+    const dedupedById = new Map();
+    for (const shipEntry of [...inMemoryShips, ...dbShips]) {
+      if (!dedupedById.has(shipEntry.shipId)) {
+        dedupedById.set(shipEntry.shipId, shipEntry);
+      }
+    }
+
+    return [...dedupedById.values()]
+      .sort((left, right) => left.shipId.localeCompare(right.shipId))
+      .slice(0, 16);
+  }
+
+  async collectRouteEntityFeeds(solarSystemId, positionKm, distanceAu) {
+    const [gates, stations, encounterShips] = await Promise.all([
+      this.listRouteGatesAsync(solarSystemId),
+      this.listRouteStationsAsync(solarSystemId, positionKm, distanceAu),
+      this.listEncounterShipsAsync(solarSystemId, positionKm, distanceAu),
+    ]);
+
+    return {
+      gates,
+      stations,
+      encounterShips,
+    };
   }
 
   toValidLimit(value) {
@@ -148,6 +438,8 @@ class MarketListByLocationMessageHandler {
       locationTypes,
     });
 
+    const routeFeeds = await this.collectRouteEntityFeeds(solarSystemId, positionKm, distanceAu);
+
     const docking = await this.context.resolveDockingStateAsync({
       playerName: player.playerName,
       characterId,
@@ -180,7 +472,7 @@ class MarketListByLocationMessageHandler {
       spatial: market.spatial || null,
       trajectory: market.trajectory || null,
       distanceAu: market.distanceAu,
-      route: market.route || null,
+      route: this.buildRouteEntityFeeds(market.route || null, routeFeeds),
       isDocked: Boolean(docking.perMarketDocked.get(market.marketId)),
       priceMultiplier: market.priceMultiplier,
       driftPercentPerHour: market.driftPercentPerHour,
