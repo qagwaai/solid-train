@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "bust-descriptor",
+  "description": "Normalized character bust descriptor for SW-15. Character-scoped: applies to playable-character and NPC records. schemaVersion is always sw-15-m0-v1 for this contract baseline.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "presetVersion",
+    "faceShape",
+    "skinTone",
+    "hairStyle",
+    "hairColor",
+    "eyeStyle",
+    "eyeColor",
+    "expressionPreset",
+    "apparelAccent"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["sw-15-m0-v1"],
+      "description": "Contract baseline version. Hard-pinned to sw-15-m0-v1. Any other value is a hard validation reject."
+    },
+    "presetVersion": {
+      "type": "string",
+      "description": "Identifies the preset version used as the customization baseline for this bust record."
+    },
+    "faceShape": {
+      "type": "string",
+      "enum": ["oval", "round", "square", "angular", "narrow"],
+      "description": "Face shape preset domain. All values are constrained enums; unknown values are hard validation rejects."
+    },
+    "skinTone": {
+      "type": "string",
+      "enum": ["pale", "light", "medium", "tan", "dark", "deep"],
+      "description": "Skin tone preset domain."
+    },
+    "hairStyle": {
+      "type": "string",
+      "enum": ["short-crop", "mid-fade", "long-loose", "braided", "shaved", "slicked"],
+      "description": "Hair style preset domain."
+    },
+    "hairColor": {
+      "type": "string",
+      "enum": ["black", "brown", "auburn", "blonde", "silver", "white", "red"],
+      "description": "Hair color preset domain."
+    },
+    "eyeStyle": {
+      "type": "string",
+      "enum": ["narrow", "wide", "almond", "hooded", "round"],
+      "description": "Eye style preset domain."
+    },
+    "eyeColor": {
+      "type": "string",
+      "enum": ["brown", "hazel", "green", "blue", "grey", "amber", "violet"],
+      "description": "Eye color preset domain."
+    },
+    "expressionPreset": {
+      "type": "string",
+      "enum": ["neutral", "focused", "smirk", "stern", "warm", "weary"],
+      "description": "Expression preset domain."
+    },
+    "apparelAccent": {
+      "type": "string",
+      "enum": ["none", "collar", "hood", "visor", "goggles", "headband"],
+      "description": "Apparel accent preset domain. Use none when no accent is applied."
+    }
+  }
+}

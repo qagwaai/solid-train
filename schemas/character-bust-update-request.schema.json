@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "character-bust-update-request",
+  "description": "Request to update the bust descriptor for a playable character. The full descriptor must be provided; partial updates are not supported. Invalid field values are hard-rejected.",
+  "type": "object",
+  "required": [
+    "playerName",
+    "sessionKey",
+    "correlationId",
+    "requestIdentity",
+    "characterId",
+    "descriptor"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "characterId": {
+      "type": "string",
+      "description": "Identifies the playable character whose bust is being updated."
+    },
+    "descriptor": {
+      "type": "object",
+      "description": "Full bust customization update. All domain fields are required. presetVersion must be provided.",
+      "required": [
+        "presetVersion",
+        "faceShape",
+        "skinTone",
+        "hairStyle",
+        "hairColor",
+        "eyeStyle",
+        "eyeColor",
+        "expressionPreset",
+        "apparelAccent"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "presetVersion": { "type": "string" },
+        "faceShape": { "type": "string", "enum": ["oval", "round", "square", "angular", "narrow"] },
+        "skinTone": { "type": "string", "enum": ["pale", "light", "medium", "tan", "dark", "deep"] },
+        "hairStyle": { "type": "string", "enum": ["short-crop", "mid-fade", "long-loose", "braided", "shaved", "slicked"] },
+        "hairColor": { "type": "string", "enum": ["black", "brown", "auburn", "blonde", "silver", "white", "red"] },
+        "eyeStyle": { "type": "string", "enum": ["narrow", "wide", "almond", "hooded", "round"] },
+        "eyeColor": { "type": "string", "enum": ["brown", "hazel", "green", "blue", "grey", "amber", "violet"] },
+        "expressionPreset": { "type": "string", "enum": ["neutral", "focused", "smirk", "stern", "warm", "weary"] },
+        "apparelAccent": { "type": "string", "enum": ["none", "collar", "hood", "visor", "goggles", "headband"] }
+      }
+    }
+  }
+}

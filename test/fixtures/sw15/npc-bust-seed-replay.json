@@ -1,0 +1,18 @@
+{
+  "_comment": "SW-15 M0 NPC seed replay fixture. Replaying the same deterministicSeed must always produce the same descriptor. This fixture documents the canonical seed-to-descriptor mapping for cross-session consistency verification.",
+  "npcId": "npc-merchant-001",
+  "deterministicSeed": "faction:trade|role:merchant|id:001",
+  "descriptor": {
+    "schemaVersion": "sw-15-m0-v1",
+    "presetVersion": "v1",
+    "faceShape": "round",
+    "skinTone": "light",
+    "hairStyle": "slicked",
+    "hairColor": "auburn",
+    "eyeStyle": "wide",
+    "eyeColor": "hazel",
+    "expressionPreset": "warm",
+    "apparelAccent": "collar"
+  },
+  "appliedOverrides": []
+}
