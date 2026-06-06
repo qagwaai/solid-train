@@ -53,7 +53,8 @@
     "contract:compat-check:hard": "node scripts/sw08/check-contract-drift.js --baseline test/fixtures/sw08/compat-old.json --current test/fixtures/sw08/compat-new.json --report artifacts/contracts/stage3-compat-report.json --mode hard-fail",
     "contract:metrics:weekly": "node scripts/sw08/report-contract-metrics.js --reports-dir artifacts/contracts --report artifacts/contracts/sw08-trend-report.json --weekly-days 7 --rolling-days 30",
     "contract:metrics:trend:strict": "node scripts/sw08/report-contract-metrics.js --reports-dir artifacts/contracts --report artifacts/contracts/sw08-trend-report.json --weekly-days 7 --rolling-days 30 --fail-on-recurrence",
-    "contract:pr:hygiene": "node scripts/sw08/check-pr-contract-hygiene.js --changed-files artifacts/contracts/sw08-changed-files.txt"
+    "contract:pr:hygiene": "node scripts/sw08/check-pr-contract-hygiene.js --changed-files artifacts/contracts/sw08-changed-files.txt",
+    "security:audit": "npm audit --audit-level=high"
   },
   "repository": {
     "type": "git",
@@ -84,5 +85,6 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "packageManager": "npm@10.8.2"
 }
