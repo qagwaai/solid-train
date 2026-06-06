@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "npc-bust-create-request",
+  "description": "Request to create a bust descriptor for an NPC. Generates the bust from a deterministicSeed with optional admin-tool overrides for specific fields. The deterministicSeed drives the baseline descriptor; overrides apply on top. Invalid field values in overrides are hard-rejected.",
+  "type": "object",
+  "required": [
+    "playerName",
+    "sessionKey",
+    "correlationId",
+    "requestIdentity",
+    "npcId",
+    "deterministicSeed"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "npcId": {
+      "type": "string",
+      "description": "Identifies the NPC record this bust belongs to."
+    },
+    "deterministicSeed": {
+      "type": "string",
+      "description": "Seed string used to deterministically generate the NPC bust baseline. Same seed always produces the same descriptor. Must be non-empty."
+    },
+    "presetVersion": {
+      "type": "string",
+      "description": "Optional preset version override. If omitted the server assigns a canonical preset version."
+    },
+    "overrides": {
+      "type": "object",
+      "description": "Optional admin-tool manual overrides for specific descriptor fields. Only provided fields are overridden; all others are derived from the deterministicSeed.",
+      "additionalProperties": false,
+      "properties": {
+        "faceShape": { "type": "string", "enum": ["oval", "round", "square", "angular", "narrow"] },
+        "skinTone": { "type": "string", "enum": ["pale", "light", "medium", "tan", "dark", "deep"] },
+        "hairStyle": { "type": "string", "enum": ["short-crop", "mid-fade", "long-loose", "braided", "shaved", "slicked"] },
+        "hairColor": { "type": "string", "enum": ["black", "brown", "auburn", "blonde", "silver", "white", "red"] },
+        "eyeStyle": { "type": "string", "enum": ["narrow", "wide", "almond", "hooded", "round"] },
+        "eyeColor": { "type": "string", "enum": ["brown", "hazel", "green", "blue", "grey", "amber", "violet"] },
+        "expressionPreset": { "type": "string", "enum": ["neutral", "focused", "smirk", "stern", "warm", "weary"] },
+        "apparelAccent": { "type": "string", "enum": ["none", "collar", "hood", "visor", "goggles", "headband"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "_comment": "SW-15 M0 intentional mismatch fixture. This descriptor must hard-fail schema validation. faceShape uses 'triangle' which is not a valid enum value. No silent correction is permitted.",
+  "schemaVersion": "sw-15-m0-v1",
+  "presetVersion": "v1",
+  "faceShape": "triangle",
+  "skinTone": "medium",
+  "hairStyle": "short-crop",
+  "hairColor": "brown",
+  "eyeStyle": "almond",
+  "eyeColor": "green",
+  "expressionPreset": "neutral",
+  "apparelAccent": "none"
+}

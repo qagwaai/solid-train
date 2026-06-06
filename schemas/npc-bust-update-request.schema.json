@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "npc-bust-update-request",
+  "description": "Request to update an NPC bust descriptor. A new deterministicSeed may be provided to regenerate the baseline, or only overrides may be changed. Invalid field values in overrides are hard-rejected.",
+  "type": "object",
+  "required": [
+    "playerName",
+    "sessionKey",
+    "correlationId",
+    "requestIdentity",
+    "npcId",
+    "deterministicSeed"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "npcId": {
+      "type": "string",
+      "description": "Identifies the NPC whose bust is being updated."
+    },
+    "deterministicSeed": {
+      "type": "string",
+      "description": "Updated seed for the NPC bust baseline. Must match the original seed unless intentionally re-seeding."
+    },
+    "presetVersion": {
+      "type": "string",
+      "description": "Optional preset version. If omitted the server retains the existing presetVersion."
+    },
+    "overrides": {
+      "type": "object",
+      "description": "Optional admin-tool overrides. Replaces any previously stored overrides for the specified fields.",
+      "additionalProperties": false,
+      "properties": {
+        "faceShape": { "type": "string", "enum": ["oval", "round", "square", "angular", "narrow"] },
+        "skinTone": { "type": "string", "enum": ["pale", "light", "medium", "tan", "dark", "deep"] },
+        "hairStyle": { "type": "string", "enum": ["short-crop", "mid-fade", "long-loose", "braided", "shaved", "slicked"] },
+        "hairColor": { "type": "string", "enum": ["black", "brown", "auburn", "blonde", "silver", "white", "red"] },
+        "eyeStyle": { "type": "string", "enum": ["narrow", "wide", "almond", "hooded", "round"] },
+        "eyeColor": { "type": "string", "enum": ["brown", "hazel", "green", "blue", "grey", "amber", "violet"] },
+        "expressionPreset": { "type": "string", "enum": ["neutral", "focused", "smirk", "stern", "warm", "weary"] },
+        "apparelAccent": { "type": "string", "enum": ["none", "collar", "hood", "visor", "goggles", "headband"] }
+      }
+    }
+  }
+}

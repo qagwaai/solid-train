@@ -1,0 +1,13 @@
+{
+  "_comment": "SW-15 M0 canonical pass fixture. This descriptor must validate successfully against bust-descriptor.schema.json. All required fields present with valid enum values. schemaVersion is sw-15-m0-v1.",
+  "schemaVersion": "sw-15-m0-v1",
+  "presetVersion": "v1",
+  "faceShape": "oval",
+  "skinTone": "medium",
+  "hairStyle": "short-crop",
+  "hairColor": "brown",
+  "eyeStyle": "almond",
+  "eyeColor": "green",
+  "expressionPreset": "neutral",
+  "apparelAccent": "none"
+}
