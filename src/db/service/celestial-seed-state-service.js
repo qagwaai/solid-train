@@ -96,7 +96,7 @@ async function setSolarSystemCelestialSeedState(
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: 'after',
         setDefaultsOnInsert: true,
       }
     ).lean();

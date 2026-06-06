@@ -18,7 +18,7 @@ async function upsertNpcBust(ctx, NpcBust, npcId, deterministicSeed, descriptor,
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: 'after',
         setDefaultsOnInsert: true,
       }
     );

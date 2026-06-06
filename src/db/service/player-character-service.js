@@ -92,7 +92,7 @@ async function updatePlayer(ctx, Player, playerName, updates) {
     const player = await Player.findOneAndUpdate(
       playerNameQuery,
       { ...updates, updatedAt: new Date() },
-      { new: true }
+      { returnDocument: 'after' }
     );
     return player ? player.toObject() : null;
   } catch (error) {
@@ -114,7 +114,7 @@ async function addCharacter(ctx, Player, playerName, characterData) {
         $push: { characters: characterData },
         updatedAt: new Date(),
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
     return player ? player.toObject() : null;
   } catch (error) {
@@ -151,7 +151,7 @@ async function deleteCharacter(ctx, Player, playerName, characterId) {
         $pull: { characters: { id: characterId } },
         updatedAt: new Date(),
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
     return player ? player.toObject() : null;
   } catch (error) {

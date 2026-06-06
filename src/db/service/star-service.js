@@ -12,7 +12,7 @@ async function upsertStar(ctx, Star, starData) {
     const persisted = await Star.findOneAndUpdate(
       { hygId: starData.hygId.trim() },
       { ...starData, hygId: starData.hygId.trim() },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     ).lean();
     return persisted;
   } catch (error) {

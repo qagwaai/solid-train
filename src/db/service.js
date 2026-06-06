@@ -471,7 +471,7 @@ class DatabaseService {
       }
 
       return await ShipRecord.findOneAndUpdate({ id: normalizedShipId }, nextUpdates, {
-        new: true,
+        returnDocument: 'after',
       }).lean();
     } catch (error) {
       this.log(`[db-service] Error updating ship: ${error.message}`);

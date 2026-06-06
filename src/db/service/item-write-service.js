@@ -58,7 +58,7 @@ async function updateItemById(ctx, Item, itemId, updates) {
     const result = await Item.findOneAndUpdate(
       { id: itemId },
       { $set: updates },
-      { new: true }
+      { returnDocument: 'after' }
     ).lean();
 
     return result;

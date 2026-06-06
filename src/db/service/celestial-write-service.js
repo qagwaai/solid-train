@@ -31,7 +31,7 @@ async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData) {
 
     const celestialBody = await CelestialBody.findOneAndUpdate(upsertQuery, celestialBodyData, {
       upsert: true,
-      new: true,
+      returnDocument: 'after',
       setDefaultsOnInsert: true,
     });
     return celestialBody ? celestialBody.toObject() : null;
