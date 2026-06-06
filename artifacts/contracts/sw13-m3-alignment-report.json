@@ -3,7 +3,7 @@
   "metadata": {
     "baselineMissing": false,
     "baselinePath": "test\\fixtures\\sw13\\m3\\nova-consumer-inventory-aligned.json",
-    "currentPath": "artifacts\\contracts\\contract-artifact.json",
+    "currentPath": "test\\fixtures\\sw13\\m3\\nova-consumer-inventory-aligned.json",
     "exceptionFound": false,
     "exceptionPath": "docs\\planning\\sw-08-approved-bypass.json",
     "generatedBy": "scripts/sw08/check-contract-drift.js"
