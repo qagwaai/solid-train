@@ -144,6 +144,84 @@ async function addShipAsync(ctx, playerName, characterId, shipData) {
   }
 }
 
+async function updateCharacterBustAsync(ctx, playerName, characterId, descriptor) {
+  await ctx.withDb('updating character bust in DB', (databaseService) =>
+    databaseService.upsertCharacterBust(playerName, characterId, descriptor)
+  );
+
+  const character = ctx.findCharacter(playerName, characterId);
+  if (character) {
+    character.bust = descriptor;
+  }
+}
+
+async function getCharacterBustAsync(ctx, playerName, characterId) {
+  const descriptor = await ctx.withDbOrNull('fetching character bust from DB', (databaseService) =>
+    databaseService.getCharacterBust(playerName, characterId)
+  );
+
+  if (descriptor) {
+    const character = ctx.findCharacter(playerName, characterId);
+    if (character) {
+      character.bust = descriptor;
+    }
+    return descriptor;
+  }
+
+  const character = ctx.findCharacter(playerName, characterId);
+  return character?.bust || null;
+}
+
+async function upsertNpcBustAsync(ctx, npcId, deterministicSeed, descriptor, appliedOverrides) {
+  await ctx.withDb('upserting NPC bust in DB', (databaseService) =>
+    databaseService.upsertNpcBust(npcId, deterministicSeed, descriptor, appliedOverrides)
+  );
+
+  const normalizedNpcId = ctx.toNonEmptyString(npcId);
+  if (!normalizedNpcId) {
+    return;
+  }
+
+  ctx.npcBustsById.set(normalizedNpcId, {
+    npcId: normalizedNpcId,
+    deterministicSeed,
+    descriptor,
+    appliedOverrides: Array.isArray(appliedOverrides) ? appliedOverrides : [],
+  });
+}
+
+async function getNpcBustAsync(ctx, npcId) {
+  const record = await ctx.withDbOrNull('fetching NPC bust from DB', (databaseService) =>
+    databaseService.getNpcBust(npcId)
+  );
+
+  if (record) {
+    const normalizedNpcId = ctx.toNonEmptyString(record.npcId || npcId);
+    if (normalizedNpcId) {
+      ctx.npcBustsById.set(normalizedNpcId, {
+        npcId: normalizedNpcId,
+        deterministicSeed: record.deterministicSeed,
+        descriptor: record.descriptor,
+        appliedOverrides: Array.isArray(record.appliedOverrides) ? record.appliedOverrides : [],
+      });
+    }
+
+    return {
+      npcId: normalizedNpcId,
+      deterministicSeed: record.deterministicSeed,
+      descriptor: record.descriptor,
+      appliedOverrides: Array.isArray(record.appliedOverrides) ? record.appliedOverrides : [],
+    };
+  }
+
+  const normalizedNpcId = ctx.toNonEmptyString(npcId);
+  if (!normalizedNpcId) {
+    return null;
+  }
+
+  return ctx.npcBustsById.get(normalizedNpcId) || null;
+}
+
 async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData) {
   const status = ctx.toNonEmptyString(missionData?.status);
   if (!isCanonicalMissionStatus(status)) {
@@ -243,6 +321,10 @@ module.exports = {
   addCharacterAsync,
   deleteCharacterAsync,
   updateCharacterAsync,
+  updateCharacterBustAsync,
+  getCharacterBustAsync,
+  upsertNpcBustAsync,
+  getNpcBustAsync,
   addShipAsync,
   addOrUpdateMissionAsync,
   getMissionsAsync,

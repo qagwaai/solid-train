@@ -1,6 +1,56 @@
 'use strict';
 
 function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
+  const characterBustSchema = new mongoose.Schema(
+    {
+      schemaVersion: {
+        type: String,
+        enum: ['sw-15-m0-v1'],
+        required: true,
+      },
+      presetVersion: {
+        type: String,
+        required: true,
+      },
+      faceShape: {
+        type: String,
+        required: true,
+      },
+      skinTone: {
+        type: String,
+        required: true,
+      },
+      hairStyle: {
+        type: String,
+        required: true,
+      },
+      hairColor: {
+        type: String,
+        required: true,
+      },
+      eyeStyle: {
+        type: String,
+        required: true,
+      },
+      eyeColor: {
+        type: String,
+        required: true,
+      },
+      expressionPreset: {
+        type: String,
+        required: true,
+      },
+      apparelAccent: {
+        type: String,
+        required: true,
+      },
+    },
+    {
+      _id: false,
+      strict: true,
+    }
+  );
+
   const creditLedgerEntrySchema = new mongoose.Schema(
     {
       type: {
@@ -45,6 +95,10 @@ function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
       ships: [shipSchema],
       missions: [missionSchema],
       creditLedger: [creditLedgerEntrySchema],
+      bust: {
+        type: characterBustSchema,
+        default: null,
+      },
     },
     { _id: false }
   );

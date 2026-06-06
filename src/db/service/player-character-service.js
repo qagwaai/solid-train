@@ -189,6 +189,54 @@ async function updateCharacter(ctx, Player, playerName, characterId, updates) {
   }
 }
 
+async function upsertCharacterBust(ctx, Player, playerName, characterId, descriptor) {
+  try {
+    const playerNameQuery = ctx.buildPlayerNameQuery(playerName);
+    if (!playerNameQuery) {
+      return null;
+    }
+
+    const player = await Player.findOne(playerNameQuery);
+    if (!player) {
+      return null;
+    }
+
+    const characterIndex = player.characters.findIndex((character) => character.id === characterId);
+    if (characterIndex < 0) {
+      return null;
+    }
+
+    player.characters[characterIndex].bust = descriptor;
+    player.markModified(`characters.${characterIndex}.bust`);
+    player.updatedAt = new Date();
+    await player.save();
+    return player.toObject();
+  } catch (error) {
+    ctx.log(`[db-service] Error upserting character bust: ${error.message}`);
+    throw error;
+  }
+}
+
+async function getCharacterBust(ctx, Player, playerName, characterId) {
+  try {
+    const playerNameQuery = ctx.buildPlayerNameQuery(playerName);
+    if (!playerNameQuery) {
+      return null;
+    }
+
+    const player = await Player.findOne(playerNameQuery, { characters: 1 }).lean();
+    if (!player || !Array.isArray(player.characters)) {
+      return null;
+    }
+
+    const character = player.characters.find((entry) => entry.id === characterId);
+    return character?.bust || null;
+  } catch (error) {
+    ctx.log(`[db-service] Error fetching character bust: ${error.message}`);
+    throw error;
+  }
+}
+
 async function addShip(ctx, Player, playerName, characterId, shipData) {
   try {
     const playerNameQuery = ctx.buildPlayerNameQuery(playerName);
@@ -325,6 +373,8 @@ module.exports = {
   deleteCharacter,
   updateCharacter,
   addShip,
+  upsertCharacterBust,
+  getCharacterBust,
   addOrUpdateMission,
   getMissions,
   getShips,

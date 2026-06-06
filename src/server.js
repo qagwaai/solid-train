@@ -17,6 +17,18 @@ const { CharacterListMessageHandler } = require('./handlers/character-list-messa
 const { CharacterAddMessageHandler } = require('./handlers/character-add-message-handler');
 const { CharacterDeleteMessageHandler } = require('./handlers/character-delete-message-handler');
 const { CharacterEditMessageHandler } = require('./handlers/character-edit-message-handler');
+const {
+  CharacterBustCreateMessageHandler,
+} = require('./handlers/character-bust-create-message-handler');
+const {
+  CharacterBustReadMessageHandler,
+} = require('./handlers/character-bust-read-message-handler');
+const {
+  CharacterBustUpdateMessageHandler,
+} = require('./handlers/character-bust-update-message-handler');
+const { NpcBustCreateMessageHandler } = require('./handlers/npc-bust-create-message-handler');
+const { NpcBustReadMessageHandler } = require('./handlers/npc-bust-read-message-handler');
+const { NpcBustUpdateMessageHandler } = require('./handlers/npc-bust-update-message-handler');
 const { ShipListMessageHandler } = require('./handlers/ship-list-message-handler');
 const { ShipListByOwnerMessageHandler } = require('./handlers/ship-list-by-owner-message-handler');
 const { ShipUpsertMessageHandler } = require('./handlers/ship-upsert-message-handler');
@@ -104,6 +116,18 @@ function createServer(options = {}) {
   const characterAddMessageHandler = new CharacterAddMessageHandler(messageHandlerContext);
   const characterDeleteMessageHandler = new CharacterDeleteMessageHandler(messageHandlerContext);
   const characterEditMessageHandler = new CharacterEditMessageHandler(messageHandlerContext);
+  const characterBustCreateMessageHandler = new CharacterBustCreateMessageHandler(
+    messageHandlerContext
+  );
+  const characterBustReadMessageHandler = new CharacterBustReadMessageHandler(
+    messageHandlerContext
+  );
+  const characterBustUpdateMessageHandler = new CharacterBustUpdateMessageHandler(
+    messageHandlerContext
+  );
+  const npcBustCreateMessageHandler = new NpcBustCreateMessageHandler(messageHandlerContext);
+  const npcBustReadMessageHandler = new NpcBustReadMessageHandler(messageHandlerContext);
+  const npcBustUpdateMessageHandler = new NpcBustUpdateMessageHandler(messageHandlerContext);
   const shipListMessageHandler = new ShipListMessageHandler(messageHandlerContext);
   const shipListByOwnerMessageHandler = new ShipListByOwnerMessageHandler(messageHandlerContext);
   const shipUpsertMessageHandler = new ShipUpsertMessageHandler(messageHandlerContext);
@@ -205,6 +229,12 @@ function createServer(options = {}) {
       characterAddMessageHandler,
       characterDeleteMessageHandler,
       characterEditMessageHandler,
+      characterBustCreateMessageHandler,
+      characterBustReadMessageHandler,
+      characterBustUpdateMessageHandler,
+      npcBustCreateMessageHandler,
+      npcBustReadMessageHandler,
+      npcBustUpdateMessageHandler,
       shipListMessageHandler,
       shipListByOwnerMessageHandler,
       shipUpsertMessageHandler,

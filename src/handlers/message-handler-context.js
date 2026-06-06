@@ -25,6 +25,7 @@ class MessageHandlerContext {
     this.charactersByPlayer = options.charactersByPlayer || new Map();
     this.celestialBodiesById = options.celestialBodiesById || new Map();
     this.itemsById = options.itemsById || new Map();
+    this.npcBustsById = options.npcBustsById || new Map();
     this.marketsByKey = options.marketsByKey || new Map();
     this.databaseService = options.databaseService || null;
     this.game = options.game || new GameState();
@@ -190,6 +191,10 @@ defineDelegatedMethods(MessageHandlerContext.prototype, playerService, [
   'addCharacterAsync',
   'deleteCharacterAsync',
   'updateCharacterAsync',
+  'updateCharacterBustAsync',
+  'getCharacterBustAsync',
+  'upsertNpcBustAsync',
+  'getNpcBustAsync',
   'addShipAsync',
   'addOrUpdateMissionAsync',
   'getMissionsAsync',
