@@ -70,7 +70,7 @@
   "homepage": "https://github.com/qagwaai/solid-train#readme",
   "dependencies": {
     "cross-env": "^10.1.0",
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongoose": "^9.6.3",
     "socket.io": "^4.8.3",
