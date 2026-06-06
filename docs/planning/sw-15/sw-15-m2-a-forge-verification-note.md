@@ -110,12 +110,7 @@ Source-fix policy honored:
 
 ## PR Link Status
 
-PR has not been opened from this workspace execution.
-
-Current implementation is prepared on branch feature/sw-15-m1 for PR creation.
-
-Placeholder:
-- Forge PR link: TODO (to be populated when PR is opened)
+Merged
 
 ## Handoff Note
 
