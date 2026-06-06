@@ -4,6 +4,8 @@ const { CHARACTER_BUST_UPDATE_RESPONSE_EVENT } = require('../model/character-bus
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
 const {
+  BUST_BLOCKED_SAVE_REASONS,
+  buildBlockedSaveResponse,
   buildCharacterDescriptorForWrite,
   buildValidationFailureResponse,
 } = require('./bust-lifecycle');
@@ -47,33 +49,33 @@ class CharacterBustUpdateMessageHandler {
 
     const player = await this.context.getPlayerAsync(playerName);
     if (!player) {
-      const response = {
-        success: false,
-        message: 'Player is not registered',
-        ...baseResponse,
-      };
+      const response = buildBlockedSaveResponse(
+        'Player is not registered',
+        BUST_BLOCKED_SAVE_REASONS.PLAYER_NOT_REGISTERED,
+        baseResponse
+      );
       socket.emit(CHARACTER_BUST_UPDATE_RESPONSE_EVENT, response);
       return response;
     }
 
     const character = this.context.findCharacter(playerName, characterId);
     if (!character) {
-      const response = {
-        success: false,
-        message: 'Character is not in player list',
-        ...baseResponse,
-      };
+      const response = buildBlockedSaveResponse(
+        'Character is not in player list',
+        BUST_BLOCKED_SAVE_REASONS.CHARACTER_NOT_FOUND,
+        baseResponse
+      );
       socket.emit(CHARACTER_BUST_UPDATE_RESPONSE_EVENT, response);
       return response;
     }
 
     const existing = await this.context.getCharacterBustAsync(playerName, characterId);
     if (!existing) {
-      const response = {
-        success: false,
-        message: 'Character bust descriptor is not set',
-        ...baseResponse,
-      };
+      const response = buildBlockedSaveResponse(
+        'Character bust descriptor is not set',
+        BUST_BLOCKED_SAVE_REASONS.CHARACTER_BUST_NOT_FOUND,
+        baseResponse
+      );
       socket.emit(CHARACTER_BUST_UPDATE_RESPONSE_EVENT, response);
       return response;
     }
@@ -100,11 +102,12 @@ class CharacterBustUpdateMessageHandler {
       socket.emit(CHARACTER_BUST_UPDATE_RESPONSE_EVENT, response);
       return response;
     } catch (error) {
-      const response = {
-        success: false,
-        message: 'Failed to update character bust descriptor: database error',
-        ...baseResponse,
-      };
+      const response = buildBlockedSaveResponse(
+        'Failed to update character bust descriptor: database error',
+        BUST_BLOCKED_SAVE_REASONS.DATABASE_ERROR,
+        baseResponse,
+        { retryable: true }
+      );
       socket.emit(CHARACTER_BUST_UPDATE_RESPONSE_EVENT, response);
       return response;
     }

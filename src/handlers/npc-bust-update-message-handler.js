@@ -4,6 +4,8 @@ const { NPC_BUST_UPDATE_RESPONSE_EVENT } = require('../model/npc-bust-update');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
 const {
+  BUST_BLOCKED_SAVE_REASONS,
+  buildBlockedSaveResponse,
   buildNpcDescriptorForWrite,
   buildValidationFailureResponse,
 } = require('./bust-lifecycle');
@@ -61,11 +63,11 @@ class NpcBustUpdateMessageHandler {
 
     const existing = await this.context.getNpcBustAsync(npcId);
     if (!existing) {
-      const response = {
-        success: false,
-        message: 'NPC bust descriptor is not set',
-        ...baseResponse,
-      };
+      const response = buildBlockedSaveResponse(
+        'NPC bust descriptor is not set',
+        BUST_BLOCKED_SAVE_REASONS.NPC_BUST_NOT_FOUND,
+        baseResponse
+      );
       socket.emit(NPC_BUST_UPDATE_RESPONSE_EVENT, response);
       return response;
     }
@@ -99,11 +101,12 @@ class NpcBustUpdateMessageHandler {
       socket.emit(NPC_BUST_UPDATE_RESPONSE_EVENT, response);
       return response;
     } catch (error) {
-      const response = {
-        success: false,
-        message: 'Failed to update NPC bust descriptor: database error',
-        ...baseResponse,
-      };
+      const response = buildBlockedSaveResponse(
+        'Failed to update NPC bust descriptor: database error',
+        BUST_BLOCKED_SAVE_REASONS.DATABASE_ERROR,
+        baseResponse,
+        { retryable: true }
+      );
       socket.emit(NPC_BUST_UPDATE_RESPONSE_EVENT, response);
       return response;
     }

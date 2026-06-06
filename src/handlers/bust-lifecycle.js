@@ -15,6 +15,13 @@ const {
 
 const DEFAULT_BUST_PRESET_VERSION = 'v1';
 const FIXTURE_SEED = 'faction:trade|role:merchant|id:001';
+const BUST_BLOCKED_SAVE_REASONS = Object.freeze({
+  PLAYER_NOT_REGISTERED: 'PLAYER_NOT_REGISTERED',
+  CHARACTER_NOT_FOUND: 'CHARACTER_NOT_FOUND',
+  CHARACTER_BUST_NOT_FOUND: 'CHARACTER_BUST_NOT_FOUND',
+  NPC_BUST_NOT_FOUND: 'NPC_BUST_NOT_FOUND',
+  DATABASE_ERROR: 'DATABASE_ERROR',
+});
 
 const DOMAIN_DEFINITIONS = Object.freeze([
   { field: 'faceShape', values: BUST_FACE_SHAPE_VALUES },
@@ -301,9 +308,23 @@ function buildValidationFailureResponse(message, validationErrors, baseResponse 
   };
 }
 
+function buildBlockedSaveResponse(message, reason, baseResponse = {}, options = {}) {
+  return {
+    success: false,
+    message,
+    ...baseResponse,
+    blockedSave: {
+      reason,
+      retryable: options.retryable === true,
+    },
+  };
+}
+
 module.exports = {
   BUST_SCHEMA_VERSION,
+  BUST_BLOCKED_SAVE_REASONS,
   DEFAULT_BUST_PRESET_VERSION,
+  buildBlockedSaveResponse,
   buildCharacterDescriptorForWrite,
   buildNpcDescriptorForWrite,
   buildValidationFailureResponse,

@@ -137,6 +137,8 @@ test('SW-15 M1 character bust create/read/update persists and normalizes descrip
     client.emit(CHARACTER_BUST_CREATE_REQUEST_EVENT, createRequest);
     const createResponse = await createResponsePromise;
     assert.equal(createResponse.success, true);
+    assert.equal(createResponse.blockedSave, undefined);
+    assert.equal(createResponse.validationErrors, undefined);
     assert.equal(createResponse.characterId, characterId);
     assert.equal(createResponse.descriptor.schemaVersion, 'sw-15-m0-v1');
     assert.equal(createResponse.descriptor.presetVersion, 'v1');
@@ -178,6 +180,8 @@ test('SW-15 M1 character bust create/read/update persists and normalizes descrip
     const updateResponse = await updateResponsePromise;
 
     assert.equal(updateResponse.success, true);
+    assert.equal(updateResponse.blockedSave, undefined);
+    assert.equal(updateResponse.validationErrors, undefined);
     assert.equal(updateResponse.descriptor.schemaVersion, 'sw-15-m0-v1');
     assert.equal(updateResponse.descriptor.presetVersion, 'v2');
     assert.equal(updateResponse.descriptor.faceShape, 'angular');
@@ -231,6 +235,8 @@ test('SW-15 M1 NPC bust create/read/update persists deterministic seed lifecycle
     const createResponse = await createResponsePromise;
 
     assert.equal(createResponse.success, true);
+    assert.equal(createResponse.blockedSave, undefined);
+    assert.equal(createResponse.validationErrors, undefined);
     assert.equal(createResponse.deterministicSeed, 'faction:trade|role:merchant|id:001');
     assert.equal(createResponse.descriptor.schemaVersion, 'sw-15-m0-v1');
     assert.equal(createResponse.descriptor.faceShape, 'round');
@@ -266,6 +272,8 @@ test('SW-15 M1 NPC bust create/read/update persists deterministic seed lifecycle
     const updateResponse = await updateResponsePromise;
 
     assert.equal(updateResponse.success, true);
+    assert.equal(updateResponse.blockedSave, undefined);
+    assert.equal(updateResponse.validationErrors, undefined);
     assert.equal(updateResponse.descriptor.presetVersion, 'v2');
     assert.equal(updateResponse.descriptor.hairColor, 'red');
     assert.deepEqual(updateResponse.appliedOverrides, ['hairColor']);
@@ -332,6 +340,7 @@ test('SW-15 M1 invalid writes hard-reject with validationErrors field/reason/rej
     const invalidCharacterResponse = await invalidCharacterResponsePromise;
 
     assert.equal(invalidCharacterResponse.success, false);
+    assert.equal(invalidCharacterResponse.blockedSave, undefined);
     assert.ok(Array.isArray(invalidCharacterResponse.validationErrors));
     assert.ok(invalidCharacterResponse.validationErrors.length > 0);
     assert.deepEqual(invalidCharacterResponse.validationErrors[0], {
@@ -355,6 +364,7 @@ test('SW-15 M1 invalid writes hard-reject with validationErrors field/reason/rej
     const invalidNpcResponse = await invalidNpcResponsePromise;
 
     assert.equal(invalidNpcResponse.success, false);
+    assert.equal(invalidNpcResponse.blockedSave, undefined);
     assert.ok(Array.isArray(invalidNpcResponse.validationErrors));
     assert.ok(invalidNpcResponse.validationErrors.length > 0);
     assert.deepEqual(invalidNpcResponse.validationErrors[0], {
@@ -362,6 +372,73 @@ test('SW-15 M1 invalid writes hard-reject with validationErrors field/reason/rej
       reason: 'must be one of: short-crop, mid-fade, long-loose, braided, shaved, slicked',
       rejectedValue: 'spiky',
     });
+  } finally {
+    await closeClient(client);
+  }
+});
+
+test('SW-15 M2-A blocked-save responses emit typed reason and retryable semantics', async () => {
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const playerName = 'M2PilotBlocked';
+    const loginResponse = await registerAndLogin(
+      client,
+      playerName,
+      'm2-pilot-blocked@example.com',
+      'secure-pass-1'
+    );
+    const { sessionKey } = loginResponse;
+    const characterId = await addCharacter(client, playerName, sessionKey, 'BlockedTarget');
+
+    const missingCharacterResponsePromise = waitForEvent(client, CHARACTER_BUST_CREATE_RESPONSE_EVENT);
+    client.emit(CHARACTER_BUST_CREATE_REQUEST_EVENT, {
+      playerName,
+      sessionKey,
+      correlationId: '7281c2db-f20f-4ce9-89d7-7923693f5f3c',
+      requestIdentity: identity('character-bust-create', 'missing-character'),
+      characterId: 'missing-character',
+      descriptor: {
+        presetVersion: 'v1',
+        faceShape: 'round',
+        skinTone: 'light',
+        hairStyle: 'slicked',
+        hairColor: 'auburn',
+        eyeStyle: 'wide',
+        eyeColor: 'hazel',
+        expressionPreset: 'warm',
+        apparelAccent: 'collar',
+      },
+    });
+    const missingCharacterResponse = await missingCharacterResponsePromise;
+    assert.equal(missingCharacterResponse.success, false);
+    assert.equal(missingCharacterResponse.validationErrors, undefined);
+    assert.deepEqual(missingCharacterResponse.blockedSave, {
+      reason: 'CHARACTER_NOT_FOUND',
+      retryable: false,
+    });
+
+    const missingNpcResponsePromise = waitForEvent(client, NPC_BUST_UPDATE_RESPONSE_EVENT);
+    client.emit(NPC_BUST_UPDATE_REQUEST_EVENT, {
+      playerName,
+      sessionKey,
+      correlationId: 'f8c14558-827a-435e-8bc0-6f8d0f74fc5a',
+      requestIdentity: identity('npc-bust-update', 'npc-missing-001'),
+      npcId: 'npc-missing-001',
+      deterministicSeed: 'faction:trade|role:merchant|id:001',
+      overrides: {
+        eyeColor: 'blue',
+      },
+    });
+    const missingNpcResponse = await missingNpcResponsePromise;
+    assert.equal(missingNpcResponse.success, false);
+    assert.equal(missingNpcResponse.validationErrors, undefined);
+    assert.deepEqual(missingNpcResponse.blockedSave, {
+      reason: 'NPC_BUST_NOT_FOUND',
+      retryable: false,
+    });
+
   } finally {
     await closeClient(client);
   }

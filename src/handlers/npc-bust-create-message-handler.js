@@ -4,6 +4,8 @@ const { NPC_BUST_CREATE_RESPONSE_EVENT } = require('../model/npc-bust-create');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
 const {
+  BUST_BLOCKED_SAVE_REASONS,
+  buildBlockedSaveResponse,
   buildNpcDescriptorForWrite,
   buildValidationFailureResponse,
 } = require('./bust-lifecycle');
@@ -88,11 +90,12 @@ class NpcBustCreateMessageHandler {
       socket.emit(NPC_BUST_CREATE_RESPONSE_EVENT, response);
       return response;
     } catch (error) {
-      const response = {
-        success: false,
-        message: 'Failed to create NPC bust descriptor: database error',
-        ...baseResponse,
-      };
+      const response = buildBlockedSaveResponse(
+        'Failed to create NPC bust descriptor: database error',
+        BUST_BLOCKED_SAVE_REASONS.DATABASE_ERROR,
+        baseResponse,
+        { retryable: true }
+      );
       socket.emit(NPC_BUST_CREATE_RESPONSE_EVENT, response);
       return response;
     }
