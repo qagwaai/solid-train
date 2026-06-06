@@ -1,6 +1,6 @@
 # SW-15 M0 Nova Handoff Packet
 
-Status: Ready for Nova Acknowledgment
+Status: Nova M0-V Acknowledgment Complete
 Date: 2026-06-05
 From repo: solid-train (Forge)
 To repo: laughing-octo-journey (Nova)
@@ -129,7 +129,20 @@ Nova M1 implementation starts only after Nova M0-V acknowledgment is recorded an
 
 ## 11. Acknowledgment
 
-Nova acknowledgment status: Pending.
+Nova acknowledgment status: **Complete** (2026-06-05)
 
-Acknowledgment notes:
-- Add Nova M0-V confirmation, fixture compatibility evidence, and any deviations here.
+Nova PR: [laughing-octo-journey PR #2](https://github.com/qagwaai/laughing-octo-journey/pull/2)
+Verification note: `docs/planning/sw-15/sw-15-m0v-verification-note.md` (Nova repo)
+
+Acknowledgment summary:
+1. All 14 Forge schema components consumed — types match schemas exactly, no ad hoc additions.
+2. All 6 endpoint paths verified against request/response interface shapes.
+3. Character-scoped ownership confirmed end-to-end (`characterId` / `npcId`, no player-level bust).
+4. Canonical pass fixture: **PASS** — all 10 fields map cleanly into `BustDescriptor`.
+5. Mismatch fixture (`faceShape: "triangle"`): **REJECTED** — TypeScript type check and Forge hard-reject, no fallback acceptance.
+6. Seed replay fixture: **COMPATIBLE** — `NpcBustReadResponse` shape matches; `deterministicSeed` is required in read response.
+7. Drift scan: **No drift found** — no enum mismatches, missing required fields, nullability mismatches, or error-shape mismatches.
+8. Non-functional scaffolding added: `src/app/model/bust-descriptor.ts` (types), `src/app/model/bust-adapter.ts` (TODO anchors for M1/M2).
+9. No runtime behavior, UI behavior, or fallback logic changes in M0-V scope.
+
+**M0-10 status: Evidence complete. Ready for Orion M0 gate review.**
