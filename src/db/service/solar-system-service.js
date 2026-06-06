@@ -13,7 +13,7 @@ async function upsertSolarSystem(ctx, SolarSystem, systemData) {
     const persisted = await SolarSystem.findOneAndUpdate(
       { id },
       { ...systemData, id },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     ).lean();
     return persisted;
   } catch (error) {

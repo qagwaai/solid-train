@@ -17,7 +17,7 @@ async function upsertMarket(ctx, Market, marketData) {
 
     const persisted = await Market.findOneAndUpdate({ marketId, solarSystemId }, marketData, {
       upsert: true,
-      new: true,
+      returnDocument: 'after',
       setDefaultsOnInsert: true,
     });
 
