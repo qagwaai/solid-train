@@ -7,6 +7,7 @@ const {
   Item,
   JumpGate,
   Market,
+  NpcBust,
   Player,
   ShipRecord,
   SolarSystem,
@@ -24,6 +25,7 @@ const celestialSeedStateService = require('./service/celestial-seed-state-servic
 const jumpGateQueryService = require('./service/jump-gate-query-service');
 const starService = require('./service/star-service');
 const solarSystemService = require('./service/solar-system-service');
+const npcBustService = require('./service/npc-bust-service');
 
 /**
  * Database service layer - provides a clean interface for CRUD operations
@@ -281,6 +283,61 @@ class DatabaseService {
    */
   async addShip(playerName, characterId, shipData) {
     return playerCharacterService.addShip(this, Player, playerName, characterId, shipData);
+  }
+
+  /**
+   * Create or update a character-scoped bust descriptor.
+   * @param {string} playerName
+   * @param {string} characterId
+   * @param {Object} descriptor
+   * @returns {Promise<Object|null>}
+   */
+  async upsertCharacterBust(playerName, characterId, descriptor) {
+    return playerCharacterService.upsertCharacterBust(
+      this,
+      Player,
+      playerName,
+      characterId,
+      descriptor
+    );
+  }
+
+  /**
+   * Read a character-scoped bust descriptor.
+   * @param {string} playerName
+   * @param {string} characterId
+   * @returns {Promise<Object|null>}
+   */
+  async getCharacterBust(playerName, characterId) {
+    return playerCharacterService.getCharacterBust(this, Player, playerName, characterId);
+  }
+
+  /**
+   * Create or update an NPC bust descriptor record.
+   * @param {string} npcId
+   * @param {string} deterministicSeed
+   * @param {Object} descriptor
+   * @param {string[]} appliedOverrides
+   * @returns {Promise<Object|null>}
+   */
+  async upsertNpcBust(npcId, deterministicSeed, descriptor, appliedOverrides) {
+    return npcBustService.upsertNpcBust(
+      this,
+      NpcBust,
+      npcId,
+      deterministicSeed,
+      descriptor,
+      appliedOverrides
+    );
+  }
+
+  /**
+   * Read an NPC bust descriptor record.
+   * @param {string} npcId
+   * @returns {Promise<Object|null>}
+   */
+  async getNpcBust(npcId) {
+    return npcBustService.getNpcBust(this, NpcBust, npcId);
   }
 
   /**

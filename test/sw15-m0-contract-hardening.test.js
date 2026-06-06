@@ -25,6 +25,11 @@ const BUST_VALIDATION_ERROR_SCHEMA_PATH = path.join(
   'schemas',
   'bust-validation-error-response.schema.json'
 );
+const BUST_BLOCKED_SAVE_SCHEMA_PATH = path.join(
+  ROOT,
+  'schemas',
+  'bust-blocked-save-response.schema.json'
+);
 
 function readText(filePath) {
   return fs.readFileSync(filePath, 'utf8');
@@ -216,11 +221,12 @@ test('SW-15 openapi.yaml contains all 6 bust endpoint paths', () => {
   }
 });
 
-test('SW-15 openapi.yaml contains all 14 bust component schema names', () => {
+test('SW-15 openapi.yaml contains all 15 bust component schema names', () => {
   const content = readText(OPENAPI_PATH);
 
   const expectedComponents = [
     'BustDescriptor:',
+    'BustBlockedSaveResponse:',
     'BustValidationErrorResponse:',
     'CharacterBustCreateRequest:',
     'CharacterBustCreateResponse:',
@@ -264,6 +270,25 @@ test('SW-15 bust-validation-error-response schema has validationErrors array wit
   assert.ok(itemRequired.includes('rejectedValue'), 'validationErrors item must require rejectedValue');
 });
 
+test('SW-15 bust-blocked-save-response schema has success enum false and blockedSave.reason enum', () => {
+  const schema = readJson(BUST_BLOCKED_SAVE_SCHEMA_PATH);
+  assert.deepEqual(schema.properties.success.enum, [false]);
+
+  const blockedSave = schema.properties.blockedSave;
+  assert.equal(blockedSave.type, 'object');
+  assert.ok(blockedSave.required.includes('reason'));
+  assert.ok(blockedSave.required.includes('retryable'));
+
+  const reasonEnum = blockedSave.properties.reason.enum;
+  assert.deepEqual(reasonEnum, [
+    'PLAYER_NOT_REGISTERED',
+    'CHARACTER_NOT_FOUND',
+    'CHARACTER_BUST_NOT_FOUND',
+    'NPC_BUST_NOT_FOUND',
+    'DATABASE_ERROR',
+  ]);
+});
+
 // ─── Cross-schema consistency: request enum values match descriptor schema ────
 
 test('SW-15 character-bust-create-request descriptor enum values match bust-descriptor schema', () => {
@@ -296,6 +321,25 @@ test('SW-15 npc-bust-create-request override enum values match bust-descriptor s
       sortValues(overrideProperties[domain].enum),
       sortValues(bustSchema.properties[domain].enum),
       `npc-bust-create-request override enum for ${domain} must match bust-descriptor schema`
+    );
+  }
+});
+
+test('SW-15 create/update bust response schemas include blocked-save response variant', () => {
+  const responseSchemaPaths = [
+    path.join(ROOT, 'schemas', 'character-bust-create-response.schema.json'),
+    path.join(ROOT, 'schemas', 'character-bust-update-response.schema.json'),
+    path.join(ROOT, 'schemas', 'npc-bust-create-response.schema.json'),
+    path.join(ROOT, 'schemas', 'npc-bust-update-response.schema.json'),
+  ];
+
+  for (const responseSchemaPath of responseSchemaPaths) {
+    const schema = readJson(responseSchemaPath);
+    assert.ok(Array.isArray(schema.oneOf), `${path.basename(responseSchemaPath)} must define oneOf`);
+    const schemaText = JSON.stringify(schema);
+    assert.ok(
+      schemaText.includes('bust-blocked-save-response.schema.json'),
+      `${path.basename(responseSchemaPath)} must reference bust-blocked-save-response schema`
     );
   }
 });

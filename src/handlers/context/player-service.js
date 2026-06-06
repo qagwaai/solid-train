@@ -108,6 +108,28 @@ async function addShipAsync(ctx, playerName, characterId, shipData) {
   return persistenceBridge.addShipAsync(ctx, playerName, characterId, shipData);
 }
 
+async function updateCharacterBustAsync(ctx, playerName, characterId, descriptor) {
+  return persistenceBridge.updateCharacterBustAsync(ctx, playerName, characterId, descriptor);
+}
+
+async function getCharacterBustAsync(ctx, playerName, characterId) {
+  return persistenceBridge.getCharacterBustAsync(ctx, playerName, characterId);
+}
+
+async function upsertNpcBustAsync(ctx, npcId, deterministicSeed, descriptor, appliedOverrides) {
+  return persistenceBridge.upsertNpcBustAsync(
+    ctx,
+    npcId,
+    deterministicSeed,
+    descriptor,
+    appliedOverrides
+  );
+}
+
+async function getNpcBustAsync(ctx, npcId) {
+  return persistenceBridge.getNpcBustAsync(ctx, npcId);
+}
+
 async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData) {
   return persistenceBridge.addOrUpdateMissionAsync(ctx, playerName, characterId, missionData);
 }
@@ -133,6 +155,10 @@ module.exports = {
   deleteCharacterAsync,
   updateCharacterAsync,
   addShipAsync,
+  updateCharacterBustAsync,
+  getCharacterBustAsync,
+  upsertNpcBustAsync,
+  getNpcBustAsync,
   addOrUpdateMissionAsync,
   getMissionsAsync,
 };

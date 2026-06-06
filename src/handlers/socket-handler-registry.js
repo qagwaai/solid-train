@@ -6,6 +6,12 @@ const { CHARACTER_LIST_REQUEST_EVENT } = require('../model/character-list');
 const { CHARACTER_ADD_REQUEST_EVENT } = require('../model/character-add');
 const { CHARACTER_DELETE_REQUEST_EVENT } = require('../model/character-delete');
 const { CHARACTER_EDIT_REQUEST_EVENT } = require('../model/character-edit');
+const { CHARACTER_BUST_CREATE_REQUEST_EVENT } = require('../model/character-bust-create');
+const { CHARACTER_BUST_READ_REQUEST_EVENT } = require('../model/character-bust-read');
+const { CHARACTER_BUST_UPDATE_REQUEST_EVENT } = require('../model/character-bust-update');
+const { NPC_BUST_CREATE_REQUEST_EVENT } = require('../model/npc-bust-create');
+const { NPC_BUST_READ_REQUEST_EVENT } = require('../model/npc-bust-read');
+const { NPC_BUST_UPDATE_REQUEST_EVENT } = require('../model/npc-bust-update');
 const { SHIP_LIST_REQUEST_EVENT } = require('../model/ship-list');
 const { SHIP_UPSERT_REQUEST_EVENT } = require('../model/ship-upsert');
 const { SHIP_LIST_BY_OWNER_REQUEST_EVENT } = require('../model/ship-list-by-owner');
@@ -53,6 +59,12 @@ const RESPONSE_CHANNEL_BY_OPERATION = Object.freeze({
   'character-add': 'character-add-response',
   'character-delete': 'character-delete-response',
   'character-edit': 'character-edit-response',
+  'character-bust-create': 'character-bust-create-response',
+  'character-bust-read': 'character-bust-read-response',
+  'character-bust-update': 'character-bust-update-response',
+  'npc-bust-create': 'npc-bust-create-response',
+  'npc-bust-read': 'npc-bust-read-response',
+  'npc-bust-update': 'npc-bust-update-response',
   'ship-list': 'ship-list-response',
   'ship-list-by-owner': 'ship-list-by-owner-response',
   'ship-upsert': 'ship-upsert-response',
@@ -263,6 +275,36 @@ const SOCKET_HANDLER_REGISTRY = [
     event: CHARACTER_EDIT_REQUEST_EVENT,
     handlerKey: 'characterEditMessageHandler',
     errorLabel: 'Character edit',
+  },
+  {
+    event: CHARACTER_BUST_CREATE_REQUEST_EVENT,
+    handlerKey: 'characterBustCreateMessageHandler',
+    errorLabel: 'Character bust create',
+  },
+  {
+    event: CHARACTER_BUST_READ_REQUEST_EVENT,
+    handlerKey: 'characterBustReadMessageHandler',
+    errorLabel: 'Character bust read',
+  },
+  {
+    event: CHARACTER_BUST_UPDATE_REQUEST_EVENT,
+    handlerKey: 'characterBustUpdateMessageHandler',
+    errorLabel: 'Character bust update',
+  },
+  {
+    event: NPC_BUST_CREATE_REQUEST_EVENT,
+    handlerKey: 'npcBustCreateMessageHandler',
+    errorLabel: 'NPC bust create',
+  },
+  {
+    event: NPC_BUST_READ_REQUEST_EVENT,
+    handlerKey: 'npcBustReadMessageHandler',
+    errorLabel: 'NPC bust read',
+  },
+  {
+    event: NPC_BUST_UPDATE_REQUEST_EVENT,
+    handlerKey: 'npcBustUpdateMessageHandler',
+    errorLabel: 'NPC bust update',
   },
   { event: SHIP_LIST_REQUEST_EVENT, handlerKey: 'shipListMessageHandler', errorLabel: 'Ship list' },
   {

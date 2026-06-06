@@ -11,6 +11,7 @@ const { createCelestialModelArtifacts } = require('./models/celestial-model');
 const { createJumpGateModelArtifacts } = require('./models/jump-gate-model');
 const { createStarModelArtifacts } = require('./models/star-model');
 const { createSolarSystemModelArtifacts } = require('./models/solar-system-model');
+const { createNpcBustModelArtifacts } = require('./models/npc-bust-model');
 
 const { shipKinematicsSchema, motionStateSchema, spatialStateSchema } =
   createSharedPrimitiveSchemas({ mongoose });
@@ -98,6 +99,9 @@ const { Player, playerSchema, characterSchema, creditLedgerEntrySchema } =
 const { JumpGate, jumpGateSchema } = createJumpGateModelArtifacts({ mongoose });
 const { Star, starSchema } = createStarModelArtifacts({ mongoose });
 const { SolarSystem, solarSystemSchema } = createSolarSystemModelArtifacts({ mongoose });
+const { NpcBust, npcBustSchema, npcBustDescriptorSchema } = createNpcBustModelArtifacts({
+  mongoose,
+});
 
 module.exports = {
   CelestialBody,
@@ -111,6 +115,9 @@ module.exports = {
   jumpGateSchema,
   Star,
   starSchema,
+  NpcBust,
+  npcBustSchema,
+  npcBustDescriptorSchema,
   SolarSystem,
   solarSystemSchema,
   Market,
