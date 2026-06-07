@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Stellar API and Message Contract
-  version: 3.0.0
+  version: 3.0.1
   description: >
     Machine-readable contract for HTTP endpoints and Socket.IO message payloads.
     Socket operations are modeled as virtual POST operations under /socket/* so the
@@ -3855,6 +3855,9 @@ paths:
                     eyeColor: green
                     expressionPreset: neutral
                     apparelAccent: none
+                    facialHair: none
+                    scar: none
+                    tattoo: none
       responses:
         '200':
           description: character-bust-create-response
@@ -3876,7 +3879,7 @@ paths:
                       containerId: character-1
                     characterId: character-1
                     descriptor:
-                      schemaVersion: sw-15-m0-v1
+                      schemaVersion: sw-15-m1-v1
                       presetVersion: v1
                       faceShape: oval
                       skinTone: medium
@@ -3886,6 +3889,9 @@ paths:
                       eyeColor: green
                       expressionPreset: neutral
                       apparelAccent: none
+                      facialHair: none
+                      scar: none
+                      tattoo: none
                 blockedSave:
                   summary: Save blocked when character ownership preconditions are not met
                   value:
@@ -3974,7 +3980,7 @@ paths:
                       containerId: character-1
                     characterId: character-1
                     descriptor:
-                      schemaVersion: sw-15-m0-v1
+                      schemaVersion: sw-15-m1-v1
                       presetVersion: v1
                       faceShape: oval
                       skinTone: medium
@@ -3984,6 +3990,9 @@ paths:
                       eyeColor: green
                       expressionPreset: neutral
                       apparelAccent: none
+                      facialHair: none
+                      scar: none
+                      tattoo: none
 
   /socket/character-bust-update:
     post:
@@ -4030,6 +4039,9 @@ paths:
                     eyeColor: brown
                     expressionPreset: stern
                     apparelAccent: collar
+                    facialHair: stubble
+                    scar: brow-left
+                    tattoo: temple-left
       responses:
         '200':
           description: character-bust-update-response
@@ -4051,7 +4063,7 @@ paths:
                       containerId: character-1
                     characterId: character-1
                     descriptor:
-                      schemaVersion: sw-15-m0-v1
+                      schemaVersion: sw-15-m1-v1
                       presetVersion: v1
                       faceShape: square
                       skinTone: tan
@@ -4061,6 +4073,9 @@ paths:
                       eyeColor: brown
                       expressionPreset: stern
                       apparelAccent: collar
+                      facialHair: stubble
+                      scar: brow-left
+                      tattoo: temple-left
                 blockedSave:
                   summary: Save blocked when a prior descriptor does not exist
                   value:
@@ -4141,7 +4156,7 @@ paths:
                     npcId: npc-merchant-001
                     deterministicSeed: faction:trade|role:merchant|id:001
                     descriptor:
-                      schemaVersion: sw-15-m0-v1
+                      schemaVersion: sw-15-m1-v1
                       presetVersion: v1
                       faceShape: round
                       skinTone: light
@@ -4151,6 +4166,9 @@ paths:
                       eyeColor: hazel
                       expressionPreset: warm
                       apparelAccent: collar
+                      facialHair: none
+                      scar: none
+                      tattoo: none
                     appliedOverrides: []
                 blockedSave:
                   summary: Save blocked due to temporary persistence failure
@@ -4225,7 +4243,7 @@ paths:
                     npcId: npc-merchant-001
                     deterministicSeed: faction:trade|role:merchant|id:001
                     descriptor:
-                      schemaVersion: sw-15-m0-v1
+                      schemaVersion: sw-15-m1-v1
                       presetVersion: v1
                       faceShape: round
                       skinTone: light
@@ -4235,6 +4253,9 @@ paths:
                       eyeColor: hazel
                       expressionPreset: warm
                       apparelAccent: collar
+                      facialHair: none
+                      scar: none
+                      tattoo: none
                     appliedOverrides: []
 
   /socket/npc-bust-update:
@@ -4276,6 +4297,7 @@ paths:
                   deterministicSeed: faction:trade|role:merchant|id:001
                   overrides:
                     expressionPreset: stern
+                    tattoo: neck-left
       responses:
         '200':
           description: npc-bust-update-response
@@ -4297,7 +4319,7 @@ paths:
                     npcId: npc-merchant-001
                     deterministicSeed: faction:trade|role:merchant|id:001
                     descriptor:
-                      schemaVersion: sw-15-m0-v1
+                      schemaVersion: sw-15-m1-v1
                       presetVersion: v1
                       faceShape: round
                       skinTone: light
@@ -4307,8 +4329,12 @@ paths:
                       eyeColor: hazel
                       expressionPreset: stern
                       apparelAccent: collar
+                      facialHair: none
+                      scar: none
+                      tattoo: neck-left
                     appliedOverrides:
                       - expressionPreset
+                      - tattoo
                 blockedSave:
                   summary: Save blocked when no prior NPC bust exists
                   value:

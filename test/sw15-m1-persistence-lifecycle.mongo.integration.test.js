@@ -2,6 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const mongoose = require('mongoose');
 const { createServer } = require('../src/server');
 const {
   listen,
@@ -130,6 +131,9 @@ test('SW-15 M1 character bust create/read/update persists and normalizes descrip
         eyeColor: 'Hazel',
         expressionPreset: 'WARM',
         apparelAccent: 'COLLAR',
+        facialHair: ' STUBBLE ',
+        scar: 'Cheek-Left',
+        tattoo: 'Temple-Right',
       },
     };
 
@@ -140,10 +144,13 @@ test('SW-15 M1 character bust create/read/update persists and normalizes descrip
     assert.equal(createResponse.blockedSave, undefined);
     assert.equal(createResponse.validationErrors, undefined);
     assert.equal(createResponse.characterId, characterId);
-    assert.equal(createResponse.descriptor.schemaVersion, 'sw-15-m0-v1');
+    assert.equal(createResponse.descriptor.schemaVersion, 'sw-15-m1-v1');
     assert.equal(createResponse.descriptor.presetVersion, 'v1');
     assert.equal(createResponse.descriptor.faceShape, 'round');
     assert.equal(createResponse.descriptor.apparelAccent, 'collar');
+    assert.equal(createResponse.descriptor.facialHair, 'stubble');
+    assert.equal(createResponse.descriptor.scar, 'cheek-left');
+    assert.equal(createResponse.descriptor.tattoo, 'temple-right');
 
     const readResponsePromise = waitForEvent(client, CHARACTER_BUST_READ_RESPONSE_EVENT);
     client.emit(CHARACTER_BUST_READ_REQUEST_EVENT, {
@@ -175,6 +182,9 @@ test('SW-15 M1 character bust create/read/update persists and normalizes descrip
         eyeColor: 'green',
         expressionPreset: 'focused',
         apparelAccent: 'visor',
+        facialHair: 'goatee',
+        scar: 'brow-right',
+        tattoo: 'neck-left',
       },
     });
     const updateResponse = await updateResponsePromise;
@@ -182,9 +192,12 @@ test('SW-15 M1 character bust create/read/update persists and normalizes descrip
     assert.equal(updateResponse.success, true);
     assert.equal(updateResponse.blockedSave, undefined);
     assert.equal(updateResponse.validationErrors, undefined);
-    assert.equal(updateResponse.descriptor.schemaVersion, 'sw-15-m0-v1');
+    assert.equal(updateResponse.descriptor.schemaVersion, 'sw-15-m1-v1');
     assert.equal(updateResponse.descriptor.presetVersion, 'v2');
     assert.equal(updateResponse.descriptor.faceShape, 'angular');
+    assert.equal(updateResponse.descriptor.facialHair, 'goatee');
+    assert.equal(updateResponse.descriptor.scar, 'brow-right');
+    assert.equal(updateResponse.descriptor.tattoo, 'neck-left');
 
     const postUpdateReadPromise = waitForEvent(client, CHARACTER_BUST_READ_RESPONSE_EVENT);
     client.emit(CHARACTER_BUST_READ_REQUEST_EVENT, {
@@ -201,9 +214,12 @@ test('SW-15 M1 character bust create/read/update persists and normalizes descrip
 
     const persistedDescriptor = await mongoHarness.databaseService.getCharacterBust(playerName, characterId);
     assert.ok(persistedDescriptor);
-    assert.equal(persistedDescriptor.schemaVersion, 'sw-15-m0-v1');
+    assert.equal(persistedDescriptor.schemaVersion, 'sw-15-m1-v1');
     assert.equal(persistedDescriptor.presetVersion, 'v2');
     assert.equal(persistedDescriptor.hairStyle, 'braided');
+    assert.equal(persistedDescriptor.facialHair, 'goatee');
+    assert.equal(persistedDescriptor.scar, 'brow-right');
+    assert.equal(persistedDescriptor.tattoo, 'neck-left');
   } finally {
     await closeClient(client);
   }
@@ -238,8 +254,11 @@ test('SW-15 M1 NPC bust create/read/update persists deterministic seed lifecycle
     assert.equal(createResponse.blockedSave, undefined);
     assert.equal(createResponse.validationErrors, undefined);
     assert.equal(createResponse.deterministicSeed, 'faction:trade|role:merchant|id:001');
-    assert.equal(createResponse.descriptor.schemaVersion, 'sw-15-m0-v1');
+    assert.equal(createResponse.descriptor.schemaVersion, 'sw-15-m1-v1');
     assert.equal(createResponse.descriptor.faceShape, 'round');
+    assert.equal(createResponse.descriptor.facialHair, 'none');
+    assert.equal(createResponse.descriptor.scar, 'none');
+    assert.equal(createResponse.descriptor.tattoo, 'none');
     assert.deepEqual(createResponse.appliedOverrides, []);
 
     const readResponsePromise = waitForEvent(client, NPC_BUST_READ_RESPONSE_EVENT);
@@ -267,6 +286,9 @@ test('SW-15 M1 NPC bust create/read/update persists deterministic seed lifecycle
       presetVersion: 'v2',
       overrides: {
         hairColor: ' RED ',
+        facialHair: ' short-beard ',
+        scar: 'chin',
+        tattoo: 'NECK-RIGHT',
       },
     });
     const updateResponse = await updateResponsePromise;
@@ -276,7 +298,10 @@ test('SW-15 M1 NPC bust create/read/update persists deterministic seed lifecycle
     assert.equal(updateResponse.validationErrors, undefined);
     assert.equal(updateResponse.descriptor.presetVersion, 'v2');
     assert.equal(updateResponse.descriptor.hairColor, 'red');
-    assert.deepEqual(updateResponse.appliedOverrides, ['hairColor']);
+    assert.equal(updateResponse.descriptor.facialHair, 'short-beard');
+    assert.equal(updateResponse.descriptor.scar, 'chin');
+    assert.equal(updateResponse.descriptor.tattoo, 'neck-right');
+    assert.deepEqual(updateResponse.appliedOverrides, ['facialHair', 'hairColor', 'scar', 'tattoo']);
 
     const postUpdateReadPromise = waitForEvent(client, NPC_BUST_READ_RESPONSE_EVENT);
     client.emit(NPC_BUST_READ_REQUEST_EVENT, {
@@ -290,14 +315,14 @@ test('SW-15 M1 NPC bust create/read/update persists deterministic seed lifecycle
 
     assert.equal(postUpdateRead.success, true);
     assert.deepEqual(postUpdateRead.descriptor, updateResponse.descriptor);
-    assert.deepEqual(postUpdateRead.appliedOverrides, ['hairColor']);
+    assert.deepEqual(postUpdateRead.appliedOverrides, ['facialHair', 'hairColor', 'scar', 'tattoo']);
 
     const persistedRecord = await mongoHarness.databaseService.getNpcBust('npc-merchant-001');
     assert.ok(persistedRecord);
     assert.equal(persistedRecord.deterministicSeed, 'faction:trade|role:merchant|id:001');
-    assert.equal(persistedRecord.descriptor.schemaVersion, 'sw-15-m0-v1');
+    assert.equal(persistedRecord.descriptor.schemaVersion, 'sw-15-m1-v1');
     assert.equal(persistedRecord.descriptor.presetVersion, 'v2');
-    assert.deepEqual(persistedRecord.appliedOverrides, ['hairColor']);
+    assert.deepEqual(persistedRecord.appliedOverrides, ['facialHair', 'hairColor', 'scar', 'tattoo']);
   } finally {
     await closeClient(client);
   }
@@ -335,6 +360,9 @@ test('SW-15 M1 invalid writes hard-reject with validationErrors field/reason/rej
         eyeColor: 'hazel',
         expressionPreset: 'warm',
         apparelAccent: 'collar',
+        facialHair: 'none',
+        scar: 'none',
+        tattoo: 'none',
       },
     });
     const invalidCharacterResponse = await invalidCharacterResponsePromise;
@@ -358,7 +386,7 @@ test('SW-15 M1 invalid writes hard-reject with validationErrors field/reason/rej
       npcId: 'npc-merchant-002',
       deterministicSeed: 'faction:trade|role:merchant|id:002',
       overrides: {
-        hairStyle: 'spiky',
+        tattoo: 'forehead',
       },
     });
     const invalidNpcResponse = await invalidNpcResponsePromise;
@@ -368,10 +396,236 @@ test('SW-15 M1 invalid writes hard-reject with validationErrors field/reason/rej
     assert.ok(Array.isArray(invalidNpcResponse.validationErrors));
     assert.ok(invalidNpcResponse.validationErrors.length > 0);
     assert.deepEqual(invalidNpcResponse.validationErrors[0], {
-      field: 'overrides.hairStyle',
-      reason: 'must be one of: short-crop, mid-fade, long-loose, braided, shaved, slicked',
-      rejectedValue: 'spiky',
+      field: 'overrides.tattoo',
+      reason: 'must be one of: none, temple-left, temple-right, neck-left, neck-right',
+      rejectedValue: 'forehead',
     });
+  } finally {
+    await closeClient(client);
+  }
+});
+
+test('SW-15 M1 character bust create hard-rejects when new required fields are missing', async () => {
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const playerName = 'M1PilotMissingFields';
+    const loginResponse = await registerAndLogin(
+      client,
+      playerName,
+      'm1-pilot-missing-fields@example.com',
+      'secure-pass-1'
+    );
+    const { sessionKey } = loginResponse;
+    const characterId = await addCharacter(client, playerName, sessionKey, 'MissingFieldTarget');
+
+    const cases = [
+      { missingField: 'facialHair', correlationId: '8be1f85c-8ad6-431d-a057-3b71f88b73f5' },
+      { missingField: 'scar', correlationId: 'bf5516c2-e6ec-4707-bdbc-268176f97f4b' },
+      { missingField: 'tattoo', correlationId: 'd0f3423f-80b2-4bff-b47c-a36f699f8bf4' },
+    ];
+
+    for (const { missingField, correlationId } of cases) {
+      const descriptor = {
+        presetVersion: 'v1',
+        faceShape: 'round',
+        skinTone: 'light',
+        hairStyle: 'slicked',
+        hairColor: 'auburn',
+        eyeStyle: 'wide',
+        eyeColor: 'hazel',
+        expressionPreset: 'warm',
+        apparelAccent: 'collar',
+        facialHair: 'none',
+        scar: 'none',
+        tattoo: 'none',
+      };
+      delete descriptor[missingField];
+
+      const responsePromise = waitForEvent(client, CHARACTER_BUST_CREATE_RESPONSE_EVENT);
+      client.emit(CHARACTER_BUST_CREATE_REQUEST_EVENT, {
+        playerName,
+        sessionKey,
+        correlationId,
+        requestIdentity: identity('character-bust-create', characterId),
+        characterId,
+        descriptor,
+      });
+
+      const response = await responsePromise;
+      assert.equal(response.success, false);
+      assert.equal(response.blockedSave, undefined);
+      assert.ok(Array.isArray(response.validationErrors));
+      assert.ok(response.validationErrors.length > 0);
+      assert.equal(response.validationErrors[0].field, `descriptor.${missingField}`);
+      assert.equal(response.validationErrors[0].reason, 'must be a non-empty string');
+      assert.equal(response.validationErrors[0].rejectedValue, undefined);
+    }
+  } finally {
+    await closeClient(client);
+  }
+});
+
+test('SW-15 M1 npc-bust-create hard-rejects unknown override keys', async () => {
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const playerName = 'M1PilotUnknownOverride';
+    const loginResponse = await registerAndLogin(
+      client,
+      playerName,
+      'm1-pilot-unknown-override@example.com',
+      'secure-pass-1'
+    );
+    const { sessionKey } = loginResponse;
+
+    const responsePromise = waitForEvent(client, NPC_BUST_CREATE_RESPONSE_EVENT);
+    client.emit(NPC_BUST_CREATE_REQUEST_EVENT, {
+      playerName,
+      sessionKey,
+      correlationId: 'a4ef78e2-ec30-4b07-9a54-a3e4d6dd1f32',
+      requestIdentity: identity('npc-bust-create', 'npc-merchant-unknown-override'),
+      npcId: 'npc-merchant-unknown-override',
+      deterministicSeed: 'faction:trade|role:merchant|id:003',
+      overrides: {
+        badField: 'anything',
+      },
+    });
+
+    const response = await responsePromise;
+    assert.equal(response.success, false);
+    assert.equal(response.blockedSave, undefined);
+    assert.ok(Array.isArray(response.validationErrors));
+    assert.ok(response.validationErrors.length > 0);
+    assert.deepEqual(response.validationErrors[0], {
+      field: 'overrides.badField',
+      reason: 'is not an overridable bust field',
+      rejectedValue: 'anything',
+    });
+  } finally {
+    await closeClient(client);
+  }
+});
+
+test('SW-15 M1 npc deterministic seed parity includes new fields', async () => {
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const playerName = 'M1PilotSeedParity';
+    const loginResponse = await registerAndLogin(
+      client,
+      playerName,
+      'm1-pilot-seed-parity@example.com',
+      'secure-pass-1'
+    );
+    const { sessionKey } = loginResponse;
+    const deterministicSeed = 'faction:trade|role:merchant|id:parity';
+
+    const createOnePromise = waitForEvent(client, NPC_BUST_CREATE_RESPONSE_EVENT);
+    client.emit(NPC_BUST_CREATE_REQUEST_EVENT, {
+      playerName,
+      sessionKey,
+      correlationId: '2be7df2d-7221-4fa6-b356-39f6d6a65e7b',
+      requestIdentity: identity('npc-bust-create', 'npc-parity-1'),
+      npcId: 'npc-parity-1',
+      deterministicSeed,
+    });
+    const createOne = await createOnePromise;
+
+    const createTwoPromise = waitForEvent(client, NPC_BUST_CREATE_RESPONSE_EVENT);
+    client.emit(NPC_BUST_CREATE_REQUEST_EVENT, {
+      playerName,
+      sessionKey,
+      correlationId: 'a9d65b16-72a2-46df-9a31-2788ec6ffabf',
+      requestIdentity: identity('npc-bust-create', 'npc-parity-2'),
+      npcId: 'npc-parity-2',
+      deterministicSeed,
+    });
+    const createTwo = await createTwoPromise;
+
+    assert.equal(createOne.success, true);
+    assert.equal(createTwo.success, true);
+    assert.deepEqual(createOne.descriptor, createTwo.descriptor);
+    assert.equal(createOne.descriptor.facialHair, createTwo.descriptor.facialHair);
+    assert.equal(createOne.descriptor.scar, createTwo.descriptor.scar);
+    assert.equal(createOne.descriptor.tattoo, createTwo.descriptor.tattoo);
+  } finally {
+    await closeClient(client);
+  }
+});
+
+test('SW-15 M1 character bust read preserves legacy schemaVersion values already stored', async () => {
+  const client = connectClient(port);
+  await waitForEvent(client, 'connect');
+
+  try {
+    const playerName = 'M1PilotLegacyRead';
+    const loginResponse = await registerAndLogin(
+      client,
+      playerName,
+      'm1-pilot-legacy-read@example.com',
+      'secure-pass-1'
+    );
+    const { sessionKey } = loginResponse;
+    const characterId = await addCharacter(client, playerName, sessionKey, 'LegacyReadTarget');
+
+    const createResponsePromise = waitForEvent(client, CHARACTER_BUST_CREATE_RESPONSE_EVENT);
+    client.emit(CHARACTER_BUST_CREATE_REQUEST_EVENT, {
+      playerName,
+      sessionKey,
+      correlationId: '5fb5db66-f6d3-4c03-b0ff-c31be354f9f6',
+      requestIdentity: identity('character-bust-create', characterId),
+      characterId,
+      descriptor: {
+        presetVersion: 'v1',
+        faceShape: 'round',
+        skinTone: 'light',
+        hairStyle: 'slicked',
+        hairColor: 'auburn',
+        eyeStyle: 'wide',
+        eyeColor: 'hazel',
+        expressionPreset: 'warm',
+        apparelAccent: 'collar',
+        facialHair: 'none',
+        scar: 'none',
+        tattoo: 'none',
+      },
+    });
+    const createResponse = await createResponsePromise;
+    assert.equal(createResponse.success, true);
+    assert.equal(createResponse.descriptor.schemaVersion, 'sw-15-m1-v1');
+
+    const Player = mongoose.model('Player');
+    await Player.updateOne(
+      {
+        playerNameNormalized: playerName.toLowerCase(),
+        'characters.id': characterId,
+      },
+      {
+        $set: {
+          'characters.$.bust.schemaVersion': 'sw-15-m0-v1',
+        },
+      }
+    );
+
+    const readResponsePromise = waitForEvent(client, CHARACTER_BUST_READ_RESPONSE_EVENT);
+    client.emit(CHARACTER_BUST_READ_REQUEST_EVENT, {
+      playerName,
+      sessionKey,
+      correlationId: 'a043e7e6-cc7d-4e6d-b6e9-97ca335c4f7f',
+      requestIdentity: identity('character-bust-read', characterId),
+      characterId,
+    });
+    const readResponse = await readResponsePromise;
+
+    assert.equal(readResponse.success, true);
+    assert.equal(readResponse.descriptor.schemaVersion, 'sw-15-m0-v1');
+    assert.equal(readResponse.descriptor.facialHair, 'none');
+    assert.equal(readResponse.descriptor.scar, 'none');
+    assert.equal(readResponse.descriptor.tattoo, 'none');
   } finally {
     await closeClient(client);
   }
@@ -409,6 +663,9 @@ test('SW-15 M2-A blocked-save responses emit typed reason and retryable semantic
         eyeColor: 'hazel',
         expressionPreset: 'warm',
         apparelAccent: 'collar',
+        facialHair: 'none',
+        scar: 'none',
+        tattoo: 'none',
       },
     });
     const missingCharacterResponse = await missingCharacterResponsePromise;

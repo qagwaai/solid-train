@@ -5,7 +5,7 @@ function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
     {
       schemaVersion: {
         type: String,
-        enum: ['sw-15-m0-v1'],
+        enum: ['sw-15-m1-v1'],
         required: true,
       },
       presetVersion: {
@@ -41,6 +41,18 @@ function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
         required: true,
       },
       apparelAccent: {
+        type: String,
+        required: true,
+      },
+      facialHair: {
+        type: String,
+        required: true,
+      },
+      scar: {
+        type: String,
+        required: true,
+      },
+      tattoo: {
         type: String,
         required: true,
       },

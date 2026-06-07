@@ -11,6 +11,9 @@ const {
   BUST_EYE_COLOR_VALUES,
   BUST_EXPRESSION_PRESET_VALUES,
   BUST_APPAREL_ACCENT_VALUES,
+  BUST_FACIAL_HAIR_VALUES,
+  BUST_SCAR_VALUES,
+  BUST_TATTOO_VALUES,
 } = require('../model/bust-descriptor');
 
 const DEFAULT_BUST_PRESET_VERSION = 'v1';
@@ -32,6 +35,9 @@ const DOMAIN_DEFINITIONS = Object.freeze([
   { field: 'eyeColor', values: BUST_EYE_COLOR_VALUES },
   { field: 'expressionPreset', values: BUST_EXPRESSION_PRESET_VALUES },
   { field: 'apparelAccent', values: BUST_APPAREL_ACCENT_VALUES },
+  { field: 'facialHair', values: BUST_FACIAL_HAIR_VALUES },
+  { field: 'scar', values: BUST_SCAR_VALUES },
+  { field: 'tattoo', values: BUST_TATTOO_VALUES },
 ]);
 
 const DOMAIN_VALUE_SET_BY_FIELD = Object.freeze(
@@ -47,6 +53,9 @@ const FIXTURE_BASELINE_DESCRIPTOR = Object.freeze({
   eyeColor: 'hazel',
   expressionPreset: 'warm',
   apparelAccent: 'collar',
+  facialHair: 'none',
+  scar: 'none',
+  tattoo: 'none',
 });
 
 function toValidationError(field, reason, rejectedValue) {

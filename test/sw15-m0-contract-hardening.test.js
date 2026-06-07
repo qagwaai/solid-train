@@ -14,6 +14,9 @@ const {
   BUST_EYE_COLOR_VALUES,
   BUST_EXPRESSION_PRESET_VALUES,
   BUST_APPAREL_ACCENT_VALUES,
+  BUST_FACIAL_HAIR_VALUES,
+  BUST_SCAR_VALUES,
+  BUST_TATTOO_VALUES,
   BUST_SCHEMA_VERSION,
 } = require('../src/model/bust-descriptor');
 
@@ -112,13 +115,34 @@ test('SW-15 bust-descriptor schema enums remain aligned with runtime taxonomy', 
     sortValues(schema.properties.apparelAccent.enum),
     sortValues(BUST_APPAREL_ACCENT_VALUES)
   );
+  assert.deepEqual(
+    sortValues(schema.properties.facialHair.enum),
+    sortValues(BUST_FACIAL_HAIR_VALUES)
+  );
+  assert.deepEqual(
+    sortValues(schema.properties.scar.enum),
+    sortValues(BUST_SCAR_VALUES)
+  );
+  assert.deepEqual(
+    sortValues(schema.properties.tattoo.enum),
+    sortValues(BUST_TATTOO_VALUES)
+  );
 
   assert.equal(schema.additionalProperties, false);
 });
 
-test('SW-15 bust-descriptor schema schemaVersion enum contains only sw-15-m0-v1', () => {
+test('SW-15 bust-descriptor schema schemaVersion enum contains only active baseline version', () => {
   const schema = readJson(BUST_DESCRIPTOR_SCHEMA_PATH);
   assert.deepEqual(schema.properties.schemaVersion.enum, [BUST_SCHEMA_VERSION]);
+});
+
+test('SW-15 bust-descriptor schema required list includes new descriptor domains', () => {
+  const schema = readJson(BUST_DESCRIPTOR_SCHEMA_PATH);
+  const required = new Set(schema.required || []);
+
+  assert.equal(required.has('facialHair'), true);
+  assert.equal(required.has('scar'), true);
+  assert.equal(required.has('tattoo'), true);
 });
 
 // ─── Canonical pass fixture ───────────────────────────────────────────────────
@@ -137,7 +161,7 @@ test('SW-15 canonical character bust fixture passes schema validation', () => {
 
 test('SW-15 canonical character bust fixture has correct schemaVersion', () => {
   const fixture = loadFixture('character-bust-canonical-pass.json');
-  assert.equal(fixture.schemaVersion, 'sw-15-m0-v1');
+  assert.equal(fixture.schemaVersion, BUST_SCHEMA_VERSION);
 });
 
 test('SW-15 canonical character bust fixture has required presetVersion', () => {
@@ -298,7 +322,19 @@ test('SW-15 character-bust-create-request descriptor enum values match bust-desc
   );
   const requestDescriptor = createRequestSchema.properties.descriptor.properties;
 
-  const domains = ['faceShape', 'skinTone', 'hairStyle', 'hairColor', 'eyeStyle', 'eyeColor', 'expressionPreset', 'apparelAccent'];
+  const domains = [
+    'faceShape',
+    'skinTone',
+    'hairStyle',
+    'hairColor',
+    'eyeStyle',
+    'eyeColor',
+    'expressionPreset',
+    'apparelAccent',
+    'facialHair',
+    'scar',
+    'tattoo',
+  ];
   for (const domain of domains) {
     assert.deepEqual(
       sortValues(requestDescriptor[domain].enum),
@@ -315,7 +351,19 @@ test('SW-15 npc-bust-create-request override enum values match bust-descriptor s
   );
   const overrideProperties = npcCreateRequestSchema.properties.overrides.properties;
 
-  const domains = ['faceShape', 'skinTone', 'hairStyle', 'hairColor', 'eyeStyle', 'eyeColor', 'expressionPreset', 'apparelAccent'];
+  const domains = [
+    'faceShape',
+    'skinTone',
+    'hairStyle',
+    'hairColor',
+    'eyeStyle',
+    'eyeColor',
+    'expressionPreset',
+    'apparelAccent',
+    'facialHair',
+    'scar',
+    'tattoo',
+  ];
   for (const domain of domains) {
     assert.deepEqual(
       sortValues(overrideProperties[domain].enum),

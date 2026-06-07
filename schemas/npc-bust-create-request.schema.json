@@ -53,7 +53,10 @@
         "eyeStyle": { "type": "string", "enum": ["narrow", "wide", "almond", "hooded", "round"] },
         "eyeColor": { "type": "string", "enum": ["brown", "hazel", "green", "blue", "grey", "amber", "violet"] },
         "expressionPreset": { "type": "string", "enum": ["neutral", "focused", "smirk", "stern", "warm", "weary"] },
-        "apparelAccent": { "type": "string", "enum": ["none", "collar", "hood", "visor", "goggles", "headband"] }
+        "apparelAccent": { "type": "string", "enum": ["none", "collar", "hood", "visor", "goggles", "headband"] },
+        "facialHair": { "type": "string", "enum": ["none", "stubble", "short-beard", "full-beard", "goatee"] },
+        "scar": { "type": "string", "enum": ["none", "cheek-left", "cheek-right", "brow-left", "brow-right", "chin"] },
+        "tattoo": { "type": "string", "enum": ["none", "temple-left", "temple-right", "neck-left", "neck-right"] }
       }
     }
   }
