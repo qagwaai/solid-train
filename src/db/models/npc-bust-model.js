@@ -80,9 +80,8 @@ function createNpcBustModelArtifacts({ mongoose }) {
     },
   });
 
-  npcBustSchema.pre('save', function (next) {
+  npcBustSchema.pre('save', function () {
     this.updatedAt = new Date();
-    next();
   });
 
   const NpcBust = mongoose.model('NpcBust', npcBustSchema);

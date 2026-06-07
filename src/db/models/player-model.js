@@ -154,9 +154,8 @@ function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
     },
   });
 
-  playerSchema.pre('save', function (next) {
+  playerSchema.pre('save', function () {
     this.updatedAt = new Date();
-    next();
   });
 
   const Player = mongoose.model('Player', playerSchema);
