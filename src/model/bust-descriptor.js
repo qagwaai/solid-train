@@ -96,7 +96,41 @@ const BUST_APPAREL_ACCENT = Object.freeze({
 const BUST_APPAREL_ACCENT_VALUES = Object.freeze(Object.values(BUST_APPAREL_ACCENT));
 const BUST_APPAREL_ACCENT_SET = new Set(BUST_APPAREL_ACCENT_VALUES);
 
-const BUST_SCHEMA_VERSION = 'sw-15-m0-v1';
+const BUST_FACIAL_HAIR = Object.freeze({
+  NONE: 'none',
+  STUBBLE: 'stubble',
+  SHORT_BEARD: 'short-beard',
+  FULL_BEARD: 'full-beard',
+  GOATEE: 'goatee',
+});
+
+const BUST_FACIAL_HAIR_VALUES = Object.freeze(Object.values(BUST_FACIAL_HAIR));
+const BUST_FACIAL_HAIR_SET = new Set(BUST_FACIAL_HAIR_VALUES);
+
+const BUST_SCAR = Object.freeze({
+  NONE: 'none',
+  CHEEK_LEFT: 'cheek-left',
+  CHEEK_RIGHT: 'cheek-right',
+  BROW_LEFT: 'brow-left',
+  BROW_RIGHT: 'brow-right',
+  CHIN: 'chin',
+});
+
+const BUST_SCAR_VALUES = Object.freeze(Object.values(BUST_SCAR));
+const BUST_SCAR_SET = new Set(BUST_SCAR_VALUES);
+
+const BUST_TATTOO = Object.freeze({
+  NONE: 'none',
+  TEMPLE_LEFT: 'temple-left',
+  TEMPLE_RIGHT: 'temple-right',
+  NECK_LEFT: 'neck-left',
+  NECK_RIGHT: 'neck-right',
+});
+
+const BUST_TATTOO_VALUES = Object.freeze(Object.values(BUST_TATTOO));
+const BUST_TATTOO_SET = new Set(BUST_TATTOO_VALUES);
+
+const BUST_SCHEMA_VERSION = 'sw-15-m1-v1';
 
 module.exports = {
   BUST_FACE_SHAPE,
@@ -123,5 +157,14 @@ module.exports = {
   BUST_APPAREL_ACCENT,
   BUST_APPAREL_ACCENT_VALUES,
   BUST_APPAREL_ACCENT_SET,
+  BUST_FACIAL_HAIR,
+  BUST_FACIAL_HAIR_VALUES,
+  BUST_FACIAL_HAIR_SET,
+  BUST_SCAR,
+  BUST_SCAR_VALUES,
+  BUST_SCAR_SET,
+  BUST_TATTOO,
+  BUST_TATTOO_VALUES,
+  BUST_TATTOO_SET,
   BUST_SCHEMA_VERSION,
 };

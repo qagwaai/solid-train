@@ -1,10 +1,13 @@
 {
   "checksums": {
-    "openApiSha256": "e0023323f997245ed6b8fce73dd4cfa25d55a12a19eb1d2386cb867311413a64",
-    "schemaBundleSha256": "700b0c874896c3331453a2621cf8a067195257b1b32a43c0fec8709790a8ddf9"
+    "openApiSha256": "b735c1868eff32471077c93874b6eb9fe99fc6013b8c2a7f7ad9ef71e110437a",
+    "schemaBundleSha256": "204875b6721d084d589341124fa070ac8567e51e7cbdf0fb200d03ff0eed29c6"
   },
   "components": {
     "schemaRefMap": {
+      "BustBlockedSaveResponse": "bust-blocked-save-response.schema.json",
+      "BustDescriptor": "bust-descriptor.schema.json",
+      "BustValidationErrorResponse": "bust-validation-error-response.schema.json",
       "CatalogItemDefinition": "catalog-item-definition.schema.json",
       "CelestialBodyListRequest": "celestial-body-list-request.schema.json",
       "CelestialBodyListResponse": "celestial-body-list-response.schema.json",
@@ -12,6 +15,12 @@
       "CelestialBodyUpsertResponse": "celestial-body-upsert-response.schema.json",
       "CharacterAddRequest": "character-add-request.schema.json",
       "CharacterAddResponse": "character-add-response.schema.json",
+      "CharacterBustCreateRequest": "character-bust-create-request.schema.json",
+      "CharacterBustCreateResponse": "character-bust-create-response.schema.json",
+      "CharacterBustReadRequest": "character-bust-read-request.schema.json",
+      "CharacterBustReadResponse": "character-bust-read-response.schema.json",
+      "CharacterBustUpdateRequest": "character-bust-update-request.schema.json",
+      "CharacterBustUpdateResponse": "character-bust-update-response.schema.json",
       "CharacterDeleteRequest": "character-delete-request.schema.json",
       "CharacterDeleteResponse": "character-delete-response.schema.json",
       "CharacterEditRequest": "character-edit-request.schema.json",
@@ -68,6 +77,12 @@
       "MissionListResponse": "mission-list-response.schema.json",
       "MissionUpsertRequest": "mission-upsert-request.schema.json",
       "MissionUpsertResponse": "mission-upsert-response.schema.json",
+      "NpcBustCreateRequest": "npc-bust-create-request.schema.json",
+      "NpcBustCreateResponse": "npc-bust-create-response.schema.json",
+      "NpcBustReadRequest": "npc-bust-read-request.schema.json",
+      "NpcBustReadResponse": "npc-bust-read-response.schema.json",
+      "NpcBustUpdateRequest": "npc-bust-update-request.schema.json",
+      "NpcBustUpdateResponse": "npc-bust-update-response.schema.json",
       "PingRequest": "ping-request.schema.json",
       "PongResponse": "pong-response.schema.json",
       "RegisterRequest": "register-request.schema.json",
@@ -94,6 +109,226 @@
       "WelcomeEvent": "welcome-event.schema.json"
     },
     "schemas": {
+      "BustBlockedSaveResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Typed blocked-save response for bust create/update operations. Used when a request is valid but persistence cannot proceed.",
+        "properties": {
+          "blockedSave": {
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "description": "Canonical blocked-save reason code for deterministic client handling.",
+                "enum": [
+                  "PLAYER_NOT_REGISTERED",
+                  "CHARACTER_NOT_FOUND",
+                  "CHARACTER_BUST_NOT_FOUND",
+                  "NPC_BUST_NOT_FOUND",
+                  "DATABASE_ERROR"
+                ],
+                "type": "string"
+              },
+              "retryable": {
+                "description": "True only when retrying later may succeed without request shape changes.",
+                "type": "boolean"
+              }
+            },
+            "required": ["reason", "retryable"],
+            "type": "object"
+          },
+          "characterId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "description": "Human-readable summary of why persistence was blocked.",
+            "type": "string"
+          },
+          "npcId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "success": {
+            "description": "Always false for blocked-save responses.",
+            "enum": [false],
+            "type": "boolean"
+          }
+        },
+        "required": ["success", "message", "correlationId", "requestIdentity", "blockedSave"],
+        "title": "bust-blocked-save-response",
+        "type": "object"
+      },
+      "BustDescriptor": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Normalized character bust descriptor for SW-15. Character-scoped: applies to playable-character and NPC records. schemaVersion is always sw-15-m1-v1 for this contract baseline.",
+        "properties": {
+          "apparelAccent": {
+            "description": "Apparel accent preset domain. Use none when no accent is applied.",
+            "enum": ["none", "collar", "hood", "visor", "goggles", "headband"],
+            "type": "string"
+          },
+          "expressionPreset": {
+            "description": "Expression preset domain.",
+            "enum": ["neutral", "focused", "smirk", "stern", "warm", "weary"],
+            "type": "string"
+          },
+          "eyeColor": {
+            "description": "Eye color preset domain.",
+            "enum": ["brown", "hazel", "green", "blue", "grey", "amber", "violet"],
+            "type": "string"
+          },
+          "eyeStyle": {
+            "description": "Eye style preset domain.",
+            "enum": ["narrow", "wide", "almond", "hooded", "round"],
+            "type": "string"
+          },
+          "faceShape": {
+            "description": "Face shape preset domain. All values are constrained enums; unknown values are hard validation rejects.",
+            "enum": ["oval", "round", "square", "angular", "narrow"],
+            "type": "string"
+          },
+          "facialHair": {
+            "description": "Facial hair preset domain. Use none when no facial hair is applied.",
+            "enum": ["none", "stubble", "short-beard", "full-beard", "goatee"],
+            "type": "string"
+          },
+          "hairColor": {
+            "description": "Hair color preset domain.",
+            "enum": ["black", "brown", "auburn", "blonde", "silver", "white", "red"],
+            "type": "string"
+          },
+          "hairStyle": {
+            "description": "Hair style preset domain.",
+            "enum": ["short-crop", "mid-fade", "long-loose", "braided", "shaved", "slicked"],
+            "type": "string"
+          },
+          "presetVersion": {
+            "description": "Identifies the preset version used as the customization baseline for this bust record.",
+            "type": "string"
+          },
+          "scar": {
+            "description": "Scar preset domain. Use none when no scar is applied.",
+            "enum": ["none", "cheek-left", "cheek-right", "brow-left", "brow-right", "chin"],
+            "type": "string"
+          },
+          "schemaVersion": {
+            "description": "Contract baseline version. Hard-pinned to sw-15-m1-v1. Any other value is a hard validation reject.",
+            "enum": ["sw-15-m1-v1"],
+            "type": "string"
+          },
+          "skinTone": {
+            "description": "Skin tone preset domain.",
+            "enum": ["pale", "light", "medium", "tan", "dark", "deep"],
+            "type": "string"
+          },
+          "tattoo": {
+            "description": "Tattoo preset domain. Use none when no tattoo is applied.",
+            "enum": ["none", "temple-left", "temple-right", "neck-left", "neck-right"],
+            "type": "string"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "presetVersion",
+          "faceShape",
+          "skinTone",
+          "hairStyle",
+          "hairColor",
+          "eyeStyle",
+          "eyeColor",
+          "expressionPreset",
+          "apparelAccent",
+          "facialHair",
+          "scar",
+          "tattoo"
+        ],
+        "title": "bust-descriptor",
+        "type": "object"
+      },
+      "BustValidationErrorResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Hard-reject validation error response for invalid bust descriptor payloads. Invalid bust payloads are never silently corrected; they are always hard-rejected with explicit per-field diagnostics.",
+        "properties": {
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "description": "Human-readable summary of the validation failure.",
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "success": {
+            "description": "Always false for validation error responses.",
+            "enum": [false],
+            "type": "boolean"
+          },
+          "validationErrors": {
+            "description": "One entry per invalid field. At least one error is always present on a hard-reject response.",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "field": {
+                  "description": "Dot-notation path to the invalid field (e.g. descriptor.faceShape).",
+                  "type": "string"
+                },
+                "reason": {
+                  "description": "Human-readable explanation of why the value was rejected (e.g. not a valid enum value).",
+                  "type": "string"
+                },
+                "rejectedValue": {
+                  "description": "The exact value that was rejected. May be any JSON type."
+                }
+              },
+              "required": ["field", "reason", "rejectedValue"],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": ["success", "message", "correlationId", "requestIdentity", "validationErrors"],
+        "title": "bust-validation-error-response",
+        "type": "object"
+      },
       "CatalogItemDefinition": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "additionalProperties": true,
@@ -993,6 +1228,489 @@
         ],
         "title": "character-add-response",
         "type": "object"
+      },
+      "CharacterBustCreateRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Request to create a bust descriptor for a playable character. characterId identifies the character record that will own this bust. Invalid descriptor field values are hard-rejected.",
+        "properties": {
+          "characterId": {
+            "description": "Identifies the playable character whose bust is being created.",
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "descriptor": {
+            "additionalProperties": false,
+            "description": "Bust customization input. All domain fields are required. presetVersion declares the preset baseline used.",
+            "properties": {
+              "apparelAccent": {
+                "enum": ["none", "collar", "hood", "visor", "goggles", "headband"],
+                "type": "string"
+              },
+              "expressionPreset": {
+                "enum": ["neutral", "focused", "smirk", "stern", "warm", "weary"],
+                "type": "string"
+              },
+              "eyeColor": {
+                "enum": ["brown", "hazel", "green", "blue", "grey", "amber", "violet"],
+                "type": "string"
+              },
+              "eyeStyle": {
+                "enum": ["narrow", "wide", "almond", "hooded", "round"],
+                "type": "string"
+              },
+              "faceShape": {
+                "enum": ["oval", "round", "square", "angular", "narrow"],
+                "type": "string"
+              },
+              "facialHair": {
+                "enum": ["none", "stubble", "short-beard", "full-beard", "goatee"],
+                "type": "string"
+              },
+              "hairColor": {
+                "enum": ["black", "brown", "auburn", "blonde", "silver", "white", "red"],
+                "type": "string"
+              },
+              "hairStyle": {
+                "enum": ["short-crop", "mid-fade", "long-loose", "braided", "shaved", "slicked"],
+                "type": "string"
+              },
+              "presetVersion": {
+                "type": "string"
+              },
+              "scar": {
+                "enum": ["none", "cheek-left", "cheek-right", "brow-left", "brow-right", "chin"],
+                "type": "string"
+              },
+              "skinTone": {
+                "enum": ["pale", "light", "medium", "tan", "dark", "deep"],
+                "type": "string"
+              },
+              "tattoo": {
+                "enum": ["none", "temple-left", "temple-right", "neck-left", "neck-right"],
+                "type": "string"
+              }
+            },
+            "required": [
+              "presetVersion",
+              "faceShape",
+              "skinTone",
+              "hairStyle",
+              "hairColor",
+              "eyeStyle",
+              "eyeColor",
+              "expressionPreset",
+              "apparelAccent",
+              "facialHair",
+              "scar",
+              "tattoo"
+            ],
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "characterId",
+          "descriptor"
+        ],
+        "title": "character-bust-create-request",
+        "type": "object"
+      },
+      "CharacterBustCreateResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "description": "Response after creating a playable-character bust descriptor. Returns either the normalized stored descriptor on success or a typed blocked-save payload when persistence is prevented.",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "characterId": {
+                "description": "The character whose bust was created.",
+                "type": "string"
+              },
+              "correlationId": {
+                "description": "Echo of the request correlationId.",
+                "format": "uuid",
+                "type": "string"
+              },
+              "descriptor": {
+                "$ref": "./bust-descriptor.schema.json",
+                "description": "The normalized stored bust descriptor including server-assigned schemaVersion."
+              },
+              "message": {
+                "type": "string"
+              },
+              "playerName": {
+                "type": "string"
+              },
+              "requestIdentity": {
+                "properties": {
+                  "containerId": {
+                    "type": "string"
+                  },
+                  "entityType": {
+                    "type": "string"
+                  },
+                  "operation": {
+                    "type": "string"
+                  }
+                },
+                "required": ["operation", "entityType", "containerId"],
+                "type": "object"
+              },
+              "success": {
+                "enum": [true],
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "success",
+              "message",
+              "correlationId",
+              "requestIdentity",
+              "playerName",
+              "characterId",
+              "descriptor"
+            ],
+            "type": "object"
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "./bust-blocked-save-response.schema.json"
+              },
+              {
+                "properties": {
+                  "characterId": {
+                    "type": "string"
+                  },
+                  "playerName": {
+                    "type": "string"
+                  }
+                },
+                "required": ["playerName", "characterId"],
+                "type": "object"
+              }
+            ]
+          }
+        ],
+        "title": "character-bust-create-response"
+      },
+      "CharacterBustReadRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Request to read the current bust descriptor for a playable character.",
+        "properties": {
+          "characterId": {
+            "description": "Identifies the playable character whose bust is being read.",
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "characterId"],
+        "title": "character-bust-read-request",
+        "type": "object"
+      },
+      "CharacterBustReadResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Response containing the current stored bust descriptor for a playable character.",
+        "properties": {
+          "characterId": {
+            "description": "The character whose bust was read.",
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "descriptor": {
+            "$ref": "./bust-descriptor.schema.json",
+            "description": "The normalized stored bust descriptor."
+          },
+          "message": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "correlationId",
+          "requestIdentity",
+          "playerName",
+          "characterId",
+          "descriptor"
+        ],
+        "title": "character-bust-read-response",
+        "type": "object"
+      },
+      "CharacterBustUpdateRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Request to update the bust descriptor for a playable character. The full descriptor must be provided; partial updates are not supported. Invalid field values are hard-rejected.",
+        "properties": {
+          "characterId": {
+            "description": "Identifies the playable character whose bust is being updated.",
+            "type": "string"
+          },
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "descriptor": {
+            "additionalProperties": false,
+            "description": "Full bust customization update. All domain fields are required. presetVersion must be provided.",
+            "properties": {
+              "apparelAccent": {
+                "enum": ["none", "collar", "hood", "visor", "goggles", "headband"],
+                "type": "string"
+              },
+              "expressionPreset": {
+                "enum": ["neutral", "focused", "smirk", "stern", "warm", "weary"],
+                "type": "string"
+              },
+              "eyeColor": {
+                "enum": ["brown", "hazel", "green", "blue", "grey", "amber", "violet"],
+                "type": "string"
+              },
+              "eyeStyle": {
+                "enum": ["narrow", "wide", "almond", "hooded", "round"],
+                "type": "string"
+              },
+              "faceShape": {
+                "enum": ["oval", "round", "square", "angular", "narrow"],
+                "type": "string"
+              },
+              "facialHair": {
+                "enum": ["none", "stubble", "short-beard", "full-beard", "goatee"],
+                "type": "string"
+              },
+              "hairColor": {
+                "enum": ["black", "brown", "auburn", "blonde", "silver", "white", "red"],
+                "type": "string"
+              },
+              "hairStyle": {
+                "enum": ["short-crop", "mid-fade", "long-loose", "braided", "shaved", "slicked"],
+                "type": "string"
+              },
+              "presetVersion": {
+                "type": "string"
+              },
+              "scar": {
+                "enum": ["none", "cheek-left", "cheek-right", "brow-left", "brow-right", "chin"],
+                "type": "string"
+              },
+              "skinTone": {
+                "enum": ["pale", "light", "medium", "tan", "dark", "deep"],
+                "type": "string"
+              },
+              "tattoo": {
+                "enum": ["none", "temple-left", "temple-right", "neck-left", "neck-right"],
+                "type": "string"
+              }
+            },
+            "required": [
+              "presetVersion",
+              "faceShape",
+              "skinTone",
+              "hairStyle",
+              "hairColor",
+              "eyeStyle",
+              "eyeColor",
+              "expressionPreset",
+              "apparelAccent",
+              "facialHair",
+              "scar",
+              "tattoo"
+            ],
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "characterId",
+          "descriptor"
+        ],
+        "title": "character-bust-update-request",
+        "type": "object"
+      },
+      "CharacterBustUpdateResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "description": "Response after updating a playable-character bust descriptor. Returns either the normalized stored descriptor on success or a typed blocked-save payload when persistence is prevented.",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "characterId": {
+                "description": "The character whose bust was updated.",
+                "type": "string"
+              },
+              "correlationId": {
+                "description": "Echo of the request correlationId.",
+                "format": "uuid",
+                "type": "string"
+              },
+              "descriptor": {
+                "$ref": "./bust-descriptor.schema.json",
+                "description": "The normalized stored bust descriptor after the update."
+              },
+              "message": {
+                "type": "string"
+              },
+              "playerName": {
+                "type": "string"
+              },
+              "requestIdentity": {
+                "properties": {
+                  "containerId": {
+                    "type": "string"
+                  },
+                  "entityType": {
+                    "type": "string"
+                  },
+                  "operation": {
+                    "type": "string"
+                  }
+                },
+                "required": ["operation", "entityType", "containerId"],
+                "type": "object"
+              },
+              "success": {
+                "enum": [true],
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "success",
+              "message",
+              "correlationId",
+              "requestIdentity",
+              "playerName",
+              "characterId",
+              "descriptor"
+            ],
+            "type": "object"
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "./bust-blocked-save-response.schema.json"
+              },
+              {
+                "properties": {
+                  "characterId": {
+                    "type": "string"
+                  },
+                  "playerName": {
+                    "type": "string"
+                  }
+                },
+                "required": ["playerName", "characterId"],
+                "type": "object"
+              }
+            ]
+          }
+        ],
+        "title": "character-bust-update-response"
       },
       "CharacterDeleteRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -3967,6 +4685,261 @@
       },
       "MarketListByLocationResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "definitions": {
+          "marketRoute": {
+            "additionalProperties": false,
+            "properties": {
+              "encounterShips": {
+                "items": {
+                  "$ref": "#/definitions/routeFeedEncounterShip"
+                },
+                "type": "array"
+              },
+              "gates": {
+                "items": {
+                  "$ref": "#/definitions/routeFeedGate"
+                },
+                "type": "array"
+              },
+              "hops": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "kind": {
+                "enum": ["in-system", "gate-route", "no-route"],
+                "type": "string"
+              },
+              "stations": {
+                "items": {
+                  "$ref": "#/definitions/routeFeedStation"
+                },
+                "type": "array"
+              }
+            },
+            "required": ["kind"],
+            "type": ["object", "null"]
+          },
+          "routeFeedEncounterShip": {
+            "additionalProperties": false,
+            "properties": {
+              "descriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
+              "model": {
+                "type": "string"
+              },
+              "ownership": {
+                "additionalProperties": false,
+                "properties": {
+                  "factionId": {
+                    "type": ["string", "null"]
+                  },
+                  "npcId": {
+                    "type": ["string", "null"]
+                  },
+                  "ownerType": {
+                    "enum": ["npc-pirate"],
+                    "type": "string"
+                  }
+                },
+                "required": ["ownerType", "npcId", "factionId"],
+                "type": "object"
+              },
+              "shipId": {
+                "type": "string"
+              },
+              "shipName": {
+                "type": "string"
+              },
+              "spatial": {
+                "additionalProperties": false,
+                "properties": {
+                  "epochMs": {
+                    "type": "number"
+                  },
+                  "frame": {
+                    "enum": ["barycentric"],
+                    "type": "string"
+                  },
+                  "positionKm": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      }
+                    },
+                    "required": ["x", "y", "z"],
+                    "type": "object"
+                  },
+                  "solarSystemId": {
+                    "type": "string"
+                  }
+                },
+                "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+                "type": "object"
+              },
+              "tier": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "shipId",
+              "shipName",
+              "model",
+              "tier",
+              "ownership",
+              "spatial",
+              "descriptor"
+            ],
+            "type": "object"
+          },
+          "routeFeedGate": {
+            "additionalProperties": false,
+            "properties": {
+              "approachMetadata": {
+                "$ref": "./external-object-gate-landmark-payload.schema.json#/definitions/gateApproachMetadata"
+              },
+              "descriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
+              "destSystemId": {
+                "type": "string"
+              },
+              "gateId": {
+                "type": "string"
+              },
+              "sourceSystemId": {
+                "type": "string"
+              },
+              "spatial": {
+                "additionalProperties": false,
+                "properties": {
+                  "epochMs": {
+                    "type": "number"
+                  },
+                  "frame": {
+                    "enum": ["barycentric"],
+                    "type": "string"
+                  },
+                  "positionKm": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      }
+                    },
+                    "required": ["x", "y", "z"],
+                    "type": "object"
+                  },
+                  "solarSystemId": {
+                    "type": "string"
+                  }
+                },
+                "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+                "type": "object"
+              },
+              "traversalCostAu": {
+                "minimum": 0,
+                "type": "number"
+              },
+              "traversalTimeHours": {
+                "minimum": 0,
+                "type": "number"
+              }
+            },
+            "required": [
+              "gateId",
+              "sourceSystemId",
+              "destSystemId",
+              "traversalCostAu",
+              "traversalTimeHours",
+              "spatial",
+              "descriptor",
+              "approachMetadata"
+            ],
+            "type": "object"
+          },
+          "routeFeedStation": {
+            "additionalProperties": false,
+            "properties": {
+              "descriptor": {
+                "$ref": "./external-object-descriptor.schema.json"
+              },
+              "marketId": {
+                "type": "string"
+              },
+              "marketName": {
+                "type": "string"
+              },
+              "siteName": {
+                "type": "string"
+              },
+              "siteType": {
+                "enum": ["station"],
+                "type": "string"
+              },
+              "solarSystemId": {
+                "type": "string"
+              },
+              "spatial": {
+                "additionalProperties": false,
+                "properties": {
+                  "epochMs": {
+                    "type": "number"
+                  },
+                  "frame": {
+                    "enum": ["barycentric"],
+                    "type": "string"
+                  },
+                  "positionKm": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      }
+                    },
+                    "required": ["x", "y", "z"],
+                    "type": "object"
+                  },
+                  "solarSystemId": {
+                    "type": "string"
+                  }
+                },
+                "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+                "type": "object"
+              }
+            },
+            "required": [
+              "marketId",
+              "solarSystemId",
+              "marketName",
+              "siteType",
+              "siteName",
+              "spatial",
+              "descriptor"
+            ],
+            "type": "object"
+          }
+        },
         "properties": {
           "correlationId": {
             "description": "Echo of the request correlationId.",
@@ -4018,8 +4991,7 @@
                   "type": "integer"
                 },
                 "route": {
-                  "additionalProperties": true,
-                  "type": ["object", "null"]
+                  "$ref": "#/definitions/marketRoute"
                 },
                 "siteName": {
                   "type": "string"
@@ -4862,6 +5834,489 @@
         ],
         "title": "mission-upsert-response",
         "type": "object"
+      },
+      "NpcBustCreateRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Request to create a bust descriptor for an NPC. Generates the bust from a deterministicSeed with optional admin-tool overrides for specific fields. The deterministicSeed drives the baseline descriptor; overrides apply on top. Invalid field values in overrides are hard-rejected.",
+        "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "deterministicSeed": {
+            "description": "Seed string used to deterministically generate the NPC bust baseline. Same seed always produces the same descriptor. Must be non-empty.",
+            "type": "string"
+          },
+          "npcId": {
+            "description": "Identifies the NPC record this bust belongs to.",
+            "type": "string"
+          },
+          "overrides": {
+            "additionalProperties": false,
+            "description": "Optional admin-tool manual overrides for specific descriptor fields. Only provided fields are overridden; all others are derived from the deterministicSeed.",
+            "properties": {
+              "apparelAccent": {
+                "enum": ["none", "collar", "hood", "visor", "goggles", "headband"],
+                "type": "string"
+              },
+              "expressionPreset": {
+                "enum": ["neutral", "focused", "smirk", "stern", "warm", "weary"],
+                "type": "string"
+              },
+              "eyeColor": {
+                "enum": ["brown", "hazel", "green", "blue", "grey", "amber", "violet"],
+                "type": "string"
+              },
+              "eyeStyle": {
+                "enum": ["narrow", "wide", "almond", "hooded", "round"],
+                "type": "string"
+              },
+              "faceShape": {
+                "enum": ["oval", "round", "square", "angular", "narrow"],
+                "type": "string"
+              },
+              "facialHair": {
+                "enum": ["none", "stubble", "short-beard", "full-beard", "goatee"],
+                "type": "string"
+              },
+              "hairColor": {
+                "enum": ["black", "brown", "auburn", "blonde", "silver", "white", "red"],
+                "type": "string"
+              },
+              "hairStyle": {
+                "enum": ["short-crop", "mid-fade", "long-loose", "braided", "shaved", "slicked"],
+                "type": "string"
+              },
+              "scar": {
+                "enum": ["none", "cheek-left", "cheek-right", "brow-left", "brow-right", "chin"],
+                "type": "string"
+              },
+              "skinTone": {
+                "enum": ["pale", "light", "medium", "tan", "dark", "deep"],
+                "type": "string"
+              },
+              "tattoo": {
+                "enum": ["none", "temple-left", "temple-right", "neck-left", "neck-right"],
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "presetVersion": {
+            "description": "Optional preset version override. If omitted the server assigns a canonical preset version.",
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "npcId",
+          "deterministicSeed"
+        ],
+        "title": "npc-bust-create-request",
+        "type": "object"
+      },
+      "NpcBustCreateResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "description": "Response after creating an NPC bust descriptor. Returns either the normalized stored descriptor on success or a typed blocked-save payload when persistence is prevented.",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "appliedOverrides": {
+                "description": "List of field names that were overridden by admin-tool input rather than derived from the deterministicSeed.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "correlationId": {
+                "description": "Echo of the request correlationId.",
+                "format": "uuid",
+                "type": "string"
+              },
+              "descriptor": {
+                "$ref": "./bust-descriptor.schema.json",
+                "description": "The normalized stored bust descriptor including server-assigned schemaVersion and any applied overrides."
+              },
+              "deterministicSeed": {
+                "description": "The seed used to generate the NPC bust baseline. Stored for replay and cross-session consistency verification.",
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "npcId": {
+                "description": "The NPC record this bust belongs to.",
+                "type": "string"
+              },
+              "requestIdentity": {
+                "properties": {
+                  "containerId": {
+                    "type": "string"
+                  },
+                  "entityType": {
+                    "type": "string"
+                  },
+                  "operation": {
+                    "type": "string"
+                  }
+                },
+                "required": ["operation", "entityType", "containerId"],
+                "type": "object"
+              },
+              "success": {
+                "enum": [true],
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "success",
+              "message",
+              "correlationId",
+              "requestIdentity",
+              "npcId",
+              "deterministicSeed",
+              "descriptor"
+            ],
+            "type": "object"
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "./bust-blocked-save-response.schema.json"
+              },
+              {
+                "properties": {
+                  "npcId": {
+                    "type": "string"
+                  }
+                },
+                "required": ["npcId"],
+                "type": "object"
+              }
+            ]
+          }
+        ],
+        "title": "npc-bust-create-response"
+      },
+      "NpcBustReadRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Request to read the current stored bust descriptor for an NPC.",
+        "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "npcId": {
+            "description": "Identifies the NPC whose bust is being read.",
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "npcId"],
+        "title": "npc-bust-read-request",
+        "type": "object"
+      },
+      "NpcBustReadResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Response containing the current stored bust descriptor for an NPC, including the deterministicSeed used at creation.",
+        "properties": {
+          "appliedOverrides": {
+            "description": "List of field names that were overridden by admin-tool input at creation or update time.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "correlationId": {
+            "description": "Echo of the request correlationId.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "descriptor": {
+            "$ref": "./bust-descriptor.schema.json",
+            "description": "The normalized stored bust descriptor."
+          },
+          "deterministicSeed": {
+            "description": "The seed used to generate this NPC bust at creation. Included in read responses for replay and consistency verification.",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "npcId": {
+            "description": "The NPC whose bust was read.",
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "correlationId",
+          "requestIdentity",
+          "npcId",
+          "deterministicSeed",
+          "descriptor"
+        ],
+        "title": "npc-bust-read-response",
+        "type": "object"
+      },
+      "NpcBustUpdateRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "description": "Request to update an NPC bust descriptor. A new deterministicSeed may be provided to regenerate the baseline, or only overrides may be changed. Invalid field values in overrides are hard-rejected.",
+        "properties": {
+          "correlationId": {
+            "description": "Client-generated UUID v4 used to correlate each request/response pair.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "deterministicSeed": {
+            "description": "Updated seed for the NPC bust baseline. Must match the original seed unless intentionally re-seeding.",
+            "type": "string"
+          },
+          "npcId": {
+            "description": "Identifies the NPC whose bust is being updated.",
+            "type": "string"
+          },
+          "overrides": {
+            "additionalProperties": false,
+            "description": "Optional admin-tool overrides. Replaces any previously stored overrides for the specified fields.",
+            "properties": {
+              "apparelAccent": {
+                "enum": ["none", "collar", "hood", "visor", "goggles", "headband"],
+                "type": "string"
+              },
+              "expressionPreset": {
+                "enum": ["neutral", "focused", "smirk", "stern", "warm", "weary"],
+                "type": "string"
+              },
+              "eyeColor": {
+                "enum": ["brown", "hazel", "green", "blue", "grey", "amber", "violet"],
+                "type": "string"
+              },
+              "eyeStyle": {
+                "enum": ["narrow", "wide", "almond", "hooded", "round"],
+                "type": "string"
+              },
+              "faceShape": {
+                "enum": ["oval", "round", "square", "angular", "narrow"],
+                "type": "string"
+              },
+              "facialHair": {
+                "enum": ["none", "stubble", "short-beard", "full-beard", "goatee"],
+                "type": "string"
+              },
+              "hairColor": {
+                "enum": ["black", "brown", "auburn", "blonde", "silver", "white", "red"],
+                "type": "string"
+              },
+              "hairStyle": {
+                "enum": ["short-crop", "mid-fade", "long-loose", "braided", "shaved", "slicked"],
+                "type": "string"
+              },
+              "scar": {
+                "enum": ["none", "cheek-left", "cheek-right", "brow-left", "brow-right", "chin"],
+                "type": "string"
+              },
+              "skinTone": {
+                "enum": ["pale", "light", "medium", "tan", "dark", "deep"],
+                "type": "string"
+              },
+              "tattoo": {
+                "enum": ["none", "temple-left", "temple-right", "neck-left", "neck-right"],
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "presetVersion": {
+            "description": "Optional preset version. If omitted the server retains the existing presetVersion.",
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "required": ["operation", "entityType", "containerId"],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "npcId",
+          "deterministicSeed"
+        ],
+        "title": "npc-bust-update-request",
+        "type": "object"
+      },
+      "NpcBustUpdateResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "description": "Response after updating an NPC bust descriptor. Returns either the normalized stored descriptor on success or a typed blocked-save payload when persistence is prevented.",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "appliedOverrides": {
+                "description": "List of field names currently overridden by admin-tool input after this update.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "correlationId": {
+                "description": "Echo of the request correlationId.",
+                "format": "uuid",
+                "type": "string"
+              },
+              "descriptor": {
+                "$ref": "./bust-descriptor.schema.json",
+                "description": "The normalized stored bust descriptor after the update."
+              },
+              "deterministicSeed": {
+                "description": "The seed in effect after the update.",
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "npcId": {
+                "description": "The NPC whose bust was updated.",
+                "type": "string"
+              },
+              "requestIdentity": {
+                "properties": {
+                  "containerId": {
+                    "type": "string"
+                  },
+                  "entityType": {
+                    "type": "string"
+                  },
+                  "operation": {
+                    "type": "string"
+                  }
+                },
+                "required": ["operation", "entityType", "containerId"],
+                "type": "object"
+              },
+              "success": {
+                "enum": [true],
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "success",
+              "message",
+              "correlationId",
+              "requestIdentity",
+              "npcId",
+              "deterministicSeed",
+              "descriptor"
+            ],
+            "type": "object"
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "./bust-blocked-save-response.schema.json"
+              },
+              {
+                "properties": {
+                  "npcId": {
+                    "type": "string"
+                  }
+                },
+                "required": ["npcId"],
+                "type": "object"
+              }
+            ]
+          }
+        ],
+        "title": "npc-bust-update-response"
       },
       "PingRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -7103,6 +8558,9 @@
       "/socket/celestial-body-list",
       "/socket/celestial-body-upsert",
       "/socket/character-add",
+      "/socket/character-bust-create",
+      "/socket/character-bust-read",
+      "/socket/character-bust-update",
       "/socket/character-delete",
       "/socket/character-edit",
       "/socket/character-list",
@@ -7129,6 +8587,9 @@
       "/socket/message",
       "/socket/mission-list",
       "/socket/mission-upsert",
+      "/socket/npc-bust-create",
+      "/socket/npc-bust-read",
+      "/socket/npc-bust-update",
       "/socket/ping",
       "/socket/register",
       "/socket/ship-list",
@@ -7146,6 +8607,9 @@
       "celestial-body-list",
       "celestial-body-upsert",
       "character-add",
+      "character-bust-create",
+      "character-bust-read",
+      "character-bust-update",
       "character-delete",
       "character-edit",
       "character-list",
@@ -7172,6 +8636,9 @@
       "message",
       "mission-list",
       "mission-upsert",
+      "npc-bust-create",
+      "npc-bust-read",
+      "npc-bust-update",
       "ping",
       "register",
       "ship-list",

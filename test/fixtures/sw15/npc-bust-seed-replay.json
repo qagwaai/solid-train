@@ -3,7 +3,7 @@
   "npcId": "npc-merchant-001",
   "deterministicSeed": "faction:trade|role:merchant|id:001",
   "descriptor": {
-    "schemaVersion": "sw-15-m0-v1",
+    "schemaVersion": "sw-15-m1-v1",
     "presetVersion": "v1",
     "faceShape": "round",
     "skinTone": "light",
@@ -12,7 +12,10 @@
     "eyeStyle": "wide",
     "eyeColor": "hazel",
     "expressionPreset": "warm",
-    "apparelAccent": "collar"
+    "apparelAccent": "collar",
+    "facialHair": "none",
+    "scar": "none",
+    "tattoo": "none"
   },
   "appliedOverrides": []
 }
