@@ -24,9 +24,8 @@ function createGameStateModelArtifacts({ mongoose }) {
     }
   );
 
-  gameStateDocumentSchema.pre('save', function (next) {
+  gameStateDocumentSchema.pre('save', function () {
     this.updatedAt = new Date();
-    next();
   });
 
   const GameStateDocument = mongoose.model('GameStateDocument', gameStateDocumentSchema);
