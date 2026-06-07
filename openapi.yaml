@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Stellar API and Message Contract
-  version: 3.0.1
+  version: 3.0.2
   description: >
     Machine-readable contract for HTTP endpoints and Socket.IO message payloads.
     Socket operations are modeled as virtual POST operations under /socket/* so the
@@ -4174,7 +4174,7 @@ paths:
                   summary: Save blocked due to temporary persistence failure
                   value:
                     success: false
-                    message: Failed to create NPC bust descriptor: database error
+                    message: 'Failed to create NPC bust descriptor: database error'
                     correlationId: d4e5f6a7-b8c9-0123-defa-234567890123
                     requestIdentity:
                       operation: npc-bust-create
