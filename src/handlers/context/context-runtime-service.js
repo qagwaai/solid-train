@@ -8,7 +8,7 @@ async function withDb(ctx, operationName, operation) {
   try {
     return await operation(ctx.databaseService);
   } catch (error) {
-    ctx.log(`[context] Error ${operationName}: ${error.message}`);
+    ctx.log(`[context] Error ${operationName}: ${error.message}`, { level: 'error' });
     throw error;
   }
 }
@@ -21,7 +21,7 @@ async function withDbOrNull(ctx, operationName, operation) {
   try {
     return await operation(ctx.databaseService);
   } catch (error) {
-    ctx.log(`[context] Error ${operationName}: ${error.message}`);
+    ctx.log(`[context] Error ${operationName}: ${error.message}`, { level: 'error' });
     return null;
   }
 }
@@ -40,7 +40,8 @@ function logHandlerMessage(ctx, messageType, payload) {
     '-';
 
   ctx.log(
-    `[handler] messageType=${messageType} player=${player} character=${character} sessionId=${sessionId} correlationId=${correlationId}`
+    `[handler] messageType=${messageType} player=${player} character=${character} sessionId=${sessionId} correlationId=${correlationId}`,
+    { level: 'info' }
   );
 }
 

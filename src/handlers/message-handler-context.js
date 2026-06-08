@@ -15,12 +15,23 @@ const gameParticipationService = require('./context/game-participation-service')
 const contextBootstrapService = require('./context/context-bootstrap-service');
 const contextRuntimeService = require('./context/context-runtime-service');
 const normalizers = require('./context/normalizers');
+const { createLogger } = require('../logging/logger');
 
 /**
  * Shared in-memory runtime context for handlers with optional DB-backed persistence.
  */
 class MessageHandlerContext {
   constructor(options = {}) {
+    const logger =
+      options.logger ||
+      createLogger({
+        minLevel: options.logLevel || process.env.LOG_LEVEL || 'info',
+        write:
+          typeof options.log === 'function'
+            ? (level, line, logOptions = {}) => options.log(line, { level, ...logOptions })
+            : undefined,
+      });
+
     this.registeredPlayers = options.registeredPlayers || new Map();
     this.charactersByPlayer = options.charactersByPlayer || new Map();
     this.celestialBodiesById = options.celestialBodiesById || new Map();
@@ -29,7 +40,8 @@ class MessageHandlerContext {
     this.marketsByKey = options.marketsByKey || new Map();
     this.databaseService = options.databaseService || null;
     this.game = options.game || new GameState();
-    this.log = options.log || ((line) => process.stdout.write(`${line}\n`));
+    this.logger = logger;
+    this.log = (line, logOptions = {}) => this.logger.log(line, logOptions);
     this.createId =
       options.createId ||
       (() => {

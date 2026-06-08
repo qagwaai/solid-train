@@ -102,7 +102,8 @@ async function updateCharacterAsync(ctx, playerName, characterId, updates, optio
 
       if (attemptsUsed > 1) {
         ctx.log(
-          `[concurrency] update-character-recovered correlationId=${correlationId} player=${ctx.toNonEmptyString(playerName) || '-'} characterId=${ctx.toNonEmptyString(characterId) || '-'} attempts=${attemptsUsed}`
+          `[concurrency] update-character-recovered correlationId=${correlationId} player=${ctx.toNonEmptyString(playerName) || '-'} characterId=${ctx.toNonEmptyString(characterId) || '-'} attempts=${attemptsUsed}`,
+          { level: 'error' }
         );
       }
       break;
@@ -110,14 +111,16 @@ async function updateCharacterAsync(ctx, playerName, characterId, updates, optio
       attemptsRemaining -= 1;
       if (attemptsRemaining > 0 && isVersionConflict(error)) {
         ctx.log(
-          `[concurrency] update-character-conflict correlationId=${correlationId} player=${ctx.toNonEmptyString(playerName) || '-'} characterId=${ctx.toNonEmptyString(characterId) || '-'} action=retry attemptsUsed=${attemptsUsed} error=${error.message}`
+          `[concurrency] update-character-conflict correlationId=${correlationId} player=${ctx.toNonEmptyString(playerName) || '-'} characterId=${ctx.toNonEmptyString(characterId) || '-'} action=retry attemptsUsed=${attemptsUsed} error=${error.message}`,
+          { level: 'error' }
         );
         continue;
       }
 
       if (isVersionConflict(error)) {
         ctx.log(
-          `[concurrency] update-character-conflict correlationId=${correlationId} player=${ctx.toNonEmptyString(playerName) || '-'} characterId=${ctx.toNonEmptyString(characterId) || '-'} action=fail attemptsUsed=${attemptsUsed} error=${error.message}`
+          `[concurrency] update-character-conflict correlationId=${correlationId} player=${ctx.toNonEmptyString(playerName) || '-'} characterId=${ctx.toNonEmptyString(characterId) || '-'} action=fail attemptsUsed=${attemptsUsed} error=${error.message}`,
+          { level: 'error' }
         );
       }
       throw error;
