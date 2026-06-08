@@ -26,6 +26,7 @@ const jumpGateQueryService = require('./service/jump-gate-query-service');
 const starService = require('./service/star-service');
 const solarSystemService = require('./service/solar-system-service');
 const npcBustService = require('./service/npc-bust-service');
+const { createLogger } = require('../logging/logger');
 
 /**
  * Database service layer - provides a clean interface for CRUD operations
@@ -34,7 +35,16 @@ const npcBustService = require('./service/npc-bust-service');
 class DatabaseService {
   constructor(options = {}) {
     this.useInMemoryFallback = options.useInMemoryFallback || false;
-    this.log = options.log || ((line) => process.stdout.write(`${line}\n`));
+    this.logger =
+      options.logger ||
+      createLogger({
+        minLevel: options.logLevel || process.env.LOG_LEVEL || 'info',
+        write:
+          typeof options.log === 'function'
+            ? (level, line, logOptions = {}) => options.log(line, { level, ...logOptions })
+            : undefined,
+      });
+    this.log = (line, logOptions = {}) => this.logger.log(line, logOptions);
   }
 
   /**

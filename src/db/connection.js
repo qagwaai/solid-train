@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const { createLogger } = require('../logging/logger');
 
 /**
  * Mongoose connection management for MongoDB
@@ -13,6 +14,9 @@ class MongoConnection {
       connectTimeoutMS: 10000,
       serverSelectionTimeoutMS: 5000,
     };
+    this.logger =
+      options.logger ||
+      createLogger({ minLevel: options.logLevel || process.env.LOG_LEVEL || 'info' });
     this.isConnected = false;
   }
 
@@ -22,16 +26,16 @@ class MongoConnection {
    */
   async connect() {
     if (this.isConnected) {
-      console.log('[db] Already connected to MongoDB');
+      this.logger.debug('[db] Already connected to MongoDB');
       return;
     }
 
     try {
       await mongoose.connect(this.mongoUri, this.options);
       this.isConnected = true;
-      console.log(`[db] Connected to MongoDB at ${this.mongoUri}`);
+      this.logger.info(`[db] Connected to MongoDB at ${this.mongoUri}`);
     } catch (error) {
-      console.error('[db] Failed to connect to MongoDB:', error.message);
+      this.logger.error(`[db] Failed to connect to MongoDB: ${error.message}`);
       throw error;
     }
   }
@@ -48,9 +52,9 @@ class MongoConnection {
     try {
       await mongoose.disconnect();
       this.isConnected = false;
-      console.log('[db] Disconnected from MongoDB');
+      this.logger.info('[db] Disconnected from MongoDB');
     } catch (error) {
-      console.error('[db] Error disconnecting from MongoDB:', error.message);
+      this.logger.error(`[db] Error disconnecting from MongoDB: ${error.message}`);
       throw error;
     }
   }

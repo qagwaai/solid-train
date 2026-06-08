@@ -70,6 +70,7 @@ const { SolarSystemGetMessageHandler } = require('./handlers/solar-system-get-me
 const { StarListMessageHandler } = require('./handlers/star-list-message-handler');
 const { StarGetMessageHandler } = require('./handlers/star-get-message-handler');
 const { registerSocketHandlers } = require('./handlers/socket-handler-registry');
+const { createLogger } = require('./logging/logger');
 
 /**
  * Parse and validate a TCP port value.
@@ -92,6 +93,8 @@ function resolvePort(value = process.env.PORT) {
  * @returns {{ port: number, server: import('node:http').Server, io: import('socket.io').Server, messageHandlerContext: Object }}
  */
 function createServer(options = {}) {
+  const logger =
+    options.logger || createLogger({ minLevel: options.logLevel || process.env.LOG_LEVEL || 'info' });
   const port = resolvePort(options.port);
   const registeredPlayers = new Map();
   const charactersByPlayer = new Map();
@@ -104,10 +107,11 @@ function createServer(options = {}) {
     itemsById,
     databaseService: options.databaseService || null,
     createId: randomUUID,
+    logger,
   });
   if (options.initializeContext !== false) {
     messageHandlerContext.initializeAsync({ seedDefaults: true }).catch((error) => {
-      process.stderr.write(`[server] Context initialization failed: ${error.message}\n`);
+      logger.error(`[server] Context initialization failed: ${error.message}`);
     });
   }
   const registerMessageHandler = new RegisterMessageHandler(messageHandlerContext);
@@ -274,8 +278,11 @@ function createServer(options = {}) {
  * @returns {Promise<{ port: number, server: import('node:http').Server, io: import('socket.io').Server, shutdown: Function, mongoConnection: Object, databaseService: Object|null, messageHandlerContext: Object }>}
  */
 async function startServer(options = {}) {
+  const logger =
+    options.logger || createLogger({ minLevel: options.logLevel || process.env.LOG_LEVEL || 'info' });
   const mongoConnection = new MongoConnection({
     mongoUri: process.env.MONGODB_URI,
+    logger,
   });
   let databaseService = null;
 
@@ -283,21 +290,20 @@ async function startServer(options = {}) {
   if (process.env.MONGODB_URI) {
     try {
       await mongoConnection.connect();
-      databaseService = new DatabaseService();
-      process.stdout.write('[server] MongoDB connection established\n');
+      databaseService = new DatabaseService({ logger });
+      logger.info('[server] MongoDB connection established');
     } catch (error) {
-      process.stderr.write(
-        `[server] Failed to connect to MongoDB, using in-memory storage: ${error.message}\n`
-      );
+      logger.error(`[server] Failed to connect to MongoDB, using in-memory storage: ${error.message}`);
     }
   } else {
-    process.stdout.write('[server] MONGODB_URI not configured; running with in-memory storage\n');
+    logger.info('[server] MONGODB_URI not configured; running with in-memory storage');
   }
 
   const { port, server, io, messageHandlerContext } = createServer({
     ...options,
     databaseService,
     initializeContext: false,
+    logger,
   });
 
   await messageHandlerContext.initializeAsync({ seedDefaults: true });
@@ -310,43 +316,41 @@ async function startServer(options = {}) {
       const { getSolarSystemRegistry } = require('./model/solar-system-registry');
       await databaseService.upsertStars(getHygStars());
       await databaseService.upsertSolarSystems(getSolarSystemRegistry());
-      process.stdout.write('[server] HYG star + solar-system registry persisted\n');
+      logger.info('[server] HYG star + solar-system registry persisted');
     } catch (registryError) {
-      process.stderr.write(
-        `[server] Failed to persist star/solar-system registry: ${registryError.message}\n`
-      );
+      logger.error(`[server] Failed to persist star/solar-system registry: ${registryError.message}`);
     }
   }
 
   const celestialSeedResult = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
     solarSystemId: 'sol',
   });
-  process.stdout.write(
-    `[server] Celestial body seeding ${celestialSeedResult.success ? 'completed' : 'skipped'} for ${celestialSeedResult.solarSystemId}: ${celestialSeedResult.bodyCount}\n`
+  logger.info(
+    `[server] Celestial body seeding ${celestialSeedResult.success ? 'completed' : 'skipped'} for ${celestialSeedResult.solarSystemId}: ${celestialSeedResult.bodyCount}`
   );
 
   const alphaCentauriSeedResult = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
     solarSystemId: 'alpha-centauri',
   });
-  process.stdout.write(
-    `[server] Celestial body seeding ${alphaCentauriSeedResult.success ? 'completed' : 'skipped'} for ${alphaCentauriSeedResult.solarSystemId}: ${alphaCentauriSeedResult.bodyCount}\n`
+  logger.info(
+    `[server] Celestial body seeding ${alphaCentauriSeedResult.success ? 'completed' : 'skipped'} for ${alphaCentauriSeedResult.solarSystemId}: ${alphaCentauriSeedResult.bodyCount}`
   );
 
   const marketSeedResult = await messageHandlerContext.seedSolarSystemMarketsAsync({
     solarSystemId: 'sol',
   });
-  process.stdout.write(
-    `[server] Market seeding ${marketSeedResult.success ? 'completed' : 'skipped'} for ${marketSeedResult.solarSystemId}: ${marketSeedResult.marketCount}\n`
+  logger.info(
+    `[server] Market seeding ${marketSeedResult.success ? 'completed' : 'skipped'} for ${marketSeedResult.solarSystemId}: ${marketSeedResult.marketCount}`
   );
 
   server.listen(port, () => {
-    process.stdout.write(`Stellar Socket.IO server listening on port ${port}\n`);
-    process.stdout.write(`[server] Swagger UI available at http://localhost:${port}/docs/\n`);
+    logger.info(`Stellar Socket.IO server listening on port ${port}`);
+    logger.info(`[server] Swagger UI available at http://localhost:${port}/docs/`);
   });
 
   const shutdown = async () => {
     const fallbackTimer = setTimeout(() => {
-      process.stderr.write('Graceful shutdown timed out; forcing exit.\n');
+      logger.error('Graceful shutdown timed out; forcing exit.');
       process.exit(1);
     }, 5000);
     fallbackTimer.unref();
@@ -359,10 +363,10 @@ async function startServer(options = {}) {
             await mongoConnection.disconnect();
           }
         } catch (dbError) {
-          process.stderr.write(`[server] Error disconnecting from MongoDB: ${dbError.message}\n`);
+          logger.error(`[server] Error disconnecting from MongoDB: ${dbError.message}`);
         }
         if (error && error.message !== 'Server is not running.') {
-          process.stderr.write(`Shutdown error: ${error.message}\n`);
+          logger.error(`Shutdown error: ${error.message}`);
           process.exit(1);
           return;
         }
@@ -387,7 +391,8 @@ async function startServer(options = {}) {
 
 if (require.main === module) {
   startServer().catch((error) => {
-    process.stderr.write(`[server] Startup failed: ${error.message}\n`);
+    const startupLogger = createLogger({ minLevel: process.env.LOG_LEVEL || 'info' });
+    startupLogger.error(`[server] Startup failed: ${error.message}`);
     process.exit(1);
   });
 }

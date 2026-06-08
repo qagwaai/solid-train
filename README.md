@@ -40,6 +40,7 @@ The server listens on port `3000` by default. Set `PORT` to override.
 `npm start` uses a cross-platform script (`cross-env`) and sets:
 
 - `MONGODB_URI=mongodb://localhost:27017/solid-train`
+- `LOG_LEVEL=info` (default when unset)
 
 This works across bash, cmd, and PowerShell.
 
@@ -51,6 +52,24 @@ This works across bash, cmd, and PowerShell.
 ```bash
 npx cross-env MONGODB_URI=mongodb://localhost:27017/my-db node src/server.js
 ```
+
+## Logging levels
+
+The server supports level-based logging via `LOG_LEVEL`:
+
+- `error`
+- `warn`
+- `info` (default)
+- `debug`
+- `trace`
+
+Example:
+
+```bash
+npx cross-env LOG_LEVEL=debug node src/server.js
+```
+
+At the default `info` level, high-level operational messages (for example handler/upsert flow and startup events) are logged, while diagnostic `*-diag` traces are suppressed unless `LOG_LEVEL=debug` or `LOG_LEVEL=trace`.
 
 ## Endpoints
 
