@@ -207,7 +207,9 @@ class CelestialBodyListMessageHandler {
    * @returns {Promise<Object>}
    */
   async handle(socket, payload) {
-    this.context.logHandlerMessage('celestial-body-list-request', payload);
+    this.context.logHandlerMessage('celestial-body-list-request', payload, {
+      level: 'debug',
+    });
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };

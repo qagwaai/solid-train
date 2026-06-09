@@ -26,7 +26,7 @@ async function withDbOrNull(ctx, operationName, operation) {
   }
 }
 
-function logHandlerMessage(ctx, messageType, payload) {
+function logHandlerMessage(ctx, messageType, payload, options = {}) {
   const player = ctx.toNonEmptyString(payload?.playerName) || '-';
   const character =
     ctx.toNonEmptyString(payload?.characterId) ||
@@ -41,7 +41,7 @@ function logHandlerMessage(ctx, messageType, payload) {
 
   ctx.log(
     `[handler] messageType=${messageType} player=${player} character=${character} sessionId=${sessionId} correlationId=${correlationId}`,
-    { level: 'info' }
+    { level: options.level || 'info' }
   );
 }
 

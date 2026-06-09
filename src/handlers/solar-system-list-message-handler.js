@@ -147,7 +147,9 @@ class SolarSystemListMessageHandler {
   }
 
   async handle(socket, payload) {
-    this.context.logHandlerMessage('solar-system-list-request', payload);
+    this.context.logHandlerMessage('solar-system-list-request', payload, {
+      level: 'debug',
+    });
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };

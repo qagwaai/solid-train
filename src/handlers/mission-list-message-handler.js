@@ -227,7 +227,9 @@ class MissionListMessageHandler {
    * @returns {Promise<Object>}
    */
   async handle(socket, payload) {
-    this.context.logHandlerMessage('list-missions-request', payload);
+    this.context.logHandlerMessage('list-missions-request', payload, {
+      level: 'debug',
+    });
     const correlationId = resolveCorrelationId(
       payload,
       this.context.toNonEmptyString.bind(this.context)

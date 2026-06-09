@@ -47,6 +47,9 @@ const {
   normalizeRequestIdentity,
   applyCorrelationEcho,
 } = require('./correlation-metadata');
+const { createLogger } = require('../logging/logger');
+
+const socketLogger = createLogger({ minLevel: process.env.LOG_LEVEL || 'info' });
 
 function toNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : '';
@@ -207,7 +210,7 @@ function validateEmitChannel(entry, eventName, correlationMetadata) {
     operation,
     correlationId: correlationMetadata.correlationId,
   };
-  process.stderr.write(`[socket] ${JSON.stringify(diagnostic)}\n`);
+  socketLogger.error(`[socket] ${JSON.stringify(diagnostic)}`);
   throw new Error(
     `Response channel mismatch: operation=${operation} expected=${expectedChannel} emitted=${eventName}`
   );
@@ -223,7 +226,7 @@ function logEmit(entry, eventName, correlationMetadata) {
     operation,
     correlationId: correlationMetadata.correlationId,
   };
-  process.stderr.write(`[socket] ${JSON.stringify(diagnostic)}\n`);
+  socketLogger.debug(`[socket] ${JSON.stringify(diagnostic)}`);
 }
 
 function createScopedSocket(entry, socket, correlationMetadata) {
@@ -451,7 +454,7 @@ function registerSocketHandlers(socket, handlersByKey) {
       try {
         await handler.handle(scopedSocket, payload);
       } catch (error) {
-        process.stderr.write(`[socket] ${entry.errorLabel} handler error: ${error.message}\n`);
+        socketLogger.error(`[socket] ${entry.errorLabel} handler error: ${error.message}`);
       }
     });
   }

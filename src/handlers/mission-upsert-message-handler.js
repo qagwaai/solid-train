@@ -377,7 +377,9 @@ class MissionUpsertMessageHandler {
    * @returns {Promise<Object>}
    */
   async handle(socket, payload) {
-    this.context.logHandlerMessage('mission-upsert-request', payload);
+    this.context.logHandlerMessage('mission-upsert-request', payload, {
+      level: 'debug',
+    });
     const correlationId = resolveCorrelationId(
       payload,
       this.context.toNonEmptyString.bind(this.context)

@@ -526,7 +526,9 @@ class MarketListByLocationMessageHandler {
    * @returns {Promise<Object>}
    */
   async handle(socket, payload) {
-    this.context.logHandlerMessage('market-list-by-location-request', payload);
+    this.context.logHandlerMessage('market-list-by-location-request', payload, {
+      level: 'debug',
+    });
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = { message: INVALID_SESSION_MESSAGE };
