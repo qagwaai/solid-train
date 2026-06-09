@@ -63,6 +63,10 @@ function inferLevelFromMessage(message) {
   return 'info';
 }
 
+function formatTimestamp(date = new Date()) {
+  return date.toISOString();
+}
+
 function createLogger(options = {}) {
   const configuredLevel = toLogLevel(
     options.minLevel || process.env.LOG_LEVEL || options.defaultLevel,
@@ -81,7 +85,8 @@ function createLogger(options = {}) {
     }
 
     const normalizedMessage = typeof message === 'string' ? message : String(message);
-    write(normalizedLevel, normalizedMessage, logOptions);
+    const formattedMessage = `${formatTimestamp()} ${normalizedMessage}`;
+    write(normalizedLevel, formattedMessage, logOptions);
   };
 
   return {

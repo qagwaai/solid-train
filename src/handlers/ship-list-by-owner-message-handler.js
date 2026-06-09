@@ -125,7 +125,8 @@ class ShipListByOwnerMessageHandler {
               .filter((value) => Boolean(value))
           : [];
         return `${this.context.toNonEmptyString(ship?.id) || '-'}:[${ids.join('|') || '-'}]`;
-      }).join(',') || '-'}`
+      }).join(',') || '-'}`,
+      { level: 'trace' }
     );
 
     return {
@@ -137,7 +138,9 @@ class ShipListByOwnerMessageHandler {
   }
 
   async handle(socket, payload) {
-    this.context.logHandlerMessage('ship-list-by-owner-request', payload);
+    this.context.logHandlerMessage('ship-list-by-owner-request', payload, {
+      level: 'debug',
+    });
 
     if (!(await this.context.hasValidSessionAsync(payload))) {
       const response = {
