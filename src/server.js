@@ -343,6 +343,13 @@ async function startServer(options = {}) {
     `[server] Market seeding ${marketSeedResult.success ? 'completed' : 'skipped'} for ${marketSeedResult.solarSystemId}: ${marketSeedResult.marketCount}`
   );
 
+  const npcSeedResult = await messageHandlerContext.seedSolarSystemNpcsAsync({
+    solarSystemId: 'sol',
+  });
+  logger.info(
+    `[server] NPC seeding ${npcSeedResult.success ? 'completed' : 'skipped'} for ${npcSeedResult.solarSystemId}: ${npcSeedResult.npcCount}`
+  );
+
   server.listen(port, () => {
     logger.info(`Stellar Socket.IO server listening on port ${port}`);
     logger.info(`[server] Swagger UI available at http://localhost:${port}/docs/`);

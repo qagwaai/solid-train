@@ -3,6 +3,7 @@
 const { GameState } = require('../model/game');
 const orbitalMath = require('./context/orbital-math');
 const marketService = require('./context/market-service');
+const npcService = require('./context/npc-service');
 const marketOperationsService = require('./context/market-operations-service');
 const tradingService = require('./context/trading-service');
 const inventoryService = require('./context/inventory-service');
@@ -37,6 +38,7 @@ class MessageHandlerContext {
     this.celestialBodiesById = options.celestialBodiesById || new Map();
     this.itemsById = options.itemsById || new Map();
     this.npcBustsById = options.npcBustsById || new Map();
+    this.seededNpcOwnersById = options.seededNpcOwnersById || new Map();
     this.marketsByKey = options.marketsByKey || new Map();
     this.databaseService = options.databaseService || null;
     this.game = options.game || new GameState();
@@ -146,6 +148,27 @@ defineDelegatedMethods(MessageHandlerContext.prototype, marketService, [
   'seedSolarSystemMarketsAsync',
 ]);
 
+defineDelegatedMethods(MessageHandlerContext.prototype, npcService, ['seedSolarSystemNpcsAsync']);
+
+defineDelegatedMethods(MessageHandlerContext.prototype, npcService, [
+  'cacheSeededNpcOwner',
+  'getSeededNpcOwner',
+  'getSeededNpcOwnersAsync',
+  'getSolarSystemNpcSeedSummaryAsync',
+  'getSeededNpcProfilesAsync',
+  'getSeededNpcProfilesWithOwnedMarketsAsync',
+  'getNpcOwnedMarketsAsync',
+  'getSeededNpcCreditsAsync',
+  'getMarketOwnerCreditsAsync',
+  'adjustSeededNpcCreditsAsync',
+  'updateMarketOwnerCreditsAsync',
+  'adjustMarketOwnerCreditsAsync',
+  'updateSeededNpcCreditsAsync',
+  'getMarketOwnerAsync',
+  'getSeededNpcProfileAsync',
+  'getMarketOwnerProfileAsync',
+]);
+
 defineDelegatedMethods(MessageHandlerContext.prototype, celestialOperationsService, [
   'seedSolarSystemCelestialBodiesAsync',
   'getCelestialBody',
@@ -159,9 +182,12 @@ defineDelegatedMethods(MessageHandlerContext.prototype, celestialOperationsServi
 defineDelegatedMethods(MessageHandlerContext.prototype, marketOperationsService, [
   'cacheMarket',
   'getMarket',
+  'getMarketWithOwnerProfileAsync',
   'applyMarketRestock',
   'getMarketsAsync',
+  'getMarketsWithOwnerProfilesAsync',
   'getMarketsByLocationAsync',
+  'getMarketsByLocationWithOwnerProfilesAsync',
   'getMarketQuoteAsync',
   'getMarketInventoryAsync',
   'getMarketLedgerAsync',

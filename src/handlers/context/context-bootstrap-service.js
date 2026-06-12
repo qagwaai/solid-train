@@ -1,7 +1,9 @@
 'use strict';
 
 const { MARKET_CATALOG } = require('../../model/market-catalog');
+const { buildSeededNpcsForSolarSystem } = require('../../model/solar-system-npc-seed');
 const { buildSeededMarketsForSolarSystem } = require('../../model/solar-system-market-seed');
+const npcService = require('./npc-service');
 const normalizers = require('./normalizers');
 
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
@@ -15,19 +17,22 @@ async function initializeAsync(ctx, options = {}) {
     };
   }
 
+  let seededDefaults = false;
+
   if (ctx.marketsByKey.size === 0) {
     seedDefaultMarkets(ctx);
-    ctx._seedDefaultsInitialized = true;
-    return {
-      success: true,
-      seededDefaults: true,
-    };
+    seededDefaults = true;
+  }
+
+  if (ctx.npcBustsById.size === 0 || ctx.seededNpcOwnersById.size === 0) {
+    seedDefaultNpcs(ctx);
+    seededDefaults = true;
   }
 
   ctx._seedDefaultsInitialized = true;
   return {
     success: true,
-    seededDefaults: false,
+    seededDefaults,
   };
 }
 
@@ -39,6 +44,18 @@ function seedDefaultMarkets(ctx) {
     const defaults = buildSeededMarketsForSolarSystem(systemId, now);
     for (const market of defaults) {
       ctx.cacheMarket(createSeedMarketPayload(ctx, market, now));
+    }
+  }
+}
+
+function seedDefaultNpcs(ctx) {
+  const now = ctx.getCurrentTimestamp();
+  const systemIds = ['sol'];
+
+  for (const systemId of systemIds) {
+    const defaults = buildSeededNpcsForSolarSystem(systemId, now);
+    for (const npc of defaults) {
+      npcService.cacheSeededNpc(ctx, npc, now);
     }
   }
 }
@@ -73,5 +90,6 @@ function createSeedMarketPayload(ctx, seedMarket, timestamp) {
 module.exports = {
   initializeAsync,
   seedDefaultMarkets,
+  seedDefaultNpcs,
   createSeedMarketPayload,
 };
