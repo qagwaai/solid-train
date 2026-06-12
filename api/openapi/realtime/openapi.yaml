@@ -1,0 +1,93 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Realtime
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Realtime
+paths:
+  /socket/ping:
+    post:
+      summary: ping-request
+      operationId: socketPing
+      tags: [Realtime]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PingRequest'
+      responses:
+        '200':
+          description: pong-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PongResponse'
+
+  /socket/message:
+    post:
+      summary: message
+      operationId: socketMessage
+      tags: [Realtime]
+      description: Generic relay message; the server rebroadcasts with sender socket id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+      responses:
+        '200':
+          description: message broadcast envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /socket/welcome:
+    get:
+      summary: welcome
+      operationId: socketWelcome
+      tags: [Realtime]
+      description: Event emitted automatically by the server when a socket connects.
+      responses:
+        '200':
+          description: welcome event payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WelcomeEvent'
+
+  /socket/invalid-session:
+    get:
+      summary: invalid-session
+      operationId: socketInvalidSession
+      tags: [Realtime]
+      description: Event emitted for session-protected requests when session validation fails.
+      responses:
+        '200':
+          description: invalid-session event payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidSessionResponse'
+components:
+  schemas:
+    Heartbeat:
+      $ref: '../../schemas/heartbeat.schema.json'
+    InvalidSessionResponse:
+      $ref: '../../schemas/invalid-session-response.schema.json'
+    MessageRequest:
+      $ref: '../../schemas/message-request.schema.json'
+    MessageResponse:
+      $ref: '../../schemas/message-response.schema.json'
+    PingRequest:
+      $ref: '../../schemas/ping-request.schema.json'
+    PongResponse:
+      $ref: '../../schemas/pong-response.schema.json'
+    UnknownMessage:
+      $ref: '../../schemas/unknown-message.schema.json'
+    WelcomeEvent:
+      $ref: '../../schemas/welcome-event.schema.json'

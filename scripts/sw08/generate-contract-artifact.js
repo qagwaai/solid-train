@@ -103,7 +103,7 @@ function loadSchemas(rootDir, schemaRefMap) {
 }
 
 function buildArtifact(rootDir) {
-  const openApiPath = path.join(rootDir, 'openapi.yaml');
+  const openApiPath = path.join(rootDir, 'api', 'openapi.yaml');
   const openApiText = readText(openApiPath);
   const allPaths = extractOpenApiPaths(openApiText);
   const apiEndpoints = allPaths.filter((entry) => !entry.startsWith('/socket/'));
@@ -120,7 +120,7 @@ function buildArtifact(rootDir) {
     schemaVersion: 'sw-08-v1',
     producer: {
       repo: 'solid-train',
-      contractSource: 'openapi.yaml + ./schemas/*.json',
+      contractSource: 'api/openapi.yaml + ./api/schemas/*.json',
     },
     surfaces: {
       apiEndpoints,
@@ -143,7 +143,7 @@ async function main() {
   const rootDir = path.resolve(__dirname, '..', '..');
   const outputPath = path.resolve(
     rootDir,
-    args.out || 'artifacts/contracts/contract-artifact.json'
+    args.out || 'api/artifacts/contracts/contract-artifact.json'
   );
 
   const artifact = buildArtifact(rootDir);

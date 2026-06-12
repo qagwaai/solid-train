@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-05-25T01:39:37.476Z",
+  "source": "artifacts/contracts",
+  "thresholds": {
+    "recurrenceThreshold": 2,
+    "nearExpiryDays": 7,
+    "weeklyDays": 7,
+    "rollingDays": 30
+  },
+  "falsePositiveBaseline": {
+    "reportsTotal": 6,
+    "reportsExcludedAsFixtures": 5,
+    "fixtureNoiseRate": 83.33
+  },
+  "windows": {
+    "weekly": {
+      "reportsConsidered": 1,
+      "driftCount": 0,
+      "byClass": [],
+      "byOwner": [],
+      "bypassCount": 0,
+      "expiredBypassCount": 0,
+      "mttrHours": null,
+      "openIncidentCount": 0,
+      "resolvedIncidentCount": 0,
+      "repeatOffenders": [],
+      "recurrenceEscalationActive": false,
+      "nearExpiryExceptions": []
+    },
+    "rolling30": {
+      "reportsConsidered": 1,
+      "driftCount": 0,
+      "byClass": [],
+      "byOwner": [],
+      "bypassCount": 0,
+      "expiredBypassCount": 0,
+      "mttrHours": null,
+      "openIncidentCount": 0,
+      "resolvedIncidentCount": 0,
+      "repeatOffenders": [],
+      "recurrenceEscalationActive": false,
+      "nearExpiryExceptions": []
+    }
+  },
+  "recurrenceEscalation": {
+    "active": false,
+    "repeatOffenders": [],
+    "nextAction": "No recurrence escalation required."
+  },
+  "exceptionHygiene": {
+    "nearExpiryExceptions": [],
+    "expiredExceptionFailures30d": 0,
+    "failClosedExpired": true
+  }
+}

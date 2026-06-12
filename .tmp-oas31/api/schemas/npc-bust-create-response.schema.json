@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "npc-bust-create-response",
+  "description": "Response after creating an NPC bust descriptor. Returns either the normalized stored descriptor on success or a typed blocked-save payload when persistence is prevented.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "success",
+        "message",
+        "correlationId",
+        "requestIdentity",
+        "npcId",
+        "deterministicSeed",
+        "descriptor"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "success": { "type": "boolean", "enum": [true] },
+        "message": { "type": "string" },
+        "correlationId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Echo of the request correlationId."
+        },
+        "requestIdentity": {
+          "type": "object",
+          "required": ["operation", "entityType", "containerId"],
+          "properties": {
+            "operation": { "type": "string" },
+            "entityType": { "type": "string" },
+            "containerId": { "type": "string" }
+          }
+        },
+        "npcId": {
+          "type": "string",
+          "description": "The NPC record this bust belongs to."
+        },
+        "deterministicSeed": {
+          "type": "string",
+          "description": "The seed used to generate the NPC bust baseline. Stored for replay and cross-session consistency verification."
+        },
+        "descriptor": {
+          "$ref": "./bust-descriptor.schema.json",
+          "description": "The normalized stored bust descriptor including server-assigned schemaVersion and any applied overrides."
+        },
+        "appliedOverrides": {
+          "type": "array",
+          "description": "List of field names that were overridden by admin-tool input rather than derived from the deterministicSeed.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    {
+      "allOf": [
+        { "$ref": "./bust-blocked-save-response.schema.json" },
+        {
+          "type": "object",
+          "required": ["npcId"],
+          "properties": {
+            "npcId": { "type": "string" }
+          }
+        }
+      ]
+    }
+  ]
+}

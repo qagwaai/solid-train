@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "bust-blocked-save-response",
+  "description": "Typed blocked-save response for bust create/update operations. Used when a request is valid but persistence cannot proceed.",
+  "type": "object",
+  "required": ["success", "message", "correlationId", "requestIdentity", "blockedSave"],
+  "additionalProperties": false,
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "enum": [false],
+      "description": "Always false for blocked-save responses."
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable summary of why persistence was blocked."
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "playerName": { "type": "string" },
+    "characterId": { "type": "string" },
+    "npcId": { "type": "string" },
+    "blockedSave": {
+      "type": "object",
+      "required": ["reason", "retryable"],
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string",
+          "enum": [
+            "PLAYER_NOT_REGISTERED",
+            "CHARACTER_NOT_FOUND",
+            "CHARACTER_BUST_NOT_FOUND",
+            "NPC_BUST_NOT_FOUND",
+            "DATABASE_ERROR"
+          ],
+          "description": "Canonical blocked-save reason code for deterministic client handling."
+        },
+        "retryable": {
+          "type": "boolean",
+          "description": "True only when retrying later may succeed without request shape changes."
+        }
+      }
+    }
+  }
+}

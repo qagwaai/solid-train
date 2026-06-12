@@ -1,0 +1,249 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-list-by-location-response",
+  "type": "object",
+  "required": [
+    "success",
+    "message",
+    "playerName",
+    "solarSystemId",
+    "markets",
+    "isDocked",
+    "dockedMarketId",
+    "correlationId",
+    "requestIdentity"
+  ],
+  "definitions": {
+    "routeFeedGate": {
+      "type": "object",
+      "required": [
+        "gateId",
+        "sourceSystemId",
+        "destSystemId",
+        "traversalCostAu",
+        "traversalTimeHours",
+        "spatial",
+        "descriptor",
+        "approachMetadata"
+      ],
+      "properties": {
+        "gateId": { "type": "string" },
+        "sourceSystemId": { "type": "string" },
+        "destSystemId": { "type": "string" },
+        "traversalCostAu": { "type": "number", "minimum": 0 },
+        "traversalTimeHours": { "type": "number", "minimum": 0 },
+        "spatial": {
+          "type": "object",
+          "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+          "properties": {
+            "solarSystemId": { "type": "string" },
+            "frame": { "type": "string", "enum": ["barycentric"] },
+            "positionKm": {
+              "type": "object",
+              "required": ["x", "y", "z"],
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" }
+              },
+              "additionalProperties": false
+            },
+            "epochMs": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "descriptor": { "$ref": "./external-object-descriptor.schema.json" },
+        "approachMetadata": {
+          "$ref": "./external-object-gate-landmark-payload.schema.json#/definitions/gateApproachMetadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "routeFeedStation": {
+      "type": "object",
+      "required": [
+        "marketId",
+        "solarSystemId",
+        "marketName",
+        "siteType",
+        "siteName",
+        "spatial",
+        "descriptor"
+      ],
+      "properties": {
+        "marketId": { "type": "string" },
+        "solarSystemId": { "type": "string" },
+        "marketName": { "type": "string" },
+        "siteType": { "type": "string", "enum": ["station"] },
+        "siteName": { "type": "string" },
+        "spatial": {
+          "type": "object",
+          "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+          "properties": {
+            "solarSystemId": { "type": "string" },
+            "frame": { "type": "string", "enum": ["barycentric"] },
+            "positionKm": {
+              "type": "object",
+              "required": ["x", "y", "z"],
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" }
+              },
+              "additionalProperties": false
+            },
+            "epochMs": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "descriptor": { "$ref": "./external-object-descriptor.schema.json" }
+      },
+      "additionalProperties": false
+    },
+    "routeFeedEncounterShip": {
+      "type": "object",
+      "required": [
+        "shipId",
+        "shipName",
+        "model",
+        "tier",
+        "ownership",
+        "spatial",
+        "descriptor"
+      ],
+      "properties": {
+        "shipId": { "type": "string" },
+        "shipName": { "type": "string" },
+        "model": { "type": "string" },
+        "tier": { "type": "integer", "minimum": 1 },
+        "ownership": {
+          "type": "object",
+          "required": ["ownerType", "npcId", "factionId"],
+          "properties": {
+            "ownerType": { "type": "string", "enum": ["npc-pirate"] },
+            "npcId": { "type": ["string", "null"] },
+            "factionId": { "type": ["string", "null"] }
+          },
+          "additionalProperties": false
+        },
+        "spatial": {
+          "type": "object",
+          "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+          "properties": {
+            "solarSystemId": { "type": "string" },
+            "frame": { "type": "string", "enum": ["barycentric"] },
+            "positionKm": {
+              "type": "object",
+              "required": ["x", "y", "z"],
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" }
+              },
+              "additionalProperties": false
+            },
+            "epochMs": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "descriptor": { "$ref": "./external-object-descriptor.schema.json" }
+      },
+      "additionalProperties": false
+    },
+    "marketRoute": {
+      "type": ["object", "null"],
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["in-system", "gate-route", "no-route"] },
+        "hops": { "type": "integer", "minimum": 0 },
+        "gates": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/routeFeedGate" }
+        },
+        "stations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/routeFeedStation" }
+        },
+        "encounterShips": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/routeFeedEncounterShip" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "playerName": { "type": "string" },
+    "solarSystemId": { "type": "string" },
+    "positionKm": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "distanceAu": { "type": "number" },
+    "locationTypes": {
+      "type": ["array", "null"],
+      "items": { "type": "string" }
+    },
+    "isDocked": { "type": "boolean" },
+    "dockedMarketId": { "type": ["string", "null"] },
+    "markets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "marketId",
+          "solarSystemId",
+          "marketName",
+          "siteType",
+          "siteName",
+          "isStarterMarket",
+          "spatial",
+          "trajectory",
+          "distanceAu",
+          "route",
+          "isDocked",
+          "priceMultiplier",
+          "driftPercentPerHour",
+          "restockIntervalMinutes"
+        ],
+        "properties": {
+          "marketId": { "type": "string" },
+          "solarSystemId": { "type": "string" },
+          "marketName": { "type": "string" },
+          "siteType": { "type": "string" },
+          "siteName": { "type": "string" },
+          "isStarterMarket": { "type": "boolean" },
+          "spatial": { "type": ["object", "null"], "additionalProperties": true },
+          "trajectory": { "type": ["object", "null"], "additionalProperties": true },
+          "distanceAu": { "type": "number", "minimum": 0 },
+          "route": { "$ref": "#/definitions/marketRoute" },
+          "isDocked": { "type": "boolean" },
+          "priceMultiplier": { "type": "number" },
+          "driftPercentPerHour": { "type": "number" },
+          "restockIntervalMinutes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

@@ -10,8 +10,8 @@ const {
 } = require('../src/model/canonical-item-type-registry');
 
 const ROOT = path.resolve(__dirname, '..');
-const OPENAPI_PATH = path.join(ROOT, 'openapi.yaml');
-const SCHEMAS_DIR = path.join(ROOT, 'schemas');
+const OPENAPI_PATH = path.join(ROOT, 'api', 'openapi', 'items', 'openapi.yaml');
+const SCHEMAS_DIR = path.join(ROOT, 'api', 'schemas');
 const CANONICAL_ITEM_TYPE_SCHEMA_PATH = path.join(SCHEMAS_DIR, 'canonical-item-type.schema.json');
 
 function readText(filePath) {

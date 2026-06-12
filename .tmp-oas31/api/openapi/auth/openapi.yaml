@@ -1,0 +1,70 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Auth
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Auth
+paths:
+  /socket/register:
+    post:
+      summary: register
+      operationId: socketRegister
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: register-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        default:
+          description: error-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /socket/login:
+    post:
+      summary: login
+      operationId: socketLogin
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: login-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        default:
+          description: error-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ErrorResponse:
+      $ref: '../_shared/schemas.yaml#/components/schemas/ErrorResponse'
+    LoginRequest:
+      $ref: '../../schemas/login-request.schema.json'
+    LoginResponse:
+      $ref: '../../schemas/login-response.schema.json'
+    RegisterRequest:
+      $ref: '../../schemas/register-request.schema.json'
+    RegisterResponse:
+      $ref: '../../schemas/register-response.schema.json'

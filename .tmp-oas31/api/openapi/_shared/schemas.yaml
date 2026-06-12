@@ -1,0 +1,22 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Shared Schemas
+  version: 3.1.0
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        reason:
+          type: string
+        details:
+          type: object
+    ExternalObjectDescriptor:
+      $ref: '../../schemas/external-object-descriptor.schema.json'
+    ExternalObjectDescriptorPayload:
+      $ref: '../../schemas/external-object-descriptor-payload.schema.json'
+    ExternalObjectGateLandmarkPayload:
+      $ref: '../../schemas/external-object-gate-landmark-payload.schema.json'

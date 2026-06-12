@@ -1,0 +1,140 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Game
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Game
+paths:
+  /socket/game-join:
+    post:
+      summary: game-join-request
+      description: |
+        Marks a character as joined to the active game session.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketGameJoin
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameJoinRequest'
+            examples:
+              joinGame:
+                summary: Join a character to the game with correlation metadata
+                value:
+                  playerName: JoinPilot
+                  sessionKey: session-123
+                  correlationId: 68bd4d59-2ef4-4a51-bb7b-763e530c1270
+                  requestIdentity:
+                    operation: game-join
+                    entityType: game-session
+                    containerId: character-1
+                  characterId: character-1
+      responses:
+        '200':
+          description: game-join-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameJoinResponse'
+              examples:
+                successfulJoin:
+                  summary: Success echoes correlation metadata with character context
+                  value:
+                    success: true
+                    message: Character joined game successfully
+                    playerName: JoinPilot
+                    characterId: character-1
+                    correlationId: 68bd4d59-2ef4-4a51-bb7b-763e530c1270
+                    requestIdentity:
+                      operation: game-join
+                      entityType: game-session
+                      containerId: character-1
+
+  /socket/game-leave:
+    post:
+      summary: game-leave-request
+      description: |
+        Marks the current player session as leaving the game.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketGameLeave
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameLeaveRequest'
+            examples:
+              leaveGame:
+                summary: Leave the active game with correlation metadata
+                value:
+                  playerName: JoinPilot
+                  sessionKey: session-123
+                  correlationId: df1b7c96-5d1e-4bfa-a177-5134b5d0a52d
+                  requestIdentity:
+                    operation: game-leave
+                    entityType: game-session
+                    containerId: player-joinpilot
+      responses:
+        '200':
+          description: game-leave-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameLeaveResponse'
+              examples:
+                successfulLeave:
+                  summary: Success echoes correlation metadata with session context
+                  value:
+                    success: true
+                    message: Game left successfully
+                    playerName: JoinPilot
+                    sessionKey: session-123
+                    correlationId: df1b7c96-5d1e-4bfa-a177-5134b5d0a52d
+                    requestIdentity:
+                      operation: game-leave
+                      entityType: game-session
+                      containerId: player-joinpilot
+
+  /socket/game-state:
+    post:
+      summary: game-state
+      operationId: socketGameState
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameState'
+      responses:
+        '200':
+          description: game-state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameState'
+components:
+  schemas:
+    GameJoinRequest:
+      $ref: '../../schemas/game-join-request.schema.json'
+    GameJoinResponse:
+      $ref: '../../schemas/game-join-response.schema.json'
+    GameLeaveRequest:
+      $ref: '../../schemas/game-leave-request.schema.json'
+    GameLeaveResponse:
+      $ref: '../../schemas/game-leave-response.schema.json'
+    GameState:
+      $ref: '../../schemas/game-state.schema.json'

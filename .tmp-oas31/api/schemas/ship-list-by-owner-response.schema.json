@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ship-list-by-owner-response",
+  "type": "object",
+  "required": ["success", "message", "ships", "correlationId", "requestIdentity"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "reason": {
+      "type": "string",
+      "enum": ["INVALID_SESSION", "OWNERSHIP_VALIDATION_FAILED", "SHIP_LIST_OWNER_FORBIDDEN"]
+    },
+    "message": { "type": "string" },
+    "owner": {
+      "type": "object",
+      "properties": {
+        "ownerType": { "type": "string" },
+        "playerId": { "type": ["string", "null"] },
+        "characterId": { "type": ["string", "null"] },
+        "npcId": { "type": ["string", "null"] },
+        "factionId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "ships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "inventory"],
+        "properties": {
+          "id": { "type": "string" },
+          "inventory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "itemType", "launchable"],
+              "properties": {
+                "id": { "type": "string" },
+                "itemType": { "$ref": "./canonical-item-type.schema.json" },
+                "displayName": { "type": "string" },
+                "tier": { "type": "integer", "minimum": 1 },
+                "launchable": { "type": "boolean" },
+                "state": { "type": "string" },
+                "damageStatus": { "type": "string" },
+                "container": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "object",
+                      "required": ["containerType", "containerId"],
+                      "properties": {
+                        "containerType": { "type": "string" },
+                        "containerId": { "type": "string" }
+                      },
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "ownership": {
+            "type": "object",
+            "properties": {
+              "ownerType": { "type": "string" },
+              "playerId": { "type": ["string", "null"] },
+              "characterId": { "type": ["string", "null"] },
+              "npcId": { "type": ["string", "null"] },
+              "factionId": { "type": ["string", "null"] }
+            },
+            "additionalProperties": true
+          },
+          "ownershipHistory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["at", "reason", "fromOwner", "toOwner", "actor"],
+              "properties": {
+                "at": { "type": "string" },
+                "reason": { "type": "string" },
+                "fromOwner": {
+                  "type": "object",
+                  "properties": {
+                    "ownerType": { "type": "string" },
+                    "playerId": { "type": ["string", "null"] },
+                    "characterId": { "type": ["string", "null"] },
+                    "npcId": { "type": ["string", "null"] },
+                    "factionId": { "type": ["string", "null"] }
+                  },
+                  "additionalProperties": true
+                },
+                "toOwner": {
+                  "type": "object",
+                  "properties": {
+                    "ownerType": { "type": "string" },
+                    "playerId": { "type": ["string", "null"] },
+                    "characterId": { "type": ["string", "null"] },
+                    "npcId": { "type": ["string", "null"] },
+                    "factionId": { "type": ["string", "null"] }
+                  },
+                  "additionalProperties": true
+                },
+                "actor": {
+                  "type": "object",
+                  "required": ["ownerType", "playerId", "characterId"],
+                  "properties": {
+                    "ownerType": { "type": "string" },
+                    "playerId": { "type": ["string", "null"] },
+                    "characterId": { "type": ["string", "null"] }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-buy-response",
+  "type": "object",
+  "required": ["success", "message", "correlationId", "requestIdentity"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "requestId": {
+      "type": ["string", "null"],
+      "description": "Echoed caller correlation id when one was provided on the request."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Stable machine-readable failure reason when success is false."
+    },
+    "transaction": {
+      "type": "object",
+      "description": "Present on successful market buy responses.",
+      "required": [
+        "transactionId",
+        "requestId",
+        "marketId",
+        "solarSystemId",
+        "characterId",
+        "itemId",
+        "direction",
+        "quantity",
+        "unitPrice",
+        "totalPrice",
+        "timestamp",
+        "characterCredits",
+        "marketStock"
+      ],
+      "properties": {
+        "transactionId": { "type": "string" },
+        "requestId": { "type": ["string", "null"] },
+        "marketId": { "type": "string" },
+        "solarSystemId": { "type": "string" },
+        "characterId": { "type": "string" },
+        "itemId": { "type": "string" },
+        "direction": { "type": "string", "enum": ["buy"] },
+        "quantity": { "type": "integer", "minimum": 1 },
+        "unitPrice": { "type": "number" },
+        "totalPrice": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "characterCredits": { "type": ["number", "null"] },
+        "marketStock": { "type": ["integer", "null"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "exception": {
+    "errors": [
+      "Exception file not found: C:\\Development\\Projects\\Github\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
+    ],
+    "path": "C:\\Development\\Projects\\Github\\solid-train\\docs\\planning\\sw-08-approved-bypass.json"
+  },
+  "issues": [
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Item/catalog", "Mission progression"],
+      "detail": "Enum narrowed; removed values: [active, available, completed]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:MissionListRequest.properties.statuses.items",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    },
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Item/catalog", "Mission progression"],
+      "detail": "Enum narrowed; removed values: [active, available, completed]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:MissionListResponse.properties.missions.items.properties.status",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    }
+  ],
+  "metadata": {
+    "baselineMissing": false,
+    "baselinePath": "test\\fixtures\\sw01\\m3\\nova-consumer-inventory-aligned.json",
+    "currentPath": "test\\fixtures\\sw01\\m3\\mission-list-drift-enum-mismatch.json",
+    "exceptionFound": false,
+    "exceptionPath": "docs\\planning\\sw-08-approved-bypass.json",
+    "generatedBy": "scripts/sw08/check-contract-drift.js"
+  },
+  "summary": {
+    "byCategory": {
+      "endpoint/event removal or rename": 0,
+      "enum narrowing/mismatch": 2,
+      "removed required fields": 0,
+      "type mismatches": 0
+    },
+    "bypassApproved": false,
+    "enforcementMode": "hard-fail",
+    "hardFailEnforced": true,
+    "impactedConsumers": ["laughing-octo-journey"],
+    "mode": "hard-fail",
+    "nextAction": "Complete the missing exception fields or approvals, then rerun the gate.",
+    "owner": "backend-lead",
+    "softFailEnforced": false,
+    "totalIssues": 2
+  },
+  "taxonomy": {
+    "ENDPOINT_EVENT_REMOVAL": "endpoint/event removal or rename",
+    "ENUM_MISMATCH": "enum narrowing/mismatch",
+    "REMOVED_REQUIRED": "removed required fields",
+    "TYPE_MISMATCH": "type mismatches"
+  }
+}

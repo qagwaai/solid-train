@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "solar-system-list-response",
+  "type": "object",
+  "definitions": {
+    "vector3": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "primaryStarSummary": {
+      "type": ["object", "null"],
+      "properties": {
+        "hygId": { "type": "string" },
+        "spectralClass": { "type": "string" },
+        "spectralType": { "type": ["string", "null"] },
+        "colorHex": { "type": "string" },
+        "colorIndexBv": { "type": ["number", "null"] },
+        "luminositySolar": { "type": ["number", "null"] },
+        "massSolar": { "type": "number" },
+        "radiusSolar": { "type": "number" },
+        "absoluteMagnitude": { "type": ["number", "null"] },
+        "properName": { "type": ["string", "null"] }
+      },
+      "required": [
+        "hygId",
+        "spectralClass",
+        "spectralType",
+        "colorHex",
+        "colorIndexBv",
+        "luminositySolar",
+        "massSolar",
+        "radiusSolar",
+        "absoluteMagnitude",
+        "properName"
+      ]
+    },
+    "solarSystemSummary": {
+      "type": "object",
+      "description": "Solar system registry summary enriched with optional count fields when available.",
+      "properties": {
+        "id": { "type": "string" },
+        "displayName": { "type": "string" },
+        "hygSystemId": { "type": "string" },
+        "source": { "type": "string", "enum": ["curated", "procedural"] },
+        "isMultiStar": { "type": "boolean" },
+        "positionPc": { "$ref": "#/definitions/vector3" },
+        "distanceParsec": { "type": ["number", "null"] },
+        "primaryStar": { "$ref": "#/definitions/primaryStarSummary" },
+        "starCount": { "type": "integer" },
+        "generationSeed": { "type": ["integer", "null"] },
+        "planetCount": { "type": "integer" },
+        "moonCount": { "type": "integer" },
+        "asteroidCount": { "type": "integer" },
+        "marketCount": { "type": "integer" }
+      },
+      "required": [
+        "id",
+        "displayName",
+        "hygSystemId",
+        "source",
+        "isMultiStar",
+        "positionPc",
+        "distanceParsec",
+        "primaryStar",
+        "starCount",
+        "generationSeed"
+      ]
+    }
+  },
+  "required": ["success", "message", "playerName", "solarSystems", "correlationId", "requestIdentity"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "playerName": { "type": "string" },
+    "solarSystems": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/solarSystemSummary"
+      }
+    },
+    "requestId": {
+      "type": "string",
+      "description": "Echoed caller correlation id when one was supplied on the request."
+    }
+  }
+}

@@ -1,29 +1,13 @@
+```yaml
+# api/openapi/utility/openapi.yaml
 openapi: 3.0.3
 info:
-  title: Stellar API and Message Contract
-  version: 3.0.4
-  description: >
-    Machine-readable contract for HTTP endpoints and Socket.IO message payloads.
-    Socket operations are modeled as virtual POST operations under /socket/* so the
-    contract can be consumed by tooling that expects OpenAPI.
+  title: Stellar API - Utility
+  version: 3.1.0
 servers:
   - url: http://localhost:3000
 tags:
   - name: Utility
-  - name: Items
-  - name: Auth
-  - name: Character
-  - name: Ship
-  - name: Mission
-  - name: Celestial
-  - name: Market
-  - name: Context
-  - name: SolarSystem
-  - name: Stars
-  - name: Ledger
-  - name: Game
-  - name: Realtime
-  - name: Bust
 paths:
   /health:
     get:
@@ -41,97 +25,23 @@ paths:
                   status:
                     type: string
                     example: ok
+components:
+  schemas:
+    {}
 
-  /items:
-    get:
-      summary: Get canonical item list
-      description: |
-        Returns the backend canonical item catalog used by clients for item discovery.
+```
 
-        `/items` returns canonical catalog item definitions, not live runtime item
-        instances. These records are keyed by `itemType` and may not include runtime
-        instance identifiers (`id`). Use instance-bearing endpoints for live item
-        records.
-
-        **Canonical material contract:** Clients must use `fabrication.requiredMaterials[].itemType`
-        as the authoritative material reference for lookup, comparison, and validation.
-
-        Canonical naming note:
-        - Conduit seals uses `itemType: conduit-seals` (no aliases).
-        - Conduit seals fabrication uses canonical material `itemType: polymer`
-          (not `polymer-resin`).
-        - Fabrication requirements use `fabrication.requiredMaterials[]` with canonical
-          `itemType` identifiers.
-        - Clients should always use canonical `itemType` values from
-          `fabrication.requiredMaterials[].itemType` for lookup/comparison.
-        - Legacy aliases may be accepted by specific runtime workflows for backward
-          compatibility, but alias resolution is not a global contract guarantee unless
-          explicitly documented by that endpoint.
-        - Some runtime/internal workflows may attach legacy `requiredMaterials` matching
-          metadata (for example `acceptedItemTypes`), but clients should treat
-          `fabrication.requiredMaterials` as the primary contract field.
-      operationId: getItems
-      tags: [Items]
-      responses:
-        '200':
-          description: Canonical item list
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/CatalogItemDefinition'
-                example:
-                  items:
-                    - itemType: conduit-seals
-                      displayName: Conduit Seals
-                      description: Pressure-rated sealing sleeves for rerouting damaged ship conduits and stabilizing subsystem junctions.
-                      category: manufactured-component
-                      tier: 1
-                      rarity: common
-                      stackable: true
-                      massKg: 2
-                      volumeM3: 0.02
-                      baseValueCredits: 250
-                      launchable: false
-                      state: contained
-                      damageStatus: intact
-                      container: null
-                      fabrication:
-                        durationMs: 600000
-                        requiredMaterials:
-                          - itemType: copper
-                            quantity: 2
-                          - itemType: polymer
-                            quantity: 1
-                    - itemType: hull-patch-kit
-                      displayName: Hull Patch Kit
-                      description: Structural repair kit for hull breach patching and restoring ship integrity. Required for the Scavenger Pod repair mission step.
-                      category: repair
-                      tier: 1
-                      rarity: common
-                      launchable: false
-                      state: contained
-                      damageStatus: intact
-                      fabrication:
-                        durationMs: 300000
-                        requiredMaterials:
-                          - itemType: iron
-                            quantity: 1
-                    - itemType: ship-tractor-beam
-                      displayName: Tractor Beam
-                      description: Ship utility subsystem used for close-range salvage retrieval and object towing.
-                      category: subsystem
-                      tier: 1
-                      rarity: common
-                      launchable: false
-                      state: contained
-                      damageStatus: intact
-                      container: null
-
+```yaml
+# api/openapi/auth/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Auth
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Auth
+paths:
   /socket/register:
     post:
       summary: register
@@ -181,7 +91,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ErrorResponse:
+      $ref: '../_shared/schemas.yaml#/components/schemas/ErrorResponse'
+    LoginRequest:
+      $ref: '../schemas/login-request.schema.json'
+    LoginResponse:
+      $ref: '../schemas/login-response.schema.json'
+    RegisterRequest:
+      $ref: '../schemas/register-request.schema.json'
+    RegisterResponse:
+      $ref: '../schemas/register-response.schema.json'
 
+```
+
+```yaml
+# api/openapi/character/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Character
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Character
+paths:
   /socket/character-add:
     post:
       summary: character-add-request
@@ -467,7 +402,38 @@ paths:
                       entityType: character
                       containerId: player-ghostpilot
                     characters: []
+components:
+  schemas:
+    CharacterAddRequest:
+      $ref: '../schemas/character-add-request.schema.json'
+    CharacterAddResponse:
+      $ref: '../schemas/character-add-response.schema.json'
+    CharacterDeleteRequest:
+      $ref: '../schemas/character-delete-request.schema.json'
+    CharacterDeleteResponse:
+      $ref: '../schemas/character-delete-response.schema.json'
+    CharacterEditRequest:
+      $ref: '../schemas/character-edit-request.schema.json'
+    CharacterEditResponse:
+      $ref: '../schemas/character-edit-response.schema.json'
+    CharacterListRequest:
+      $ref: '../schemas/character-list-request.schema.json'
+    CharacterListResponse:
+      $ref: '../schemas/character-list-response.schema.json'
 
+```
+
+```yaml
+# api/openapi/ship/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Ship
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Ship
+paths:
   /socket/ship-list:
     post:
       summary: ship-list-request
@@ -1013,6 +979,205 @@ paths:
                       containerId: ship-1
                     ships: []
 
+  /socket/ship-list-by-npc-owner:
+    post:
+      summary: ship-list-by-npc-owner-request
+      description: |
+        Returns ships currently owned by a specific NPC pirate.
+
+        Ownership contract:
+        - `npcOwner.ownerType` must be `npc-pirate`.
+        - `npcOwner.npcId` is required.
+        - Scans all character ship records for matching NPC ownership.
+        - No cross-player restriction — NPC ownership is not player-scoped.
+        - Ships appear here after piracy seizure via `ship-piracy-seize`.
+      operationId: socketShipListByNpcOwner
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipListByNpcOwnerRequest'
+      responses:
+        '200':
+          description: ship-list-by-npc-owner-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipListByNpcOwnerResponse'
+              examples:
+                success:
+                  summary: Returns ships owned by the specified NPC
+                  value:
+                    success: true
+                    npcOwner:
+                      ownerType: npc-pirate
+                      npcId: pirate-npc-1
+                      factionId: black-flag
+                    ships:
+                      - id: ship-1
+                        ownership:
+                          ownerType: npc-pirate
+                          npcId: pirate-npc-1
+                          factionId: black-flag
+                empty:
+                  summary: No ships owned by this NPC
+                  value:
+                    success: true
+                    npcOwner:
+                      ownerType: npc-pirate
+                      npcId: unknown-npc
+                    ships: []
+                invalidOwnerType:
+                  summary: Non-npc-pirate ownerType is rejected
+                  value:
+                    success: false
+                    reason: OWNERSHIP_VALIDATION_FAILED
+                    message: npcOwner.ownerType must be npc-pirate
+                    ships: []
+
+  /socket/ship-salvage-claim:
+    post:
+      summary: ship-salvage-claim-request
+      description: |
+        Allows a player-character to claim an `unknown` ship as salvage.
+
+        Ownership contract:
+        - `claimantOwner.ownerType` must be `player-character`.
+        - `claimantOwner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Target ship must currently have `ownerType: unknown`; already-owned ships are rejected.
+        - Produces an ownership history entry with reason `salvage`.
+      operationId: socketShipSalvageClaim
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipSalvageClaimRequest'
+      responses:
+        '200':
+          description: ship-salvage-claim-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipSalvageClaimResponse'
+              examples:
+                success:
+                  summary: Valid salvage claim of unknown ship
+                  value:
+                    success: true
+                    shipId: ship-1
+                    claimantOwner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                    previousOwnerType: unknown
+                    claimedAt: '2026-06-12T00:00:00.000Z'
+                crossPlayerForbidden:
+                  summary: Actor cannot claim salvage for another player
+                  value:
+                    success: false
+                    reason: SALVAGE_CLAIM_FORBIDDEN
+                    message: Actor does not have permission to claim salvage for another player
+                alreadyOwned:
+                  summary: Cannot claim an already-owned ship
+                  value:
+                    success: false
+                    reason: SALVAGE_ALREADY_OWNED
+                    message: Ship is already owned and cannot be salvage claimed
+
+  /socket/ship-piracy-seize:
+    post:
+      summary: ship-piracy-seize-request
+      description: |
+        Allows an NPC pirate to seize a `player-character` owned ship.
+
+        Ownership contract:
+        - `seizingOwner.ownerType` must be `npc-pirate`.
+        - Target ship must currently have `ownerType: player-character`; unowned/unknown ships cannot be seized.
+        - Produces an ownership history entry with reason `piracy`.
+      operationId: socketShipPiracySeize
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipPiracySeizeRequest'
+      responses:
+        '200':
+          description: ship-piracy-seize-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipPiracySeizeResponse'
+              examples:
+                success:
+                  summary: NPC pirate seizes player ship
+                  value:
+                    success: true
+                    shipId: ship-1
+                    seizingOwner:
+                      ownerType: npc-pirate
+                      npcId: pirate-npc-1
+                      factionId: black-flag
+                    previousOwner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                    seizedAt: '2026-06-12T00:00:00.000Z'
+                invalidTarget:
+                  summary: Cannot seize non-player-character ship
+                  value:
+                    success: false
+                    reason: PIRACY_SEIZE_INVALID_TARGET
+                    message: Piracy can only target player-character owned ships
+components:
+  schemas:
+    ShipListRequest:
+      $ref: '../schemas/ship-list-request.schema.json'
+    ShipListResponse:
+      $ref: '../schemas/ship-list-response.schema.json'
+    ShipListByOwnerRequest:
+      $ref: '../schemas/ship-list-by-owner-request.schema.json'
+    ShipListByOwnerResponse:
+      $ref: '../schemas/ship-list-by-owner-response.schema.json'
+    ShipTransferRequest:
+      $ref: '../schemas/ship-transfer-request.schema.json'
+    ShipTransferResponse:
+      $ref: '../schemas/ship-transfer-response.schema.json'
+    ShipUpsertRequest:
+      $ref: '../schemas/ship-upsert-request.schema.json'
+    ShipUpsertResponse:
+      $ref: '../schemas/ship-upsert-response.schema.json'
+    ShipListByNpcOwnerRequest:
+      $ref: '../schemas/ship-list-by-npc-owner-request.schema.json'
+    ShipListByNpcOwnerResponse:
+      $ref: '../schemas/ship-list-by-npc-owner-response.schema.json'
+    ShipSalvageClaimRequest:
+      $ref: '../schemas/ship-salvage-claim-request.schema.json'
+    ShipSalvageClaimResponse:
+      $ref: '../schemas/ship-salvage-claim-response.schema.json'
+    ShipPiracySeizeRequest:
+      $ref: '../schemas/ship-piracy-seize-request.schema.json'
+    ShipPiracySeizeResponse:
+      $ref: '../schemas/ship-piracy-seize-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/mission/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Mission
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Mission
+paths:
   /socket/mission-list:
     post:
       summary: list-missions-request
@@ -1211,7 +1376,30 @@ paths:
                       entityType: mission
                       containerId: character-1
                     requestId: req-123
+components:
+  schemas:
+    MissionListRequest:
+      $ref: '../schemas/mission-list-request.schema.json'
+    MissionListResponse:
+      $ref: '../schemas/mission-list-response.schema.json'
+    MissionUpsertRequest:
+      $ref: '../schemas/mission-upsert-request.schema.json'
+    MissionUpsertResponse:
+      $ref: '../schemas/mission-upsert-response.schema.json'
 
+```
+
+```yaml
+# api/openapi/celestial/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Celestial
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Celestial
+paths:
   /socket/celestial-body-list:
     post:
       summary: celestial-body-list-request
@@ -1585,6 +1773,119 @@ paths:
                       operation: celestial-body-upsert
                       entityType: celestial-body
                       containerId: first-target
+components:
+  schemas:
+    CelestialBodyListRequest:
+      $ref: '../schemas/celestial-body-list-request.schema.json'
+    CelestialBodyListResponse:
+      $ref: '../schemas/celestial-body-list-response.schema.json'
+    CelestialBodyUpsertRequest:
+      $ref: '../schemas/celestial-body-upsert-request.schema.json'
+    CelestialBodyUpsertResponse:
+      $ref: '../schemas/celestial-body-upsert-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/items/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Items
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Items
+paths:
+  /items:
+    get:
+      summary: Get canonical item list
+      description: |
+        Returns the backend canonical item catalog used by clients for item discovery.
+
+        `/items` returns canonical catalog item definitions, not live runtime item
+        instances. These records are keyed by `itemType` and may not include runtime
+        instance identifiers (`id`). Use instance-bearing endpoints for live item
+        records.
+
+        **Canonical material contract:** Clients must use `fabrication.requiredMaterials[].itemType`
+        as the authoritative material reference for lookup, comparison, and validation.
+
+        Canonical naming note:
+        - Conduit seals uses `itemType: conduit-seals` (no aliases).
+        - Conduit seals fabrication uses canonical material `itemType: polymer`
+          (not `polymer-resin`).
+        - Fabrication requirements use `fabrication.requiredMaterials[]` with canonical
+          `itemType` identifiers.
+        - Clients should always use canonical `itemType` values from
+          `fabrication.requiredMaterials[].itemType` for lookup/comparison.
+        - Legacy aliases may be accepted by specific runtime workflows for backward
+          compatibility, but alias resolution is not a global contract guarantee unless
+          explicitly documented by that endpoint.
+        - Some runtime/internal workflows may attach legacy `requiredMaterials` matching
+          metadata (for example `acceptedItemTypes`), but clients should treat
+          `fabrication.requiredMaterials` as the primary contract field.
+      operationId: getItems
+      tags: [Items]
+      responses:
+        '200':
+          description: Canonical item list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CatalogItemDefinition'
+                example:
+                  items:
+                    - itemType: conduit-seals
+                      displayName: Conduit Seals
+                      description: Pressure-rated sealing sleeves for rerouting damaged ship conduits and stabilizing subsystem junctions.
+                      category: manufactured-component
+                      tier: 1
+                      rarity: common
+                      stackable: true
+                      massKg: 2
+                      volumeM3: 0.02
+                      baseValueCredits: 250
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      container: null
+                      fabrication:
+                        durationMs: 600000
+                        requiredMaterials:
+                          - itemType: copper
+                            quantity: 2
+                          - itemType: polymer
+                            quantity: 1
+                    - itemType: hull-patch-kit
+                      displayName: Hull Patch Kit
+                      description: Structural repair kit for hull breach patching and restoring ship integrity. Required for the Scavenger Pod repair mission step.
+                      category: repair
+                      tier: 1
+                      rarity: common
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      fabrication:
+                        durationMs: 300000
+                        requiredMaterials:
+                          - itemType: iron
+                            quantity: 1
+                    - itemType: ship-tractor-beam
+                      displayName: Tractor Beam
+                      description: Ship utility subsystem used for close-range salvage retrieval and object towing.
+                      category: subsystem
+                      tier: 1
+                      rarity: common
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      container: null
 
   /socket/item-list-by-container:
     post:
@@ -2234,6 +2535,94 @@ paths:
                     targetItemId: debris-item-1
                     targetCelestialBodyId: cb-1
 
+  /socket/item-list-by-owner:
+    post:
+      summary: item-list-by-owner-request
+      description: |
+        Lists items belonging to a canonical ownership descriptor.
+
+        Ownership contract:
+        - `owner.ownerType` must be a valid canonical type.
+        - For `player-character` owners, `owner.playerId` must match the authenticated actor's playerId.
+        - Cross-player item list queries are rejected with `ITEM_LIST_OWNER_FORBIDDEN`.
+      operationId: socketItemListByOwner
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemListByOwnerRequest'
+      responses:
+        '200':
+          description: item-list-by-owner-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemListByOwnerResponse'
+              examples:
+                success:
+                  summary: Returns matching items for the given owner
+                  value:
+                    success: true
+                    owner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                    items: []
+                crossPlayerForbidden:
+                  summary: Actor cannot list items for another player
+                  value:
+                    success: false
+                    reason: ITEM_LIST_OWNER_FORBIDDEN
+                    message: Actor does not have permission to list items for another player
+                    items: []
+components:
+  schemas:
+    CatalogItemDefinition:
+      $ref: '../schemas/catalog-item-definition.schema.json'
+    ItemListByContainerRequest:
+      $ref: '../schemas/item-list-by-container-request.schema.json'
+    ItemListByContainerResponse:
+      $ref: '../schemas/item-list-by-container-response.schema.json'
+    ItemListByLocationRequest:
+      $ref: '../schemas/item-list-by-location-request.schema.json'
+    ItemListByLocationResponse:
+      $ref: '../schemas/item-list-by-location-response.schema.json'
+    ItemRemoveRequest:
+      $ref: '../schemas/item-remove-request.schema.json'
+    ItemRemoveResponse:
+      $ref: '../schemas/item-remove-response.schema.json'
+    ItemUpsertRequest:
+      $ref: '../schemas/item-upsert-request.schema.json'
+    ItemUpsertResponse:
+      $ref: '../schemas/item-upsert-response.schema.json'
+    LaunchItemRequest:
+      $ref: '../schemas/launch-item-request.schema.json'
+    LaunchItemResponse:
+      $ref: '../schemas/launch-item-response.schema.json'
+    TractorBeamActivateRequest:
+      $ref: '../schemas/tractor-beam-activate-request.schema.json'
+    TractorBeamActivateResponse:
+      $ref: '../schemas/tractor-beam-activate-response.schema.json'
+    ItemListByOwnerRequest:
+      $ref: '../schemas/item-list-by-owner-request.schema.json'
+    ItemListByOwnerResponse:
+      $ref: '../schemas/item-list-by-owner-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/market/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Market
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Market
+paths:
   /socket/market-buy:
     post:
       summary: market-buy-request
@@ -3218,6 +3607,213 @@ paths:
                     requestId: sell-2
                     reason: INSUFFICIENT_ITEM_QUANTITY
 
+  /socket/market-listing-create:
+    post:
+      description: |
+        Creates a market listing with strict ownership enforcement.
+
+        Ownership contract:
+        - `owner.ownerType` must be `player-character`.
+        - `owner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Non-player-character owners are rejected with `OWNERSHIP_VALIDATION_FAILED`.
+        - Cross-player listing attempts are rejected with `OWNERSHIP_LISTING_FORBIDDEN`.
+      operationId: socketMarketListingCreate
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketListingCreateRequest'
+      responses:
+        '200':
+          description: market-listing-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListingCreateResponse'
+              examples:
+                success:
+                  summary: Valid player-character listing succeeds
+                  value:
+                    success: true
+                    message: Market listing created successfully
+                    offerId: listing-1748700000000-abc123
+                    owner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                      npcId: null
+                      factionId: null
+                crossPlayerForbidden:
+                  summary: Actor cannot create listing for another player
+                  value:
+                    success: false
+                    reason: OWNERSHIP_LISTING_FORBIDDEN
+                    message: Actor does not have permission to create listings for another player
+                npcOwnerRejected:
+                  summary: Non-player-character owner is rejected
+                  value:
+                    success: false
+                    reason: OWNERSHIP_VALIDATION_FAILED
+                    message: Only player-character owners can create market listings
+
+  /socket/market-offer-create:
+    post:
+      summary: market-offer-create-request
+      description: |
+        Creates a pending market offer with strict offeror ownership enforcement.
+
+        Ownership contract:
+        - `offerorOwner.ownerType` must be `player-character`.
+        - `offerorOwner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Non-player-character offerors are rejected with `OWNERSHIP_VALIDATION_FAILED`.
+        - Cross-player offer attempts are rejected with `OWNERSHIP_OFFER_FORBIDDEN`.
+      operationId: socketMarketOfferCreate
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketOfferCreateRequest'
+      responses:
+        '200':
+          description: market-offer-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketOfferCreateResponse'
+              examples:
+                success:
+                  summary: Valid player-character offer succeeds
+                  value:
+                    success: true
+                    offerId: offer-1748700000000-abc123
+                    listingId: listing-1
+                    offerorOwner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                      npcId: null
+                      factionId: null
+                    offerPrice: 500
+                    quantity: 1
+                    createdAt: '2026-06-12T00:00:00.000Z'
+                crossPlayerForbidden:
+                  summary: Actor cannot offer on behalf of another player
+                  value:
+                    success: false
+                    reason: OWNERSHIP_OFFER_FORBIDDEN
+                    message: Actor does not have permission to make offers for another player
+
+  /socket/market-offer-accept:
+    post:
+      summary: market-offer-accept-request
+      description: |
+        Accepts a pending market offer and records the trade. Optionally triggers automatic
+        ship ownership transfer when `shipId` is provided.
+
+        Ownership contract:
+        - `listingOwner.ownerType` must be `player-character`.
+        - `listingOwner.playerId` must match the authenticated actor's playerId.
+        - Only the listing owner can accept offers on their own listing.
+        - Cross-player acceptance attempts are rejected with `OWNERSHIP_ACCEPT_FORBIDDEN`.
+        - Trade history is recorded on the accepted offer document.
+      operationId: socketMarketOfferAccept
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketOfferAcceptRequest'
+      responses:
+        '200':
+          description: market-offer-accept-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketOfferAcceptResponse'
+              examples:
+                success:
+                  summary: Listing owner accepts offer and trade completes
+                  value:
+                    success: true
+                    tradeId: trade-1748700000000-abc123
+                    offerId: offer-1
+                    listingId: listing-1
+                    completedAt: '2026-06-12T00:00:00.000Z'
+                    tradeHistory:
+                      at: '2026-06-12T00:00:00.000Z'
+                      offerId: offer-1
+                      listingOwner:
+                        ownerType: player-character
+                        playerId: player-1
+                        characterId: char-1
+                      acceptorCharacterId: char-1
+                crossPlayerForbidden:
+                  summary: Actor cannot accept offer for another player's listing
+                  value:
+                    success: false
+                    reason: OWNERSHIP_ACCEPT_FORBIDDEN
+                    message: Only listing owner can accept this offer
+components:
+  schemas:
+    MarketBuyRequest:
+      $ref: '../schemas/market-buy-request.schema.json'
+    MarketBuyResponse:
+      $ref: '../schemas/market-buy-response.schema.json'
+    MarketInventoryListRequest:
+      $ref: '../schemas/market-inventory-list-request.schema.json'
+    MarketInventoryListResponse:
+      $ref: '../schemas/market-inventory-list-response.schema.json'
+    MarketLedgerListRequest:
+      $ref: '../schemas/market-ledger-list-request.schema.json'
+    MarketLedgerListResponse:
+      $ref: '../schemas/market-ledger-list-response.schema.json'
+    MarketListByLocationRequest:
+      $ref: '../schemas/market-list-by-location-request.schema.json'
+    MarketListByLocationResponse:
+      $ref: '../schemas/market-list-by-location-response.schema.json'
+    MarketListRequest:
+      $ref: '../schemas/market-list-request.schema.json'
+    MarketListResponse:
+      $ref: '../schemas/market-list-response.schema.json'
+    MarketQuoteRequest:
+      $ref: '../schemas/market-quote-request.schema.json'
+    MarketQuoteResponse:
+      $ref: '../schemas/market-quote-response.schema.json'
+    MarketSellRequest:
+      $ref: '../schemas/market-sell-request.schema.json'
+    MarketSellResponse:
+      $ref: '../schemas/market-sell-response.schema.json'
+    MarketListingCreateRequest:
+      $ref: '../schemas/market-listing-create-request.schema.json'
+    MarketListingCreateResponse:
+      $ref: '../schemas/market-listing-create-response.schema.json'
+    MarketOfferCreateRequest:
+      $ref: '../schemas/market-offer-create-request.schema.json'
+    MarketOfferCreateResponse:
+      $ref: '../schemas/market-offer-create-response.schema.json'
+    MarketOfferAcceptRequest:
+      $ref: '../schemas/market-offer-accept-request.schema.json'
+    MarketOfferAcceptResponse:
+      $ref: '../schemas/market-offer-accept-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/context/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Context
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Context
+paths:
   /socket/context-distance:
     post:
       summary: context-distance-request
@@ -3327,7 +3923,30 @@ paths:
                     route:
                       - sol
                       - alpha-centauri
+components:
+  schemas:
+    ContextDistanceRequest:
+      $ref: '../schemas/context-distance-request.schema.json'
+    ContextDistanceResponse:
+      $ref: '../schemas/context-distance-response.schema.json'
+    ContextRoutingRequest:
+      $ref: '../schemas/context-routing-request.schema.json'
+    ContextRoutingResponse:
+      $ref: '../schemas/context-routing-response.schema.json'
 
+```
+
+```yaml
+# api/openapi/solarsystem/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - SolarSystem
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: SolarSystem
+paths:
   /socket/solar-system-get:
     post:
       summary: solar-system-get-request
@@ -3488,7 +4107,30 @@ paths:
                       entityType: solar-system
                       containerId: registry
                     solarSystems: []
+components:
+  schemas:
+    SolarSystemGetRequest:
+      $ref: '../schemas/solar-system-get-request.schema.json'
+    SolarSystemGetResponse:
+      $ref: '../schemas/solar-system-get-response.schema.json'
+    SolarSystemListRequest:
+      $ref: '../schemas/solar-system-list-request.schema.json'
+    SolarSystemListResponse:
+      $ref: '../schemas/solar-system-list-response.schema.json'
 
+```
+
+```yaml
+# api/openapi/stars/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Stars
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Stars
+paths:
   /socket/star-get:
     post:
       summary: star-get-request
@@ -3635,7 +4277,30 @@ paths:
                       entityType: star
                       containerId: registry
                     stars: []
+components:
+  schemas:
+    StarGetRequest:
+      $ref: '../schemas/star-get-request.schema.json'
+    StarGetResponse:
+      $ref: '../schemas/star-get-response.schema.json'
+    StarListRequest:
+      $ref: '../schemas/star-list-request.schema.json'
+    StarListResponse:
+      $ref: '../schemas/star-list-response.schema.json'
 
+```
+
+```yaml
+# api/openapi/ledger/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Ledger
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Ledger
+paths:
   /socket/credit-ledger-list:
     post:
       summary: credit-ledger-list-request
@@ -3688,7 +4353,26 @@ paths:
                     total: 0
                     offset: 0
                     limit: 50
+components:
+  schemas:
+    CreditLedgerListRequest:
+      $ref: '../schemas/credit-ledger-list-request.schema.json'
+    CreditLedgerListResponse:
+      $ref: '../schemas/credit-ledger-list-response.schema.json'
 
+```
+
+```yaml
+# api/openapi/game/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Game
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Game
+paths:
   /socket/game-join:
     post:
       summary: game-join-request
@@ -3808,7 +4492,126 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GameState'
+components:
+  schemas:
+    GameJoinRequest:
+      $ref: '../schemas/game-join-request.schema.json'
+    GameJoinResponse:
+      $ref: '../schemas/game-join-response.schema.json'
+    GameLeaveRequest:
+      $ref: '../schemas/game-leave-request.schema.json'
+    GameLeaveResponse:
+      $ref: '../schemas/game-leave-response.schema.json'
+    GameState:
+      $ref: '../schemas/game-state.schema.json'
 
+```
+
+```yaml
+# api/openapi/realtime/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Realtime
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Realtime
+paths:
+  /socket/ping:
+    post:
+      summary: ping-request
+      operationId: socketPing
+      tags: [Realtime]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PingRequest'
+      responses:
+        '200':
+          description: pong-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PongResponse'
+
+  /socket/message:
+    post:
+      summary: message
+      operationId: socketMessage
+      tags: [Realtime]
+      description: Generic relay message; the server rebroadcasts with sender socket id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+      responses:
+        '200':
+          description: message broadcast envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /socket/welcome:
+    get:
+      summary: welcome
+      operationId: socketWelcome
+      tags: [Realtime]
+      description: Event emitted automatically by the server when a socket connects.
+      responses:
+        '200':
+          description: welcome event payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WelcomeEvent'
+
+  /socket/invalid-session:
+    get:
+      summary: invalid-session
+      operationId: socketInvalidSession
+      tags: [Realtime]
+      description: Event emitted for session-protected requests when session validation fails.
+      responses:
+        '200':
+          description: invalid-session event payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidSessionResponse'
+components:
+  schemas:
+    InvalidSessionResponse:
+      $ref: '../schemas/invalid-session-response.schema.json'
+    MessageRequest:
+      $ref: '../schemas/message-request.schema.json'
+    MessageResponse:
+      $ref: '../schemas/message-response.schema.json'
+    PingRequest:
+      $ref: '../schemas/ping-request.schema.json'
+    PongResponse:
+      $ref: '../schemas/pong-response.schema.json'
+    WelcomeEvent:
+      $ref: '../schemas/welcome-event.schema.json'
+
+```
+
+```yaml
+# api/openapi/bust/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Bust
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Bust
+paths:
   /socket/character-bust-create:
     post:
       summary: character-bust-create-request
@@ -4355,655 +5158,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BustValidationErrorResponse'
-
-  /socket/ping:
-    post:
-      summary: ping-request
-      operationId: socketPing
-      tags: [Realtime]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PingRequest'
-      responses:
-        '200':
-          description: pong-response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PongResponse'
-
-  /socket/message:
-    post:
-      summary: message
-      operationId: socketMessage
-      tags: [Realtime]
-      description: Generic relay message; the server rebroadcasts with sender socket id.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MessageRequest'
-      responses:
-        '200':
-          description: message broadcast envelope
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-
-  /socket/welcome:
-    get:
-      summary: welcome
-      operationId: socketWelcome
-      tags: [Realtime]
-      description: Event emitted automatically by the server when a socket connects.
-      responses:
-        '200':
-          description: welcome event payload
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WelcomeEvent'
-
-  /socket/invalid-session:
-    get:
-      summary: invalid-session
-      operationId: socketInvalidSession
-      tags: [Realtime]
-      description: Event emitted for session-protected requests when session validation fails.
-      responses:
-        '200':
-          description: invalid-session event payload
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidSessionResponse'
-
-  /socket/ship-list-by-npc-owner:
-    post:
-      summary: ship-list-by-npc-owner-request
-      description: |
-        Returns ships currently owned by a specific NPC pirate.
-
-        Ownership contract:
-        - `npcOwner.ownerType` must be `npc-pirate`.
-        - `npcOwner.npcId` is required.
-        - Scans all character ship records for matching NPC ownership.
-        - No cross-player restriction — NPC ownership is not player-scoped.
-        - Ships appear here after piracy seizure via `ship-piracy-seize`.
-      operationId: socketShipListByNpcOwner
-      tags: [Ship]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ShipListByNpcOwnerRequest'
-      responses:
-        '200':
-          description: ship-list-by-npc-owner-response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShipListByNpcOwnerResponse'
-              examples:
-                success:
-                  summary: Returns ships owned by the specified NPC
-                  value:
-                    success: true
-                    npcOwner:
-                      ownerType: npc-pirate
-                      npcId: pirate-npc-1
-                      factionId: black-flag
-                    ships:
-                      - id: ship-1
-                        ownership:
-                          ownerType: npc-pirate
-                          npcId: pirate-npc-1
-                          factionId: black-flag
-                empty:
-                  summary: No ships owned by this NPC
-                  value:
-                    success: true
-                    npcOwner:
-                      ownerType: npc-pirate
-                      npcId: unknown-npc
-                    ships: []
-                invalidOwnerType:
-                  summary: Non-npc-pirate ownerType is rejected
-                  value:
-                    success: false
-                    reason: OWNERSHIP_VALIDATION_FAILED
-                    message: npcOwner.ownerType must be npc-pirate
-                    ships: []
-
-  /socket/item-list-by-owner:
-    post:
-      summary: item-list-by-owner-request
-      description: |
-        Lists items belonging to a canonical ownership descriptor.
-
-        Ownership contract:
-        - `owner.ownerType` must be a valid canonical type.
-        - For `player-character` owners, `owner.playerId` must match the authenticated actor's playerId.
-        - Cross-player item list queries are rejected with `ITEM_LIST_OWNER_FORBIDDEN`.
-      operationId: socketItemListByOwner
-      tags: [Items]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ItemListByOwnerRequest'
-      responses:
-        '200':
-          description: item-list-by-owner-response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ItemListByOwnerResponse'
-              examples:
-                success:
-                  summary: Returns matching items for the given owner
-                  value:
-                    success: true
-                    owner:
-                      ownerType: player-character
-                      playerId: player-1
-                      characterId: char-1
-                    items: []
-                crossPlayerForbidden:
-                  summary: Actor cannot list items for another player
-                  value:
-                    success: false
-                    reason: ITEM_LIST_OWNER_FORBIDDEN
-                    message: Actor does not have permission to list items for another player
-                    items: []
-
-  /socket/ship-salvage-claim:
-    post:
-      summary: ship-salvage-claim-request
-      description: |
-        Allows a player-character to claim an `unknown` ship as salvage.
-
-        Ownership contract:
-        - `claimantOwner.ownerType` must be `player-character`.
-        - `claimantOwner.playerId` must match the authenticated actor's playerId (cross-player blocking).
-        - Target ship must currently have `ownerType: unknown`; already-owned ships are rejected.
-        - Produces an ownership history entry with reason `salvage`.
-      operationId: socketShipSalvageClaim
-      tags: [Ship]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ShipSalvageClaimRequest'
-      responses:
-        '200':
-          description: ship-salvage-claim-response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShipSalvageClaimResponse'
-              examples:
-                success:
-                  summary: Valid salvage claim of unknown ship
-                  value:
-                    success: true
-                    shipId: ship-1
-                    claimantOwner:
-                      ownerType: player-character
-                      playerId: player-1
-                      characterId: char-1
-                    previousOwnerType: unknown
-                    claimedAt: '2026-06-12T00:00:00.000Z'
-                crossPlayerForbidden:
-                  summary: Actor cannot claim salvage for another player
-                  value:
-                    success: false
-                    reason: SALVAGE_CLAIM_FORBIDDEN
-                    message: Actor does not have permission to claim salvage for another player
-                alreadyOwned:
-                  summary: Cannot claim an already-owned ship
-                  value:
-                    success: false
-                    reason: SALVAGE_ALREADY_OWNED
-                    message: Ship is already owned and cannot be salvage claimed
-
-  /socket/ship-piracy-seize:
-    post:
-      summary: ship-piracy-seize-request
-      description: |
-        Allows an NPC pirate to seize a `player-character` owned ship.
-
-        Ownership contract:
-        - `seizingOwner.ownerType` must be `npc-pirate`.
-        - Target ship must currently have `ownerType: player-character`; unowned/unknown ships cannot be seized.
-        - Produces an ownership history entry with reason `piracy`.
-      operationId: socketShipPiracySeize
-      tags: [Ship]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ShipPiracySeizeRequest'
-      responses:
-        '200':
-          description: ship-piracy-seize-response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShipPiracySeizeResponse'
-              examples:
-                success:
-                  summary: NPC pirate seizes player ship
-                  value:
-                    success: true
-                    shipId: ship-1
-                    seizingOwner:
-                      ownerType: npc-pirate
-                      npcId: pirate-npc-1
-                      factionId: black-flag
-                    previousOwner:
-                      ownerType: player-character
-                      playerId: player-1
-                      characterId: char-1
-                    seizedAt: '2026-06-12T00:00:00.000Z'
-                invalidTarget:
-                  summary: Cannot seize non-player-character ship
-                  value:
-                    success: false
-                    reason: PIRACY_SEIZE_INVALID_TARGET
-                    message: Piracy can only target player-character owned ships
-
-  /socket/market-listing-create:
-      description: |
-        Creates a market listing with strict ownership enforcement.
-
-        Ownership contract:
-        - `owner.ownerType` must be `player-character`.
-        - `owner.playerId` must match the authenticated actor's playerId (cross-player blocking).
-        - Non-player-character owners are rejected with `OWNERSHIP_VALIDATION_FAILED`.
-        - Cross-player listing attempts are rejected with `OWNERSHIP_LISTING_FORBIDDEN`.
-      operationId: socketMarketListingCreate
-      tags: [Market]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MarketListingCreateRequest'
-      responses:
-        '200':
-          description: market-listing-create-response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MarketListingCreateResponse'
-              examples:
-                success:
-                  summary: Valid player-character listing succeeds
-                  value:
-                    success: true
-                    message: Market listing created successfully
-                    offerId: listing-1748700000000-abc123
-                    owner:
-                      ownerType: player-character
-                      playerId: player-1
-                      characterId: char-1
-                      npcId: null
-                      factionId: null
-                crossPlayerForbidden:
-                  summary: Actor cannot create listing for another player
-                  value:
-                    success: false
-                    reason: OWNERSHIP_LISTING_FORBIDDEN
-                    message: Actor does not have permission to create listings for another player
-                npcOwnerRejected:
-                  summary: Non-player-character owner is rejected
-                  value:
-                    success: false
-                    reason: OWNERSHIP_VALIDATION_FAILED
-                    message: Only player-character owners can create market listings
-
-  /socket/market-offer-create:
-    post:
-      summary: market-offer-create-request
-      description: |
-        Creates a pending market offer with strict offeror ownership enforcement.
-
-        Ownership contract:
-        - `offerorOwner.ownerType` must be `player-character`.
-        - `offerorOwner.playerId` must match the authenticated actor's playerId (cross-player blocking).
-        - Non-player-character offerors are rejected with `OWNERSHIP_VALIDATION_FAILED`.
-        - Cross-player offer attempts are rejected with `OWNERSHIP_OFFER_FORBIDDEN`.
-      operationId: socketMarketOfferCreate
-      tags: [Market]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MarketOfferCreateRequest'
-      responses:
-        '200':
-          description: market-offer-create-response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MarketOfferCreateResponse'
-              examples:
-                success:
-                  summary: Valid player-character offer succeeds
-                  value:
-                    success: true
-                    offerId: offer-1748700000000-abc123
-                    listingId: listing-1
-                    offerorOwner:
-                      ownerType: player-character
-                      playerId: player-1
-                      characterId: char-1
-                      npcId: null
-                      factionId: null
-                    offerPrice: 500
-                    quantity: 1
-                    createdAt: '2026-06-12T00:00:00.000Z'
-                crossPlayerForbidden:
-                  summary: Actor cannot offer on behalf of another player
-                  value:
-                    success: false
-                    reason: OWNERSHIP_OFFER_FORBIDDEN
-                    message: Actor does not have permission to make offers for another player
-
-  /socket/market-offer-accept:
-    post:
-      summary: market-offer-accept-request
-      description: |
-        Accepts a pending market offer and records the trade. Optionally triggers automatic
-        ship ownership transfer when `shipId` is provided.
-
-        Ownership contract:
-        - `listingOwner.ownerType` must be `player-character`.
-        - `listingOwner.playerId` must match the authenticated actor's playerId.
-        - Only the listing owner can accept offers on their own listing.
-        - Cross-player acceptance attempts are rejected with `OWNERSHIP_ACCEPT_FORBIDDEN`.
-        - Trade history is recorded on the accepted offer document.
-      operationId: socketMarketOfferAccept
-      tags: [Market]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MarketOfferAcceptRequest'
-      responses:
-        '200':
-          description: market-offer-accept-response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MarketOfferAcceptResponse'
-              examples:
-                success:
-                  summary: Listing owner accepts offer and trade completes
-                  value:
-                    success: true
-                    tradeId: trade-1748700000000-abc123
-                    offerId: offer-1
-                    listingId: listing-1
-                    completedAt: '2026-06-12T00:00:00.000Z'
-                    tradeHistory:
-                      at: '2026-06-12T00:00:00.000Z'
-                      offerId: offer-1
-                      listingOwner:
-                        ownerType: player-character
-                        playerId: player-1
-                        characterId: char-1
-                      acceptorCharacterId: char-1
-                crossPlayerForbidden:
-                  summary: Actor cannot accept offer for another player's listing
-                  value:
-                    success: false
-                    reason: OWNERSHIP_ACCEPT_FORBIDDEN
-                    message: Only listing owner can accept this offer
-
 components:
   schemas:
-    BustDescriptor:
-      $ref: './schemas/bust-descriptor.schema.json'
-    BustBlockedSaveResponse:
-      $ref: './schemas/bust-blocked-save-response.schema.json'
     BustValidationErrorResponse:
-      $ref: './schemas/bust-validation-error-response.schema.json'
+      $ref: '../schemas/bust-validation-error-response.schema.json'
     CharacterBustCreateRequest:
-      $ref: './schemas/character-bust-create-request.schema.json'
+      $ref: '../schemas/character-bust-create-request.schema.json'
     CharacterBustCreateResponse:
-      $ref: './schemas/character-bust-create-response.schema.json'
+      $ref: '../schemas/character-bust-create-response.schema.json'
     CharacterBustReadRequest:
-      $ref: './schemas/character-bust-read-request.schema.json'
+      $ref: '../schemas/character-bust-read-request.schema.json'
     CharacterBustReadResponse:
-      $ref: './schemas/character-bust-read-response.schema.json'
+      $ref: '../schemas/character-bust-read-response.schema.json'
     CharacterBustUpdateRequest:
-      $ref: './schemas/character-bust-update-request.schema.json'
+      $ref: '../schemas/character-bust-update-request.schema.json'
     CharacterBustUpdateResponse:
-      $ref: './schemas/character-bust-update-response.schema.json'
+      $ref: '../schemas/character-bust-update-response.schema.json'
     NpcBustCreateRequest:
-      $ref: './schemas/npc-bust-create-request.schema.json'
+      $ref: '../schemas/npc-bust-create-request.schema.json'
     NpcBustCreateResponse:
-      $ref: './schemas/npc-bust-create-response.schema.json'
+      $ref: '../schemas/npc-bust-create-response.schema.json'
     NpcBustReadRequest:
-      $ref: './schemas/npc-bust-read-request.schema.json'
+      $ref: '../schemas/npc-bust-read-request.schema.json'
     NpcBustReadResponse:
-      $ref: './schemas/npc-bust-read-response.schema.json'
+      $ref: '../schemas/npc-bust-read-response.schema.json'
     NpcBustUpdateRequest:
-      $ref: './schemas/npc-bust-update-request.schema.json'
+      $ref: '../schemas/npc-bust-update-request.schema.json'
     NpcBustUpdateResponse:
-      $ref: './schemas/npc-bust-update-response.schema.json'
-    CatalogItemDefinition:
-      $ref: './schemas/catalog-item-definition.schema.json'
-    CelestialBodyListRequest:
-      $ref: './schemas/celestial-body-list-request.schema.json'
-    CelestialBodyListResponse:
-      $ref: './schemas/celestial-body-list-response.schema.json'
-    CelestialBodyUpsertRequest:
-      $ref: './schemas/celestial-body-upsert-request.schema.json'
-    CelestialBodyUpsertResponse:
-      $ref: './schemas/celestial-body-upsert-response.schema.json'
-    CharacterAddRequest:
-      $ref: './schemas/character-add-request.schema.json'
-    CharacterAddResponse:
-      $ref: './schemas/character-add-response.schema.json'
-    CharacterDeleteRequest:
-      $ref: './schemas/character-delete-request.schema.json'
-    CharacterDeleteResponse:
-      $ref: './schemas/character-delete-response.schema.json'
-    CharacterEditRequest:
-      $ref: './schemas/character-edit-request.schema.json'
-    CharacterEditResponse:
-      $ref: './schemas/character-edit-response.schema.json'
-    CharacterListRequest:
-      $ref: './schemas/character-list-request.schema.json'
-    CharacterListResponse:
-      $ref: './schemas/character-list-response.schema.json'
-    ContextDistanceRequest:
-      $ref: './schemas/context-distance-request.schema.json'
-    ContextDistanceResponse:
-      $ref: './schemas/context-distance-response.schema.json'
-    ContextRoutingRequest:
-      $ref: './schemas/context-routing-request.schema.json'
-    ContextRoutingResponse:
-      $ref: './schemas/context-routing-response.schema.json'
-    CreditLedgerListRequest:
-      $ref: './schemas/credit-ledger-list-request.schema.json'
-    CreditLedgerListResponse:
-      $ref: './schemas/credit-ledger-list-response.schema.json'
-    ErrorResponse:
-      $ref: './schemas/error-response.schema.json'
-    ExternalObjectDescriptor:
-      $ref: './schemas/external-object-descriptor.schema.json'
-    ExternalObjectGateLandmarkPayload:
-      $ref: './schemas/external-object-gate-landmark-payload.schema.json'
-    ExternalObjectDescriptorPayload:
-      $ref: './schemas/external-object-descriptor-payload.schema.json'
-    GameJoinRequest:
-      $ref: './schemas/game-join-request.schema.json'
-    GameJoinResponse:
-      $ref: './schemas/game-join-response.schema.json'
-    GameLeaveRequest:
-      $ref: './schemas/game-leave-request.schema.json'
-    GameLeaveResponse:
-      $ref: './schemas/game-leave-response.schema.json'
-    GameState:
-      $ref: './schemas/game-state.schema.json'
-    Heartbeat:
-      $ref: './schemas/heartbeat.schema.json'
-    Item:
-      $ref: './schemas/item.schema.json'
-    ItemListByContainerRequest:
-      $ref: './schemas/item-list-by-container-request.schema.json'
-    ItemListByContainerResponse:
-      $ref: './schemas/item-list-by-container-response.schema.json'
-    ItemListByLocationRequest:
-      $ref: './schemas/item-list-by-location-request.schema.json'
-    ItemListByLocationResponse:
-      $ref: './schemas/item-list-by-location-response.schema.json'
-    ItemRemoveRequest:
-      $ref: './schemas/item-remove-request.schema.json'
-    ItemRemoveResponse:
-      $ref: './schemas/item-remove-response.schema.json'
-    ItemUpsertRequest:
-      $ref: './schemas/item-upsert-request.schema.json'
-    ItemUpsertResponse:
-      $ref: './schemas/item-upsert-response.schema.json'
-    InvalidSessionResponse:
-      $ref: './schemas/invalid-session-response.schema.json'
-    LaunchItemRequest:
-      $ref: './schemas/launch-item-request.schema.json'
-    LaunchItemResponse:
-      $ref: './schemas/launch-item-response.schema.json'
-    LoginRequest:
-      $ref: './schemas/login-request.schema.json'
-    LoginResponse:
-      $ref: './schemas/login-response.schema.json'
-    MarketBuyRequest:
-      $ref: './schemas/market-buy-request.schema.json'
-    MarketBuyResponse:
-      $ref: './schemas/market-buy-response.schema.json'
-    MarketInventoryListRequest:
-      $ref: './schemas/market-inventory-list-request.schema.json'
-    MarketInventoryListResponse:
-      $ref: './schemas/market-inventory-list-response.schema.json'
-    MarketLedgerListRequest:
-      $ref: './schemas/market-ledger-list-request.schema.json'
-    MarketLedgerListResponse:
-      $ref: './schemas/market-ledger-list-response.schema.json'
-    MarketListByLocationRequest:
-      $ref: './schemas/market-list-by-location-request.schema.json'
-    MarketListByLocationResponse:
-      $ref: './schemas/market-list-by-location-response.schema.json'
-    MarketListRequest:
-      $ref: './schemas/market-list-request.schema.json'
-    MarketListResponse:
-      $ref: './schemas/market-list-response.schema.json'
-    MarketQuoteRequest:
-      $ref: './schemas/market-quote-request.schema.json'
-    MarketQuoteResponse:
-      $ref: './schemas/market-quote-response.schema.json'
-    MessageRequest:
-      $ref: './schemas/message-request.schema.json'
-    MessageResponse:
-      $ref: './schemas/message-response.schema.json'
-    MarketSellRequest:
-      $ref: './schemas/market-sell-request.schema.json'
-    MarketSellResponse:
-      $ref: './schemas/market-sell-response.schema.json'
-    MissionListRequest:
-      $ref: './schemas/mission-list-request.schema.json'
-    MissionListResponse:
-      $ref: './schemas/mission-list-response.schema.json'
-    MissionUpsertRequest:
-      $ref: './schemas/mission-upsert-request.schema.json'
-    MissionUpsertResponse:
-      $ref: './schemas/mission-upsert-response.schema.json'
-    PingRequest:
-      $ref: './schemas/ping-request.schema.json'
-    PongResponse:
-      $ref: './schemas/pong-response.schema.json'
-    RegisterRequest:
-      $ref: './schemas/register-request.schema.json'
-    RegisterResponse:
-      $ref: './schemas/register-response.schema.json'
-    ShipListRequest:
-      $ref: './schemas/ship-list-request.schema.json'
-    ShipListResponse:
-      $ref: './schemas/ship-list-response.schema.json'
-    ShipListByOwnerRequest:
-      $ref: './schemas/ship-list-by-owner-request.schema.json'
-    ShipListByOwnerResponse:
-      $ref: './schemas/ship-list-by-owner-response.schema.json'
-    ShipTransferRequest:
-      $ref: './schemas/ship-transfer-request.schema.json'
-    ShipTransferResponse:
-      $ref: './schemas/ship-transfer-response.schema.json'
-    ShipUpsertRequest:
-      $ref: './schemas/ship-upsert-request.schema.json'
-    ShipUpsertResponse:
-      $ref: './schemas/ship-upsert-response.schema.json'
-    StarGetRequest:
-      $ref: './schemas/star-get-request.schema.json'
-    StarGetResponse:
-      $ref: './schemas/star-get-response.schema.json'
-    StarListRequest:
-      $ref: './schemas/star-list-request.schema.json'
-    StarListResponse:
-      $ref: './schemas/star-list-response.schema.json'
-    SolarSystemGetRequest:
-      $ref: './schemas/solar-system-get-request.schema.json'
-    SolarSystemGetResponse:
-      $ref: './schemas/solar-system-get-response.schema.json'
-    SolarSystemListRequest:
-      $ref: './schemas/solar-system-list-request.schema.json'
-    SolarSystemListResponse:
-      $ref: './schemas/solar-system-list-response.schema.json'
-    TractorBeamActivateRequest:
-      $ref: './schemas/tractor-beam-activate-request.schema.json'
-    TractorBeamActivateResponse:
-      $ref: './schemas/tractor-beam-activate-response.schema.json'
-    MarketListingCreateRequest:
-      $ref: './schemas/market-listing-create-request.schema.json'
-    MarketListingCreateResponse:
-      $ref: './schemas/market-listing-create-response.schema.json'
-    MarketOfferCreateRequest:
-      $ref: './schemas/market-offer-create-request.schema.json'
-    MarketOfferCreateResponse:
-      $ref: './schemas/market-offer-create-response.schema.json'
-    MarketOfferAcceptRequest:
-      $ref: './schemas/market-offer-accept-request.schema.json'
-    MarketOfferAcceptResponse:
-      $ref: './schemas/market-offer-accept-response.schema.json'
-    ShipListByNpcOwnerRequest:
-      $ref: './schemas/ship-list-by-npc-owner-request.schema.json'
-    ShipListByNpcOwnerResponse:
-      $ref: './schemas/ship-list-by-npc-owner-response.schema.json'
-    ItemListByOwnerRequest:
-      $ref: './schemas/item-list-by-owner-request.schema.json'
-    ItemListByOwnerResponse:
-      $ref: './schemas/item-list-by-owner-response.schema.json'
-    ShipSalvageClaimRequest:
-      $ref: './schemas/ship-salvage-claim-request.schema.json'
-    ShipSalvageClaimResponse:
-      $ref: './schemas/ship-salvage-claim-response.schema.json'
-    ShipPiracySeizeRequest:
-      $ref: './schemas/ship-piracy-seize-request.schema.json'
-    ShipPiracySeizeResponse:
-      $ref: './schemas/ship-piracy-seize-response.schema.json'
-    UnknownMessage:
-      $ref: './schemas/unknown-message.schema.json'
-    WelcomeEvent:
-      $ref: './schemas/welcome-event.schema.json'
+      $ref: '../schemas/npc-bust-update-response.schema.json'
+
+```
+

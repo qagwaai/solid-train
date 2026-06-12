@@ -7,8 +7,8 @@ const path = require('node:path');
 const { MISSION_STATUS_VALUES } = require('../src/model/mission');
 
 const ROOT = path.resolve(__dirname, '..');
-const OPENAPI_PATH = path.join(ROOT, 'openapi.yaml');
-const SCHEMAS_DIR = path.join(ROOT, 'schemas');
+const OPENAPI_PATH = path.join(ROOT, 'api', 'openapi', 'mission', 'openapi.yaml');
+const SCHEMAS_DIR = path.join(ROOT, 'api', 'schemas');
 const NEGATIVE_FIXTURE_PATH = path.join(
   ROOT,
   'test',

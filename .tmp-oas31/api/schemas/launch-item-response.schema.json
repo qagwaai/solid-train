@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "launch-item-response",
+  "type": "object",
+  "required": ["message", "correlationId", "requestIdentity"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "description": "Echo of the requestIdentity block from the request.",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "playerName": { "type": "string" },
+    "characterId": { "type": "string" },
+    "shipId": { "type": "string" },
+    "targetCelestialBodyId": { "type": "string" },
+    "hotkey": { "type": "integer", "enum": [1, 2, 3, 4, 5] },
+    "itemId": { "type": "string" },
+    "itemType": { "$ref": "./canonical-item-type.schema.json" },
+    "launchedItem": {
+      "type": "object",
+      "description": "Present on successful launch responses.",
+      "additionalProperties": true
+    },
+    "resolution": {
+      "type": "object",
+      "description": "Present on successful launch responses.",
+      "required": ["outcome", "targetDestroyed", "yieldedMaterials", "yieldedItems", "launchSeed"],
+      "properties": {
+        "outcome": { "type": "string", "enum": ["target-destroyed", "no-effect"] },
+        "targetDestroyed": { "type": "boolean" },
+        "yieldedMaterials": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["material", "rarity", "quantity"],
+            "properties": {
+              "material": { "type": "string" },
+              "rarity": { "type": "string" },
+              "quantity": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        "yieldedItems": {
+          "type": "array",
+          "description": "Yielded items from target-destroyed launches are deployed debris with canonical spatial coordinates and motion vectors.",
+          "items": {
+            "allOf": [
+              { "$ref": "./item.schema.json" },
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "itemType",
+                  "displayName",
+                  "quantity",
+                  "state",
+                  "container",
+                  "spatial",
+                  "motion",
+                  "launchable"
+                ],
+                "properties": {
+                  "itemType": { "$ref": "./canonical-item-type.schema.json" },
+                  "quantity": { "type": "number" },
+                  "state": { "type": "string", "enum": ["deployed"] },
+                  "container": { "type": "null" },
+                  "spatial": {
+                    "type": "object",
+                    "properties": {
+                      "solarSystemId": { "type": "string" },
+                      "frame": { "type": "string", "enum": ["barycentric"] },
+                      "positionKm": {
+                        "type": "object",
+                        "properties": {
+                          "x": { "type": "number" },
+                          "y": { "type": "number" },
+                          "z": { "type": "number" }
+                        },
+                        "required": ["x", "y", "z"]
+                      },
+                      "epochMs": { "type": "number" }
+                    },
+                    "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
+                  },
+                  "motion": {
+                    "type": "object",
+                    "properties": {
+                      "velocityKmPerSec": {
+                        "type": "object",
+                        "properties": {
+                          "x": { "type": "number" },
+                          "y": { "type": "number" },
+                          "z": { "type": "number" }
+                        },
+                        "required": ["x", "y", "z"]
+                      }
+                    },
+                    "required": ["velocityKmPerSec"]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "targetCelestialBody": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "launchSeed": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

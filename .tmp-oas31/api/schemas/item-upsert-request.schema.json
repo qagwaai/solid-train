@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "item-upsert-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "item"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "description": "Identity block echoed by the backend so clients can demultiplex concurrent responses safely.",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "item": {
+      "type": "object",
+      "description": "Item create or partial update payload. For existing items, omitted fields preserve stored values. Explicit null clears item.container, item.spatial, or item.motion when those properties are present.",
+      "required": ["itemType", "displayName"],
+      "properties": {
+        "id": { "type": ["string", "null"] },
+        "itemType": { "$ref": "./canonical-item-type.schema.json" },
+        "displayName": { "type": "string" },
+        "tier": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Optional item tier. When omitted, the server preserves the existing value for updates or applies the canonical default for creates."
+        },
+        "state": {
+          "type": "string",
+          "enum": ["contained", "deployed", "destroyed"],
+          "description": "Canonical item state. Setting state to destroyed causes the server to populate destroyedAt if it is not already set."
+        },
+        "damageStatus": {
+          "type": "string",
+          "enum": ["intact", "damaged", "disabled", "destroyed"]
+        },
+        "container": {
+          "type": ["object", "null"],
+          "description": "Optional container patch. Provide null to clear the container association.",
+          "properties": {
+            "containerType": { "type": "string", "enum": ["ship", "market"] },
+            "containerId": { "type": "string" }
+          },
+          "required": ["containerType", "containerId"]
+        },
+        "spatial": {
+          "type": ["object", "null"],
+          "description": "Canonical spatial position. Provide null to clear spatial state. The legacy item.kinematics field is not accepted.",
+          "properties": {
+            "solarSystemId": { "type": "string" },
+            "frame": { "type": "string", "enum": ["barycentric"] },
+            "positionKm": {
+              "type": "object",
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" }
+              },
+              "required": ["x", "y", "z"]
+            },
+            "epochMs": { "type": "number" }
+          },
+          "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
+        },
+        "motion": {
+          "type": ["object", "null"],
+          "description": "Optional motion patch. Provide null to clear motion state.",
+          "properties": {
+            "velocityKmPerSec": {
+              "type": "object",
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" }
+              },
+              "required": ["x", "y", "z"]
+            }
+          },
+          "required": ["velocityKmPerSec"]
+        },
+        "owningPlayerId": { "type": ["string", "null"] },
+        "owningCharacterId": { "type": ["string", "null"] },
+        "ownership": {
+          "type": ["object", "null"],
+          "description": "Canonical ownership discriminator. When provided, validated strictly: only player-character allowed, playerId must match actor.",
+          "properties": {
+            "ownerType": {
+              "type": "string",
+              "enum": ["player-character", "npc-pirate", "unowned", "unknown"]
+            },
+            "playerId": { "type": ["string", "null"] },
+            "characterId": { "type": ["string", "null"] },
+            "npcId": { "type": ["string", "null"] },
+            "factionId": { "type": ["string", "null"] }
+          },
+          "required": ["ownerType"]
+        },
+        "destroyedAt": { "type": ["string", "null"], "format": "date-time" },
+        "destroyedReason": { "type": ["string", "null"] },
+        "discoveredAt": { "type": ["string", "null"], "format": "date-time" },
+        "discoveredByCharacterId": { "type": ["string", "null"] },
+        "launchable": { "type": ["boolean", "null"] },
+        "createdAt": { "type": ["string", "null"], "format": "date-time" },
+        "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  }
+}

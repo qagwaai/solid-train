@@ -271,6 +271,12 @@ test('server serves OpenAPI yaml and Swagger UI from the same process', async ()
     assert.equal(schemaResponse.statusCode, 200);
     assert.match(schemaResponse.body, /"title"\s*:\s*"item"/i);
 
+    const modularSchemaResponse = await httpGetJson(
+      `http://127.0.0.1:${port}/openapi/schemas/item.schema.json`
+    );
+    assert.equal(modularSchemaResponse.statusCode, 200);
+    assert.match(modularSchemaResponse.body, /"title"\s*:\s*"item"/i);
+
     const docsResponse = await httpGetJson(`http://127.0.0.1:${port}/docs`);
     assert.equal(docsResponse.statusCode, 301);
 
@@ -294,10 +300,28 @@ test('selected OpenAPI socket examples stay aligned with runtime correlation beh
     const openApiResponse = await httpGetJson(`http://127.0.0.1:${port}/openapi.yaml`);
     assert.equal(openApiResponse.statusCode, 200);
     assert.match(openApiResponse.body, /\/socket\/character-add:/);
-    assert.match(openApiResponse.body, /operation:\s+character-add/);
     assert.match(openApiResponse.body, /\/socket\/market-quote:/);
-    assert.match(openApiResponse.body, /operation:\s+market-quote/);
-    assert.match(openApiResponse.body, /requestId:\s+rq-1/);
+    assert.match(
+      openApiResponse.body,
+      /\.\/openapi\/character\/openapi\.yaml#\/paths\/~1socket~1character-add/
+    );
+    assert.match(
+      openApiResponse.body,
+      /\.\/openapi\/market\/openapi\.yaml#\/paths\/~1socket~1market-quote/
+    );
+
+    const characterOpenApiResponse = await httpGetJson(
+      `http://127.0.0.1:${port}/openapi/character/openapi.yaml`
+    );
+    assert.equal(characterOpenApiResponse.statusCode, 200);
+    assert.match(characterOpenApiResponse.body, /operation:\s+character-add/);
+
+    const marketOpenApiResponse = await httpGetJson(
+      `http://127.0.0.1:${port}/openapi/market/openapi.yaml`
+    );
+    assert.equal(marketOpenApiResponse.statusCode, 200);
+    assert.match(marketOpenApiResponse.body, /operation:\s+market-quote/);
+    assert.match(marketOpenApiResponse.body, /requestId:\s+rq-1/);
 
     const loginResponse = await registerAndLogin(
       client,

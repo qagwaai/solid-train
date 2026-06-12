@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "celestial-body-upsert-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "celestialBody"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "celestialBody": {
+      "type": "object",
+      "description": "Complete canonical celestial body payload. When id is present, the server upserts by id. When id is omitted, the server derives a deterministic id from sourceScanId, createdByCharacterId, and missionId for mission-generated bodies.",
+      "properties": {
+        "id": { "type": "string" },
+        "catalogId": { "type": "string" },
+        "sourceScanId": { "type": "string" },
+        "createdByCharacterId": { "type": "string" },
+        "missionId": { "type": ["string", "null"] },
+        "missionInstanceId": { "type": ["string", "null"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "spatial": {
+          "type": "object",
+          "description": "Canonical barycentric spatial coordinates.",
+          "properties": {
+            "solarSystemId": { "type": "string" },
+            "frame": { "type": "string", "enum": ["barycentric"] },
+            "positionKm": {
+              "type": "object",
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" }
+              },
+              "required": ["x", "y", "z"]
+            },
+            "epochMs": { "type": "number" }
+          },
+          "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
+        },
+        "motion": {
+          "type": ["object", "null"],
+          "properties": {
+            "velocityKmPerSec": {
+              "type": "object",
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" }
+              },
+              "required": ["x", "y", "z"]
+            },
+            "angularVelocityRadPerSec": {
+              "type": "object",
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" }
+              },
+              "required": ["x", "y", "z"]
+            }
+          }
+        },
+        "physical": {
+          "type": ["object", "null"],
+          "properties": {
+            "estimatedMassKg": { "type": ["number", "null"] },
+            "estimatedDiameterM": { "type": ["number", "null"] }
+          }
+        },
+        "observability": {
+          "type": "object",
+          "description": "Required observability state for the body.",
+          "properties": {
+            "visibility": { "type": "string", "enum": ["visible", "not-visible", "cloaked"] },
+            "scanState": { "type": "string", "enum": ["unscanned", "scanned"] }
+          },
+          "required": ["visibility", "scanState"]
+        },
+        "composition": {
+          "type": ["object", "null"],
+          "description": "Asteroid material profile. Required unless state is unscanned.",
+          "properties": {
+            "rarity": { "type": "string", "enum": ["Common", "Uncommon", "Rare", "Exotic"] },
+            "material": { "type": "string" },
+            "textureColor": { "type": "string" }
+          },
+          "required": ["rarity", "material", "textureColor"]
+        },
+        "externalObjectDescriptor": {
+          "$ref": "./external-object-descriptor.schema.json",
+          "description": "Optional SW-13 canonical descriptor attached to the celestial body for external-object presentation identity."
+        },
+        "clusterId": { "type": "string" },
+        "clusterCenterKm": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          },
+          "required": ["x", "y", "z"]
+        },
+        "localOffsetKm": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          },
+          "required": ["x", "y", "z"]
+        },
+        "state": {
+          "type": "string",
+          "enum": ["unscanned", "active", "destroyed"],
+          "description": "Canonical celestial body state. Composition may be omitted only when state is unscanned."
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

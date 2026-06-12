@@ -1,0 +1,392 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Celestial
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Celestial
+paths:
+  /socket/celestial-body-list:
+    post:
+      summary: celestial-body-list-request
+      description: |
+        Lists canonical celestial bodies in a solar system.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Query modes:
+        - Whole-system listing: omit both `positionKm` and `distanceKm`.
+        - Radius query: provide both `positionKm` and `distanceKm`.
+
+        Optional filters:
+        - `states` limits results to the provided canonical body states.
+        - `createdByCharacterId` and `missionId` narrow results to mission-generated
+          or character-scoped bodies.
+        - `limit` caps the number of returned bodies.
+
+        Response notes:
+        - Radius queries include `distanceKm` on each returned body.
+        - Whole-system listings omit per-body `distanceKm`.
+      operationId: socketCelestialBodyList
+      tags: [Celestial]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CelestialBodyListRequest'
+            examples:
+              radiusQuery:
+                summary: Find nearby bodies around a point in space
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  correlationId: 2d95dd9d-287a-4fc0-93a0-5b95a53d5a89
+                  requestIdentity:
+                    operation: celestial-body-list
+                    entityType: celestial-body
+                    containerId: sol
+                  solarSystemId: sol
+                  positionKm:
+                    x: 0
+                    y: 0
+                    z: 0
+                  distanceKm: 10
+                  limit: 2
+                  states:
+                    - unscanned
+                    - active
+              wholeSystemListing:
+                summary: List all bodies in a solar system without a radius filter
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  correlationId: b8c2cb60-f33b-4675-8955-8bde05bdc31c
+                  requestIdentity:
+                    operation: celestial-body-list
+                    entityType: celestial-body
+                    containerId: sol
+                  solarSystemId: sol
+                  createdByCharacterId: character-1
+                  missionId: first-target
+      responses:
+        '200':
+          description: celestial-body-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CelestialBodyListResponse'
+              examples:
+                successfulRadiusQuery:
+                  summary: Radius query returns nearest-first bodies with computed distance
+                  value:
+                    success: true
+                    message: Celestial body list retrieved successfully
+                    playerName: ScannerOne
+                    correlationId: 2d95dd9d-287a-4fc0-93a0-5b95a53d5a89
+                    requestIdentity:
+                      operation: celestial-body-list
+                      entityType: celestial-body
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 0
+                      y: 0
+                      z: 0
+                    distanceKm: 10
+                    celestialBodies:
+                      - id: cb-near
+                        catalogId: catalog-001
+                        sourceScanId: scan-1
+                        createdByCharacterId: character-1
+                        missionId: first-target
+                        missionInstanceId: first-target:1
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: asteroid
+                        displayName: Starter Rock
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 5
+                            y: 0
+                            z: 0
+                          epochMs: 1715990400000
+                        motion: null
+                        physical:
+                          estimatedMassKg: 15000000000
+                          estimatedDiameterM: 120
+                        observability:
+                          visibility: visible
+                          scanState: scanned
+                        composition:
+                          rarity: Common
+                          material: Nickel-Iron
+                          textureColor: '#8f99a7'
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        physicalCatalog:
+                          estimatedDiameterM: 120
+                          estimatedMassKg: 15000000000
+                          radiusKm: 0.06
+                        visualization:
+                          colorHex: '#8f99a7'
+                          textureKey: asteroid-iron
+                        clusterId: cluster-a
+                        clusterCenterKm:
+                          x: 0
+                          y: 0
+                          z: 0
+                        localOffsetKm:
+                          x: 5
+                          y: 0
+                          z: 0
+                        distanceFromClusterCenterKm: 5
+                        distanceKm: 5
+                      - id: cb-mid
+                        catalogId: catalog-002
+                        sourceScanId: scan-2
+                        createdByCharacterId: character-1
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: asteroid
+                        displayName: Farther Rock
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 10
+                            y: 0
+                            z: 0
+                          epochMs: 1715990400000
+                        motion: null
+                        physical: null
+                        observability:
+                          visibility: visible
+                          scanState: unscanned
+                        composition: null
+                        state: unscanned
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        distanceKm: 10
+                successfulWholeSystemListing:
+                  summary: Whole-system listing omits query radius fields on each body
+                  value:
+                    success: true
+                    message: Celestial body list retrieved successfully
+                    playerName: ScannerOne
+                    correlationId: b8c2cb60-f33b-4675-8955-8bde05bdc31c
+                    requestIdentity:
+                      operation: celestial-body-list
+                      entityType: celestial-body
+                      containerId: sol
+                    solarSystemId: sol
+                    celestialBodies:
+                      - id: cb-sol-1
+                        catalogId: catalog-001
+                        sourceScanId: scan-1
+                        createdByCharacterId: character-1
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: planet
+                        displayName: Mercury
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 57900000
+                            y: 0
+                            z: 0
+                          epochMs: 1715990400000
+                        motion: null
+                        physical:
+                          estimatedMassKg: 3.3011e+23
+                          estimatedDiameterM: 4879400
+                        observability:
+                          visibility: visible
+                          scanState: scanned
+                        composition:
+                          rarity: Common
+                          material: silicate
+                          textureColor: '#8aa6c4'
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        parentBodyId: null
+                        planetType: rocky
+                        isCatalogBody: true
+                failedCelestialBodyList:
+                  summary: Invalid radius query returns an empty result set
+                  value:
+                    success: false
+                    message: positionKm and distanceKm must both be supplied for radius queries; omit both for a whole-system listing
+                    playerName: ScannerOne
+                    correlationId: 2d95dd9d-287a-4fc0-93a0-5b95a53d5a89
+                    requestIdentity:
+                      operation: celestial-body-list
+                      entityType: celestial-body
+                      containerId: sol
+                    solarSystemId: sol
+                    celestialBodies: []
+
+  /socket/celestial-body-upsert:
+    post:
+      summary: celestial-body-upsert-request
+      description: |
+        Creates or updates a canonical celestial body record.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        `celestialBody` is a complete canonical payload, not a partial patch.
+
+        Identity rules:
+        - When `celestialBody.id` is present, the server upserts by that id.
+        - When `celestialBody.id` is omitted, the server derives a deterministic id
+          from `createdByCharacterId`, `missionId`, and `sourceScanId`. Persistence
+          also uses that composite identity for mission-generated bodies.
+
+        Validation and behavior notes:
+        - `celestialBody.spatial` must use canonical barycentric coordinates.
+        - `celestialBody.observability` is required.
+        - `celestialBody.composition` is required unless `celestialBody.state` is
+          `unscanned`.
+        - Legacy fields `location`, `kinematics`, and root `solarSystemId` are not
+          accepted.
+      operationId: socketCelestialBodyUpsert
+      tags: [Celestial]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CelestialBodyUpsertRequest'
+            examples:
+              scannedBodyById:
+                summary: Upsert a scanned celestial body by explicit id
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  correlationId: 6c867e8f-80ff-4e3d-b474-08b85bfe4ad7
+                  requestIdentity:
+                    operation: celestial-body-upsert
+                    entityType: celestial-body
+                    containerId: cb-1
+                  celestialBody:
+                    id: cb-1
+                    catalogId: asteroid-scan-1
+                    sourceScanId: scan-1
+                    createdByCharacterId: character-1
+                    missionId: first-target
+                    createdAt: '2026-05-17T00:00:00.000Z'
+                    updatedAt: '2026-05-17T00:00:00.000Z'
+                    spatial:
+                      solarSystemId: sol
+                      frame: barycentric
+                      positionKm:
+                        x: 1000
+                        y: 2000
+                        z: 3000
+                      epochMs: 1000000
+                    observability:
+                      visibility: visible
+                      scanState: scanned
+                    composition:
+                      rarity: Common
+                      material: Iron
+                      textureColor: '#8f99a7'
+                    state: active
+              unscannedMissionSeededBody:
+                summary: Mission-seeded unscanned body can omit composition and server-generate id
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  correlationId: 7331bb3d-6fdd-48ef-ae41-6c223f4cf836
+                  requestIdentity:
+                    operation: celestial-body-upsert
+                    entityType: celestial-body
+                    containerId: first-target
+                  celestialBody:
+                    catalogId: asteroid-scan-2
+                    sourceScanId: sample-a3
+                    createdByCharacterId: character-1
+                    missionId: first-target
+                    createdAt: '2026-05-17T00:00:00.000Z'
+                    updatedAt: '2026-05-17T00:00:00.000Z'
+                    spatial:
+                      solarSystemId: sol
+                      frame: barycentric
+                      positionKm:
+                        x: 50
+                        y: 75
+                        z: -20
+                      epochMs: 1000000
+                    observability:
+                      visibility: visible
+                      scanState: unscanned
+                    composition: null
+                    state: unscanned
+      responses:
+        '200':
+          description: celestial-body-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CelestialBodyUpsertResponse'
+              examples:
+                successfulCelestialBodyUpsert:
+                  summary: Successful upsert returns the normalized celestial body payload
+                  value:
+                    success: true
+                    message: Celestial body recorded successfully
+                    playerName: ScannerOne
+                    correlationId: 6c867e8f-80ff-4e3d-b474-08b85bfe4ad7
+                    requestIdentity:
+                      operation: celestial-body-upsert
+                      entityType: celestial-body
+                      containerId: cb-1
+                    celestialBody:
+                      id: cb-1
+                      catalogId: asteroid-scan-1
+                      sourceScanId: scan-1
+                      createdByCharacterId: character-1
+                      state: active
+                failedCelestialBodyUpsert:
+                  summary: Validation failure omits the celestialBody payload
+                  value:
+                    success: false
+                    message: playerName and a complete canonical celestialBody payload are required
+                    playerName: ScannerOne
+                    correlationId: 7331bb3d-6fdd-48ef-ae41-6c223f4cf836
+                    requestIdentity:
+                      operation: celestial-body-upsert
+                      entityType: celestial-body
+                      containerId: first-target
+components:
+  schemas:
+    CelestialBodyListRequest:
+      $ref: '../../schemas/celestial-body-list-request.schema.json'
+    CelestialBodyListResponse:
+      $ref: '../../schemas/celestial-body-list-response.schema.json'
+    CelestialBodyUpsertRequest:
+      $ref: '../../schemas/celestial-body-upsert-request.schema.json'
+    CelestialBodyUpsertResponse:
+      $ref: '../../schemas/celestial-body-upsert-response.schema.json'

@@ -330,3 +330,17 @@ socket.on('ship-piracy-seize-response', (response) => {
 - [ ] Add piracy notification handling (listen for `ship-piracy-seize-response`, update fleet UI)
 - [ ] Add ownership history display on ship detail view (`ownershipHistory[]` in ship list responses)
 - [ ] Use `ship-list-by-npc-owner-request` to populate NPC fleet displays or encounter data
+
+---
+
+## 8. Tag-Domain Contract References
+
+Ownership surfaces are split across tag modules in `api/openapi/`.
+
+- `api/openapi/ship/openapi.yaml`: `ship-list-by-owner`, `ship-list-by-npc-owner`, `ship-salvage-claim`, `ship-piracy-seize`
+- `api/openapi/items/openapi.yaml`: `item-list-by-owner`, `item-upsert` ownership payloads
+- `api/openapi/market/openapi.yaml`: `market-listing-create`, `market-offer-create`, `market-offer-accept`
+- `api/openapi/character/openapi.yaml`: character identity and ownership-adjacent request envelopes
+- `api/openapi/auth/openapi.yaml`: session bootstrap (`register`, `login`) used by all ownership-gated calls
+
+For complete cross-domain browsing, use root `api/openapi.yaml` (thin index), which references all tag modules.

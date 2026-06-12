@@ -15,20 +15,23 @@ const {
 } = require('../src/model/external-object-descriptor');
 
 const ROOT = path.resolve(__dirname, '..');
-const OPENAPI_PATH = path.join(ROOT, 'openapi.yaml');
-const SCHEMA_PATH = path.join(ROOT, 'schemas', 'external-object-descriptor.schema.json');
+const OPENAPI_PATH = path.join(ROOT, 'api', 'openapi.yaml');
+const SCHEMA_PATH = path.join(ROOT, 'api', 'schemas', 'external-object-descriptor.schema.json');
 const CELESTIAL_UPSERT_REQUEST_PATH = path.join(
   ROOT,
+  'api',
   'schemas',
   'celestial-body-upsert-request.schema.json'
 );
 const CELESTIAL_LIST_RESPONSE_PATH = path.join(
   ROOT,
+  'api',
   'schemas',
   'celestial-body-list-response.schema.json'
 );
 const SOLAR_SYSTEM_GET_RESPONSE_PATH = path.join(
   ROOT,
+  'api',
   'schemas',
   'solar-system-get-response.schema.json'
 );
@@ -84,15 +87,15 @@ test('openapi registers external-object-descriptor component', () => {
 
   assert.match(
     openApiText,
-    /\r?\n\s{4}ExternalObjectDescriptor:\r?\n\s{6}\$ref:\s*'\.\/schemas\/external-object-descriptor\.schema\.json'/
+    /\r?\n\s{4}ExternalObjectDescriptor:\r?\n\s{6}\$ref:\s*'\.\/openapi\/_shared\/schemas\.yaml#\/components\/schemas\/ExternalObjectDescriptor'/
   );
   assert.match(
     openApiText,
-    /\r?\n\s{4}ExternalObjectGateLandmarkPayload:\r?\n\s{6}\$ref:\s*'\.\/schemas\/external-object-gate-landmark-payload\.schema\.json'/
+    /\r?\n\s{4}ExternalObjectGateLandmarkPayload:\r?\n\s{6}\$ref:\s*'\.\/openapi\/_shared\/schemas\.yaml#\/components\/schemas\/ExternalObjectGateLandmarkPayload'/
   );
   assert.match(
     openApiText,
-    /\r?\n\s{4}ExternalObjectDescriptorPayload:\r?\n\s{6}\$ref:\s*'\.\/schemas\/external-object-descriptor-payload\.schema\.json'/
+    /\r?\n\s{4}ExternalObjectDescriptorPayload:\r?\n\s{6}\$ref:\s*'\.\/openapi\/_shared\/schemas\.yaml#\/components\/schemas\/ExternalObjectDescriptorPayload'/
   );
 });
 

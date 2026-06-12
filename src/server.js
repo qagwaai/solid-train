@@ -189,15 +189,21 @@ function createServer(options = {}) {
 
   // Express app for REST endpoints
   const app = express();
-  const openApiSpecPath = path.resolve(__dirname, '..', 'openapi.yaml');
-  const schemaDirPath = path.resolve(__dirname, '..', 'schemas');
+  const openApiSpecPath = path.resolve(__dirname, '..', 'api', 'openapi.yaml');
+  const openApiModulesDirPath = path.resolve(__dirname, '..', 'api', 'openapi');
+  const schemaDirPath = path.resolve(__dirname, '..', 'api', 'schemas');
 
   app.get('/openapi.yaml', (req, res) => {
     res.sendFile(openApiSpecPath);
   });
 
+  // Expose modular OpenAPI files so root $ref pointers can resolve at runtime.
+  app.use('/openapi', express.static(openApiModulesDirPath));
+
   // Expose schema files so external $ref values in openapi.yaml can resolve.
   app.use('/schemas', express.static(schemaDirPath));
+  // Expose schemas under /openapi/schemas so relative refs inside /openapi/* modules resolve.
+  app.use('/openapi/schemas', express.static(schemaDirPath));
 
   app.use(
     '/docs',

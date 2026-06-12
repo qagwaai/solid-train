@@ -1,0 +1,217 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Mission
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Mission
+paths:
+  /socket/mission-list:
+    post:
+      summary: list-missions-request
+      description: |
+        Lists mission records for the active character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response correlation contract:
+        - Every emitted `list-missions-response` includes a non-empty `correlationId`.
+        - Response `correlationId` is the exact request `correlationId` value.
+        - Response `requestIdentity` deep-equals the full request `requestIdentity` object
+          (including additional properties when present).
+        - This applies to success responses, empty-list successes, and emitted
+          validation/business error responses.
+      operationId: socketMissionList
+      tags: [Mission]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MissionListRequest'
+            examples:
+              listCharacterMissions:
+                summary: Retrieve mission progress for a character with correlation metadata
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
+                  requestIdentity:
+                    operation: list-missions
+                    entityType: mission
+                    containerId: character-1
+              listCharacterMissionsLegacyOperation:
+                summary: Legacy operation value is echoed exactly in response identity
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 984dce8e-b248-4d78-ba5f-95224e71d8c5
+                  requestIdentity:
+                    operation: mission-list
+                    entityType: mission
+                    containerId: character-1
+                    source: ship-exterior-bootstrap
+      responses:
+        '200':
+          description: list-missions-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionListResponse'
+              examples:
+                successfulMissionList:
+                  summary: Success echoes correlation metadata with mission rows
+                  value:
+                    success: true
+                    message: Mission list retrieved successfully
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
+                    requestIdentity:
+                      operation: list-missions
+                      entityType: mission
+                      containerId: character-1
+                    missions:
+                      - missionId: first-target
+                        status: active
+                successfulMissionListLegacyOperationEcho:
+                  summary: Success echoes requestIdentity exactly, including legacy operation value
+                  value:
+                    success: true
+                    message: Mission list retrieved successfully
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 984dce8e-b248-4d78-ba5f-95224e71d8c5
+                    requestIdentity:
+                      operation: mission-list
+                      entityType: mission
+                      containerId: character-1
+                      source: ship-exterior-bootstrap
+                    missions: []
+                failedMissionList:
+                  summary: Failure still echoes correlation metadata
+                  value:
+                    success: false
+                    message: Invalid session
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
+                    requestIdentity:
+                      operation: list-missions
+                      entityType: mission
+                      containerId: character-1
+                    missions: []
+
+  /socket/mission-upsert:
+    post:
+      summary: mission-upsert-request
+      description: |
+        Upserts mission progress for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Accepted `status` values are the canonical mission board lane states:
+        `available`, `active`, and `completed`.
+
+        Behavior notes:
+        - Unknown status values are rejected with terminal failure and structured
+          validation messaging.
+        - Mission responses include only canonical lane status and optional `updatedAt`
+          metadata.
+        - When a mission reaches an unlock source status such as `completed`, the
+          server may create newly unlocked missions with `status: available`.
+        - Starting the `first-target` mission also seeds its starter asteroid field.
+        - When `requestId` is provided, it is echoed in the response.
+      operationId: socketMissionUpsert
+      tags: [Mission]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MissionUpsertRequest'
+            examples:
+              startMission:
+                summary: Set a mission to active lane status
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  missionId: first-target
+                  status: active
+                  sessionKey: session-123
+                  correlationId: f5d5cc38-e8f1-4e58-b775-1b86800fbc8c
+                  requestIdentity:
+                    operation: mission-upsert
+                    entityType: mission
+                    containerId: character-1
+              completeMissionWithRequestId:
+                summary: Complete a mission and request response correlation
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  missionId: first-target
+                  status: completed
+                  correlationId: 64af3477-f07e-4648-b0f1-fcf1fb646638
+                  requestIdentity:
+                    operation: mission-upsert
+                    entityType: mission
+                    containerId: character-1
+                  requestId: req-123
+                  sessionKey: session-123
+      responses:
+        '200':
+          description: mission-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionUpsertResponse'
+              examples:
+                successfulMissionUpsert:
+                  summary: Successful mission upsert returns the mission snapshot and requestId when present
+                  value:
+                    success: true
+                    message: Mission recorded successfully
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: f5d5cc38-e8f1-4e58-b775-1b86800fbc8c
+                    requestIdentity:
+                      operation: mission-upsert
+                      entityType: mission
+                      containerId: character-1
+                    requestId: req-123
+                    mission:
+                      missionId: first-target
+                      status: active
+                      updatedAt: '2026-05-18T00:00:00.000Z'
+                failedMissionUpsert:
+                  summary: Failure omits the mission payload but may still echo requestId
+                  value:
+                    success: false
+                    message: 'status must be one of: available, active, completed'
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 64af3477-f07e-4648-b0f1-fcf1fb646638
+                    requestIdentity:
+                      operation: mission-upsert
+                      entityType: mission
+                      containerId: character-1
+                    requestId: req-123
+components:
+  schemas:
+    MissionListRequest:
+      $ref: '../../schemas/mission-list-request.schema.json'
+    MissionListResponse:
+      $ref: '../../schemas/mission-list-response.schema.json'
+    MissionUpsertRequest:
+      $ref: '../../schemas/mission-upsert-request.schema.json'
+    MissionUpsertResponse:
+      $ref: '../../schemas/mission-upsert-response.schema.json'
