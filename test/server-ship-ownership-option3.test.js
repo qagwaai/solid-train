@@ -181,10 +181,12 @@ test('Option3 server negative: ship-transfer rejects unauthorized actor with str
       fromOwner: {
         ownerType: 'player-character',
         characterId: ownerCharacter.characterId,
+        playerId: ownerLogin.playerId || 'TransferOwner',
       },
       toOwner: {
         ownerType: 'player-character',
         characterId: intruderCharacter.characterId,
+        playerId: intruderLogin.playerId || 'TransferIntruder',
       },
     });
 
@@ -422,6 +424,26 @@ test('Option3 server positive: ship-transfer success and persistence (list-by-ow
     assert.equal(newOwnerList.success, true);
     assert.ok(Array.isArray(newOwnerList.ships));
     assert.ok(newOwnerList.ships.some((s) => s.id === shipId));
+
+    const transferredShip = newOwnerList.ships.find((s) => s.id === shipId);
+    assert.ok(Array.isArray(transferredShip.ownershipHistory));
+    assert.ok(transferredShip.ownershipHistory.length >= 1);
+    const lastTransfer = transferredShip.ownershipHistory[transferredShip.ownershipHistory.length - 1];
+    assert.equal(lastTransfer.reason, 'transfer');
+    assert.deepEqual(lastTransfer.fromOwner, {
+      ownerType: 'player-character',
+      characterId: ownerCharacter.characterId,
+      playerId: ownerLogin.playerId || 'TransferSuccessOwner',
+      npcId: null,
+      factionId: null,
+    });
+    assert.deepEqual(lastTransfer.toOwner, {
+      ownerType: 'player-character',
+      characterId: recipientCharacter.characterId,
+      playerId: recipientLogin.playerId || 'TransferSuccessRecipient',
+      npcId: null,
+      factionId: null,
+    });
   } finally {
     await closeClient(ownerClient);
     await closeClient(recipientClient);
@@ -538,6 +560,134 @@ test('Option3 server positive: unknown -> player-character claim-token success a
     assert.ok(listResponse.ships.some((s) => s.id === 'unknown-ship-1'));
   } finally {
     await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
+test('Option3 server negative: ship-transfer rejects mismatched fromOwner contract', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+  const client = connectClient(port);
+
+  await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
+
+  try {
+    const login = await registerAndLogin(
+      client,
+      'FromOwnerMismatchPilot',
+      'from-owner-mismatch@example.com',
+      'secret'
+    );
+    const ownerCharacter = await addCharacter(
+      client,
+      'FromOwnerMismatchPilot',
+      login.sessionKey,
+      'MismatchOwner'
+    );
+
+    const shipId = await getCharacterShipId(
+      client,
+      'FromOwnerMismatchPilot',
+      login.sessionKey,
+      ownerCharacter.characterId
+    );
+
+    const transferPromise = waitForEvent(client, SHIP_TRANSFER_RESPONSE_EVENT);
+    client.emit(SHIP_TRANSFER_REQUEST_EVENT, {
+      playerName: 'FromOwnerMismatchPilot',
+      sessionKey: login.sessionKey,
+      shipId,
+      fromOwner: {
+        ownerType: 'player-character',
+        playerId: 'wrong-player-id',
+        characterId: ownerCharacter.characterId,
+      },
+      toOwner: {
+        ownerType: 'player-character',
+        playerId: login.playerId || 'FromOwnerMismatchPilot',
+        characterId: ownerCharacter.characterId,
+      },
+    });
+
+    const transferResponse = await withTimeout(transferPromise, 1200, 'source mismatch transfer');
+    assert.deepEqual(transferResponse, {
+      success: false,
+      reason: 'OWNERSHIP_TRANSFER_SOURCE_MISMATCH',
+      message: 'fromOwner does not match current ship ownership',
+      shipId,
+      correlationId: 'missing-correlation-id',
+      requestIdentity: {
+        operation: 'ship-transfer',
+        entityType: 'unknown',
+        containerId: shipId,
+      },
+    });
+  } finally {
+    await closeClient(client);
+    io.close();
+    server.close();
+  }
+});
+
+test('Option3 server negative: ship-list-by-owner forbids cross-player owner queries', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+  const ownerClient = connectClient(port);
+  const intruderClient = connectClient(port);
+
+  await withTimeout(waitForEvent(ownerClient, 'connect'), 1200, 'owner connect');
+  await withTimeout(waitForEvent(intruderClient, 'connect'), 1200, 'intruder connect');
+
+  try {
+    const ownerLogin = await registerAndLogin(
+      ownerClient,
+      'ListOwnerPilot',
+      'list-owner@example.com',
+      'secret'
+    );
+    await addCharacter(ownerClient, 'ListOwnerPilot', ownerLogin.sessionKey, 'OwnerCharacter');
+
+    const intruderLogin = await registerAndLogin(
+      intruderClient,
+      'ListIntruderPilot',
+      'list-intruder@example.com',
+      'secret'
+    );
+    const intruderCharacter = await addCharacter(
+      intruderClient,
+      'ListIntruderPilot',
+      intruderLogin.sessionKey,
+      'IntruderCharacter'
+    );
+
+    const listPromise = waitForEvent(intruderClient, SHIP_LIST_BY_OWNER_RESPONSE_EVENT);
+    intruderClient.emit(SHIP_LIST_BY_OWNER_REQUEST_EVENT, {
+      playerName: 'ListIntruderPilot',
+      sessionKey: intruderLogin.sessionKey,
+      owner: {
+        ownerType: 'player-character',
+        playerId: ownerLogin.playerId || 'ListOwnerPilot',
+        characterId: intruderCharacter.characterId,
+      },
+    });
+
+    const listResponse = await withTimeout(listPromise, 1200, 'forbidden owner list');
+    assert.deepEqual(listResponse, {
+      success: false,
+      reason: 'SHIP_LIST_OWNER_FORBIDDEN',
+      message: 'Actor does not have permission to list ships for another player',
+      ships: [],
+      correlationId: 'missing-correlation-id',
+      requestIdentity: {
+        operation: 'ship-list-by-owner',
+        entityType: 'unknown',
+        containerId: '-',
+      },
+    });
+  } finally {
+    await closeClient(ownerClient);
+    await closeClient(intruderClient);
     io.close();
     server.close();
   }

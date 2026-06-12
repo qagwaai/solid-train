@@ -65,6 +65,13 @@ const {
 const { MarketLedgerListMessageHandler } = require('./handlers/market-ledger-list-message-handler');
 const { MarketBuyMessageHandler } = require('./handlers/market-buy-message-handler');
 const { MarketSellMessageHandler } = require('./handlers/market-sell-message-handler');
+const { MarketListingCreateMessageHandler } = require('./handlers/market-listing-create-message-handler');
+const { MarketOfferCreateMessageHandler } = require('./handlers/market-offer-create-message-handler');
+const { MarketOfferAcceptMessageHandler } = require('./handlers/market-offer-accept-message-handler');
+const { ItemListByOwnerMessageHandler } = require('./handlers/item-list-by-owner-message-handler');
+const { ShipSalvageClaimMessageHandler } = require('./handlers/ship-salvage-claim-message-handler');
+const { ShipPiracySeizeMessageHandler } = require('./handlers/ship-piracy-seize-message-handler');
+const { ShipListByNpcOwnerMessageHandler } = require('./handlers/ship-list-by-npc-owner-message-handler');
 const { SolarSystemListMessageHandler } = require('./handlers/solar-system-list-message-handler');
 const { SolarSystemGetMessageHandler } = require('./handlers/solar-system-get-message-handler');
 const { StarListMessageHandler } = require('./handlers/star-list-message-handler');
@@ -168,6 +175,13 @@ function createServer(options = {}) {
   const marketLedgerListMessageHandler = new MarketLedgerListMessageHandler(messageHandlerContext);
   const marketBuyMessageHandler = new MarketBuyMessageHandler(messageHandlerContext);
   const marketSellMessageHandler = new MarketSellMessageHandler(messageHandlerContext);
+  const marketListingCreateMessageHandler = new MarketListingCreateMessageHandler(messageHandlerContext);
+  const marketOfferCreateMessageHandler = new MarketOfferCreateMessageHandler(messageHandlerContext);
+  const marketOfferAcceptMessageHandler = new MarketOfferAcceptMessageHandler(messageHandlerContext);
+  const itemListByOwnerMessageHandler = new ItemListByOwnerMessageHandler(messageHandlerContext);
+  const shipSalvageClaimMessageHandler = new ShipSalvageClaimMessageHandler(messageHandlerContext);
+  const shipPiracySeizeMessageHandler = new ShipPiracySeizeMessageHandler(messageHandlerContext);
+  const shipListByNpcOwnerMessageHandler = new ShipListByNpcOwnerMessageHandler(messageHandlerContext);
   const solarSystemListMessageHandler = new SolarSystemListMessageHandler(messageHandlerContext);
   const solarSystemGetMessageHandler = new SolarSystemGetMessageHandler(messageHandlerContext);
   const starListMessageHandler = new StarListMessageHandler(messageHandlerContext);
@@ -261,6 +275,13 @@ function createServer(options = {}) {
       marketLedgerListMessageHandler,
       marketBuyMessageHandler,
       marketSellMessageHandler,
+      marketListingCreateMessageHandler,
+      marketOfferCreateMessageHandler,
+      marketOfferAcceptMessageHandler,
+      itemListByOwnerMessageHandler,
+      shipSalvageClaimMessageHandler,
+      shipPiracySeizeMessageHandler,
+      shipListByNpcOwnerMessageHandler,
       solarSystemListMessageHandler,
       solarSystemGetMessageHandler,
       starListMessageHandler,

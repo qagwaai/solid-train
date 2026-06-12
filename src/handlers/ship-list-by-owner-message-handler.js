@@ -21,6 +21,7 @@ class ShipListByOwnerMessageHandler {
     if (!playerName) {
       return {
         success: false,
+        reason: 'OWNERSHIP_VALIDATION_FAILED',
         message: 'playerName is required',
         ships: [],
       };
@@ -30,6 +31,7 @@ class ShipListByOwnerMessageHandler {
     if (!player) {
       return {
         success: false,
+        reason: 'OWNERSHIP_VALIDATION_FAILED',
         message: 'Player is not registered',
         ships: [],
       };
@@ -47,6 +49,7 @@ class ShipListByOwnerMessageHandler {
     if (ownerNormalization.error) {
       return {
         success: false,
+        reason: 'OWNERSHIP_VALIDATION_FAILED',
         message: ownerNormalization.error,
         ships: [],
       };
@@ -59,6 +62,18 @@ class ShipListByOwnerMessageHandler {
       npcId: ownerNormalization.npcId,
       factionId: ownerNormalization.factionId,
     };
+
+    if (
+      owner.ownerType === 'player-character' &&
+      owner.playerId !== this.context.toNonEmptyString(player.playerId)
+    ) {
+      return {
+        success: false,
+        reason: 'SHIP_LIST_OWNER_FORBIDDEN',
+        message: 'Actor does not have permission to list ships for another player',
+        ships: [],
+      };
+    }
 
     const ships = [];
     for (const [normalizedPlayerName, characters] of this.context.charactersByPlayer.entries()) {
@@ -80,6 +95,7 @@ class ShipListByOwnerMessageHandler {
           if (shipOwnership.error) {
             return {
               success: false,
+              reason: 'OWNERSHIP_VALIDATION_FAILED',
               message: 'Ship ownership metadata is required',
               ships: [],
             };
@@ -94,9 +110,11 @@ class ShipListByOwnerMessageHandler {
           };
 
           if (matchesOwner(normalizedOwnership, owner)) {
+            const ownershipHistory = Array.isArray(ship?.ownershipHistory) ? ship.ownershipHistory : [];
             const ownerScopedShip = {
               ...normalizedShip,
               ownership: normalizedOwnership,
+              ownershipHistory,
             };
 
             const hydratedShip = await this.context.hydrateShipAsync(ownerScopedShip, {
@@ -106,6 +124,11 @@ class ShipListByOwnerMessageHandler {
               owningPlayerId: scopedPlayerId,
               owningCharacterId: characterId,
             });
+
+            // Ensure ownershipHistory is preserved in the hydrated ship
+            if (Array.isArray(ownershipHistory) && ownershipHistory.length > 0) {
+              hydratedShip.ownershipHistory = ownershipHistory;
+            }
 
             ships.push(hydratedShip);
           }

@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ship-salvage-claim-response",
+  "type": "object",
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "INVALID_SESSION",
+        "OWNERSHIP_VALIDATION_FAILED",
+        "SALVAGE_CLAIM_FORBIDDEN",
+        "SALVAGE_ALREADY_OWNED",
+        "SHIP_NOT_FOUND"
+      ]
+    },
+    "correlationId": { "type": "string" },
+    "shipId": { "type": "string" },
+    "claimantOwner": {
+      "type": "object",
+      "properties": {
+        "ownerType": { "type": "string" },
+        "playerId": { "type": ["string", "null"] },
+        "characterId": { "type": ["string", "null"] },
+        "npcId": { "type": ["string", "null"] },
+        "factionId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "previousOwnerType": { "type": "string" },
+    "claimedAt": { "type": "string" }
+  },
+  "additionalProperties": true
+}

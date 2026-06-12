@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-listing-create-response",
+  "type": "object",
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "INVALID_SESSION",
+        "MARKET_NOT_FOUND",
+        "ITEM_NOT_FOUND",
+        "INSUFFICIENT_QUANTITY",
+        "OWNERSHIP_VALIDATION_FAILED",
+        "OWNERSHIP_LISTING_FORBIDDEN"
+      ]
+    },
+    "correlationId": { "type": "string" },
+    "requestIdentity": {
+      "type": "object",
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "listingId": { "type": "string" },
+    "owner": {
+      "type": "object",
+      "properties": {
+        "ownerType": { "type": "string" },
+        "playerId": { "type": ["string", "null"] },
+        "characterId": { "type": ["string", "null"] },
+        "npcId": { "type": ["string", "null"] },
+        "factionId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "itemId": { "type": "string" },
+    "quantity": { "type": "integer" },
+    "listingPrice": { "type": "number" },
+    "createdAt": { "type": "string" },
+    "expiresAt": { "type": ["string", "null"] }
+  },
+  "additionalProperties": true
+}

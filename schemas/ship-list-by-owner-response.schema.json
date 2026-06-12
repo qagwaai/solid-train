@@ -21,7 +21,7 @@
     },
     "reason": {
       "type": "string",
-      "enum": ["INVALID_SESSION"]
+      "enum": ["INVALID_SESSION", "OWNERSHIP_VALIDATION_FAILED", "SHIP_LIST_OWNER_FORBIDDEN"]
     },
     "message": { "type": "string" },
     "owner": {
@@ -85,6 +85,50 @@
               "factionId": { "type": ["string", "null"] }
             },
             "additionalProperties": true
+          },
+          "ownershipHistory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["at", "reason", "fromOwner", "toOwner", "actor"],
+              "properties": {
+                "at": { "type": "string" },
+                "reason": { "type": "string" },
+                "fromOwner": {
+                  "type": "object",
+                  "properties": {
+                    "ownerType": { "type": "string" },
+                    "playerId": { "type": ["string", "null"] },
+                    "characterId": { "type": ["string", "null"] },
+                    "npcId": { "type": ["string", "null"] },
+                    "factionId": { "type": ["string", "null"] }
+                  },
+                  "additionalProperties": true
+                },
+                "toOwner": {
+                  "type": "object",
+                  "properties": {
+                    "ownerType": { "type": "string" },
+                    "playerId": { "type": ["string", "null"] },
+                    "characterId": { "type": ["string", "null"] },
+                    "npcId": { "type": ["string", "null"] },
+                    "factionId": { "type": ["string", "null"] }
+                  },
+                  "additionalProperties": true
+                },
+                "actor": {
+                  "type": "object",
+                  "required": ["ownerType", "playerId", "characterId"],
+                  "properties": {
+                    "ownerType": { "type": "string" },
+                    "playerId": { "type": ["string", "null"] },
+                    "characterId": { "type": ["string", "null"] }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "additionalProperties": true
+            }
           }
         },
         "additionalProperties": true

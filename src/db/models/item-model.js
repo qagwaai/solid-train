@@ -93,6 +93,23 @@ function createItemModelArtifacts({
         required: true,
         index: true,
       },
+      ownership: {
+        type: new mongoose.Schema(
+          {
+            ownerType: {
+              type: String,
+              enum: ['player-character', 'npc-pirate', 'unowned', 'unknown'],
+              required: true,
+            },
+            playerId: { type: String, default: null },
+            characterId: { type: String, default: null },
+            npcId: { type: String, default: null },
+            factionId: { type: String, default: null },
+          },
+          { _id: false }
+        ),
+        default: null,
+      },
       spatial: {
         type: spatialStateSchema,
         default: null,

@@ -14,6 +14,7 @@ const {
   resolveCorrelationId,
   normalizeRequestIdentity,
 } = require('./correlation-metadata');
+const { normalizeOwnership } = require('./context/ship-ownership');
 
 const VALID_STATES = ITEM_STATE_VALUES;
 const VALID_DAMAGE_STATUSES = ITEM_DAMAGE_STATUS_VALUES;
@@ -251,6 +252,7 @@ class ItemUpsertMessageHandler {
       container,
       owningPlayerId: this.context.toNonEmptyString(itemPayload.owningPlayerId),
       owningCharacterId: this.context.toNonEmptyString(itemPayload.owningCharacterId),
+      ownership: itemPayload.ownership || null,
       destroyedAt: this.context.toNonEmptyString(itemPayload.destroyedAt) || null,
       destroyedReason: this.context.toNonEmptyString(itemPayload.destroyedReason) || null,
       discoveredAt: this.context.toNonEmptyString(itemPayload.discoveredAt) || null,
@@ -297,6 +299,58 @@ class ItemUpsertMessageHandler {
     }
 
     const parsed = this.buildParsed(payload);
+
+    // Validate canonical ownership if provided
+    if (!parsed.error && parsed.ownership) {
+      const ownershipNorm = normalizeOwnership(this.context, parsed.ownership);
+      if (ownershipNorm.error) {
+        const errResponse = {
+          success: false,
+          message: ownershipNorm.error,
+          reason: 'OWNERSHIP_VALIDATION_FAILED',
+          playerName: parsed.playerName,
+          correlationId,
+          requestIdentity,
+        };
+        socket.emit(ITEM_UPSERT_RESPONSE_EVENT, errResponse);
+        return errResponse;
+      }
+      if (ownershipNorm.ownerType !== 'player-character') {
+        const errResponse = {
+          success: false,
+          message: 'Only player-character owners can upsert items',
+          reason: 'OWNERSHIP_VALIDATION_FAILED',
+          playerName: parsed.playerName,
+          correlationId,
+          requestIdentity,
+        };
+        socket.emit(ITEM_UPSERT_RESPONSE_EVENT, errResponse);
+        return errResponse;
+      }
+      const actorPlayer = this.context.getPlayer(parsed.playerName);
+      const actorPlayerId = actorPlayer ? this.context.toNonEmptyString(actorPlayer.playerId) : null;
+      if (ownershipNorm.playerId !== actorPlayerId) {
+        const errResponse = {
+          success: false,
+          message: 'Actor does not have permission to upsert items for another player',
+          reason: 'OWNERSHIP_ITEM_FORBIDDEN',
+          playerName: parsed.playerName,
+          correlationId,
+          requestIdentity,
+        };
+        socket.emit(ITEM_UPSERT_RESPONSE_EVENT, errResponse);
+        return errResponse;
+      }
+      // Normalize the ownership object on parsed for downstream use
+      parsed.ownership = {
+        ownerType: ownershipNorm.ownerType,
+        playerId: ownershipNorm.playerId,
+        characterId: ownershipNorm.characterId,
+        npcId: ownershipNorm.npcId,
+        factionId: ownershipNorm.factionId,
+      };
+    }
+
     const response = {
       success: !parsed.error,
       message:
@@ -334,6 +388,7 @@ class ItemUpsertMessageHandler {
           ...(resolvedMotion ? { motion: resolvedMotion } : {}),
           owningPlayerId: parsed.owningPlayerId || existing?.owningPlayerId || '',
           owningCharacterId: parsed.owningCharacterId || existing?.owningCharacterId || '',
+          ownership: parsed.ownership !== undefined ? parsed.ownership : (existing?.ownership ?? null),
           destroyedAt:
             parsed.destroyedAt ||
             (resolvedState === ITEM_STATE.DESTROYED && !existing?.destroyedAt ? now : null) ||

@@ -176,6 +176,82 @@ test('Option3 DB negative: cross-player ownership transfer without authorization
   );
 });
 
+test('Option3 DB negative: transfer rejects mismatched fromOwner contract', async () => {
+  const service = mongoHarness.databaseService;
+
+  await service.createShip(
+    createShipRecord({
+      id: 'ship-from-owner-mismatch',
+      ownership: createOwnership({
+        ownerType: 'player-character',
+        playerId: 'player-1',
+        characterId: 'character-1',
+      }),
+    })
+  );
+
+  await assert.rejects(
+    service.transferShipOwnership({
+      shipId: 'ship-from-owner-mismatch',
+      actorPlayerId: 'player-1',
+      fromOwner: {
+        ownerType: 'player-character',
+        playerId: 'wrong-player',
+        characterId: 'character-1',
+      },
+      toOwner: {
+        ownerType: 'player-character',
+        playerId: 'player-1',
+        characterId: 'character-1',
+      },
+    }),
+    /fromOwner|ownership/i
+  );
+});
+
+test('Option3 DB behavior: transfer appends ownershipHistory audit entry', async () => {
+  const service = mongoHarness.databaseService;
+
+  await service.createShip(
+    createShipRecord({
+      id: 'ship-history',
+      ownership: createOwnership({
+        ownerType: 'player-character',
+        playerId: 'player-1',
+        characterId: 'character-1',
+      }),
+    })
+  );
+
+  const transferred = await service.transferShipOwnership({
+    shipId: 'ship-history',
+    actorPlayerId: 'player-1',
+    actorCharacterId: 'character-1',
+    transferReason: 'sale',
+    fromOwner: {
+      ownerType: 'player-character',
+      playerId: 'player-1',
+      characterId: 'character-1',
+    },
+    toOwner: {
+      ownerType: 'player-character',
+      playerId: 'player-2',
+      characterId: 'character-2',
+    },
+  });
+
+  assert.equal(transferred.ownership.ownerType, 'player-character');
+  assert.equal(transferred.ownership.playerId, 'player-2');
+  assert.equal(transferred.ownership.characterId, 'character-2');
+  assert.ok(Array.isArray(transferred.ownershipHistory));
+  assert.equal(transferred.ownershipHistory.length, 1);
+  const entry = transferred.ownershipHistory[0];
+  assert.equal(entry.reason, 'sale');
+  assert.equal(entry.fromOwner.playerId, 'player-1');
+  assert.equal(entry.toOwner.playerId, 'player-2');
+  assert.equal(entry.actor.playerId, 'player-1');
+});
+
 test('Option3 DB negative: dangling inventory references are rejected at write time', async () => {
   const service = mongoHarness.databaseService;
 

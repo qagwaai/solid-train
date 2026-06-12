@@ -119,6 +119,51 @@ function createShipModelArtifacts({
     { _id: false }
   );
 
+  const ownershipActorSchema = new mongoose.Schema(
+    {
+      ownerType: {
+        type: String,
+        enum: ['player-character'],
+        required: true,
+      },
+      playerId: {
+        type: String,
+        default: null,
+      },
+      characterId: {
+        type: String,
+        default: null,
+      },
+    },
+    { _id: false }
+  );
+
+  const ownershipTransferEntrySchema = new mongoose.Schema(
+    {
+      at: {
+        type: String,
+        required: true,
+      },
+      reason: {
+        type: String,
+        required: true,
+      },
+      fromOwner: {
+        type: shipOwnershipSchema,
+        required: true,
+      },
+      toOwner: {
+        type: shipOwnershipSchema,
+        required: true,
+      },
+      actor: {
+        type: ownershipActorSchema,
+        required: true,
+      },
+    },
+    { _id: false }
+  );
+
   const shipSchema = new mongoose.Schema(
     {
       id: {
@@ -177,6 +222,10 @@ function createShipModelArtifacts({
       ownership: {
         type: shipOwnershipSchema,
         default: null,
+      },
+      ownershipHistory: {
+        type: [ownershipTransferEntrySchema],
+        default: [],
       },
     },
     { _id: false }
@@ -242,6 +291,10 @@ function createShipModelArtifacts({
       ownership: {
         type: shipOwnershipSchema,
         required: true,
+      },
+      ownershipHistory: {
+        type: [ownershipTransferEntrySchema],
+        default: [],
       },
     },
     {

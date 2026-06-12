@@ -90,6 +90,21 @@
         },
         "owningPlayerId": { "type": ["string", "null"] },
         "owningCharacterId": { "type": ["string", "null"] },
+        "ownership": {
+          "type": ["object", "null"],
+          "description": "Canonical ownership discriminator. When provided, validated strictly: only player-character allowed, playerId must match actor.",
+          "properties": {
+            "ownerType": {
+              "type": "string",
+              "enum": ["player-character", "npc-pirate", "unowned", "unknown"]
+            },
+            "playerId": { "type": ["string", "null"] },
+            "characterId": { "type": ["string", "null"] },
+            "npcId": { "type": ["string", "null"] },
+            "factionId": { "type": ["string", "null"] }
+          },
+          "required": ["ownerType"]
+        },
         "destroyedAt": { "type": ["string", "null"], "format": "date-time" },
         "destroyedReason": { "type": ["string", "null"] },
         "discoveredAt": { "type": ["string", "null"], "format": "date-time" },

@@ -26,7 +26,10 @@
         "SHIP_ID_REQUIRED",
         "SHIP_NOT_FOUND",
         "SHIP_TRANSFER_FORBIDDEN",
-        "OWNERSHIP_VALIDATION_FAILED"
+        "OWNERSHIP_VALIDATION_FAILED",
+        "OWNERSHIP_TRANSFER_SOURCE_MISMATCH",
+        "OWNERSHIP_CLAIM_TOKEN_REQUIRED",
+        "OWNERSHIP_CLAIM_TOKEN_INVALID"
       ]
     },
     "message": { "type": "string" },

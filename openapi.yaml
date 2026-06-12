@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Stellar API and Message Contract
-  version: 3.0.1
+  version: 3.0.4
   description: >
     Machine-readable contract for HTTP endpoints and Socket.IO message payloads.
     Socket operations are modeled as virtual POST operations under /socket/* so the
@@ -4423,6 +4423,356 @@ paths:
               schema:
                 $ref: '#/components/schemas/InvalidSessionResponse'
 
+  /socket/ship-list-by-npc-owner:
+    post:
+      summary: ship-list-by-npc-owner-request
+      description: |
+        Returns ships currently owned by a specific NPC pirate.
+
+        Ownership contract:
+        - `npcOwner.ownerType` must be `npc-pirate`.
+        - `npcOwner.npcId` is required.
+        - Scans all character ship records for matching NPC ownership.
+        - No cross-player restriction — NPC ownership is not player-scoped.
+        - Ships appear here after piracy seizure via `ship-piracy-seize`.
+      operationId: socketShipListByNpcOwner
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipListByNpcOwnerRequest'
+      responses:
+        '200':
+          description: ship-list-by-npc-owner-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipListByNpcOwnerResponse'
+              examples:
+                success:
+                  summary: Returns ships owned by the specified NPC
+                  value:
+                    success: true
+                    npcOwner:
+                      ownerType: npc-pirate
+                      npcId: pirate-npc-1
+                      factionId: black-flag
+                    ships:
+                      - id: ship-1
+                        ownership:
+                          ownerType: npc-pirate
+                          npcId: pirate-npc-1
+                          factionId: black-flag
+                empty:
+                  summary: No ships owned by this NPC
+                  value:
+                    success: true
+                    npcOwner:
+                      ownerType: npc-pirate
+                      npcId: unknown-npc
+                    ships: []
+                invalidOwnerType:
+                  summary: Non-npc-pirate ownerType is rejected
+                  value:
+                    success: false
+                    reason: OWNERSHIP_VALIDATION_FAILED
+                    message: npcOwner.ownerType must be npc-pirate
+                    ships: []
+
+  /socket/item-list-by-owner:
+    post:
+      summary: item-list-by-owner-request
+      description: |
+        Lists items belonging to a canonical ownership descriptor.
+
+        Ownership contract:
+        - `owner.ownerType` must be a valid canonical type.
+        - For `player-character` owners, `owner.playerId` must match the authenticated actor's playerId.
+        - Cross-player item list queries are rejected with `ITEM_LIST_OWNER_FORBIDDEN`.
+      operationId: socketItemListByOwner
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemListByOwnerRequest'
+      responses:
+        '200':
+          description: item-list-by-owner-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemListByOwnerResponse'
+              examples:
+                success:
+                  summary: Returns matching items for the given owner
+                  value:
+                    success: true
+                    owner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                    items: []
+                crossPlayerForbidden:
+                  summary: Actor cannot list items for another player
+                  value:
+                    success: false
+                    reason: ITEM_LIST_OWNER_FORBIDDEN
+                    message: Actor does not have permission to list items for another player
+                    items: []
+
+  /socket/ship-salvage-claim:
+    post:
+      summary: ship-salvage-claim-request
+      description: |
+        Allows a player-character to claim an `unknown` ship as salvage.
+
+        Ownership contract:
+        - `claimantOwner.ownerType` must be `player-character`.
+        - `claimantOwner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Target ship must currently have `ownerType: unknown`; already-owned ships are rejected.
+        - Produces an ownership history entry with reason `salvage`.
+      operationId: socketShipSalvageClaim
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipSalvageClaimRequest'
+      responses:
+        '200':
+          description: ship-salvage-claim-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipSalvageClaimResponse'
+              examples:
+                success:
+                  summary: Valid salvage claim of unknown ship
+                  value:
+                    success: true
+                    shipId: ship-1
+                    claimantOwner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                    previousOwnerType: unknown
+                    claimedAt: '2026-06-12T00:00:00.000Z'
+                crossPlayerForbidden:
+                  summary: Actor cannot claim salvage for another player
+                  value:
+                    success: false
+                    reason: SALVAGE_CLAIM_FORBIDDEN
+                    message: Actor does not have permission to claim salvage for another player
+                alreadyOwned:
+                  summary: Cannot claim an already-owned ship
+                  value:
+                    success: false
+                    reason: SALVAGE_ALREADY_OWNED
+                    message: Ship is already owned and cannot be salvage claimed
+
+  /socket/ship-piracy-seize:
+    post:
+      summary: ship-piracy-seize-request
+      description: |
+        Allows an NPC pirate to seize a `player-character` owned ship.
+
+        Ownership contract:
+        - `seizingOwner.ownerType` must be `npc-pirate`.
+        - Target ship must currently have `ownerType: player-character`; unowned/unknown ships cannot be seized.
+        - Produces an ownership history entry with reason `piracy`.
+      operationId: socketShipPiracySeize
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipPiracySeizeRequest'
+      responses:
+        '200':
+          description: ship-piracy-seize-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipPiracySeizeResponse'
+              examples:
+                success:
+                  summary: NPC pirate seizes player ship
+                  value:
+                    success: true
+                    shipId: ship-1
+                    seizingOwner:
+                      ownerType: npc-pirate
+                      npcId: pirate-npc-1
+                      factionId: black-flag
+                    previousOwner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                    seizedAt: '2026-06-12T00:00:00.000Z'
+                invalidTarget:
+                  summary: Cannot seize non-player-character ship
+                  value:
+                    success: false
+                    reason: PIRACY_SEIZE_INVALID_TARGET
+                    message: Piracy can only target player-character owned ships
+
+  /socket/market-listing-create:
+      description: |
+        Creates a market listing with strict ownership enforcement.
+
+        Ownership contract:
+        - `owner.ownerType` must be `player-character`.
+        - `owner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Non-player-character owners are rejected with `OWNERSHIP_VALIDATION_FAILED`.
+        - Cross-player listing attempts are rejected with `OWNERSHIP_LISTING_FORBIDDEN`.
+      operationId: socketMarketListingCreate
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketListingCreateRequest'
+      responses:
+        '200':
+          description: market-listing-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListingCreateResponse'
+              examples:
+                success:
+                  summary: Valid player-character listing succeeds
+                  value:
+                    success: true
+                    message: Market listing created successfully
+                    offerId: listing-1748700000000-abc123
+                    owner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                      npcId: null
+                      factionId: null
+                crossPlayerForbidden:
+                  summary: Actor cannot create listing for another player
+                  value:
+                    success: false
+                    reason: OWNERSHIP_LISTING_FORBIDDEN
+                    message: Actor does not have permission to create listings for another player
+                npcOwnerRejected:
+                  summary: Non-player-character owner is rejected
+                  value:
+                    success: false
+                    reason: OWNERSHIP_VALIDATION_FAILED
+                    message: Only player-character owners can create market listings
+
+  /socket/market-offer-create:
+    post:
+      summary: market-offer-create-request
+      description: |
+        Creates a pending market offer with strict offeror ownership enforcement.
+
+        Ownership contract:
+        - `offerorOwner.ownerType` must be `player-character`.
+        - `offerorOwner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Non-player-character offerors are rejected with `OWNERSHIP_VALIDATION_FAILED`.
+        - Cross-player offer attempts are rejected with `OWNERSHIP_OFFER_FORBIDDEN`.
+      operationId: socketMarketOfferCreate
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketOfferCreateRequest'
+      responses:
+        '200':
+          description: market-offer-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketOfferCreateResponse'
+              examples:
+                success:
+                  summary: Valid player-character offer succeeds
+                  value:
+                    success: true
+                    offerId: offer-1748700000000-abc123
+                    listingId: listing-1
+                    offerorOwner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                      npcId: null
+                      factionId: null
+                    offerPrice: 500
+                    quantity: 1
+                    createdAt: '2026-06-12T00:00:00.000Z'
+                crossPlayerForbidden:
+                  summary: Actor cannot offer on behalf of another player
+                  value:
+                    success: false
+                    reason: OWNERSHIP_OFFER_FORBIDDEN
+                    message: Actor does not have permission to make offers for another player
+
+  /socket/market-offer-accept:
+    post:
+      summary: market-offer-accept-request
+      description: |
+        Accepts a pending market offer and records the trade. Optionally triggers automatic
+        ship ownership transfer when `shipId` is provided.
+
+        Ownership contract:
+        - `listingOwner.ownerType` must be `player-character`.
+        - `listingOwner.playerId` must match the authenticated actor's playerId.
+        - Only the listing owner can accept offers on their own listing.
+        - Cross-player acceptance attempts are rejected with `OWNERSHIP_ACCEPT_FORBIDDEN`.
+        - Trade history is recorded on the accepted offer document.
+      operationId: socketMarketOfferAccept
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketOfferAcceptRequest'
+      responses:
+        '200':
+          description: market-offer-accept-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketOfferAcceptResponse'
+              examples:
+                success:
+                  summary: Listing owner accepts offer and trade completes
+                  value:
+                    success: true
+                    tradeId: trade-1748700000000-abc123
+                    offerId: offer-1
+                    listingId: listing-1
+                    completedAt: '2026-06-12T00:00:00.000Z'
+                    tradeHistory:
+                      at: '2026-06-12T00:00:00.000Z'
+                      offerId: offer-1
+                      listingOwner:
+                        ownerType: player-character
+                        playerId: player-1
+                        characterId: char-1
+                      acceptorCharacterId: char-1
+                crossPlayerForbidden:
+                  summary: Actor cannot accept offer for another player's listing
+                  value:
+                    success: false
+                    reason: OWNERSHIP_ACCEPT_FORBIDDEN
+                    message: Only listing owner can accept this offer
+
 components:
   schemas:
     BustDescriptor:
@@ -4625,6 +4975,34 @@ components:
       $ref: './schemas/tractor-beam-activate-request.schema.json'
     TractorBeamActivateResponse:
       $ref: './schemas/tractor-beam-activate-response.schema.json'
+    MarketListingCreateRequest:
+      $ref: './schemas/market-listing-create-request.schema.json'
+    MarketListingCreateResponse:
+      $ref: './schemas/market-listing-create-response.schema.json'
+    MarketOfferCreateRequest:
+      $ref: './schemas/market-offer-create-request.schema.json'
+    MarketOfferCreateResponse:
+      $ref: './schemas/market-offer-create-response.schema.json'
+    MarketOfferAcceptRequest:
+      $ref: './schemas/market-offer-accept-request.schema.json'
+    MarketOfferAcceptResponse:
+      $ref: './schemas/market-offer-accept-response.schema.json'
+    ShipListByNpcOwnerRequest:
+      $ref: './schemas/ship-list-by-npc-owner-request.schema.json'
+    ShipListByNpcOwnerResponse:
+      $ref: './schemas/ship-list-by-npc-owner-response.schema.json'
+    ItemListByOwnerRequest:
+      $ref: './schemas/item-list-by-owner-request.schema.json'
+    ItemListByOwnerResponse:
+      $ref: './schemas/item-list-by-owner-response.schema.json'
+    ShipSalvageClaimRequest:
+      $ref: './schemas/ship-salvage-claim-request.schema.json'
+    ShipSalvageClaimResponse:
+      $ref: './schemas/ship-salvage-claim-response.schema.json'
+    ShipPiracySeizeRequest:
+      $ref: './schemas/ship-piracy-seize-request.schema.json'
+    ShipPiracySeizeResponse:
+      $ref: './schemas/ship-piracy-seize-response.schema.json'
     UnknownMessage:
       $ref: './schemas/unknown-message.schema.json'
     WelcomeEvent:

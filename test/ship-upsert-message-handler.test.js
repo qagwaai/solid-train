@@ -194,6 +194,13 @@ test('ShipUpsertMessageHandler updates ship location and kinematics', async () =
       },
       owningPlayerId: 'player-seeded',
       owningCharacterId: 'character-1',
+      ownership: {
+        ownerType: 'player-character',
+        playerId: 'player-seeded',
+        characterId: 'character-1',
+        npcId: null,
+        factionId: null,
+      },
       spatial: null,
       createdAt: '2026-04-17T00:00:00.000Z',
       updatedAt: '2026-04-17T00:00:00.000Z',
