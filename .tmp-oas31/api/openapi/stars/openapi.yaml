@@ -1,0 +1,165 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Stars
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Stars
+paths:
+  /socket/star-get:
+    post:
+      summary: star-get-request
+      description: |
+        Returns a single HYG catalog star by `hygId`.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - `star` is present only on success.
+        - Failure responses still echo `hygId` and `requestId` when provided.
+      operationId: socketStarGet
+      tags: [Stars]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StarGetRequest'
+            examples:
+              getStar:
+                summary: Retrieve a star by HYG id with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: ea3e74fc-a156-4686-a5c4-4bd12ef2ed4d
+                  requestIdentity:
+                    operation: star-get
+                    entityType: star
+                    containerId: '70890'
+                  hygId: '70890'
+      responses:
+        '200':
+          description: star-get-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StarGetResponse'
+              examples:
+                successfulStarGet:
+                  summary: Successful lookup returns the HYG star payload
+                  value:
+                    success: true
+                    message: Star retrieved successfully
+                    playerName: PilotOne
+                    correlationId: ea3e74fc-a156-4686-a5c4-4bd12ef2ed4d
+                    requestIdentity:
+                      operation: star-get
+                      entityType: star
+                      containerId: '70890'
+                    hygId: '70890'
+                    star:
+                      hygId: '70890'
+                      properName: Proxima Centauri
+                      systemId: alpha-centauri
+                      spectralClass: M
+                    requestId: req-1
+                failedStarGet:
+                  summary: Missing or unknown stars return failure without a star payload
+                  value:
+                    success: false
+                    message: Star not found
+                    playerName: PilotOne
+                    correlationId: ea3e74fc-a156-4686-a5c4-4bd12ef2ed4d
+                    requestIdentity:
+                      operation: star-get
+                      entityType: star
+                      containerId: no-such-id
+                    hygId: no-such-id
+                    requestId: req-1
+
+  /socket/star-list:
+    post:
+      summary: star-list-request
+      description: |
+        Returns HYG catalog stars, optionally filtered by system, spectral class,
+        and maximum distance.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - Results are sorted by increasing `distanceParsec`.
+        - `stars` is always present and is empty on failures or empty matches.
+      operationId: socketStarList
+      tags: [Stars]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StarListRequest'
+            examples:
+              listStars:
+                summary: Retrieve stars with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: c5dfa780-60d2-4823-837b-c7e84a421f4c
+                  requestIdentity:
+                    operation: star-list
+                    entityType: star
+                    containerId: registry
+      responses:
+        '200':
+          description: star-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StarListResponse'
+              examples:
+                successfulStarList:
+                  summary: Successful list query returns stars sorted by distance
+                  value:
+                    success: true
+                    message: Star list retrieved successfully
+                    playerName: PilotOne
+                    correlationId: c5dfa780-60d2-4823-837b-c7e84a421f4c
+                    requestIdentity:
+                      operation: star-list
+                      entityType: star
+                      containerId: registry
+                    requestId: req-2
+                    stars:
+                      - hygId: '70890'
+                        properName: Proxima Centauri
+                        systemId: alpha-centauri
+                        spectralClass: M
+                        distanceParsec: 1.301
+                emptyStarList:
+                  summary: No matches is still a successful query with an empty list
+                  value:
+                    success: true
+                    message: No stars matched the query
+                    playerName: PilotOne
+                    correlationId: c5dfa780-60d2-4823-837b-c7e84a421f4c
+                    requestIdentity:
+                      operation: star-list
+                      entityType: star
+                      containerId: registry
+                    stars: []
+components:
+  schemas:
+    StarGetRequest:
+      $ref: '../../schemas/star-get-request.schema.json'
+    StarGetResponse:
+      $ref: '../../schemas/star-get-response.schema.json'
+    StarListRequest:
+      $ref: '../../schemas/star-list-request.schema.json'
+    StarListResponse:
+      $ref: '../../schemas/star-list-response.schema.json'

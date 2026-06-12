@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-ledger-list-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "marketId", "solarSystemId"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "marketId": { "type": "string" },
+    "solarSystemId": { "type": "string" },
+    "characterId": { "type": "string" },
+    "itemId": { "type": "string" },
+    "direction": { "type": "string" },
+    "startAt": { "type": "string", "format": "date-time" },
+    "endAt": { "type": "string", "format": "date-time" },
+    "offset": { "type": "integer" },
+    "limit": { "type": "integer" }
+  }
+}

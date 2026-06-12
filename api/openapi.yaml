@@ -1,0 +1,373 @@
+openapi: 3.1.0
+info:
+  title: Stellar API and Message Contract
+  version: 3.1.0
+  description: >
+    Machine-readable contract for HTTP endpoints and Socket.IO message payloads.
+    Socket operations are modeled as virtual POST operations under /socket/* so the
+    contract can be consumed by tooling that expects OpenAPI.
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Utility
+  - name: Items
+  - name: Auth
+  - name: Character
+  - name: Ship
+  - name: Mission
+  - name: Celestial
+  - name: Market
+  - name: Context
+  - name: SolarSystem
+  - name: Stars
+  - name: Ledger
+  - name: Game
+  - name: Realtime
+  - name: Bust
+paths:
+  /health:
+    $ref: './openapi/utility/openapi.yaml#/paths/~1health'
+  /items:
+    $ref: './openapi/items/openapi.yaml#/paths/~1items'
+  /socket/register:
+    $ref: './openapi/auth/openapi.yaml#/paths/~1socket~1register'
+  /socket/login:
+    $ref: './openapi/auth/openapi.yaml#/paths/~1socket~1login'
+  /socket/character-add:
+    $ref: './openapi/character/openapi.yaml#/paths/~1socket~1character-add'
+  /socket/character-delete:
+    $ref: './openapi/character/openapi.yaml#/paths/~1socket~1character-delete'
+  /socket/character-edit:
+    $ref: './openapi/character/openapi.yaml#/paths/~1socket~1character-edit'
+  /socket/character-list:
+    $ref: './openapi/character/openapi.yaml#/paths/~1socket~1character-list'
+  /socket/ship-list:
+    $ref: './openapi/ship/openapi.yaml#/paths/~1socket~1ship-list'
+  /socket/ship-upsert:
+    $ref: './openapi/ship/openapi.yaml#/paths/~1socket~1ship-upsert'
+  /socket/ship-list-by-owner:
+    $ref: './openapi/ship/openapi.yaml#/paths/~1socket~1ship-list-by-owner'
+  /socket/ship-transfer:
+    $ref: './openapi/ship/openapi.yaml#/paths/~1socket~1ship-transfer'
+  /socket/mission-list:
+    $ref: './openapi/mission/openapi.yaml#/paths/~1socket~1mission-list'
+  /socket/mission-upsert:
+    $ref: './openapi/mission/openapi.yaml#/paths/~1socket~1mission-upsert'
+  /socket/celestial-body-list:
+    $ref: './openapi/celestial/openapi.yaml#/paths/~1socket~1celestial-body-list'
+  /socket/celestial-body-upsert:
+    $ref: './openapi/celestial/openapi.yaml#/paths/~1socket~1celestial-body-upsert'
+  /socket/item-list-by-container:
+    $ref: './openapi/items/openapi.yaml#/paths/~1socket~1item-list-by-container'
+  /socket/item-list-by-location:
+    $ref: './openapi/items/openapi.yaml#/paths/~1socket~1item-list-by-location'
+  /socket/item-upsert:
+    $ref: './openapi/items/openapi.yaml#/paths/~1socket~1item-upsert'
+  /socket/launch-item:
+    $ref: './openapi/items/openapi.yaml#/paths/~1socket~1launch-item'
+  /socket/item-remove:
+    $ref: './openapi/items/openapi.yaml#/paths/~1socket~1item-remove'
+  /socket/tractor-beam-activate:
+    $ref: './openapi/items/openapi.yaml#/paths/~1socket~1tractor-beam-activate'
+  /socket/market-buy:
+    $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-buy'
+  /socket/market-inventory-list:
+    $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-inventory-list'
+  /socket/market-ledger-list:
+    $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-ledger-list'
+  /socket/market-list:
+    $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-list'
+  /socket/market-list-by-location:
+    $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-list-by-location'
+  /socket/market-quote:
+    $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-quote'
+  /socket/market-sell:
+    $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-sell'
+  /socket/context-distance:
+    $ref: './openapi/context/openapi.yaml#/paths/~1socket~1context-distance'
+  /socket/context-routing:
+    $ref: './openapi/context/openapi.yaml#/paths/~1socket~1context-routing'
+  /socket/solar-system-get:
+    $ref: './openapi/solarsystem/openapi.yaml#/paths/~1socket~1solar-system-get'
+  /socket/solar-system-list:
+    $ref: './openapi/solarsystem/openapi.yaml#/paths/~1socket~1solar-system-list'
+  /socket/star-get:
+    $ref: './openapi/stars/openapi.yaml#/paths/~1socket~1star-get'
+  /socket/star-list:
+    $ref: './openapi/stars/openapi.yaml#/paths/~1socket~1star-list'
+  /socket/credit-ledger-list:
+    $ref: './openapi/ledger/openapi.yaml#/paths/~1socket~1credit-ledger-list'
+  /socket/game-join:
+    $ref: './openapi/game/openapi.yaml#/paths/~1socket~1game-join'
+  /socket/game-leave:
+    $ref: './openapi/game/openapi.yaml#/paths/~1socket~1game-leave'
+  /socket/game-state:
+    $ref: './openapi/game/openapi.yaml#/paths/~1socket~1game-state'
+  /socket/character-bust-create:
+    $ref: './openapi/bust/openapi.yaml#/paths/~1socket~1character-bust-create'
+  /socket/character-bust-read:
+    $ref: './openapi/bust/openapi.yaml#/paths/~1socket~1character-bust-read'
+  /socket/character-bust-update:
+    $ref: './openapi/bust/openapi.yaml#/paths/~1socket~1character-bust-update'
+  /socket/npc-bust-create:
+    $ref: './openapi/bust/openapi.yaml#/paths/~1socket~1npc-bust-create'
+  /socket/npc-bust-read:
+    $ref: './openapi/bust/openapi.yaml#/paths/~1socket~1npc-bust-read'
+  /socket/npc-bust-update:
+    $ref: './openapi/bust/openapi.yaml#/paths/~1socket~1npc-bust-update'
+  /socket/ping:
+    $ref: './openapi/realtime/openapi.yaml#/paths/~1socket~1ping'
+  /socket/message:
+    $ref: './openapi/realtime/openapi.yaml#/paths/~1socket~1message'
+  /socket/welcome:
+    $ref: './openapi/realtime/openapi.yaml#/paths/~1socket~1welcome'
+  /socket/invalid-session:
+    $ref: './openapi/realtime/openapi.yaml#/paths/~1socket~1invalid-session'
+  /socket/ship-list-by-npc-owner:
+    $ref: './openapi/ship/openapi.yaml#/paths/~1socket~1ship-list-by-npc-owner'
+  /socket/item-list-by-owner:
+    $ref: './openapi/items/openapi.yaml#/paths/~1socket~1item-list-by-owner'
+  /socket/ship-salvage-claim:
+    $ref: './openapi/ship/openapi.yaml#/paths/~1socket~1ship-salvage-claim'
+  /socket/ship-piracy-seize:
+    $ref: './openapi/ship/openapi.yaml#/paths/~1socket~1ship-piracy-seize'
+  /socket/market-listing-create:
+    $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-listing-create'
+  /socket/market-offer-create:
+    $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-offer-create'
+  /socket/market-offer-accept:
+    $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-offer-accept'
+components:
+  schemas:
+    BustDescriptor:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/BustDescriptor'
+    BustBlockedSaveResponse:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/BustBlockedSaveResponse'
+    BustValidationErrorResponse:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/BustValidationErrorResponse'
+    CharacterBustCreateRequest:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/CharacterBustCreateRequest'
+    CharacterBustCreateResponse:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/CharacterBustCreateResponse'
+    CharacterBustReadRequest:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/CharacterBustReadRequest'
+    CharacterBustReadResponse:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/CharacterBustReadResponse'
+    CharacterBustUpdateRequest:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/CharacterBustUpdateRequest'
+    CharacterBustUpdateResponse:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/CharacterBustUpdateResponse'
+    NpcBustCreateRequest:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/NpcBustCreateRequest'
+    NpcBustCreateResponse:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/NpcBustCreateResponse'
+    NpcBustReadRequest:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/NpcBustReadRequest'
+    NpcBustReadResponse:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/NpcBustReadResponse'
+    NpcBustUpdateRequest:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/NpcBustUpdateRequest'
+    NpcBustUpdateResponse:
+      $ref: './openapi/bust/openapi.yaml#/components/schemas/NpcBustUpdateResponse'
+    CatalogItemDefinition:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/CatalogItemDefinition'
+    CelestialBodyListRequest:
+      $ref: './openapi/celestial/openapi.yaml#/components/schemas/CelestialBodyListRequest'
+    CelestialBodyListResponse:
+      $ref: './openapi/celestial/openapi.yaml#/components/schemas/CelestialBodyListResponse'
+    CelestialBodyUpsertRequest:
+      $ref: './openapi/celestial/openapi.yaml#/components/schemas/CelestialBodyUpsertRequest'
+    CelestialBodyUpsertResponse:
+      $ref: './openapi/celestial/openapi.yaml#/components/schemas/CelestialBodyUpsertResponse'
+    CharacterAddRequest:
+      $ref: './openapi/character/openapi.yaml#/components/schemas/CharacterAddRequest'
+    CharacterAddResponse:
+      $ref: './openapi/character/openapi.yaml#/components/schemas/CharacterAddResponse'
+    CharacterDeleteRequest:
+      $ref: './openapi/character/openapi.yaml#/components/schemas/CharacterDeleteRequest'
+    CharacterDeleteResponse:
+      $ref: './openapi/character/openapi.yaml#/components/schemas/CharacterDeleteResponse'
+    CharacterEditRequest:
+      $ref: './openapi/character/openapi.yaml#/components/schemas/CharacterEditRequest'
+    CharacterEditResponse:
+      $ref: './openapi/character/openapi.yaml#/components/schemas/CharacterEditResponse'
+    CharacterListRequest:
+      $ref: './openapi/character/openapi.yaml#/components/schemas/CharacterListRequest'
+    CharacterListResponse:
+      $ref: './openapi/character/openapi.yaml#/components/schemas/CharacterListResponse'
+    ContextDistanceRequest:
+      $ref: './openapi/context/openapi.yaml#/components/schemas/ContextDistanceRequest'
+    ContextDistanceResponse:
+      $ref: './openapi/context/openapi.yaml#/components/schemas/ContextDistanceResponse'
+    ContextRoutingRequest:
+      $ref: './openapi/context/openapi.yaml#/components/schemas/ContextRoutingRequest'
+    ContextRoutingResponse:
+      $ref: './openapi/context/openapi.yaml#/components/schemas/ContextRoutingResponse'
+    CreditLedgerListRequest:
+      $ref: './openapi/ledger/openapi.yaml#/components/schemas/CreditLedgerListRequest'
+    CreditLedgerListResponse:
+      $ref: './openapi/ledger/openapi.yaml#/components/schemas/CreditLedgerListResponse'
+    ErrorResponse:
+      $ref: './openapi/_shared/schemas.yaml#/components/schemas/ErrorResponse'
+    ExternalObjectDescriptor:
+      $ref: './openapi/_shared/schemas.yaml#/components/schemas/ExternalObjectDescriptor'
+    ExternalObjectGateLandmarkPayload:
+      $ref: './openapi/_shared/schemas.yaml#/components/schemas/ExternalObjectGateLandmarkPayload'
+    ExternalObjectDescriptorPayload:
+      $ref: './openapi/_shared/schemas.yaml#/components/schemas/ExternalObjectDescriptorPayload'
+    GameJoinRequest:
+      $ref: './openapi/game/openapi.yaml#/components/schemas/GameJoinRequest'
+    GameJoinResponse:
+      $ref: './openapi/game/openapi.yaml#/components/schemas/GameJoinResponse'
+    GameLeaveRequest:
+      $ref: './openapi/game/openapi.yaml#/components/schemas/GameLeaveRequest'
+    GameLeaveResponse:
+      $ref: './openapi/game/openapi.yaml#/components/schemas/GameLeaveResponse'
+    GameState:
+      $ref: './openapi/game/openapi.yaml#/components/schemas/GameState'
+    Heartbeat:
+      $ref: './openapi/realtime/openapi.yaml#/components/schemas/Heartbeat'
+    Item:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/Item'
+    ItemListByContainerRequest:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/ItemListByContainerRequest'
+    ItemListByContainerResponse:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/ItemListByContainerResponse'
+    ItemListByLocationRequest:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/ItemListByLocationRequest'
+    ItemListByLocationResponse:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/ItemListByLocationResponse'
+    ItemRemoveRequest:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/ItemRemoveRequest'
+    ItemRemoveResponse:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/ItemRemoveResponse'
+    ItemUpsertRequest:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/ItemUpsertRequest'
+    ItemUpsertResponse:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/ItemUpsertResponse'
+    InvalidSessionResponse:
+      $ref: './openapi/realtime/openapi.yaml#/components/schemas/InvalidSessionResponse'
+    LaunchItemRequest:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/LaunchItemRequest'
+    LaunchItemResponse:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/LaunchItemResponse'
+    LoginRequest:
+      $ref: './openapi/auth/openapi.yaml#/components/schemas/LoginRequest'
+    LoginResponse:
+      $ref: './openapi/auth/openapi.yaml#/components/schemas/LoginResponse'
+    MarketBuyRequest:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketBuyRequest'
+    MarketBuyResponse:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketBuyResponse'
+    MarketInventoryListRequest:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketInventoryListRequest'
+    MarketInventoryListResponse:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketInventoryListResponse'
+    MarketLedgerListRequest:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketLedgerListRequest'
+    MarketLedgerListResponse:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketLedgerListResponse'
+    MarketListByLocationRequest:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketListByLocationRequest'
+    MarketListByLocationResponse:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketListByLocationResponse'
+    MarketListRequest:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketListRequest'
+    MarketListResponse:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketListResponse'
+    MarketQuoteRequest:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketQuoteRequest'
+    MarketQuoteResponse:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketQuoteResponse'
+    MessageRequest:
+      $ref: './openapi/realtime/openapi.yaml#/components/schemas/MessageRequest'
+    MessageResponse:
+      $ref: './openapi/realtime/openapi.yaml#/components/schemas/MessageResponse'
+    MarketSellRequest:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketSellRequest'
+    MarketSellResponse:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketSellResponse'
+    MissionListRequest:
+      $ref: './openapi/mission/openapi.yaml#/components/schemas/MissionListRequest'
+    MissionListResponse:
+      $ref: './openapi/mission/openapi.yaml#/components/schemas/MissionListResponse'
+    MissionUpsertRequest:
+      $ref: './openapi/mission/openapi.yaml#/components/schemas/MissionUpsertRequest'
+    MissionUpsertResponse:
+      $ref: './openapi/mission/openapi.yaml#/components/schemas/MissionUpsertResponse'
+    PingRequest:
+      $ref: './openapi/realtime/openapi.yaml#/components/schemas/PingRequest'
+    PongResponse:
+      $ref: './openapi/realtime/openapi.yaml#/components/schemas/PongResponse'
+    RegisterRequest:
+      $ref: './openapi/auth/openapi.yaml#/components/schemas/RegisterRequest'
+    RegisterResponse:
+      $ref: './openapi/auth/openapi.yaml#/components/schemas/RegisterResponse'
+    ShipListRequest:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipListRequest'
+    ShipListResponse:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipListResponse'
+    ShipListByOwnerRequest:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipListByOwnerRequest'
+    ShipListByOwnerResponse:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipListByOwnerResponse'
+    ShipTransferRequest:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipTransferRequest'
+    ShipTransferResponse:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipTransferResponse'
+    ShipUpsertRequest:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipUpsertRequest'
+    ShipUpsertResponse:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipUpsertResponse'
+    StarGetRequest:
+      $ref: './openapi/stars/openapi.yaml#/components/schemas/StarGetRequest'
+    StarGetResponse:
+      $ref: './openapi/stars/openapi.yaml#/components/schemas/StarGetResponse'
+    StarListRequest:
+      $ref: './openapi/stars/openapi.yaml#/components/schemas/StarListRequest'
+    StarListResponse:
+      $ref: './openapi/stars/openapi.yaml#/components/schemas/StarListResponse'
+    SolarSystemGetRequest:
+      $ref: './openapi/solarsystem/openapi.yaml#/components/schemas/SolarSystemGetRequest'
+    SolarSystemGetResponse:
+      $ref: './openapi/solarsystem/openapi.yaml#/components/schemas/SolarSystemGetResponse'
+    SolarSystemListRequest:
+      $ref: './openapi/solarsystem/openapi.yaml#/components/schemas/SolarSystemListRequest'
+    SolarSystemListResponse:
+      $ref: './openapi/solarsystem/openapi.yaml#/components/schemas/SolarSystemListResponse'
+    TractorBeamActivateRequest:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/TractorBeamActivateRequest'
+    TractorBeamActivateResponse:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/TractorBeamActivateResponse'
+    MarketListingCreateRequest:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketListingCreateRequest'
+    MarketListingCreateResponse:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketListingCreateResponse'
+    MarketOfferCreateRequest:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketOfferCreateRequest'
+    MarketOfferCreateResponse:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketOfferCreateResponse'
+    MarketOfferAcceptRequest:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketOfferAcceptRequest'
+    MarketOfferAcceptResponse:
+      $ref: './openapi/market/openapi.yaml#/components/schemas/MarketOfferAcceptResponse'
+    ShipListByNpcOwnerRequest:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipListByNpcOwnerRequest'
+    ShipListByNpcOwnerResponse:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipListByNpcOwnerResponse'
+    ItemListByOwnerRequest:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/ItemListByOwnerRequest'
+    ItemListByOwnerResponse:
+      $ref: './openapi/items/openapi.yaml#/components/schemas/ItemListByOwnerResponse'
+    ShipSalvageClaimRequest:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipSalvageClaimRequest'
+    ShipSalvageClaimResponse:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipSalvageClaimResponse'
+    ShipPiracySeizeRequest:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipPiracySeizeRequest'
+    ShipPiracySeizeResponse:
+      $ref: './openapi/ship/openapi.yaml#/components/schemas/ShipPiracySeizeResponse'
+    UnknownMessage:
+      $ref: './openapi/realtime/openapi.yaml#/components/schemas/UnknownMessage'
+    WelcomeEvent:
+      $ref: './openapi/realtime/openapi.yaml#/components/schemas/WelcomeEvent'

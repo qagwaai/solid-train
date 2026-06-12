@@ -1,0 +1,179 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - SolarSystem
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: SolarSystem
+paths:
+  /socket/solar-system-get:
+    post:
+      summary: solar-system-get-request
+      description: |
+        Resolves a solar system by id, seeds its canonical celestial bodies on demand,
+        and returns both the system summary and its materialized bodies.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - `solarSystem`, `stars`, and `bodies` are present on success.
+        - Mission-generated asteroids are normalized into canonical asteroid viewer shape.
+        - Failure responses omit `solarSystem`, `stars`, and `bodies`.
+      operationId: socketSolarSystemGet
+      tags: [SolarSystem]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolarSystemGetRequest'
+            examples:
+              getSystem:
+                summary: Retrieve a solar system snapshot with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                  requestIdentity:
+                    operation: solar-system-get
+                    entityType: solar-system
+                    containerId: alpha-centauri
+                  solarSystemId: alpha-centauri
+      responses:
+        '200':
+          description: solar-system-get-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolarSystemGetResponse'
+              examples:
+                successfulSolarSystemGet:
+                  summary: Successful system lookup returns summary, stars, and bodies
+                  value:
+                    success: true
+                    message: Solar system retrieved successfully
+                    playerName: PilotOne
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: solar-system-get
+                      entityType: solar-system
+                      containerId: alpha-centauri
+                    solarSystemId: alpha-centauri
+                    solarSystem:
+                      id: alpha-centauri
+                      displayName: Alpha Centauri
+                      isMultiStar: true
+                    stars:
+                      - id: alpha-centauri-a
+                        bodyType: star
+                    bodies:
+                      - id: alpha-centauri-a
+                        bodyType: star
+                      - id: planet-1
+                        bodyType: planet
+                    requestId: req-1
+                failedSolarSystemGet:
+                  summary: Unknown systems return a failure payload without body arrays
+                  value:
+                    success: false
+                    message: Unknown solar system
+                    playerName: PilotOne
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: solar-system-get
+                      entityType: solar-system
+                      containerId: not-a-system
+                    solarSystemId: not-a-system
+                    requestId: req-1
+
+  /socket/solar-system-list:
+    post:
+      summary: solar-system-list-request
+      description: |
+        Returns solar systems from the registry, optionally filtered by source,
+        search text, and maximum distance.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - Systems are sorted by increasing distance.
+        - Optional count fields such as `planetCount`, `moonCount`, `asteroidCount`,
+          and `marketCount` are included when enrichment succeeds.
+        - Failure responses return an empty `solarSystems` array.
+      operationId: socketSolarSystemList
+      tags: [SolarSystem]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolarSystemListRequest'
+            examples:
+              listSystems:
+                summary: Retrieve solar systems with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 05bf6f98-a26f-4ccb-aa53-ef81259e8303
+                  requestIdentity:
+                    operation: solar-system-list
+                    entityType: solar-system
+                    containerId: registry
+      responses:
+        '200':
+          description: solar-system-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolarSystemListResponse'
+              examples:
+                successfulSolarSystemList:
+                  summary: Successful registry query returns enriched solar system summaries
+                  value:
+                    success: true
+                    message: Solar system list retrieved successfully
+                    playerName: PilotOne
+                    correlationId: 05bf6f98-a26f-4ccb-aa53-ef81259e8303
+                    requestIdentity:
+                      operation: solar-system-list
+                      entityType: solar-system
+                      containerId: registry
+                    requestId: req-42
+                    solarSystems:
+                      - id: sol
+                        displayName: Sol
+                        source: curated
+                        distanceParsec: 0
+                        planetCount: 2
+                        moonCount: 1
+                        asteroidCount: 1
+                        marketCount: 2
+                failedSolarSystemList:
+                  summary: Invalid source values return failure with an empty system list
+                  value:
+                    success: false
+                    message: 'source must be one of: curated, procedural'
+                    playerName: PilotOne
+                    correlationId: 05bf6f98-a26f-4ccb-aa53-ef81259e8303
+                    requestIdentity:
+                      operation: solar-system-list
+                      entityType: solar-system
+                      containerId: registry
+                    solarSystems: []
+components:
+  schemas:
+    SolarSystemGetRequest:
+      $ref: '../../schemas/solar-system-get-request.schema.json'
+    SolarSystemGetResponse:
+      $ref: '../../schemas/solar-system-get-response.schema.json'
+    SolarSystemListRequest:
+      $ref: '../../schemas/solar-system-list-request.schema.json'
+    SolarSystemListResponse:
+      $ref: '../../schemas/solar-system-list-response.schema.json'

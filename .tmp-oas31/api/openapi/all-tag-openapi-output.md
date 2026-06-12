@@ -1,0 +1,5191 @@
+```yaml
+# api/openapi/utility/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Utility
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Utility
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      tags: [Utility]
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+components:
+  schemas:
+    {}
+
+```
+
+```yaml
+# api/openapi/auth/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Auth
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Auth
+paths:
+  /socket/register:
+    post:
+      summary: register
+      operationId: socketRegister
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: register-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        default:
+          description: error-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /socket/login:
+    post:
+      summary: login
+      operationId: socketLogin
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: login-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        default:
+          description: error-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ErrorResponse:
+      $ref: '../_shared/schemas.yaml#/components/schemas/ErrorResponse'
+    LoginRequest:
+      $ref: '../schemas/login-request.schema.json'
+    LoginResponse:
+      $ref: '../schemas/login-response.schema.json'
+    RegisterRequest:
+      $ref: '../schemas/register-request.schema.json'
+    RegisterResponse:
+      $ref: '../schemas/register-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/character/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Character
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Character
+paths:
+  /socket/character-add:
+    post:
+      summary: character-add-request
+      description: |
+        Creates a new character for the authenticated player.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketCharacterAdd
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterAddRequest'
+            examples:
+              createCharacter:
+                summary: Create a player character with correlation metadata
+                value:
+                  playerName: BuilderPilot
+                  sessionKey: session-123
+                  correlationId: 3b7d0a6d-3b44-4d6f-9d82-6bbf8e16f522
+                  requestIdentity:
+                    operation: character-add
+                    entityType: character
+                    containerId: player-builderpilot
+                  characterName: RangerOne
+      responses:
+        '200':
+          description: character-add-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterAddResponse'
+              examples:
+                successfulCharacterAdd:
+                  summary: Success echoes correlation metadata with the new character id
+                  value:
+                    success: true
+                    message: Character added successfully
+                    playerName: BuilderPilot
+                    characterName: RangerOne
+                    characterId: character-1
+                    correlationId: 3b7d0a6d-3b44-4d6f-9d82-6bbf8e16f522
+                    requestIdentity:
+                      operation: character-add
+                      entityType: character
+                      containerId: player-builderpilot
+                failedCharacterAdd:
+                  summary: Failure still echoes correlation metadata
+                  value:
+                    success: false
+                    message: Character name is required
+                    playerName: BuilderPilot
+                    characterName: ''
+                    characterId: ''
+                    correlationId: 3b7d0a6d-3b44-4d6f-9d82-6bbf8e16f522
+                    requestIdentity:
+                      operation: character-add
+                      entityType: character
+                      containerId: player-builderpilot
+
+  /socket/character-delete:
+    post:
+      summary: character-delete-request
+      description: |
+        Deletes an existing character from the authenticated player's roster.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketCharacterDelete
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterDeleteRequest'
+            examples:
+              deleteCharacter:
+                summary: Delete an existing character with correlation metadata
+                value:
+                  playerName: DeletePilot
+                  sessionKey: session-123
+                  correlationId: c157c8a1-d7aa-4e66-8654-03fd69acb57d
+                  requestIdentity:
+                    operation: character-delete
+                    entityType: character
+                    containerId: character-1
+                  characterId: character-1
+      responses:
+        '200':
+          description: character-delete-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterDeleteResponse'
+              examples:
+                successfulCharacterDelete:
+                  summary: Success echoes correlation metadata with deleted character context
+                  value:
+                    success: true
+                    message: Character deleted successfully
+                    playerName: DeletePilot
+                    characterId: character-1
+                    correlationId: c157c8a1-d7aa-4e66-8654-03fd69acb57d
+                    requestIdentity:
+                      operation: character-delete
+                      entityType: character
+                      containerId: character-1
+                failedCharacterDelete:
+                  summary: Failure still echoes correlation metadata
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: DeletePilot
+                    characterId: missing-character-id
+                    correlationId: c157c8a1-d7aa-4e66-8654-03fd69acb57d
+                    requestIdentity:
+                      operation: character-delete
+                      entityType: character
+                      containerId: missing-character-id
+
+  /socket/character-edit:
+    post:
+      summary: character-edit-request
+      description: |
+        Updates a character's display name.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketCharacterEdit
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterEditRequest'
+            examples:
+              renameCharacter:
+                summary: Rename an existing character for a player
+                value:
+                  playerName: EditPilot
+                  sessionKey: session-123
+                  correlationId: f4740f89-47a4-4c43-914e-08c4f4c2fe16
+                  requestIdentity:
+                    operation: character-edit
+                    entityType: character
+                    containerId: character-1
+                  characterId: character-1
+                  characterName: NewName
+      responses:
+        '200':
+          description: character-edit-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterEditResponse'
+              examples:
+                successfulEdit:
+                  summary: Successful response echoes correlation identity
+                  value:
+                    success: true
+                    message: Character edited successfully
+                    playerName: EditPilot
+                    characterId: character-1
+                    characterName: NewName
+                    correlationId: f4740f89-47a4-4c43-914e-08c4f4c2fe16
+                    requestIdentity:
+                      operation: character-edit
+                      entityType: character
+                      containerId: character-1
+                failedEdit:
+                  summary: Validation failure still echoes correlation identity
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: EditPilot
+                    characterId: missing-character-id
+                    characterName: GhostName
+                    correlationId: 87f7dd0a-6022-4c7a-b3b1-6b98aac0e0d9
+                    requestIdentity:
+                      operation: character-edit
+                      entityType: character
+                      containerId: missing-character-id
+
+  /socket/character-list:
+    post:
+      summary: character-list-request
+      description: |
+        Returns the current player's character summaries.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - The server returns a defensive copy of the current character list.
+        - `id` and `characterName` are the stable minimum fields on each character.
+        - Additional canonical fields such as ships, credit ledger, and joined-game
+          activity metadata may be present when available.
+      operationId: socketCharacterList
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterListRequest'
+            examples:
+              listCharacters:
+                summary: Retrieve the current character roster with correlation metadata
+                value:
+                  playerName: CharacterPilot
+                  sessionKey: session-123
+                  correlationId: 7967d54c-7843-4450-89b6-8d8a63fdcfbb
+                  requestIdentity:
+                    operation: character-list
+                    entityType: character
+                    containerId: player-characterpilot
+      responses:
+        '200':
+          description: character-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterListResponse'
+              examples:
+                minimalCharacterSummary:
+                  summary: Minimal successful response with stable summary fields
+                  value:
+                    success: true
+                    message: Character list retrieved successfully
+                    playerName: CharacterPilot
+                    correlationId: 7967d54c-7843-4450-89b6-8d8a63fdcfbb
+                    requestIdentity:
+                      operation: character-list
+                      entityType: character
+                      containerId: player-characterpilot
+                    characters:
+                      - id: character-1
+                        characterName: RangerOne
+                richCharacterSummary:
+                  summary: Character list may include ships, credits, and joined-game activity fields
+                  value:
+                    success: true
+                    message: Character list retrieved successfully
+                    playerName: ActivityPilot
+                    correlationId: b3758e6c-b605-4695-8f4d-2c4041f8fc55
+                    requestIdentity:
+                      operation: character-list
+                      entityType: character
+                      containerId: player-activitypilot
+                    characters:
+                      - id: character-1
+                        characterName: RangerOne
+                        credits: 500
+                        inGame: true
+                        gameJoinedAt: '2026-04-17T00:00:00.000Z'
+                        gameLastMessageReceivedAt: '2026-04-17T00:15:00.000Z'
+                        ships:
+                          - id: ship-1
+                            model: Scavenger Pod
+                            tier: 1
+                failedCharacterList:
+                  summary: Failure returns an empty character list
+                  value:
+                    success: false
+                    message: Player is not registered
+                    playerName: GhostPilot
+                    correlationId: 5ec4e0b0-f37d-4d8b-b025-2435ad11eb58
+                    requestIdentity:
+                      operation: character-list
+                      entityType: character
+                      containerId: player-ghostpilot
+                    characters: []
+components:
+  schemas:
+    CharacterAddRequest:
+      $ref: '../schemas/character-add-request.schema.json'
+    CharacterAddResponse:
+      $ref: '../schemas/character-add-response.schema.json'
+    CharacterDeleteRequest:
+      $ref: '../schemas/character-delete-request.schema.json'
+    CharacterDeleteResponse:
+      $ref: '../schemas/character-delete-response.schema.json'
+    CharacterEditRequest:
+      $ref: '../schemas/character-edit-request.schema.json'
+    CharacterEditResponse:
+      $ref: '../schemas/character-edit-response.schema.json'
+    CharacterListRequest:
+      $ref: '../schemas/character-list-request.schema.json'
+    CharacterListResponse:
+      $ref: '../schemas/character-list-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/ship/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Ship
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Ship
+paths:
+  /socket/ship-list:
+    post:
+      summary: ship-list-request
+      description: |
+        Returns canonical ship payloads for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Cold-boot starter ships are server-authoritative for damaged starter subsystems.
+        For ships where `model` is `Scavenger Pod` and `damageProfile.origin` is
+        `cold-boot-scripted`, the server includes these subsystem records as real
+        `ShipItem` entries in `ships[].inventory` when missing from persistence:
+        - `propulsion-manifold`
+        - `sensor-array`
+        - `power-distribution-bus`
+        - `ship-tractor-beam`
+
+        Backfilled subsystem items are contained ship inventory with canonical item shape:
+        - `state: contained`
+        - `damageStatus: damaged`
+        - `container.containerType: ship`
+        - `container.containerId: <ship id>`
+        - `spatial: null`
+        - `launchable: false`
+
+        Item ids are deterministic per ship: `<shipId>-starter-<itemType>`.
+        Non-cold-boot ships are not injected.
+      operationId: socketShipList
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipListRequest'
+            examples:
+              listShipsForCharacter:
+                summary: Retrieve canonical ships for a character with correlation metadata
+                value:
+                  playerName: ColdBootPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 96bc42e5-a4f7-42fb-82af-88aa67a79085
+                  requestIdentity:
+                    operation: ship-list
+                    entityType: ship
+                    containerId: character-1
+      responses:
+        '200':
+          description: ship-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipListResponse'
+              examples:
+                coldBootStarterShipInventory:
+                  summary: Cold-boot Scavenger Pod includes damaged subsystem ShipItems
+                  value:
+                    success: true
+                    message: Ship list retrieved successfully
+                    playerName: ColdBootPilot
+                    characterId: character-1
+                    correlationId: 96bc42e5-a4f7-42fb-82af-88aa67a79085
+                    requestIdentity:
+                      operation: ship-list
+                      entityType: ship
+                      containerId: character-1
+                    ships:
+                      - id: ship-1
+                        name: Scavenger Pod
+                        status: null
+                        model: Scavenger Pod
+                        tier: 1
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        inventory:
+                          - id: ship-1-starter-propulsion-manifold
+                            itemType: propulsion-manifold
+                            displayName: Propulsion Manifold
+                            launchable: false
+                            state: contained
+                            damageStatus: damaged
+                            container:
+                              containerType: ship
+                              containerId: ship-1
+                            owningPlayerId: player-cold-boot
+                            owningCharacterId: character-1
+                            spatial: null
+                            createdAt: '2026-04-17T00:00:00.000Z'
+                            updatedAt: '2026-04-17T00:00:00.000Z'
+                          - id: ship-1-starter-sensor-array
+                            itemType: sensor-array
+                            displayName: Sensor Array
+                            launchable: false
+                            state: contained
+                            damageStatus: damaged
+                            container:
+                              containerType: ship
+                              containerId: ship-1
+                            owningPlayerId: player-cold-boot
+                            owningCharacterId: character-1
+                            spatial: null
+                            createdAt: '2026-04-17T00:00:00.000Z'
+                            updatedAt: '2026-04-17T00:00:00.000Z'
+                          - id: ship-1-starter-power-distribution-bus
+                            itemType: power-distribution-bus
+                            displayName: Power Distribution Bus
+                            launchable: false
+                            state: contained
+                            damageStatus: damaged
+                            container:
+                              containerType: ship
+                              containerId: ship-1
+                            owningPlayerId: player-cold-boot
+                            owningCharacterId: character-1
+                            spatial: null
+                            createdAt: '2026-04-17T00:00:00.000Z'
+                            updatedAt: '2026-04-17T00:00:00.000Z'
+                          - id: ship-1-starter-ship-tractor-beam
+                            itemType: ship-tractor-beam
+                            displayName: Tractor Beam
+                            launchable: false
+                            state: contained
+                            damageStatus: damaged
+                            container:
+                              containerType: ship
+                              containerId: ship-1
+                            owningPlayerId: player-cold-boot
+                            owningCharacterId: character-1
+                            spatial: null
+                            createdAt: '2026-04-17T00:00:00.000Z'
+                            updatedAt: '2026-04-17T00:00:00.000Z'
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 0
+                            y: 0
+                            z: 0
+                          epochMs: 0
+                        launchable: true
+                        damageProfile:
+                          overallStatus: damaged
+                          summary: Starter cold boot damage profile
+                          origin: cold-boot-scripted
+                          updatedAt: '2026-04-17T00:00:00.000Z'
+                          systems:
+                            - code: propulsion-manifold
+                              label: Propulsion Manifold
+                              severity: major
+                              summary: Offline
+                              repairPriority: 1
+                            - code: sensor-array
+                              label: Sensor Array
+                              severity: major
+                              summary: Degraded
+                              repairPriority: 2
+                            - code: power-distribution-bus
+                              label: Power Distribution Bus
+                              severity: major
+                              summary: Unstable
+                              repairPriority: 3
+                failedShipList:
+                  summary: Failure returns an empty ship list with player and character context
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: EdgePilot
+                    characterId: missing-character-id
+                    correlationId: ea3182b7-3a35-431f-a61d-2e3dd4e42dcb
+                    requestIdentity:
+                      operation: ship-list
+                      entityType: ship
+                      containerId: missing-character-id
+                    ships: []
+
+  /socket/ship-upsert:
+    post:
+      summary: ship-upsert-request
+      description: |
+        Updates a ship for the active character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        `ship` is a partial patch object. Patch intent for nested sections is based on
+        property presence in the request payload.
+
+        Inventory patch semantics:
+        - When `ship.inventory` is present, the server applies the provided inventory
+          patch for the target ship.
+        - Inventory entries may be either canonical ShipItem rows (with `id`,
+          `itemType`, and `displayName`) or compact item references
+          (`itemId` + `itemType`).
+        - When `ship.inventory` is omitted, the server preserves the ship's existing
+          inventory references.
+
+        Ownership behavior:
+        - `ship.ownership` is strict for ownership mutations.
+        - Cross-player mutation attempts are rejected with
+          `reason: SHIP_OWNERSHIP_MISMATCH`.
+        - Transitioning from `ownerType: unknown` to `ownerType: player-character`
+          requires a claim token and is rejected with
+          `reason: OWNERSHIP_CLAIM_TOKEN_REQUIRED` when omitted.
+
+        Legacy compatibility:
+        - Legacy `ship.location` and `ship.kinematics` fields are rejected.
+          Use canonical `ship.spatial` and optional `ship.motion`.
+      operationId: socketShipUpsert
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipUpsertRequest'
+            examples:
+              inventoryPatchApplied:
+                summary: Inventory patch using canonical ShipItem rows
+                value:
+                  playerName: TestPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: cf88c640-35fd-407d-9ad8-6ef8ed6f423c
+                  requestIdentity:
+                    operation: ship-upsert
+                    entityType: ship
+                    containerId: ship-1
+                  ship:
+                    id: ship-1
+                    inventory:
+                      - id: hull-patch-kit-1
+                        itemType: hull-patch-kit
+                        displayName: Hull Patch Kit
+                        state: contained
+                        damageStatus: intact
+              inventoryPreservedWhenOmitted:
+                summary: Existing inventory is preserved when ship.inventory is omitted
+                value:
+                  playerName: TestPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 9ed4ac7d-bf52-43c8-9f87-43519bc24f78
+                  requestIdentity:
+                    operation: ship-upsert
+                    entityType: ship
+                    containerId: ship-1
+                  ship:
+                    id: ship-1
+                    damageProfile:
+                      hull:
+                        status: intact
+      responses:
+        '200':
+          description: ship-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipUpsertResponse'
+              examples:
+                successfulShipUpsert:
+                  summary: Successful ship upsert returns the updated ship payload
+                  value:
+                    success: true
+                    message: Ship updated successfully
+                    playerName: TestPilot
+                    characterId: character-1
+                    correlationId: cf88c640-35fd-407d-9ad8-6ef8ed6f423c
+                    requestIdentity:
+                      operation: ship-upsert
+                      entityType: ship
+                      containerId: ship-1
+                    ship:
+                      id: ship-1
+                      model: Reaver Hauler
+                      tier: 2
+                failedShipUpsert:
+                  summary: Validation failure omits the ship payload
+                  value:
+                    success: false
+                    message: playerName, characterId, and ship.id are required
+                    playerName: TestPilot
+                    characterId: character-1
+                    correlationId: 9ed4ac7d-bf52-43c8-9f87-43519bc24f78
+                    requestIdentity:
+                      operation: ship-upsert
+                      entityType: ship
+                      containerId: ship-1
+                ownershipMismatchFailure:
+                  summary: Cross-player ownership mutation is rejected with explicit reason
+                  value:
+                    success: false
+                    reason: SHIP_OWNERSHIP_MISMATCH
+                    message: Ship ownership mismatch for requested mutation
+                    playerName: MismatchIntruder
+                    characterId: character-2
+                    correlationId: 6632ab5c-c8c9-40e7-ab8e-2d816f876e00
+                    requestIdentity:
+                      operation: ship-upsert
+                      entityType: ship
+                      containerId: ship-1
+                claimTokenRequiredFailure:
+                  summary: Unknown to player-character transition requires explicit claimToken
+                  value:
+                    success: false
+                    reason: OWNERSHIP_CLAIM_TOKEN_REQUIRED
+                    message: Ownership transition unknown -> player-character requires claimToken
+                    playerName: ClaimTokenPilot
+                    characterId: character-1
+                    correlationId: 4b679f2c-1456-428d-8df1-df91bb7f8f26
+                    requestIdentity:
+                      operation: ship-upsert
+                      entityType: ship
+                      containerId: ship-1
+
+  /socket/ship-list-by-owner:
+    post:
+      summary: ship-list-by-owner-request
+      description: |
+        Returns ships that match the provided ownership descriptor.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - The response includes a normalized `owner` descriptor with explicit nullable
+          fields (`playerId`, `characterId`, `npcId`, `factionId`).
+        - Each returned ship includes a canonical `ownership` object.
+        - Each returned ship includes canonical `inventory` item payloads (not just
+          inventory references) when inventory exists server-side.
+        - Canonical `expendable-dart-drone` items are emitted with `launchable: true`.
+        - For cold-boot `Scavenger Pod` ships in first-target progression states,
+          inventory composition includes an `expendable-dart-drone` entry to preserve
+          launch progression readiness.
+        - Invalid sessions return `success: false`, `reason: INVALID_SESSION`, and
+          `ships: []`.
+      operationId: socketShipListByOwner
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipListByOwnerRequest'
+            examples:
+              playerCharacterOwner:
+                summary: List ships owned by a specific player-character
+                value:
+                  playerName: OwnerScopePilot
+                  sessionKey: session-123
+                  correlationId: 58f2cc38-68c6-48ba-ba3e-2ca78f65d926
+                  requestIdentity:
+                    operation: ship-list-by-owner
+                    entityType: ship
+                    containerId: player-character:character-1
+                  owner:
+                    ownerType: player-character
+                    characterId: character-1
+      responses:
+        '200':
+          description: ship-list-by-owner-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipListByOwnerResponse'
+              examples:
+                successfulOwnerList:
+                  summary: Successful owner query returns normalized owner and matching ships
+                  value:
+                    success: true
+                    message: Ship list by owner retrieved successfully
+                    correlationId: 58f2cc38-68c6-48ba-ba3e-2ca78f65d926
+                    requestIdentity:
+                      operation: ship-list-by-owner
+                      entityType: ship
+                      containerId: player-character:character-1
+                    owner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: character-1
+                      npcId: null
+                      factionId: null
+                    ships:
+                      - id: ship-1
+                        inventory:
+                          - id: character-1-ship-1-item-1
+                            itemType: expendable-dart-drone
+                            displayName: Expendable Dart Drone
+                            tier: 1
+                            state: contained
+                            damageStatus: intact
+                            launchable: true
+                            container:
+                              containerType: ship
+                              containerId: ship-1
+                        ownership:
+                          ownerType: player-character
+                          playerId: player-1
+                          characterId: character-1
+                          npcId: null
+                          factionId: null
+                invalidSession:
+                  summary: Invalid session returns empty ships with explicit reason
+                  value:
+                    success: false
+                    reason: INVALID_SESSION
+                    message: Invalid session
+                    correlationId: 58f2cc38-68c6-48ba-ba3e-2ca78f65d926
+                    requestIdentity:
+                      operation: ship-list-by-owner
+                      entityType: ship
+                      containerId: player-character:character-1
+                    ships: []
+
+  /socket/ship-transfer:
+    post:
+      summary: ship-transfer-request
+      description: |
+        Transfers ship ownership between valid owner descriptors.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Behavior notes:
+        - `toOwner` is required and must include `ownerType`.
+        - `fromOwner` is optional and can be used for caller-side transfer intent.
+        - `claimToken` is required for unknown -> player-character claim flows.
+        - Unauthorized player-character transfer attempts return
+          `reason: SHIP_TRANSFER_FORBIDDEN`.
+      operationId: socketShipTransfer
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipTransferRequest'
+            examples:
+              transferBetweenCharacters:
+                summary: Transfer from one player-character owner to another
+                value:
+                  playerName: TransferSuccessOwner
+                  sessionKey: session-owner
+                  correlationId: 3b49dfe3-f290-4f46-98f1-77dbe2d14b4c
+                  requestIdentity:
+                    operation: ship-transfer
+                    entityType: ship
+                    containerId: ship-1
+                  shipId: ship-1
+                  fromOwner:
+                    ownerType: player-character
+                    playerId: owner-player-id
+                    characterId: owner-character-id
+                    npcId: null
+                    factionId: null
+                  toOwner:
+                    ownerType: player-character
+                    playerId: recipient-player-id
+                    characterId: recipient-character-id
+                    npcId: null
+                    factionId: null
+              claimUnknownShip:
+                summary: Claim an unknown ship to player-character using claimToken
+                value:
+                  playerName: ClaimTokenPilot
+                  sessionKey: session-claim
+                  correlationId: 35ff5f80-b755-4d0b-b72a-cb24f017ab50
+                  requestIdentity:
+                    operation: ship-transfer
+                    entityType: ship
+                    containerId: unknown-ship-1
+                  shipId: unknown-ship-1
+                  fromOwner:
+                    ownerType: unknown
+                  toOwner:
+                    ownerType: player-character
+                    playerId: player-claim
+                    characterId: character-claim
+                    npcId: null
+                    factionId: null
+                  claimToken: test-claim-token
+      responses:
+        '200':
+          description: ship-transfer-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipTransferResponse'
+              examples:
+                successfulTransfer:
+                  summary: Successful transfer returns fromOwner and toOwner descriptors
+                  value:
+                    success: true
+                    message: Ship transferred successfully
+                    correlationId: 3b49dfe3-f290-4f46-98f1-77dbe2d14b4c
+                    requestIdentity:
+                      operation: ship-transfer
+                      entityType: ship
+                      containerId: ship-1
+                    shipId: ship-1
+                    fromOwner:
+                      ownerType: player-character
+                      playerId: owner-player-id
+                      characterId: owner-character-id
+                      npcId: null
+                      factionId: null
+                    toOwner:
+                      ownerType: player-character
+                      playerId: recipient-player-id
+                      characterId: recipient-character-id
+                      npcId: null
+                      factionId: null
+                forbiddenTransfer:
+                  summary: Unauthorized actor cannot transfer another player's ship
+                  value:
+                    success: false
+                    reason: SHIP_TRANSFER_FORBIDDEN
+                    message: Actor does not have permission to transfer this ship
+                    correlationId: 3b49dfe3-f290-4f46-98f1-77dbe2d14b4c
+                    requestIdentity:
+                      operation: ship-transfer
+                      entityType: ship
+                      containerId: ship-1
+                    shipId: ship-1
+                invalidSession:
+                  summary: Invalid session returns stable reason and no transfer payload
+                  value:
+                    success: false
+                    reason: INVALID_SESSION
+                    message: Invalid session
+                    correlationId: 3b49dfe3-f290-4f46-98f1-77dbe2d14b4c
+                    requestIdentity:
+                      operation: ship-transfer
+                      entityType: ship
+                      containerId: ship-1
+                    ships: []
+
+  /socket/ship-list-by-npc-owner:
+    post:
+      summary: ship-list-by-npc-owner-request
+      description: |
+        Returns ships currently owned by a specific NPC pirate.
+
+        Ownership contract:
+        - `npcOwner.ownerType` must be `npc-pirate`.
+        - `npcOwner.npcId` is required.
+        - Scans all character ship records for matching NPC ownership.
+        - No cross-player restriction — NPC ownership is not player-scoped.
+        - Ships appear here after piracy seizure via `ship-piracy-seize`.
+      operationId: socketShipListByNpcOwner
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipListByNpcOwnerRequest'
+      responses:
+        '200':
+          description: ship-list-by-npc-owner-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipListByNpcOwnerResponse'
+              examples:
+                success:
+                  summary: Returns ships owned by the specified NPC
+                  value:
+                    success: true
+                    npcOwner:
+                      ownerType: npc-pirate
+                      npcId: pirate-npc-1
+                      factionId: black-flag
+                    ships:
+                      - id: ship-1
+                        ownership:
+                          ownerType: npc-pirate
+                          npcId: pirate-npc-1
+                          factionId: black-flag
+                empty:
+                  summary: No ships owned by this NPC
+                  value:
+                    success: true
+                    npcOwner:
+                      ownerType: npc-pirate
+                      npcId: unknown-npc
+                    ships: []
+                invalidOwnerType:
+                  summary: Non-npc-pirate ownerType is rejected
+                  value:
+                    success: false
+                    reason: OWNERSHIP_VALIDATION_FAILED
+                    message: npcOwner.ownerType must be npc-pirate
+                    ships: []
+
+  /socket/ship-salvage-claim:
+    post:
+      summary: ship-salvage-claim-request
+      description: |
+        Allows a player-character to claim an `unknown` ship as salvage.
+
+        Ownership contract:
+        - `claimantOwner.ownerType` must be `player-character`.
+        - `claimantOwner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Target ship must currently have `ownerType: unknown`; already-owned ships are rejected.
+        - Produces an ownership history entry with reason `salvage`.
+      operationId: socketShipSalvageClaim
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipSalvageClaimRequest'
+      responses:
+        '200':
+          description: ship-salvage-claim-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipSalvageClaimResponse'
+              examples:
+                success:
+                  summary: Valid salvage claim of unknown ship
+                  value:
+                    success: true
+                    shipId: ship-1
+                    claimantOwner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                    previousOwnerType: unknown
+                    claimedAt: '2026-06-12T00:00:00.000Z'
+                crossPlayerForbidden:
+                  summary: Actor cannot claim salvage for another player
+                  value:
+                    success: false
+                    reason: SALVAGE_CLAIM_FORBIDDEN
+                    message: Actor does not have permission to claim salvage for another player
+                alreadyOwned:
+                  summary: Cannot claim an already-owned ship
+                  value:
+                    success: false
+                    reason: SALVAGE_ALREADY_OWNED
+                    message: Ship is already owned and cannot be salvage claimed
+
+  /socket/ship-piracy-seize:
+    post:
+      summary: ship-piracy-seize-request
+      description: |
+        Allows an NPC pirate to seize a `player-character` owned ship.
+
+        Ownership contract:
+        - `seizingOwner.ownerType` must be `npc-pirate`.
+        - Target ship must currently have `ownerType: player-character`; unowned/unknown ships cannot be seized.
+        - Produces an ownership history entry with reason `piracy`.
+      operationId: socketShipPiracySeize
+      tags: [Ship]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipPiracySeizeRequest'
+      responses:
+        '200':
+          description: ship-piracy-seize-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipPiracySeizeResponse'
+              examples:
+                success:
+                  summary: NPC pirate seizes player ship
+                  value:
+                    success: true
+                    shipId: ship-1
+                    seizingOwner:
+                      ownerType: npc-pirate
+                      npcId: pirate-npc-1
+                      factionId: black-flag
+                    previousOwner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                    seizedAt: '2026-06-12T00:00:00.000Z'
+                invalidTarget:
+                  summary: Cannot seize non-player-character ship
+                  value:
+                    success: false
+                    reason: PIRACY_SEIZE_INVALID_TARGET
+                    message: Piracy can only target player-character owned ships
+components:
+  schemas:
+    ShipListRequest:
+      $ref: '../schemas/ship-list-request.schema.json'
+    ShipListResponse:
+      $ref: '../schemas/ship-list-response.schema.json'
+    ShipListByOwnerRequest:
+      $ref: '../schemas/ship-list-by-owner-request.schema.json'
+    ShipListByOwnerResponse:
+      $ref: '../schemas/ship-list-by-owner-response.schema.json'
+    ShipTransferRequest:
+      $ref: '../schemas/ship-transfer-request.schema.json'
+    ShipTransferResponse:
+      $ref: '../schemas/ship-transfer-response.schema.json'
+    ShipUpsertRequest:
+      $ref: '../schemas/ship-upsert-request.schema.json'
+    ShipUpsertResponse:
+      $ref: '../schemas/ship-upsert-response.schema.json'
+    ShipListByNpcOwnerRequest:
+      $ref: '../schemas/ship-list-by-npc-owner-request.schema.json'
+    ShipListByNpcOwnerResponse:
+      $ref: '../schemas/ship-list-by-npc-owner-response.schema.json'
+    ShipSalvageClaimRequest:
+      $ref: '../schemas/ship-salvage-claim-request.schema.json'
+    ShipSalvageClaimResponse:
+      $ref: '../schemas/ship-salvage-claim-response.schema.json'
+    ShipPiracySeizeRequest:
+      $ref: '../schemas/ship-piracy-seize-request.schema.json'
+    ShipPiracySeizeResponse:
+      $ref: '../schemas/ship-piracy-seize-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/mission/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Mission
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Mission
+paths:
+  /socket/mission-list:
+    post:
+      summary: list-missions-request
+      description: |
+        Lists mission records for the active character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response correlation contract:
+        - Every emitted `list-missions-response` includes a non-empty `correlationId`.
+        - Response `correlationId` is the exact request `correlationId` value.
+        - Response `requestIdentity` deep-equals the full request `requestIdentity` object
+          (including additional properties when present).
+        - This applies to success responses, empty-list successes, and emitted
+          validation/business error responses.
+      operationId: socketMissionList
+      tags: [Mission]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MissionListRequest'
+            examples:
+              listCharacterMissions:
+                summary: Retrieve mission progress for a character with correlation metadata
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
+                  requestIdentity:
+                    operation: list-missions
+                    entityType: mission
+                    containerId: character-1
+              listCharacterMissionsLegacyOperation:
+                summary: Legacy operation value is echoed exactly in response identity
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 984dce8e-b248-4d78-ba5f-95224e71d8c5
+                  requestIdentity:
+                    operation: mission-list
+                    entityType: mission
+                    containerId: character-1
+                    source: ship-exterior-bootstrap
+      responses:
+        '200':
+          description: list-missions-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionListResponse'
+              examples:
+                successfulMissionList:
+                  summary: Success echoes correlation metadata with mission rows
+                  value:
+                    success: true
+                    message: Mission list retrieved successfully
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
+                    requestIdentity:
+                      operation: list-missions
+                      entityType: mission
+                      containerId: character-1
+                    missions:
+                      - missionId: first-target
+                        status: active
+                successfulMissionListLegacyOperationEcho:
+                  summary: Success echoes requestIdentity exactly, including legacy operation value
+                  value:
+                    success: true
+                    message: Mission list retrieved successfully
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 984dce8e-b248-4d78-ba5f-95224e71d8c5
+                    requestIdentity:
+                      operation: mission-list
+                      entityType: mission
+                      containerId: character-1
+                      source: ship-exterior-bootstrap
+                    missions: []
+                failedMissionList:
+                  summary: Failure still echoes correlation metadata
+                  value:
+                    success: false
+                    message: Invalid session
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 7a11cba8-bad6-4143-9424-ea1177cac8a0
+                    requestIdentity:
+                      operation: list-missions
+                      entityType: mission
+                      containerId: character-1
+                    missions: []
+
+  /socket/mission-upsert:
+    post:
+      summary: mission-upsert-request
+      description: |
+        Upserts mission progress for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Accepted `status` values are the canonical mission board lane states:
+        `available`, `active`, and `completed`.
+
+        Behavior notes:
+        - Unknown status values are rejected with terminal failure and structured
+          validation messaging.
+        - Mission responses include only canonical lane status and optional `updatedAt`
+          metadata.
+        - When a mission reaches an unlock source status such as `completed`, the
+          server may create newly unlocked missions with `status: available`.
+        - Starting the `first-target` mission also seeds its starter asteroid field.
+        - When `requestId` is provided, it is echoed in the response.
+      operationId: socketMissionUpsert
+      tags: [Mission]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MissionUpsertRequest'
+            examples:
+              startMission:
+                summary: Set a mission to active lane status
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  missionId: first-target
+                  status: active
+                  sessionKey: session-123
+                  correlationId: f5d5cc38-e8f1-4e58-b775-1b86800fbc8c
+                  requestIdentity:
+                    operation: mission-upsert
+                    entityType: mission
+                    containerId: character-1
+              completeMissionWithRequestId:
+                summary: Complete a mission and request response correlation
+                value:
+                  playerName: MissionPilot
+                  characterId: character-1
+                  missionId: first-target
+                  status: completed
+                  correlationId: 64af3477-f07e-4648-b0f1-fcf1fb646638
+                  requestIdentity:
+                    operation: mission-upsert
+                    entityType: mission
+                    containerId: character-1
+                  requestId: req-123
+                  sessionKey: session-123
+      responses:
+        '200':
+          description: mission-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionUpsertResponse'
+              examples:
+                successfulMissionUpsert:
+                  summary: Successful mission upsert returns the mission snapshot and requestId when present
+                  value:
+                    success: true
+                    message: Mission recorded successfully
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: f5d5cc38-e8f1-4e58-b775-1b86800fbc8c
+                    requestIdentity:
+                      operation: mission-upsert
+                      entityType: mission
+                      containerId: character-1
+                    requestId: req-123
+                    mission:
+                      missionId: first-target
+                      status: active
+                      updatedAt: '2026-05-18T00:00:00.000Z'
+                failedMissionUpsert:
+                  summary: Failure omits the mission payload but may still echo requestId
+                  value:
+                    success: false
+                    message: 'status must be one of: available, active, completed'
+                    playerName: MissionPilot
+                    characterId: character-1
+                    correlationId: 64af3477-f07e-4648-b0f1-fcf1fb646638
+                    requestIdentity:
+                      operation: mission-upsert
+                      entityType: mission
+                      containerId: character-1
+                    requestId: req-123
+components:
+  schemas:
+    MissionListRequest:
+      $ref: '../schemas/mission-list-request.schema.json'
+    MissionListResponse:
+      $ref: '../schemas/mission-list-response.schema.json'
+    MissionUpsertRequest:
+      $ref: '../schemas/mission-upsert-request.schema.json'
+    MissionUpsertResponse:
+      $ref: '../schemas/mission-upsert-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/celestial/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Celestial
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Celestial
+paths:
+  /socket/celestial-body-list:
+    post:
+      summary: celestial-body-list-request
+      description: |
+        Lists canonical celestial bodies in a solar system.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Query modes:
+        - Whole-system listing: omit both `positionKm` and `distanceKm`.
+        - Radius query: provide both `positionKm` and `distanceKm`.
+
+        Optional filters:
+        - `states` limits results to the provided canonical body states.
+        - `createdByCharacterId` and `missionId` narrow results to mission-generated
+          or character-scoped bodies.
+        - `limit` caps the number of returned bodies.
+
+        Response notes:
+        - Radius queries include `distanceKm` on each returned body.
+        - Whole-system listings omit per-body `distanceKm`.
+      operationId: socketCelestialBodyList
+      tags: [Celestial]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CelestialBodyListRequest'
+            examples:
+              radiusQuery:
+                summary: Find nearby bodies around a point in space
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  correlationId: 2d95dd9d-287a-4fc0-93a0-5b95a53d5a89
+                  requestIdentity:
+                    operation: celestial-body-list
+                    entityType: celestial-body
+                    containerId: sol
+                  solarSystemId: sol
+                  positionKm:
+                    x: 0
+                    y: 0
+                    z: 0
+                  distanceKm: 10
+                  limit: 2
+                  states:
+                    - unscanned
+                    - active
+              wholeSystemListing:
+                summary: List all bodies in a solar system without a radius filter
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  correlationId: b8c2cb60-f33b-4675-8955-8bde05bdc31c
+                  requestIdentity:
+                    operation: celestial-body-list
+                    entityType: celestial-body
+                    containerId: sol
+                  solarSystemId: sol
+                  createdByCharacterId: character-1
+                  missionId: first-target
+      responses:
+        '200':
+          description: celestial-body-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CelestialBodyListResponse'
+              examples:
+                successfulRadiusQuery:
+                  summary: Radius query returns nearest-first bodies with computed distance
+                  value:
+                    success: true
+                    message: Celestial body list retrieved successfully
+                    playerName: ScannerOne
+                    correlationId: 2d95dd9d-287a-4fc0-93a0-5b95a53d5a89
+                    requestIdentity:
+                      operation: celestial-body-list
+                      entityType: celestial-body
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 0
+                      y: 0
+                      z: 0
+                    distanceKm: 10
+                    celestialBodies:
+                      - id: cb-near
+                        catalogId: catalog-001
+                        sourceScanId: scan-1
+                        createdByCharacterId: character-1
+                        missionId: first-target
+                        missionInstanceId: first-target:1
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: asteroid
+                        displayName: Starter Rock
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 5
+                            y: 0
+                            z: 0
+                          epochMs: 1715990400000
+                        motion: null
+                        physical:
+                          estimatedMassKg: 15000000000
+                          estimatedDiameterM: 120
+                        observability:
+                          visibility: visible
+                          scanState: scanned
+                        composition:
+                          rarity: Common
+                          material: Nickel-Iron
+                          textureColor: '#8f99a7'
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        physicalCatalog:
+                          estimatedDiameterM: 120
+                          estimatedMassKg: 15000000000
+                          radiusKm: 0.06
+                        visualization:
+                          colorHex: '#8f99a7'
+                          textureKey: asteroid-iron
+                        clusterId: cluster-a
+                        clusterCenterKm:
+                          x: 0
+                          y: 0
+                          z: 0
+                        localOffsetKm:
+                          x: 5
+                          y: 0
+                          z: 0
+                        distanceFromClusterCenterKm: 5
+                        distanceKm: 5
+                      - id: cb-mid
+                        catalogId: catalog-002
+                        sourceScanId: scan-2
+                        createdByCharacterId: character-1
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: asteroid
+                        displayName: Farther Rock
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 10
+                            y: 0
+                            z: 0
+                          epochMs: 1715990400000
+                        motion: null
+                        physical: null
+                        observability:
+                          visibility: visible
+                          scanState: unscanned
+                        composition: null
+                        state: unscanned
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        distanceKm: 10
+                successfulWholeSystemListing:
+                  summary: Whole-system listing omits query radius fields on each body
+                  value:
+                    success: true
+                    message: Celestial body list retrieved successfully
+                    playerName: ScannerOne
+                    correlationId: b8c2cb60-f33b-4675-8955-8bde05bdc31c
+                    requestIdentity:
+                      operation: celestial-body-list
+                      entityType: celestial-body
+                      containerId: sol
+                    solarSystemId: sol
+                    celestialBodies:
+                      - id: cb-sol-1
+                        catalogId: catalog-001
+                        sourceScanId: scan-1
+                        createdByCharacterId: character-1
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: planet
+                        displayName: Mercury
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 57900000
+                            y: 0
+                            z: 0
+                          epochMs: 1715990400000
+                        motion: null
+                        physical:
+                          estimatedMassKg: 3.3011e+23
+                          estimatedDiameterM: 4879400
+                        observability:
+                          visibility: visible
+                          scanState: scanned
+                        composition:
+                          rarity: Common
+                          material: silicate
+                          textureColor: '#8aa6c4'
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        parentBodyId: null
+                        planetType: rocky
+                        isCatalogBody: true
+                failedCelestialBodyList:
+                  summary: Invalid radius query returns an empty result set
+                  value:
+                    success: false
+                    message: positionKm and distanceKm must both be supplied for radius queries; omit both for a whole-system listing
+                    playerName: ScannerOne
+                    correlationId: 2d95dd9d-287a-4fc0-93a0-5b95a53d5a89
+                    requestIdentity:
+                      operation: celestial-body-list
+                      entityType: celestial-body
+                      containerId: sol
+                    solarSystemId: sol
+                    celestialBodies: []
+
+  /socket/celestial-body-upsert:
+    post:
+      summary: celestial-body-upsert-request
+      description: |
+        Creates or updates a canonical celestial body record.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        `celestialBody` is a complete canonical payload, not a partial patch.
+
+        Identity rules:
+        - When `celestialBody.id` is present, the server upserts by that id.
+        - When `celestialBody.id` is omitted, the server derives a deterministic id
+          from `createdByCharacterId`, `missionId`, and `sourceScanId`. Persistence
+          also uses that composite identity for mission-generated bodies.
+
+        Validation and behavior notes:
+        - `celestialBody.spatial` must use canonical barycentric coordinates.
+        - `celestialBody.observability` is required.
+        - `celestialBody.composition` is required unless `celestialBody.state` is
+          `unscanned`.
+        - Legacy fields `location`, `kinematics`, and root `solarSystemId` are not
+          accepted.
+      operationId: socketCelestialBodyUpsert
+      tags: [Celestial]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CelestialBodyUpsertRequest'
+            examples:
+              scannedBodyById:
+                summary: Upsert a scanned celestial body by explicit id
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  correlationId: 6c867e8f-80ff-4e3d-b474-08b85bfe4ad7
+                  requestIdentity:
+                    operation: celestial-body-upsert
+                    entityType: celestial-body
+                    containerId: cb-1
+                  celestialBody:
+                    id: cb-1
+                    catalogId: asteroid-scan-1
+                    sourceScanId: scan-1
+                    createdByCharacterId: character-1
+                    missionId: first-target
+                    createdAt: '2026-05-17T00:00:00.000Z'
+                    updatedAt: '2026-05-17T00:00:00.000Z'
+                    spatial:
+                      solarSystemId: sol
+                      frame: barycentric
+                      positionKm:
+                        x: 1000
+                        y: 2000
+                        z: 3000
+                      epochMs: 1000000
+                    observability:
+                      visibility: visible
+                      scanState: scanned
+                    composition:
+                      rarity: Common
+                      material: Iron
+                      textureColor: '#8f99a7'
+                    state: active
+              unscannedMissionSeededBody:
+                summary: Mission-seeded unscanned body can omit composition and server-generate id
+                value:
+                  playerName: ScannerOne
+                  sessionKey: session-123
+                  correlationId: 7331bb3d-6fdd-48ef-ae41-6c223f4cf836
+                  requestIdentity:
+                    operation: celestial-body-upsert
+                    entityType: celestial-body
+                    containerId: first-target
+                  celestialBody:
+                    catalogId: asteroid-scan-2
+                    sourceScanId: sample-a3
+                    createdByCharacterId: character-1
+                    missionId: first-target
+                    createdAt: '2026-05-17T00:00:00.000Z'
+                    updatedAt: '2026-05-17T00:00:00.000Z'
+                    spatial:
+                      solarSystemId: sol
+                      frame: barycentric
+                      positionKm:
+                        x: 50
+                        y: 75
+                        z: -20
+                      epochMs: 1000000
+                    observability:
+                      visibility: visible
+                      scanState: unscanned
+                    composition: null
+                    state: unscanned
+      responses:
+        '200':
+          description: celestial-body-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CelestialBodyUpsertResponse'
+              examples:
+                successfulCelestialBodyUpsert:
+                  summary: Successful upsert returns the normalized celestial body payload
+                  value:
+                    success: true
+                    message: Celestial body recorded successfully
+                    playerName: ScannerOne
+                    correlationId: 6c867e8f-80ff-4e3d-b474-08b85bfe4ad7
+                    requestIdentity:
+                      operation: celestial-body-upsert
+                      entityType: celestial-body
+                      containerId: cb-1
+                    celestialBody:
+                      id: cb-1
+                      catalogId: asteroid-scan-1
+                      sourceScanId: scan-1
+                      createdByCharacterId: character-1
+                      state: active
+                failedCelestialBodyUpsert:
+                  summary: Validation failure omits the celestialBody payload
+                  value:
+                    success: false
+                    message: playerName and a complete canonical celestialBody payload are required
+                    playerName: ScannerOne
+                    correlationId: 7331bb3d-6fdd-48ef-ae41-6c223f4cf836
+                    requestIdentity:
+                      operation: celestial-body-upsert
+                      entityType: celestial-body
+                      containerId: first-target
+components:
+  schemas:
+    CelestialBodyListRequest:
+      $ref: '../schemas/celestial-body-list-request.schema.json'
+    CelestialBodyListResponse:
+      $ref: '../schemas/celestial-body-list-response.schema.json'
+    CelestialBodyUpsertRequest:
+      $ref: '../schemas/celestial-body-upsert-request.schema.json'
+    CelestialBodyUpsertResponse:
+      $ref: '../schemas/celestial-body-upsert-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/items/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Items
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Items
+paths:
+  /items:
+    get:
+      summary: Get canonical item list
+      description: |
+        Returns the backend canonical item catalog used by clients for item discovery.
+
+        `/items` returns canonical catalog item definitions, not live runtime item
+        instances. These records are keyed by `itemType` and may not include runtime
+        instance identifiers (`id`). Use instance-bearing endpoints for live item
+        records.
+
+        **Canonical material contract:** Clients must use `fabrication.requiredMaterials[].itemType`
+        as the authoritative material reference for lookup, comparison, and validation.
+
+        Canonical naming note:
+        - Conduit seals uses `itemType: conduit-seals` (no aliases).
+        - Conduit seals fabrication uses canonical material `itemType: polymer`
+          (not `polymer-resin`).
+        - Fabrication requirements use `fabrication.requiredMaterials[]` with canonical
+          `itemType` identifiers.
+        - Clients should always use canonical `itemType` values from
+          `fabrication.requiredMaterials[].itemType` for lookup/comparison.
+        - Legacy aliases may be accepted by specific runtime workflows for backward
+          compatibility, but alias resolution is not a global contract guarantee unless
+          explicitly documented by that endpoint.
+        - Some runtime/internal workflows may attach legacy `requiredMaterials` matching
+          metadata (for example `acceptedItemTypes`), but clients should treat
+          `fabrication.requiredMaterials` as the primary contract field.
+      operationId: getItems
+      tags: [Items]
+      responses:
+        '200':
+          description: Canonical item list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CatalogItemDefinition'
+                example:
+                  items:
+                    - itemType: conduit-seals
+                      displayName: Conduit Seals
+                      description: Pressure-rated sealing sleeves for rerouting damaged ship conduits and stabilizing subsystem junctions.
+                      category: manufactured-component
+                      tier: 1
+                      rarity: common
+                      stackable: true
+                      massKg: 2
+                      volumeM3: 0.02
+                      baseValueCredits: 250
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      container: null
+                      fabrication:
+                        durationMs: 600000
+                        requiredMaterials:
+                          - itemType: copper
+                            quantity: 2
+                          - itemType: polymer
+                            quantity: 1
+                    - itemType: hull-patch-kit
+                      displayName: Hull Patch Kit
+                      description: Structural repair kit for hull breach patching and restoring ship integrity. Required for the Scavenger Pod repair mission step.
+                      category: repair
+                      tier: 1
+                      rarity: common
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      fabrication:
+                        durationMs: 300000
+                        requiredMaterials:
+                          - itemType: iron
+                            quantity: 1
+                    - itemType: ship-tractor-beam
+                      displayName: Tractor Beam
+                      description: Ship utility subsystem used for close-range salvage retrieval and object towing.
+                      category: subsystem
+                      tier: 1
+                      rarity: common
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      container: null
+
+  /socket/item-list-by-container:
+    post:
+      summary: item-list-by-container-request
+      description: |
+        Returns canonical item payloads whose `container` matches the requested
+        `containerType` and `containerId`.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        For `containerType: ship`, cold-boot starter Scavenger Pods use the same
+        server-authoritative subsystem backfill behavior as `ship-list`.
+        When persisted rows are missing, these items are included in the response:
+        - `propulsion-manifold`
+        - `sensor-array`
+        - `power-distribution-bus`
+        - `ship-tractor-beam`
+
+        This keeps `ship-list` and `item-list-by-container` consistent for starter
+        ship inventory consumption.
+      operationId: socketItemListByContainer
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemListByContainerRequest'
+            examples:
+              shipInventory:
+                summary: Retrieve canonical ship inventory with correlation metadata
+                value:
+                  playerName: ColdBootPilot
+                  sessionKey: session-123
+                  correlationId: 65a4a621-2c83-4094-8832-af79992095bd
+                  requestIdentity:
+                    operation: item-list-by-container
+                    entityType: item
+                    containerId: ship-1
+                  containerType: ship
+                  containerId: ship-1
+      responses:
+        '200':
+          description: item-list-by-container-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemListByContainerResponse'
+              examples:
+                coldBootStarterShipContainer:
+                  summary: Same subsystem ShipItems are returned for ship container inventory
+                  value:
+                    success: true
+                    message: Items retrieved successfully
+                    playerName: ColdBootPilot
+                    correlationId: 65a4a621-2c83-4094-8832-af79992095bd
+                    requestIdentity:
+                      operation: item-list-by-container
+                      entityType: item
+                      containerId: ship-1
+                    containerType: ship
+                    containerId: ship-1
+                    items:
+                      - id: ship-1-starter-propulsion-manifold
+                        itemType: propulsion-manifold
+                        displayName: Propulsion Manifold
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+                      - id: ship-1-starter-sensor-array
+                        itemType: sensor-array
+                        displayName: Sensor Array
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+                      - id: ship-1-starter-power-distribution-bus
+                        itemType: power-distribution-bus
+                        displayName: Power Distribution Bus
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+                      - id: ship-1-starter-ship-tractor-beam
+                        itemType: ship-tractor-beam
+                        displayName: Tractor Beam
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+
+  /socket/item-list-by-location:
+    post:
+      summary: item-list-by-location-request
+      description: |
+        Lists items near a barycentric position in a solar system.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Query behavior:
+        - Only deployed items with canonical `spatial` coordinates are eligible.
+        - Legacy `kinematics` is not used for selection.
+
+        Response notes:
+        - Success responses include query echo fields (`positionKm`, `distanceKm`, `itemType`).
+        - Failure responses omit query echo fields and return `items: []`.
+        - Each returned item includes computed `distanceKm` from the query position.
+      operationId: socketItemListByLocation
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemListByLocationRequest'
+            examples:
+              nearbyItems:
+                summary: Retrieve deployed items near a point in space
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 55753bb2-26dd-45fb-acab-c88f7734b709
+                  requestIdentity:
+                    operation: item-list-by-location
+                    entityType: item
+                    containerId: sol
+                  solarSystemId: sol
+                  positionKm:
+                    x: 0
+                    y: 0
+                    z: 0
+                  distanceKm: 10
+                  itemType: expendable-dart-drone
+      responses:
+        '200':
+          description: item-list-by-location-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemListByLocationResponse'
+              examples:
+                successfulLocationList:
+                  summary: Nearby items are returned nearest-first with computed distance
+                  value:
+                    success: true
+                    message: Item list retrieved successfully
+                    playerName: PilotOne
+                    correlationId: 55753bb2-26dd-45fb-acab-c88f7734b709
+                    requestIdentity:
+                      operation: item-list-by-location
+                      entityType: item
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 0
+                      y: 0
+                      z: 0
+                    distanceKm: 10
+                    itemType: expendable-dart-drone
+                    items:
+                      - id: item-near
+                        itemType: expendable-dart-drone
+                        displayName: Expendable Dart Drone
+                        state: deployed
+                        damageStatus: intact
+                        container: null
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 3
+                            y: 4
+                            z: 0
+                          epochMs: 1000000
+                        motion:
+                          velocityKmPerSec:
+                            x: 0
+                            y: 0
+                            z: 0
+                        distanceKm: 5
+                failedLocationList:
+                  summary: Validation failure returns empty items and omits location echo fields
+                  value:
+                    success: false
+                    message: playerName, solarSystemId, positionKm, and distanceKm are required
+                    playerName: PilotOne
+                    correlationId: 55753bb2-26dd-45fb-acab-c88f7734b709
+                    requestIdentity:
+                      operation: item-list-by-location
+                      entityType: item
+                      containerId: sol
+                    solarSystemId: sol
+                    items: []
+
+  /socket/item-upsert:
+    post:
+      summary: item-upsert-request
+      description: |
+        Creates a new item or updates an existing item.
+
+        `item` behaves as a partial update payload for existing records:
+        - Omitted fields preserve their existing values.
+        - Explicit `null` is significant for `item.container`, `item.spatial`, and
+          `item.motion` and clears those fields.
+
+        Behavior notes:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - Creating a new item requires `item.itemType` and `item.displayName`.
+        - `item.tier` is optional, but when provided it must be an integer from 1 to 20.
+        - Omitting `item.tier` on update preserves the existing stored tier.
+        - `item.kinematics` is not accepted; use canonical `item.spatial` and
+          optional `item.motion`.
+        - Setting `item.state` to `destroyed` auto-populates `destroyedAt` when the
+          item does not already have one.
+        - Successful writes also attempt to synchronize ship inventory references for
+          items contained by ships.
+      operationId: socketItemUpsert
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemUpsertRequest'
+            examples:
+              deployExistingItem:
+                summary: Deploy an existing item by clearing container and setting spatial state
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 7b1c4066-78bd-4611-8d88-3610b054f4ce
+                  requestIdentity:
+                    operation: item-upsert
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
+                  item:
+                    id: item-1
+                    tier: 10
+                    state: deployed
+                    container: null
+                    spatial:
+                      solarSystemId: sol
+                      frame: barycentric
+                      positionKm:
+                        x: 100
+                        y: 200
+                        z: 300
+                      epochMs: 1000000
+                    motion:
+                      velocityKmPerSec:
+                        x: 1
+                        y: 2
+                        z: 3
+              destroyExistingItem:
+                summary: Destroy an existing item and let the server stamp destroyedAt
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 251eccf4-7f07-4331-a214-7d6ef5c57b87
+                  requestIdentity:
+                    operation: item-upsert
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
+                  item:
+                    id: item-1
+                    state: destroyed
+                    destroyedReason: hit by asteroid
+      responses:
+        '200':
+          description: item-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemUpsertResponse'
+              examples:
+                successfulItemUpsert:
+                  summary: Successful upsert returns the created or updated item
+                  value:
+                    success: true
+                    message: Item updated successfully
+                    playerName: PilotOne
+                    correlationId: 7b1c4066-78bd-4611-8d88-3610b054f4ce
+                    requestIdentity:
+                      operation: item-upsert
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    item:
+                      id: item-1
+                      itemType: expendable-dart-drone
+                      displayName: Expendable Dart Drone
+                      tier: 1
+                      state: deployed
+                failedItemUpsert:
+                  summary: Validation failure omits the item payload
+                  value:
+                    success: false
+                    message: 'item.state must be one of: contained, deployed, destroyed'
+                    playerName: PilotOne
+                    correlationId: 251eccf4-7f07-4331-a214-7d6ef5c57b87
+                    requestIdentity:
+                      operation: item-upsert
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+
+  /socket/launch-item:
+    post:
+      summary: launch-item-request
+      description: |
+        Launches a ship inventory item at a target celestial body.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - `hotkey` must be one of `1` through `5`.
+        - The item must exist in the ship's canonical projected inventory emitted by
+          `ship-list`/`ship-list-by-owner`.
+        - `itemType` must match the persisted item record.
+        - The item must be launchable and not already destroyed.
+        - The target celestial body must exist.
+
+        Contract guarantees:
+        - Launch membership validation uses the same canonical inventory projection as
+          `ship-list` and `ship-list-by-owner`.
+        - Legacy `inventoryIds`/`inventoryItemIds` arrays are not used for launch
+          membership validation.
+        - Every validly framed `launch-item-request` receives exactly one terminal
+          `launch-item-response` (success or failure) for the same correlation id.
+        - On successful launch, the consumed `itemId` is removed from canonical ship
+          inventory projection and is absent from subsequent `ship-list` and
+          `ship-list-by-owner` snapshots unless explicitly re-added by a later
+          mutation.
+        - Launch yield item typing maps materials to canonical runtime item types and
+          does not emit runtime `raw-material-*` item types.
+
+        Success side effects:
+        - The launched item is consumed, marked `destroyed`, removed from ship inventory,
+          and made non-launchable.
+        - For `expendable-dart-drone`, the target is destroyed and raw material yield is
+          spawned as deployed debris near the target with canonical `spatial` and
+          deterministic `motion` vectors.
+        - Other launchable item types currently return success with `resolution.outcome`
+          set to `no-effect` after consuming the launched item.
+      operationId: socketLaunchItem
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchItemRequest'
+            examples:
+              destroyTargetWithDrone:
+                summary: Expendable dart drone destroys a target and yields raw materials
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  correlationId: 0b16ca57-4773-4348-9c69-20598ba55bae
+                  requestIdentity:
+                    operation: launch-item
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
+                  targetCelestialBodyId: cb-1
+                  hotkey: 3
+                  itemId: item-1
+                  itemType: expendable-dart-drone
+              noEffectLaunch:
+                summary: Unsupported launch item type is still consumed but has no target effect
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  correlationId: c77e0eb2-322f-4a6e-bf24-f1eb7e89f5b3
+                  requestIdentity:
+                    operation: launch-item
+                    entityType: basic-mining-laser
+                    containerId: ship-1
+                  targetCelestialBodyId: cb-1
+                  hotkey: 3
+                  itemId: item-2
+                  itemType: basic-mining-laser
+      responses:
+        '200':
+          description: launch-item-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaunchItemResponse'
+              examples:
+                successfulLaunch:
+                  summary: Successful expendable dart launch destroys the target and yields materials
+                  value:
+                    success: true
+                    message: 'Launch successful: target destroyed and materials yielded'
+                    playerName: PilotOne
+                    correlationId: 0b16ca57-4773-4348-9c69-20598ba55bae
+                    requestIdentity:
+                      operation: launch-item
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    characterId: character-1
+                    shipId: ship-1
+                    targetCelestialBodyId: cb-1
+                    hotkey: 3
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+                    launchedItem:
+                      id: item-1
+                      itemType: expendable-dart-drone
+                      tier: 1
+                      state: destroyed
+                      launchable: false
+                    resolution:
+                      outcome: target-destroyed
+                      targetDestroyed: true
+                      yieldedMaterials:
+                        - material: Nickel-Iron
+                          rarity: Rare
+                          quantity: 16
+                      yieldedItems:
+                        - id: generated-1
+                          itemType: iron
+                          displayName: Nickel-Iron (Raw Material)
+                          tier: 1
+                          quantity: 16
+                          state: deployed
+                          container: null
+                          spatial:
+                            solarSystemId: sol
+                            frame: barycentric
+                            positionKm:
+                              x: 112.6
+                              y: 184.3
+                              z: 327.9
+                            epochMs: 1715990400000
+                          motion:
+                            velocityKmPerSec:
+                              x: 0.01
+                              y: -0.007
+                              z: 0.004
+                          launchable: false
+                      launchSeed: 123456789
+                failedLaunch:
+                  summary: Validation failure omits launch resolution fields
+                  value:
+                    success: false
+                    message: Target celestial body does not exist
+                    playerName: PilotOne
+                    correlationId: c77e0eb2-322f-4a6e-bf24-f1eb7e89f5b3
+                    requestIdentity:
+                      operation: launch-item
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    characterId: character-1
+                    shipId: ship-1
+                    targetCelestialBodyId: cb-missing
+                    hotkey: 3
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+
+  /socket/item-remove:
+    post:
+      summary: item-remove-request
+      description: |
+        Removes a ship-contained item from inventory and marks the persisted item as destroyed.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - The item must exist in the target ship inventory.
+      operationId: socketItemRemove
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemRemoveRequest'
+            examples:
+              removeContainedItem:
+                summary: Remove a ship-contained item by id
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  correlationId: 9d4af767-fec8-4fd4-90e7-1776f1f2f7f4
+                  requestIdentity:
+                    operation: item-remove
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
+                  itemId: item-1
+                  itemType: expendable-dart-drone
+                  reason: consumed-by:salvage
+      responses:
+        '200':
+          description: item-remove-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemRemoveResponse'
+              examples:
+                successfulRemove:
+                  summary: Successful remove returns destroyed item state
+                  value:
+                    success: true
+                    message: Item removed successfully
+                    correlationId: 9d4af767-fec8-4fd4-90e7-1776f1f2f7f4
+                    requestIdentity:
+                      operation: item-remove
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+                failedRemove:
+                  summary: Failure response echoes request identity and correlation
+                  value:
+                    success: false
+                    message: Item is not in ship inventory
+                    correlationId: 9d4af767-fec8-4fd4-90e7-1776f1f2f7f4
+                    requestIdentity:
+                      operation: item-remove
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+
+  /socket/tractor-beam-activate:
+    post:
+      summary: tractor-beam-activate-request
+      description: |
+        Activates a ship tractor beam subsystem for the active ship context.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - The target ship must contain `ship-tractor-beam` in its inventory references.
+      operationId: socketTractorBeamActivate
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TractorBeamActivateRequest'
+            examples:
+              activateTractorBeam:
+                summary: Activate the tractor beam for a ship and optional target
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  correlationId: 0b45f0c0-9777-4cd9-abce-429f95bc4b03
+                  requestIdentity:
+                    operation: tractor-beam-activate
+                    entityType: ship-tractor-beam
+                    containerId: ship-1
+                  targetItemId: debris-item-1
+                  targetCelestialBodyId: cb-1
+      responses:
+        '200':
+          description: tractor-beam-activate-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TractorBeamActivateResponse'
+              examples:
+                successfulActivation:
+                  summary: Successful activation returns the equipped tractor beam reference
+                  value:
+                    success: true
+                    message: Tractor beam activated
+                    correlationId: 0b45f0c0-9777-4cd9-abce-429f95bc4b03
+                    requestIdentity:
+                      operation: tractor-beam-activate
+                      entityType: ship-tractor-beam
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    tractorBeamItemId: ship-1-starter-ship-tractor-beam
+                    targetItemId: debris-item-1
+                    targetCelestialBodyId: cb-1
+                    activated: true
+                failedActivation:
+                  summary: Activation failure still echoes request identity and correlation
+                  value:
+                    success: false
+                    message: Ship does not have an equipped tractor beam item
+                    correlationId: 0b45f0c0-9777-4cd9-abce-429f95bc4b03
+                    requestIdentity:
+                      operation: tractor-beam-activate
+                      entityType: ship-tractor-beam
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    targetItemId: debris-item-1
+                    targetCelestialBodyId: cb-1
+
+  /socket/item-list-by-owner:
+    post:
+      summary: item-list-by-owner-request
+      description: |
+        Lists items belonging to a canonical ownership descriptor.
+
+        Ownership contract:
+        - `owner.ownerType` must be a valid canonical type.
+        - For `player-character` owners, `owner.playerId` must match the authenticated actor's playerId.
+        - Cross-player item list queries are rejected with `ITEM_LIST_OWNER_FORBIDDEN`.
+      operationId: socketItemListByOwner
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemListByOwnerRequest'
+      responses:
+        '200':
+          description: item-list-by-owner-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemListByOwnerResponse'
+              examples:
+                success:
+                  summary: Returns matching items for the given owner
+                  value:
+                    success: true
+                    owner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                    items: []
+                crossPlayerForbidden:
+                  summary: Actor cannot list items for another player
+                  value:
+                    success: false
+                    reason: ITEM_LIST_OWNER_FORBIDDEN
+                    message: Actor does not have permission to list items for another player
+                    items: []
+components:
+  schemas:
+    CatalogItemDefinition:
+      $ref: '../schemas/catalog-item-definition.schema.json'
+    ItemListByContainerRequest:
+      $ref: '../schemas/item-list-by-container-request.schema.json'
+    ItemListByContainerResponse:
+      $ref: '../schemas/item-list-by-container-response.schema.json'
+    ItemListByLocationRequest:
+      $ref: '../schemas/item-list-by-location-request.schema.json'
+    ItemListByLocationResponse:
+      $ref: '../schemas/item-list-by-location-response.schema.json'
+    ItemRemoveRequest:
+      $ref: '../schemas/item-remove-request.schema.json'
+    ItemRemoveResponse:
+      $ref: '../schemas/item-remove-response.schema.json'
+    ItemUpsertRequest:
+      $ref: '../schemas/item-upsert-request.schema.json'
+    ItemUpsertResponse:
+      $ref: '../schemas/item-upsert-response.schema.json'
+    LaunchItemRequest:
+      $ref: '../schemas/launch-item-request.schema.json'
+    LaunchItemResponse:
+      $ref: '../schemas/launch-item-response.schema.json'
+    TractorBeamActivateRequest:
+      $ref: '../schemas/tractor-beam-activate-request.schema.json'
+    TractorBeamActivateResponse:
+      $ref: '../schemas/tractor-beam-activate-response.schema.json'
+    ItemListByOwnerRequest:
+      $ref: '../schemas/item-list-by-owner-request.schema.json'
+    ItemListByOwnerResponse:
+      $ref: '../schemas/item-list-by-owner-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/market/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Market
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Market
+paths:
+  /socket/market-buy:
+    post:
+      summary: market-buy-request
+      description: |
+        Executes a market buy transaction for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Preconditions:
+        - `quantity` must be a positive integer.
+        - The player, character, market, and catalog item must exist.
+        - The market must sell the requested item.
+        - The character must have sufficient credits.
+        - The market must have sufficient stock.
+        - The character must have at least one ship to receive purchased cargo.
+
+        Success side effects:
+        - Market stock is decremented.
+        - A trade item stack is added to the character inventory.
+        - Character and market ledger entries are appended.
+
+        Correlation:
+        - `requestId` is echoed in success and failure responses when provided.
+        - `transactionId` may be supplied by the caller; otherwise the server creates one.
+      operationId: socketMarketBuy
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketBuyRequest'
+            examples:
+              buyIron:
+                summary: Buy a tradeable market item into ship cargo
+                value:
+                  requestId: buy-1
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: d7239128-1483-4517-a6eb-6eecf574e511
+                  requestIdentity:
+                    operation: market-buy
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  quantity: 3
+              buyWithCallerTransactionId:
+                summary: Provide a caller-generated transaction id for downstream correlation
+                value:
+                  requestId: buy-2
+                  transactionId: tx-123
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 51685b3b-5e74-4f55-b9b0-7f044b11fa8f
+                  requestIdentity:
+                    operation: market-buy
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iridium
+                  quantity: 1
+      responses:
+        '200':
+          description: market-buy-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketBuyResponse'
+              examples:
+                successfulBuy:
+                  summary: Successful market buy returns transaction metadata
+                  value:
+                    success: true
+                    message: Market buy transaction completed
+                    correlationId: d7239128-1483-4517-a6eb-6eecf574e511
+                    requestIdentity:
+                      operation: market-buy
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
+                    requestId: buy-1
+                    transaction:
+                      transactionId: tx-123
+                      requestId: buy-1
+                      marketId: sol-ceres-exchange
+                      solarSystemId: sol
+                      characterId: character-1
+                      itemId: iron
+                      direction: buy
+                      quantity: 3
+                      unitPrice: 10
+                      totalPrice: 30
+                      timestamp: '2026-05-18T00:00:00.000Z'
+                      characterCredits: 1970
+                      marketStock: 47
+                insufficientCredits:
+                  summary: Failure response omits transaction and reports a stable reason code
+                  value:
+                    success: false
+                    message: Insufficient credits for purchase
+                    correlationId: 51685b3b-5e74-4f55-b9b0-7f044b11fa8f
+                    requestIdentity:
+                      operation: market-buy
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
+                    requestId: buy-2
+                    reason: INSUFFICIENT_CREDITS
+
+  /socket/market-inventory-list:
+    post:
+      summary: market-inventory-list-request
+      description: |
+        Lists canonical market inventory rows.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketMarketInventoryList
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketInventoryListRequest'
+            examples:
+              inventoryPage:
+                summary: Retrieve market inventory with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: c1f167c8-2964-4ab7-9dde-abfc0ce97997
+                  requestIdentity:
+                    operation: market-inventory-list
+                    entityType: market-inventory
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+      responses:
+        '200':
+          description: market-inventory-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketInventoryListResponse'
+              examples:
+                successfulInventoryList:
+                  summary: Successful market inventory query returns paged inventory rows
+                  value:
+                    success: true
+                    message: Market inventory retrieved successfully
+                    correlationId: c1f167c8-2964-4ab7-9dde-abfc0ce97997
+                    requestIdentity:
+                      operation: market-inventory-list
+                      entityType: market-inventory
+                      containerId: sol-ceres-exchange
+                    playerName: MarketPilot
+                    marketId: sol-ceres-exchange
+                    solarSystemId: sol
+                    marketName: Ceres Exchange
+                    inventory:
+                      - itemId: iron
+                        itemType: iron
+                        displayName: Iron
+                        rarity: Common
+                        stock: 50
+                        maxStock: 100
+                        restockPerInterval: 5
+                        marketCanBuy: true
+                        marketCanSell: true
+                    total: 1
+                    offset: 0
+                    limit: 50
+                    asOf: '2026-05-18T00:00:00.000Z'
+                failedInventoryList:
+                  summary: Failure keeps pagination fields and returns empty inventory
+                  value:
+                    success: false
+                    message: Market was not found
+                    correlationId: c1f167c8-2964-4ab7-9dde-abfc0ce97997
+                    requestIdentity:
+                      operation: market-inventory-list
+                      entityType: market-inventory
+                      containerId: sol-ceres-exchange
+                    reason: MARKET_NOT_FOUND
+                    inventory: []
+                    total: 0
+                    offset: 0
+                    limit: 50
+
+  /socket/market-ledger-list:
+    post:
+      summary: market-ledger-list-request
+      description: |
+        Lists canonical market ledger entries.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketMarketLedgerList
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketLedgerListRequest'
+            examples:
+              ledgerPage:
+                summary: Retrieve market ledger entries with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: a164d0e6-5c0f-48d7-baad-915dcdb12709
+                  requestIdentity:
+                    operation: market-ledger-list
+                    entityType: market-ledger
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+      responses:
+        '200':
+          description: market-ledger-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketLedgerListResponse'
+              examples:
+                successfulLedgerList:
+                  summary: Successful market ledger query returns paged transaction entries
+                  value:
+                    success: true
+                    message: Market ledger retrieved successfully
+                    correlationId: a164d0e6-5c0f-48d7-baad-915dcdb12709
+                    requestIdentity:
+                      operation: market-ledger-list
+                      entityType: market-ledger
+                      containerId: sol-ceres-exchange
+                    playerName: MarketPilot
+                    marketId: sol-ceres-exchange
+                    solarSystemId: sol
+                    requestId: ledger-list-1
+                    entries:
+                      - transactionId: tx-123
+                        requestId: rq-ledger-1
+                        characterId: character-1
+                        itemId: iron
+                        direction: buy
+                        quantity: 2
+                        unitPrice: 10
+                        totalPrice: 20
+                        timestamp: '2026-05-18T00:00:00.000Z'
+                        reversalOfTransactionId: null
+                    total: 1
+                    offset: 0
+                    limit: 50
+                failedLedgerList:
+                  summary: Failure keeps pagination fields and returns empty entries
+                  value:
+                    success: false
+                    message: Market was not found
+                    correlationId: a164d0e6-5c0f-48d7-baad-915dcdb12709
+                    requestIdentity:
+                      operation: market-ledger-list
+                      entityType: market-ledger
+                      containerId: sol-ceres-exchange
+                    reason: MARKET_NOT_FOUND
+                    requestId: ledger-list-2
+                    entries: []
+                    total: 0
+                    offset: 0
+                    limit: 50
+
+  /socket/market-list:
+    post:
+      summary: market-list-request
+      description: |
+        Lists canonical market projections.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketMarketList
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketListRequest'
+            examples:
+              listMarkets:
+                summary: Retrieve market projections for a system with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: 60477298-cc90-4777-a22b-1852c8f087db
+                  requestIdentity:
+                    operation: market-list
+                    entityType: market
+                    containerId: sol
+                  solarSystemId: sol
+      responses:
+        '200':
+          description: market-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListResponse'
+              examples:
+                successfulMarketList:
+                  summary: Successful market list returns canonical market projections
+                  value:
+                    success: true
+                    message: Market list retrieved successfully
+                    playerName: MarketPilot
+                    correlationId: 60477298-cc90-4777-a22b-1852c8f087db
+                    requestIdentity:
+                      operation: market-list
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    markets:
+                      - marketId: sol-ceres-exchange
+                        solarSystemId: sol
+                        marketName: Ceres Exchange
+                        siteType: station
+                        siteName: Ceres Main
+                        isStarterMarket: true
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 413000
+                            y: 0
+                            z: 0
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0.002761
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                failedMarketList:
+                  summary: Canonical-shape validation failure returns an empty markets array
+                  value:
+                    success: false
+                    message: "MarketList: market 'broken-market' has invalid canonical spatial/trajectory fields"
+                    playerName: MarketPilot
+                    correlationId: 60477298-cc90-4777-a22b-1852c8f087db
+                    requestIdentity:
+                      operation: market-list
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    markets: []
+
+  /socket/market-list-by-location:
+    post:
+      summary: market-list-by-location-request
+      description: |
+        Lists nearby markets from a barycentric position.
+
+        SW-13C ship-external route entity feed authority:
+        - This endpoint is the authoritative Forge contract source for route entity feeds consumed by ship-external-view.
+        - Route feed entities are returned under `markets[].route`.
+        - Optional route feed arrays are `gates[]`, `stations[]`, and `encounterShips[]`.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketMarketListByLocation
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketListByLocationRequest'
+            examples:
+              localMarkets:
+                summary: Retrieve nearby markets with docking context and correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                  requestIdentity:
+                    operation: market-list-by-location
+                    entityType: market
+                    containerId: sol
+                  solarSystemId: sol
+                  positionKm:
+                    x: 90
+                    y: 0
+                    z: 0
+                  distanceAu: 0.001
+      responses:
+        '200':
+          description: market-list-by-location-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListByLocationResponse'
+              examples:
+                successfulLocalMarketList:
+                  summary: Successful local market query returns nearest-first markets and docking status
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: MarketPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - station
+                    isDocked: true
+                    dockedMarketId: market-near
+                    markets:
+                      - marketId: market-near
+                        solarSystemId: sol
+                        marketName: Near Market
+                        siteType: station
+                        siteName: Ceres Main
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 100
+                            y: 0
+                            z: 0
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0
+                        route:
+                          kind: in-system
+                          gates:
+                            - gateId: sol-ac-g1
+                              sourceSystemId: sol
+                              destSystemId: alpha-centauri
+                              traversalCostAu: 5
+                              traversalTimeHours: 48
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 900
+                                  y: 220
+                                  z: -40
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: gates-ring-gate
+                                schemaVersion: sw-13-m0-v1
+                                domain: gates
+                                objectFamily: ring-gate
+                                roleCue: navigation
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Ring Gate Landmark
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                              approachMetadata:
+                                approachCue: direct-centerline
+                                landmarkFraming: full-ring
+                                navBeaconCue: continuous
+                                hazardCue: low
+                                warningEscalation: none
+                                recommendedStandOffKm: 1400
+                                approachWindowKm:
+                                  min: 1000
+                                  max: 2200
+                          stations:
+                            - marketId: market-near
+                              solarSystemId: sol
+                              marketName: Near Market
+                              siteType: station
+                              siteName: Ceres Main
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 100
+                                  y: 0
+                                  z: 0
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: stations-trade-hub
+                                schemaVersion: sw-13-m0-v1
+                                domain: stations
+                                objectFamily: trade-hub
+                                roleCue: trade
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Trade Hub Station
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                          encounterShips:
+                            - shipId: npc-raider-1
+                              shipName: Raider Harrier
+                              model: Raider Interceptor
+                              tier: 2
+                              ownership:
+                                ownerType: npc-pirate
+                                npcId: pirate-raider-1
+                                factionId: pirate-clan
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 250
+                                  y: 60
+                                  z: 10
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: ships-interceptor
+                                schemaVersion: sw-13-m0-v1
+                                domain: ships
+                                objectFamily: interceptor
+                                roleCue: military
+                                factionCue: imperial-remnant
+                                fallbackTier: hero
+                                displayLabel: Interceptor Hull
+                                silhouetteProfile: needle
+                                materialProfile: metallic
+                                emissiveProfile: high
+                        isDocked: true
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                gatesOnlyRouteFeed:
+                  summary: Route payload with gates feed only
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: GatePilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - free-floating
+                    isDocked: false
+                    dockedMarketId: null
+                    markets:
+                      - marketId: sol-belt-1
+                        solarSystemId: sol
+                        marketName: Belt Relay Market
+                        siteType: free-floating
+                        siteName: Sol Belt Relay
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 240
+                            y: 20
+                            z: -5
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0.000001
+                        route:
+                          kind: in-system
+                          gates:
+                            - gateId: sol-ac-g1
+                              sourceSystemId: sol
+                              destSystemId: alpha-centauri
+                              traversalCostAu: 5
+                              traversalTimeHours: 48
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 900
+                                  y: 220
+                                  z: -40
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: gates-ring-gate
+                                schemaVersion: sw-13-m0-v1
+                                domain: gates
+                                objectFamily: ring-gate
+                                roleCue: navigation
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Ring Gate Landmark
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                              approachMetadata:
+                                approachCue: direct-centerline
+                                landmarkFraming: full-ring
+                                navBeaconCue: continuous
+                                hazardCue: low
+                                warningEscalation: none
+                                recommendedStandOffKm: 1400
+                                approachWindowKm:
+                                  min: 1000
+                                  max: 2200
+                        isDocked: false
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                stationsOnlyRouteFeed:
+                  summary: Route payload with stations feed only
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: StationPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - station
+                    isDocked: true
+                    dockedMarketId: market-near
+                    markets:
+                      - marketId: market-near
+                        solarSystemId: sol
+                        marketName: Near Market
+                        siteType: station
+                        siteName: Ceres Main
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 100
+                            y: 0
+                            z: 0
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0
+                        route:
+                          kind: in-system
+                          stations:
+                            - marketId: market-near
+                              solarSystemId: sol
+                              marketName: Near Market
+                              siteType: station
+                              siteName: Ceres Main
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 100
+                                  y: 0
+                                  z: 0
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: stations-trade-hub
+                                schemaVersion: sw-13-m0-v1
+                                domain: stations
+                                objectFamily: trade-hub
+                                roleCue: trade
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Trade Hub Station
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                        isDocked: true
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                encounterShipsOnlyRouteFeed:
+                  summary: Route payload with encounterShips feed only
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: EncounterPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - free-floating
+                    isDocked: false
+                    dockedMarketId: null
+                    markets:
+                      - marketId: sol-belt-1
+                        solarSystemId: sol
+                        marketName: Belt Relay Market
+                        siteType: free-floating
+                        siteName: Sol Belt Relay
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 240
+                            y: 20
+                            z: -5
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0.000001
+                        route:
+                          kind: in-system
+                          encounterShips:
+                            - shipId: npc-raider-1
+                              shipName: Raider Harrier
+                              model: Raider Interceptor
+                              tier: 2
+                              ownership:
+                                ownerType: npc-pirate
+                                npcId: pirate-raider-1
+                                factionId: pirate-clan
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 250
+                                  y: 60
+                                  z: 10
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: ships-interceptor
+                                schemaVersion: sw-13-m0-v1
+                                domain: ships
+                                objectFamily: interceptor
+                                roleCue: military
+                                factionCue: imperial-remnant
+                                fallbackTier: hero
+                                displayLabel: Interceptor Hull
+                                silhouetteProfile: needle
+                                materialProfile: metallic
+                                emissiveProfile: high
+                        isDocked: false
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                failedLocalMarketList:
+                  summary: Validation failure omits derived location fields and returns empty markets
+                  value:
+                    success: false
+                    message: playerName, solarSystemId, positionKm, and distanceAu are required
+                    playerName: MarketPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    markets: []
+                    isDocked: false
+                    dockedMarketId: null
+
+  /socket/market-quote:
+    post:
+      summary: market-quote-request
+      description: |
+        Returns normalized market quote pricing.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketMarketQuote
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketQuoteRequest'
+            examples:
+              quoteBuy:
+                summary: Retrieve a buy quote with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 48222fd0-64f6-4d75-a8f0-948f2386e253
+                  requestIdentity:
+                    operation: market-quote
+                    entityType: market-quote
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  direction: buy
+                  quantity: 5
+      responses:
+        '200':
+          description: market-quote-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketQuoteResponse'
+              examples:
+                successfulQuote:
+                  summary: Successful quote returns normalized pricing details
+                  value:
+                    success: true
+                    message: Market quote retrieved successfully
+                    playerName: MarketPilot
+                    characterId: character-1
+                    correlationId: 48222fd0-64f6-4d75-a8f0-948f2386e253
+                    requestIdentity:
+                      operation: market-quote
+                      entityType: market-quote
+                      containerId: sol-ceres-exchange
+                    requestId: rq-1
+                    quote:
+                      marketId: sol-ceres-exchange
+                      solarSystemId: sol
+                      itemId: iron
+                      direction: buy
+                      quantity: 5
+                      unitPrice: 10
+                      totalPrice: 50
+                      displayName: Iron
+                failedQuote:
+                  summary: Failure omits quote and returns a stable reason code
+                  value:
+                    success: false
+                    message: direction must be buy or sell
+                    correlationId: 48222fd0-64f6-4d75-a8f0-948f2386e253
+                    requestIdentity:
+                      operation: market-quote
+                      entityType: market-quote
+                      containerId: sol-ceres-exchange
+                    requestId: rq-invalid-direction-1
+                    reason: INVALID_DIRECTION
+
+  /socket/market-sell:
+    post:
+      summary: market-sell-request
+      description: |
+        Executes a market sell transaction for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Preconditions:
+        - `quantity` must be a positive integer.
+        - The player, character, market, and catalog item must exist.
+        - The market must buy the requested item.
+        - The character must own enough tradeable quantity to sell.
+
+        Success side effects:
+        - Character inventory quantity is decremented or removed.
+        - Market stock is incremented.
+        - Character and market ledger entries are appended.
+
+        Correlation:
+        - `requestId` is echoed in success and failure responses when provided.
+        - `transactionId` may be supplied by the caller; otherwise the server creates one.
+      operationId: socketMarketSell
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketSellRequest'
+            examples:
+              sellIron:
+                summary: Sell owned trade cargo back to the market
+                value:
+                  requestId: sell-1
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 3aa16533-b021-42c2-8419-6614e754d1af
+                  requestIdentity:
+                    operation: market-sell
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  quantity: 4
+              sellWithCallerTransactionId:
+                summary: Provide a caller-generated transaction id for sell-side reconciliation
+                value:
+                  requestId: sell-2
+                  transactionId: tx-456
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 8798f4d3-a6ca-4956-91ec-4c99d8f75a83
+                  requestIdentity:
+                    operation: market-sell
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  quantity: 1
+      responses:
+        '200':
+          description: market-sell-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketSellResponse'
+              examples:
+                successfulSell:
+                  summary: Successful market sell returns transaction metadata
+                  value:
+                    success: true
+                    message: Market sell transaction completed
+                    correlationId: 3aa16533-b021-42c2-8419-6614e754d1af
+                    requestIdentity:
+                      operation: market-sell
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
+                    requestId: sell-1
+                    transaction:
+                      transactionId: tx-456
+                      requestId: sell-1
+                      marketId: sol-ceres-exchange
+                      solarSystemId: sol
+                      characterId: character-1
+                      itemId: iron
+                      direction: sell
+                      quantity: 4
+                      unitPrice: 10
+                      totalPrice: 40
+                      timestamp: '2026-05-18T00:00:00.000Z'
+                      characterCredits: 540
+                      marketStock: 64
+                insufficientQuantity:
+                  summary: Failure response omits transaction and reports a stable reason code
+                  value:
+                    success: false
+                    message: Insufficient item quantity to sell
+                    correlationId: 8798f4d3-a6ca-4956-91ec-4c99d8f75a83
+                    requestIdentity:
+                      operation: market-sell
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
+                    requestId: sell-2
+                    reason: INSUFFICIENT_ITEM_QUANTITY
+
+  /socket/market-listing-create:
+    post:
+      description: |
+        Creates a market listing with strict ownership enforcement.
+
+        Ownership contract:
+        - `owner.ownerType` must be `player-character`.
+        - `owner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Non-player-character owners are rejected with `OWNERSHIP_VALIDATION_FAILED`.
+        - Cross-player listing attempts are rejected with `OWNERSHIP_LISTING_FORBIDDEN`.
+      operationId: socketMarketListingCreate
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketListingCreateRequest'
+      responses:
+        '200':
+          description: market-listing-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListingCreateResponse'
+              examples:
+                success:
+                  summary: Valid player-character listing succeeds
+                  value:
+                    success: true
+                    message: Market listing created successfully
+                    offerId: listing-1748700000000-abc123
+                    owner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                      npcId: null
+                      factionId: null
+                crossPlayerForbidden:
+                  summary: Actor cannot create listing for another player
+                  value:
+                    success: false
+                    reason: OWNERSHIP_LISTING_FORBIDDEN
+                    message: Actor does not have permission to create listings for another player
+                npcOwnerRejected:
+                  summary: Non-player-character owner is rejected
+                  value:
+                    success: false
+                    reason: OWNERSHIP_VALIDATION_FAILED
+                    message: Only player-character owners can create market listings
+
+  /socket/market-offer-create:
+    post:
+      summary: market-offer-create-request
+      description: |
+        Creates a pending market offer with strict offeror ownership enforcement.
+
+        Ownership contract:
+        - `offerorOwner.ownerType` must be `player-character`.
+        - `offerorOwner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Non-player-character offerors are rejected with `OWNERSHIP_VALIDATION_FAILED`.
+        - Cross-player offer attempts are rejected with `OWNERSHIP_OFFER_FORBIDDEN`.
+      operationId: socketMarketOfferCreate
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketOfferCreateRequest'
+      responses:
+        '200':
+          description: market-offer-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketOfferCreateResponse'
+              examples:
+                success:
+                  summary: Valid player-character offer succeeds
+                  value:
+                    success: true
+                    offerId: offer-1748700000000-abc123
+                    listingId: listing-1
+                    offerorOwner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                      npcId: null
+                      factionId: null
+                    offerPrice: 500
+                    quantity: 1
+                    createdAt: '2026-06-12T00:00:00.000Z'
+                crossPlayerForbidden:
+                  summary: Actor cannot offer on behalf of another player
+                  value:
+                    success: false
+                    reason: OWNERSHIP_OFFER_FORBIDDEN
+                    message: Actor does not have permission to make offers for another player
+
+  /socket/market-offer-accept:
+    post:
+      summary: market-offer-accept-request
+      description: |
+        Accepts a pending market offer and records the trade. Optionally triggers automatic
+        ship ownership transfer when `shipId` is provided.
+
+        Ownership contract:
+        - `listingOwner.ownerType` must be `player-character`.
+        - `listingOwner.playerId` must match the authenticated actor's playerId.
+        - Only the listing owner can accept offers on their own listing.
+        - Cross-player acceptance attempts are rejected with `OWNERSHIP_ACCEPT_FORBIDDEN`.
+        - Trade history is recorded on the accepted offer document.
+      operationId: socketMarketOfferAccept
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketOfferAcceptRequest'
+      responses:
+        '200':
+          description: market-offer-accept-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketOfferAcceptResponse'
+              examples:
+                success:
+                  summary: Listing owner accepts offer and trade completes
+                  value:
+                    success: true
+                    tradeId: trade-1748700000000-abc123
+                    offerId: offer-1
+                    listingId: listing-1
+                    completedAt: '2026-06-12T00:00:00.000Z'
+                    tradeHistory:
+                      at: '2026-06-12T00:00:00.000Z'
+                      offerId: offer-1
+                      listingOwner:
+                        ownerType: player-character
+                        playerId: player-1
+                        characterId: char-1
+                      acceptorCharacterId: char-1
+                crossPlayerForbidden:
+                  summary: Actor cannot accept offer for another player's listing
+                  value:
+                    success: false
+                    reason: OWNERSHIP_ACCEPT_FORBIDDEN
+                    message: Only listing owner can accept this offer
+components:
+  schemas:
+    MarketBuyRequest:
+      $ref: '../schemas/market-buy-request.schema.json'
+    MarketBuyResponse:
+      $ref: '../schemas/market-buy-response.schema.json'
+    MarketInventoryListRequest:
+      $ref: '../schemas/market-inventory-list-request.schema.json'
+    MarketInventoryListResponse:
+      $ref: '../schemas/market-inventory-list-response.schema.json'
+    MarketLedgerListRequest:
+      $ref: '../schemas/market-ledger-list-request.schema.json'
+    MarketLedgerListResponse:
+      $ref: '../schemas/market-ledger-list-response.schema.json'
+    MarketListByLocationRequest:
+      $ref: '../schemas/market-list-by-location-request.schema.json'
+    MarketListByLocationResponse:
+      $ref: '../schemas/market-list-by-location-response.schema.json'
+    MarketListRequest:
+      $ref: '../schemas/market-list-request.schema.json'
+    MarketListResponse:
+      $ref: '../schemas/market-list-response.schema.json'
+    MarketQuoteRequest:
+      $ref: '../schemas/market-quote-request.schema.json'
+    MarketQuoteResponse:
+      $ref: '../schemas/market-quote-response.schema.json'
+    MarketSellRequest:
+      $ref: '../schemas/market-sell-request.schema.json'
+    MarketSellResponse:
+      $ref: '../schemas/market-sell-response.schema.json'
+    MarketListingCreateRequest:
+      $ref: '../schemas/market-listing-create-request.schema.json'
+    MarketListingCreateResponse:
+      $ref: '../schemas/market-listing-create-response.schema.json'
+    MarketOfferCreateRequest:
+      $ref: '../schemas/market-offer-create-request.schema.json'
+    MarketOfferCreateResponse:
+      $ref: '../schemas/market-offer-create-response.schema.json'
+    MarketOfferAcceptRequest:
+      $ref: '../schemas/market-offer-accept-request.schema.json'
+    MarketOfferAcceptResponse:
+      $ref: '../schemas/market-offer-accept-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/context/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Context
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Context
+paths:
+  /socket/context-distance:
+    post:
+      summary: context-distance-request
+      description: |
+        Computes the scalar distance between two context identifiers.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketContextDistance
+      tags: [Context]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextDistanceRequest'
+            examples:
+              distanceLookup:
+                summary: Calculate context distance with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 3adf84db-48f0-4c53-a8a2-53b6e4b47d3a
+                  requestIdentity:
+                    operation: context-distance
+                    entityType: context
+                    containerId: route-sol-alpha-centauri
+                  source: sol
+                  destination: alpha-centauri
+      responses:
+        '200':
+          description: context-distance-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextDistanceResponse'
+              examples:
+                successfulDistance:
+                  summary: Success echoes correlation metadata with the calculated distance
+                  value:
+                    success: true
+                    message: Distance calculated successfully
+                    playerName: PilotOne
+                    correlationId: 3adf84db-48f0-4c53-a8a2-53b6e4b47d3a
+                    requestIdentity:
+                      operation: context-distance
+                      entityType: context
+                      containerId: route-sol-alpha-centauri
+                    source: sol
+                    destination: alpha-centauri
+                    distance: 4.37
+
+  /socket/context-routing:
+    post:
+      summary: context-routing-request
+      description: |
+        Computes route context between two identifiers.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketContextRouting
+      tags: [Context]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextRoutingRequest'
+            examples:
+              routeLookup:
+                summary: Calculate a route with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: c94904ef-d5b6-4187-b9e8-3c9e6d8047aa
+                  requestIdentity:
+                    operation: context-routing
+                    entityType: context
+                    containerId: route-sol-alpha-centauri
+                  source: sol
+                  destination: alpha-centauri
+      responses:
+        '200':
+          description: context-routing-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextRoutingResponse'
+              examples:
+                successfulRoute:
+                  summary: Success echoes correlation metadata with route nodes
+                  value:
+                    success: true
+                    message: Route calculated successfully
+                    playerName: PilotOne
+                    correlationId: c94904ef-d5b6-4187-b9e8-3c9e6d8047aa
+                    requestIdentity:
+                      operation: context-routing
+                      entityType: context
+                      containerId: route-sol-alpha-centauri
+                    source: sol
+                    destination: alpha-centauri
+                    route:
+                      - sol
+                      - alpha-centauri
+components:
+  schemas:
+    ContextDistanceRequest:
+      $ref: '../schemas/context-distance-request.schema.json'
+    ContextDistanceResponse:
+      $ref: '../schemas/context-distance-response.schema.json'
+    ContextRoutingRequest:
+      $ref: '../schemas/context-routing-request.schema.json'
+    ContextRoutingResponse:
+      $ref: '../schemas/context-routing-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/solarsystem/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - SolarSystem
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: SolarSystem
+paths:
+  /socket/solar-system-get:
+    post:
+      summary: solar-system-get-request
+      description: |
+        Resolves a solar system by id, seeds its canonical celestial bodies on demand,
+        and returns both the system summary and its materialized bodies.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - `solarSystem`, `stars`, and `bodies` are present on success.
+        - Mission-generated asteroids are normalized into canonical asteroid viewer shape.
+        - Failure responses omit `solarSystem`, `stars`, and `bodies`.
+      operationId: socketSolarSystemGet
+      tags: [SolarSystem]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolarSystemGetRequest'
+            examples:
+              getSystem:
+                summary: Retrieve a solar system snapshot with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                  requestIdentity:
+                    operation: solar-system-get
+                    entityType: solar-system
+                    containerId: alpha-centauri
+                  solarSystemId: alpha-centauri
+      responses:
+        '200':
+          description: solar-system-get-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolarSystemGetResponse'
+              examples:
+                successfulSolarSystemGet:
+                  summary: Successful system lookup returns summary, stars, and bodies
+                  value:
+                    success: true
+                    message: Solar system retrieved successfully
+                    playerName: PilotOne
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: solar-system-get
+                      entityType: solar-system
+                      containerId: alpha-centauri
+                    solarSystemId: alpha-centauri
+                    solarSystem:
+                      id: alpha-centauri
+                      displayName: Alpha Centauri
+                      isMultiStar: true
+                    stars:
+                      - id: alpha-centauri-a
+                        bodyType: star
+                    bodies:
+                      - id: alpha-centauri-a
+                        bodyType: star
+                      - id: planet-1
+                        bodyType: planet
+                    requestId: req-1
+                failedSolarSystemGet:
+                  summary: Unknown systems return a failure payload without body arrays
+                  value:
+                    success: false
+                    message: Unknown solar system
+                    playerName: PilotOne
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: solar-system-get
+                      entityType: solar-system
+                      containerId: not-a-system
+                    solarSystemId: not-a-system
+                    requestId: req-1
+
+  /socket/solar-system-list:
+    post:
+      summary: solar-system-list-request
+      description: |
+        Returns solar systems from the registry, optionally filtered by source,
+        search text, and maximum distance.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - Systems are sorted by increasing distance.
+        - Optional count fields such as `planetCount`, `moonCount`, `asteroidCount`,
+          and `marketCount` are included when enrichment succeeds.
+        - Failure responses return an empty `solarSystems` array.
+      operationId: socketSolarSystemList
+      tags: [SolarSystem]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolarSystemListRequest'
+            examples:
+              listSystems:
+                summary: Retrieve solar systems with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 05bf6f98-a26f-4ccb-aa53-ef81259e8303
+                  requestIdentity:
+                    operation: solar-system-list
+                    entityType: solar-system
+                    containerId: registry
+      responses:
+        '200':
+          description: solar-system-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolarSystemListResponse'
+              examples:
+                successfulSolarSystemList:
+                  summary: Successful registry query returns enriched solar system summaries
+                  value:
+                    success: true
+                    message: Solar system list retrieved successfully
+                    playerName: PilotOne
+                    correlationId: 05bf6f98-a26f-4ccb-aa53-ef81259e8303
+                    requestIdentity:
+                      operation: solar-system-list
+                      entityType: solar-system
+                      containerId: registry
+                    requestId: req-42
+                    solarSystems:
+                      - id: sol
+                        displayName: Sol
+                        source: curated
+                        distanceParsec: 0
+                        planetCount: 2
+                        moonCount: 1
+                        asteroidCount: 1
+                        marketCount: 2
+                failedSolarSystemList:
+                  summary: Invalid source values return failure with an empty system list
+                  value:
+                    success: false
+                    message: 'source must be one of: curated, procedural'
+                    playerName: PilotOne
+                    correlationId: 05bf6f98-a26f-4ccb-aa53-ef81259e8303
+                    requestIdentity:
+                      operation: solar-system-list
+                      entityType: solar-system
+                      containerId: registry
+                    solarSystems: []
+components:
+  schemas:
+    SolarSystemGetRequest:
+      $ref: '../schemas/solar-system-get-request.schema.json'
+    SolarSystemGetResponse:
+      $ref: '../schemas/solar-system-get-response.schema.json'
+    SolarSystemListRequest:
+      $ref: '../schemas/solar-system-list-request.schema.json'
+    SolarSystemListResponse:
+      $ref: '../schemas/solar-system-list-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/stars/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Stars
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Stars
+paths:
+  /socket/star-get:
+    post:
+      summary: star-get-request
+      description: |
+        Returns a single HYG catalog star by `hygId`.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - `star` is present only on success.
+        - Failure responses still echo `hygId` and `requestId` when provided.
+      operationId: socketStarGet
+      tags: [Stars]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StarGetRequest'
+            examples:
+              getStar:
+                summary: Retrieve a star by HYG id with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: ea3e74fc-a156-4686-a5c4-4bd12ef2ed4d
+                  requestIdentity:
+                    operation: star-get
+                    entityType: star
+                    containerId: '70890'
+                  hygId: '70890'
+      responses:
+        '200':
+          description: star-get-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StarGetResponse'
+              examples:
+                successfulStarGet:
+                  summary: Successful lookup returns the HYG star payload
+                  value:
+                    success: true
+                    message: Star retrieved successfully
+                    playerName: PilotOne
+                    correlationId: ea3e74fc-a156-4686-a5c4-4bd12ef2ed4d
+                    requestIdentity:
+                      operation: star-get
+                      entityType: star
+                      containerId: '70890'
+                    hygId: '70890'
+                    star:
+                      hygId: '70890'
+                      properName: Proxima Centauri
+                      systemId: alpha-centauri
+                      spectralClass: M
+                    requestId: req-1
+                failedStarGet:
+                  summary: Missing or unknown stars return failure without a star payload
+                  value:
+                    success: false
+                    message: Star not found
+                    playerName: PilotOne
+                    correlationId: ea3e74fc-a156-4686-a5c4-4bd12ef2ed4d
+                    requestIdentity:
+                      operation: star-get
+                      entityType: star
+                      containerId: no-such-id
+                    hygId: no-such-id
+                    requestId: req-1
+
+  /socket/star-list:
+    post:
+      summary: star-list-request
+      description: |
+        Returns HYG catalog stars, optionally filtered by system, spectral class,
+        and maximum distance.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - Results are sorted by increasing `distanceParsec`.
+        - `stars` is always present and is empty on failures or empty matches.
+      operationId: socketStarList
+      tags: [Stars]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StarListRequest'
+            examples:
+              listStars:
+                summary: Retrieve stars with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: c5dfa780-60d2-4823-837b-c7e84a421f4c
+                  requestIdentity:
+                    operation: star-list
+                    entityType: star
+                    containerId: registry
+      responses:
+        '200':
+          description: star-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StarListResponse'
+              examples:
+                successfulStarList:
+                  summary: Successful list query returns stars sorted by distance
+                  value:
+                    success: true
+                    message: Star list retrieved successfully
+                    playerName: PilotOne
+                    correlationId: c5dfa780-60d2-4823-837b-c7e84a421f4c
+                    requestIdentity:
+                      operation: star-list
+                      entityType: star
+                      containerId: registry
+                    requestId: req-2
+                    stars:
+                      - hygId: '70890'
+                        properName: Proxima Centauri
+                        systemId: alpha-centauri
+                        spectralClass: M
+                        distanceParsec: 1.301
+                emptyStarList:
+                  summary: No matches is still a successful query with an empty list
+                  value:
+                    success: true
+                    message: No stars matched the query
+                    playerName: PilotOne
+                    correlationId: c5dfa780-60d2-4823-837b-c7e84a421f4c
+                    requestIdentity:
+                      operation: star-list
+                      entityType: star
+                      containerId: registry
+                    stars: []
+components:
+  schemas:
+    StarGetRequest:
+      $ref: '../schemas/star-get-request.schema.json'
+    StarGetResponse:
+      $ref: '../schemas/star-get-response.schema.json'
+    StarListRequest:
+      $ref: '../schemas/star-list-request.schema.json'
+    StarListResponse:
+      $ref: '../schemas/star-list-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/ledger/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Ledger
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Ledger
+paths:
+  /socket/credit-ledger-list:
+    post:
+      summary: credit-ledger-list-request
+      description: |
+        Lists character credit ledger entries.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketCreditLedgerList
+      tags: [Ledger]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditLedgerListRequest'
+            examples:
+              listCredits:
+                summary: Retrieve credit ledger entries with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 5d8024fd-2cf0-4afd-8c46-b2f3ce65db2e
+                  requestIdentity:
+                    operation: credit-ledger-list
+                    entityType: credit-ledger
+                    containerId: player-pilotone
+      responses:
+        '200':
+          description: credit-ledger-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditLedgerListResponse'
+              examples:
+                successfulCreditLedger:
+                  summary: Success echoes correlation metadata with paged ledger entries
+                  value:
+                    success: true
+                    message: Credit ledger retrieved successfully
+                    playerName: PilotOne
+                    correlationId: 5d8024fd-2cf0-4afd-8c46-b2f3ce65db2e
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: player-pilotone
+                    entries: []
+                    total: 0
+                    offset: 0
+                    limit: 50
+components:
+  schemas:
+    CreditLedgerListRequest:
+      $ref: '../schemas/credit-ledger-list-request.schema.json'
+    CreditLedgerListResponse:
+      $ref: '../schemas/credit-ledger-list-response.schema.json'
+
+```
+
+```yaml
+# api/openapi/game/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Game
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Game
+paths:
+  /socket/game-join:
+    post:
+      summary: game-join-request
+      description: |
+        Marks a character as joined to the active game session.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketGameJoin
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameJoinRequest'
+            examples:
+              joinGame:
+                summary: Join a character to the game with correlation metadata
+                value:
+                  playerName: JoinPilot
+                  sessionKey: session-123
+                  correlationId: 68bd4d59-2ef4-4a51-bb7b-763e530c1270
+                  requestIdentity:
+                    operation: game-join
+                    entityType: game-session
+                    containerId: character-1
+                  characterId: character-1
+      responses:
+        '200':
+          description: game-join-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameJoinResponse'
+              examples:
+                successfulJoin:
+                  summary: Success echoes correlation metadata with character context
+                  value:
+                    success: true
+                    message: Character joined game successfully
+                    playerName: JoinPilot
+                    characterId: character-1
+                    correlationId: 68bd4d59-2ef4-4a51-bb7b-763e530c1270
+                    requestIdentity:
+                      operation: game-join
+                      entityType: game-session
+                      containerId: character-1
+
+  /socket/game-leave:
+    post:
+      summary: game-leave-request
+      description: |
+        Marks the current player session as leaving the game.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketGameLeave
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameLeaveRequest'
+            examples:
+              leaveGame:
+                summary: Leave the active game with correlation metadata
+                value:
+                  playerName: JoinPilot
+                  sessionKey: session-123
+                  correlationId: df1b7c96-5d1e-4bfa-a177-5134b5d0a52d
+                  requestIdentity:
+                    operation: game-leave
+                    entityType: game-session
+                    containerId: player-joinpilot
+      responses:
+        '200':
+          description: game-leave-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameLeaveResponse'
+              examples:
+                successfulLeave:
+                  summary: Success echoes correlation metadata with session context
+                  value:
+                    success: true
+                    message: Game left successfully
+                    playerName: JoinPilot
+                    sessionKey: session-123
+                    correlationId: df1b7c96-5d1e-4bfa-a177-5134b5d0a52d
+                    requestIdentity:
+                      operation: game-leave
+                      entityType: game-session
+                      containerId: player-joinpilot
+
+  /socket/game-state:
+    post:
+      summary: game-state
+      operationId: socketGameState
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameState'
+      responses:
+        '200':
+          description: game-state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameState'
+components:
+  schemas:
+    GameJoinRequest:
+      $ref: '../schemas/game-join-request.schema.json'
+    GameJoinResponse:
+      $ref: '../schemas/game-join-response.schema.json'
+    GameLeaveRequest:
+      $ref: '../schemas/game-leave-request.schema.json'
+    GameLeaveResponse:
+      $ref: '../schemas/game-leave-response.schema.json'
+    GameState:
+      $ref: '../schemas/game-state.schema.json'
+
+```
+
+```yaml
+# api/openapi/realtime/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Realtime
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Realtime
+paths:
+  /socket/ping:
+    post:
+      summary: ping-request
+      operationId: socketPing
+      tags: [Realtime]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PingRequest'
+      responses:
+        '200':
+          description: pong-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PongResponse'
+
+  /socket/message:
+    post:
+      summary: message
+      operationId: socketMessage
+      tags: [Realtime]
+      description: Generic relay message; the server rebroadcasts with sender socket id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+      responses:
+        '200':
+          description: message broadcast envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /socket/welcome:
+    get:
+      summary: welcome
+      operationId: socketWelcome
+      tags: [Realtime]
+      description: Event emitted automatically by the server when a socket connects.
+      responses:
+        '200':
+          description: welcome event payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WelcomeEvent'
+
+  /socket/invalid-session:
+    get:
+      summary: invalid-session
+      operationId: socketInvalidSession
+      tags: [Realtime]
+      description: Event emitted for session-protected requests when session validation fails.
+      responses:
+        '200':
+          description: invalid-session event payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidSessionResponse'
+components:
+  schemas:
+    InvalidSessionResponse:
+      $ref: '../schemas/invalid-session-response.schema.json'
+    MessageRequest:
+      $ref: '../schemas/message-request.schema.json'
+    MessageResponse:
+      $ref: '../schemas/message-response.schema.json'
+    PingRequest:
+      $ref: '../schemas/ping-request.schema.json'
+    PongResponse:
+      $ref: '../schemas/pong-response.schema.json'
+    WelcomeEvent:
+      $ref: '../schemas/welcome-event.schema.json'
+
+```
+
+```yaml
+# api/openapi/bust/openapi.yaml
+openapi: 3.0.3
+info:
+  title: Stellar API - Bust
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Bust
+paths:
+  /socket/character-bust-create:
+    post:
+      summary: character-bust-create-request
+      description: |
+        Creates a bust descriptor for a playable character. The bust is character-scoped;
+        characterId identifies the target playable-character record.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - All descriptor domain fields must be provided with valid enum values.
+        - Invalid field values result in a hard-reject 422 response with explicit per-field
+          validation errors. No silent correction is applied.
+        - Valid payloads may still be blocked from persistence with a typed blocked-save
+          response containing `blockedSave.reason` and `blockedSave.retryable`.
+      operationId: socketCharacterBustCreate
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterBustCreateRequest'
+            examples:
+              createCharacterBust:
+                summary: Create a canonical bust for a playable character
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                  requestIdentity:
+                    operation: character-bust-create
+                    entityType: character-bust
+                    containerId: character-1
+                  characterId: character-1
+                  descriptor:
+                    presetVersion: v1
+                    faceShape: oval
+                    skinTone: medium
+                    hairStyle: short-crop
+                    hairColor: brown
+                    eyeStyle: almond
+                    eyeColor: green
+                    expressionPreset: neutral
+                    apparelAccent: none
+                    facialHair: none
+                    scar: none
+                    tattoo: none
+      responses:
+        '200':
+          description: character-bust-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterBustCreateResponse'
+              examples:
+                successfulCreate:
+                  summary: Bust created and stored with server-assigned schemaVersion
+                  value:
+                    success: true
+                    message: Character bust created successfully
+                    playerName: PilotOne
+                    correlationId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    requestIdentity:
+                      operation: character-bust-create
+                      entityType: character-bust
+                      containerId: character-1
+                    characterId: character-1
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: oval
+                      skinTone: medium
+                      hairStyle: short-crop
+                      hairColor: brown
+                      eyeStyle: almond
+                      eyeColor: green
+                      expressionPreset: neutral
+                      apparelAccent: none
+                      facialHair: none
+                      scar: none
+                      tattoo: none
+                blockedSave:
+                  summary: Save blocked when character ownership preconditions are not met
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: PilotOne
+                    correlationId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    requestIdentity:
+                      operation: character-bust-create
+                      entityType: character-bust
+                      containerId: character-1
+                    characterId: character-1
+                    blockedSave:
+                      reason: CHARACTER_NOT_FOUND
+                      retryable: false
+        '422':
+          description: bust-validation-error-response (hard reject on invalid descriptor field values)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BustValidationErrorResponse'
+              examples:
+                invalidEnumHardReject:
+                  summary: Hard-reject response when a descriptor field has an invalid enum value
+                  value:
+                    success: false
+                    message: Bust descriptor validation failed
+                    correlationId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    requestIdentity:
+                      operation: character-bust-create
+                      entityType: character-bust
+                      containerId: character-1
+                    validationErrors:
+                      - field: descriptor.faceShape
+                        reason: not a valid enum value
+                        rejectedValue: triangle
+
+  /socket/character-bust-read:
+    post:
+      summary: character-bust-read-request
+      description: |
+        Reads the current stored bust descriptor for a playable character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketCharacterBustRead
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterBustReadRequest'
+            examples:
+              readCharacterBust:
+                summary: Read the stored bust for a playable character
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: b2c3d4e5-f6a7-8901-bcde-f12345678901
+                  requestIdentity:
+                    operation: character-bust-read
+                    entityType: character-bust
+                    containerId: character-1
+                  characterId: character-1
+      responses:
+        '200':
+          description: character-bust-read-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterBustReadResponse'
+              examples:
+                successfulRead:
+                  summary: Stored bust descriptor returned
+                  value:
+                    success: true
+                    message: Character bust retrieved successfully
+                    playerName: PilotOne
+                    correlationId: b2c3d4e5-f6a7-8901-bcde-f12345678901
+                    requestIdentity:
+                      operation: character-bust-read
+                      entityType: character-bust
+                      containerId: character-1
+                    characterId: character-1
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: oval
+                      skinTone: medium
+                      hairStyle: short-crop
+                      hairColor: brown
+                      eyeStyle: almond
+                      eyeColor: green
+                      expressionPreset: neutral
+                      apparelAccent: none
+                      facialHair: none
+                      scar: none
+                      tattoo: none
+
+  /socket/character-bust-update:
+    post:
+      summary: character-bust-update-request
+      description: |
+        Updates the bust descriptor for a playable character. The full descriptor must be
+        provided; partial updates are not supported. Invalid field values are hard-rejected.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - All descriptor domain fields must be provided with valid enum values.
+        - Invalid field values result in a hard-reject 422 response. No silent correction is applied.
+        - Valid payloads may still be blocked from persistence with a typed blocked-save
+          response containing `blockedSave.reason` and `blockedSave.retryable`.
+      operationId: socketCharacterBustUpdate
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterBustUpdateRequest'
+            examples:
+              updateCharacterBust:
+                summary: Update a playable character bust descriptor
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: c3d4e5f6-a7b8-9012-cdef-123456789012
+                  requestIdentity:
+                    operation: character-bust-update
+                    entityType: character-bust
+                    containerId: character-1
+                  characterId: character-1
+                  descriptor:
+                    presetVersion: v1
+                    faceShape: square
+                    skinTone: tan
+                    hairStyle: mid-fade
+                    hairColor: black
+                    eyeStyle: narrow
+                    eyeColor: brown
+                    expressionPreset: stern
+                    apparelAccent: collar
+                    facialHair: stubble
+                    scar: brow-left
+                    tattoo: temple-left
+      responses:
+        '200':
+          description: character-bust-update-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterBustUpdateResponse'
+              examples:
+                successfulUpdate:
+                  summary: Bust updated and normalized descriptor returned
+                  value:
+                    success: true
+                    message: Character bust updated successfully
+                    playerName: PilotOne
+                    correlationId: c3d4e5f6-a7b8-9012-cdef-123456789012
+                    requestIdentity:
+                      operation: character-bust-update
+                      entityType: character-bust
+                      containerId: character-1
+                    characterId: character-1
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: square
+                      skinTone: tan
+                      hairStyle: mid-fade
+                      hairColor: black
+                      eyeStyle: narrow
+                      eyeColor: brown
+                      expressionPreset: stern
+                      apparelAccent: collar
+                      facialHair: stubble
+                      scar: brow-left
+                      tattoo: temple-left
+                blockedSave:
+                  summary: Save blocked when a prior descriptor does not exist
+                  value:
+                    success: false
+                    message: Character bust descriptor is not set
+                    playerName: PilotOne
+                    correlationId: c3d4e5f6-a7b8-9012-cdef-123456789012
+                    requestIdentity:
+                      operation: character-bust-update
+                      entityType: character-bust
+                      containerId: character-1
+                    characterId: character-1
+                    blockedSave:
+                      reason: CHARACTER_BUST_NOT_FOUND
+                      retryable: false
+        '422':
+          description: bust-validation-error-response (hard reject on invalid descriptor field values)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BustValidationErrorResponse'
+
+  /socket/npc-bust-create:
+    post:
+      summary: npc-bust-create-request
+      description: |
+        Creates a bust descriptor for an NPC using a deterministicSeed. The seed drives
+        the baseline descriptor so the same seed always produces the same output. Optional
+        admin-tool overrides may be applied on top of the seeded baseline.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - `deterministicSeed` must be non-empty.
+        - Invalid override field values result in a hard-reject 422 response.
+        - Valid payloads may still be blocked from persistence with a typed blocked-save
+          response containing `blockedSave.reason` and `blockedSave.retryable`.
+      operationId: socketNpcBustCreate
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NpcBustCreateRequest'
+            examples:
+              createNpcBust:
+                summary: Create a seeded NPC bust with no overrides
+                value:
+                  playerName: AdminUser
+                  sessionKey: session-admin-1
+                  correlationId: d4e5f6a7-b8c9-0123-defa-234567890123
+                  requestIdentity:
+                    operation: npc-bust-create
+                    entityType: npc-bust
+                    containerId: npc-merchant-001
+                  npcId: npc-merchant-001
+                  deterministicSeed: faction:trade|role:merchant|id:001
+      responses:
+        '200':
+          description: npc-bust-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpcBustCreateResponse'
+              examples:
+                successfulNpcCreate:
+                  summary: NPC bust created from deterministic seed
+                  value:
+                    success: true
+                    message: NPC bust created successfully
+                    correlationId: d4e5f6a7-b8c9-0123-defa-234567890123
+                    requestIdentity:
+                      operation: npc-bust-create
+                      entityType: npc-bust
+                      containerId: npc-merchant-001
+                    npcId: npc-merchant-001
+                    deterministicSeed: faction:trade|role:merchant|id:001
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: round
+                      skinTone: light
+                      hairStyle: slicked
+                      hairColor: auburn
+                      eyeStyle: wide
+                      eyeColor: hazel
+                      expressionPreset: warm
+                      apparelAccent: collar
+                      facialHair: none
+                      scar: none
+                      tattoo: none
+                    appliedOverrides: []
+                blockedSave:
+                  summary: Save blocked due to temporary persistence failure
+                  value:
+                    success: false
+                    message: Failed to create NPC bust descriptor: database error
+                    correlationId: d4e5f6a7-b8c9-0123-defa-234567890123
+                    requestIdentity:
+                      operation: npc-bust-create
+                      entityType: npc-bust
+                      containerId: npc-merchant-001
+                    npcId: npc-merchant-001
+                    blockedSave:
+                      reason: DATABASE_ERROR
+                      retryable: true
+        '422':
+          description: bust-validation-error-response (hard reject on invalid override field values)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BustValidationErrorResponse'
+
+  /socket/npc-bust-read:
+    post:
+      summary: npc-bust-read-request
+      description: |
+        Reads the current stored bust descriptor for an NPC, including the deterministicSeed
+        used at creation for replay and cross-session consistency verification.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketNpcBustRead
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NpcBustReadRequest'
+            examples:
+              readNpcBust:
+                summary: Read the stored bust for an NPC
+                value:
+                  playerName: AdminUser
+                  sessionKey: session-admin-1
+                  correlationId: e5f6a7b8-c9d0-1234-efab-345678901234
+                  requestIdentity:
+                    operation: npc-bust-read
+                    entityType: npc-bust
+                    containerId: npc-merchant-001
+                  npcId: npc-merchant-001
+      responses:
+        '200':
+          description: npc-bust-read-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpcBustReadResponse'
+              examples:
+                successfulNpcRead:
+                  summary: Stored NPC bust descriptor with seed returned
+                  value:
+                    success: true
+                    message: NPC bust retrieved successfully
+                    correlationId: e5f6a7b8-c9d0-1234-efab-345678901234
+                    requestIdentity:
+                      operation: npc-bust-read
+                      entityType: npc-bust
+                      containerId: npc-merchant-001
+                    npcId: npc-merchant-001
+                    deterministicSeed: faction:trade|role:merchant|id:001
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: round
+                      skinTone: light
+                      hairStyle: slicked
+                      hairColor: auburn
+                      eyeStyle: wide
+                      eyeColor: hazel
+                      expressionPreset: warm
+                      apparelAccent: collar
+                      facialHair: none
+                      scar: none
+                      tattoo: none
+                    appliedOverrides: []
+
+  /socket/npc-bust-update:
+    post:
+      summary: npc-bust-update-request
+      description: |
+        Updates an NPC bust descriptor. A new deterministicSeed may be provided to
+        regenerate the baseline, or only overrides may be changed while preserving the
+        existing seed. Invalid override field values are hard-rejected.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - `deterministicSeed` must be non-empty.
+        - Invalid override field values result in a hard-reject 422 response.
+        - Valid payloads may still be blocked from persistence with a typed blocked-save
+          response containing `blockedSave.reason` and `blockedSave.retryable`.
+      operationId: socketNpcBustUpdate
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NpcBustUpdateRequest'
+            examples:
+              updateNpcBust:
+                summary: Update NPC bust with an admin-tool expression override
+                value:
+                  playerName: AdminUser
+                  sessionKey: session-admin-1
+                  correlationId: f6a7b8c9-d0e1-2345-fabc-456789012345
+                  requestIdentity:
+                    operation: npc-bust-update
+                    entityType: npc-bust
+                    containerId: npc-merchant-001
+                  npcId: npc-merchant-001
+                  deterministicSeed: faction:trade|role:merchant|id:001
+                  overrides:
+                    expressionPreset: stern
+                    tattoo: neck-left
+      responses:
+        '200':
+          description: npc-bust-update-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpcBustUpdateResponse'
+              examples:
+                successfulNpcUpdate:
+                  summary: NPC bust updated with override applied
+                  value:
+                    success: true
+                    message: NPC bust updated successfully
+                    correlationId: f6a7b8c9-d0e1-2345-fabc-456789012345
+                    requestIdentity:
+                      operation: npc-bust-update
+                      entityType: npc-bust
+                      containerId: npc-merchant-001
+                    npcId: npc-merchant-001
+                    deterministicSeed: faction:trade|role:merchant|id:001
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: round
+                      skinTone: light
+                      hairStyle: slicked
+                      hairColor: auburn
+                      eyeStyle: wide
+                      eyeColor: hazel
+                      expressionPreset: stern
+                      apparelAccent: collar
+                      facialHair: none
+                      scar: none
+                      tattoo: neck-left
+                    appliedOverrides:
+                      - expressionPreset
+                      - tattoo
+                blockedSave:
+                  summary: Save blocked when no prior NPC bust exists
+                  value:
+                    success: false
+                    message: NPC bust descriptor is not set
+                    correlationId: f6a7b8c9-d0e1-2345-fabc-456789012345
+                    requestIdentity:
+                      operation: npc-bust-update
+                      entityType: npc-bust
+                      containerId: npc-merchant-001
+                    npcId: npc-merchant-001
+                    blockedSave:
+                      reason: NPC_BUST_NOT_FOUND
+                      retryable: false
+        '422':
+          description: bust-validation-error-response (hard reject on invalid override field values)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BustValidationErrorResponse'
+components:
+  schemas:
+    BustValidationErrorResponse:
+      $ref: '../schemas/bust-validation-error-response.schema.json'
+    CharacterBustCreateRequest:
+      $ref: '../schemas/character-bust-create-request.schema.json'
+    CharacterBustCreateResponse:
+      $ref: '../schemas/character-bust-create-response.schema.json'
+    CharacterBustReadRequest:
+      $ref: '../schemas/character-bust-read-request.schema.json'
+    CharacterBustReadResponse:
+      $ref: '../schemas/character-bust-read-response.schema.json'
+    CharacterBustUpdateRequest:
+      $ref: '../schemas/character-bust-update-request.schema.json'
+    CharacterBustUpdateResponse:
+      $ref: '../schemas/character-bust-update-response.schema.json'
+    NpcBustCreateRequest:
+      $ref: '../schemas/npc-bust-create-request.schema.json'
+    NpcBustCreateResponse:
+      $ref: '../schemas/npc-bust-create-response.schema.json'
+    NpcBustReadRequest:
+      $ref: '../schemas/npc-bust-read-request.schema.json'
+    NpcBustReadResponse:
+      $ref: '../schemas/npc-bust-read-response.schema.json'
+    NpcBustUpdateRequest:
+      $ref: '../schemas/npc-bust-update-request.schema.json'
+    NpcBustUpdateResponse:
+      $ref: '../schemas/npc-bust-update-response.schema.json'
+
+```
+

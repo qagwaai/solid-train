@@ -38,6 +38,13 @@ const { MARKET_INVENTORY_LIST_REQUEST_EVENT } = require('../model/market-invento
 const { MARKET_LEDGER_LIST_REQUEST_EVENT } = require('../model/market-ledger-list');
 const { MARKET_BUY_REQUEST_EVENT } = require('../model/market-buy');
 const { MARKET_SELL_REQUEST_EVENT } = require('../model/market-sell');
+const { MARKET_LISTING_CREATE_REQUEST_EVENT } = require('../model/market-listing-create');
+const { MARKET_OFFER_CREATE_REQUEST_EVENT } = require('../model/market-offer-create');
+const { MARKET_OFFER_ACCEPT_REQUEST_EVENT } = require('../model/market-offer-accept');
+const { ITEM_LIST_BY_OWNER_REQUEST_EVENT } = require('../model/item-list-by-owner');
+const { SHIP_SALVAGE_CLAIM_REQUEST_EVENT } = require('../model/ship-salvage-claim');
+const { SHIP_PIRACY_SEIZE_REQUEST_EVENT } = require('../model/ship-piracy-seize');
+const { SHIP_LIST_BY_NPC_OWNER_REQUEST_EVENT } = require('../model/ship-list-by-npc-owner');
 const { SOLAR_SYSTEM_LIST_REQUEST_EVENT } = require('../model/solar-system-list');
 const { SOLAR_SYSTEM_GET_REQUEST_EVENT } = require('../model/solar-system-get');
 const { STAR_LIST_REQUEST_EVENT } = require('../model/star-list');
@@ -412,6 +419,41 @@ const SOCKET_HANDLER_REGISTRY = [
     event: MARKET_SELL_REQUEST_EVENT,
     handlerKey: 'marketSellMessageHandler',
     errorLabel: 'Market sell',
+  },
+  {
+    event: MARKET_LISTING_CREATE_REQUEST_EVENT,
+    handlerKey: 'marketListingCreateMessageHandler',
+    errorLabel: 'Market listing create',
+  },
+  {
+    event: MARKET_OFFER_CREATE_REQUEST_EVENT,
+    handlerKey: 'marketOfferCreateMessageHandler',
+    errorLabel: 'Market offer create',
+  },
+  {
+    event: MARKET_OFFER_ACCEPT_REQUEST_EVENT,
+    handlerKey: 'marketOfferAcceptMessageHandler',
+    errorLabel: 'Market offer accept',
+  },
+  {
+    event: ITEM_LIST_BY_OWNER_REQUEST_EVENT,
+    handlerKey: 'itemListByOwnerMessageHandler',
+    errorLabel: 'Item list by owner',
+  },
+  {
+    event: SHIP_SALVAGE_CLAIM_REQUEST_EVENT,
+    handlerKey: 'shipSalvageClaimMessageHandler',
+    errorLabel: 'Ship salvage claim',
+  },
+  {
+    event: SHIP_PIRACY_SEIZE_REQUEST_EVENT,
+    handlerKey: 'shipPiracySeizeMessageHandler',
+    errorLabel: 'Ship piracy seize',
+  },
+  {
+    event: SHIP_LIST_BY_NPC_OWNER_REQUEST_EVENT,
+    handlerKey: 'shipListByNpcOwnerMessageHandler',
+    errorLabel: 'Ship list by NPC owner',
   },
   {
     event: SOLAR_SYSTEM_LIST_REQUEST_EVENT,

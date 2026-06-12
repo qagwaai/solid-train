@@ -534,8 +534,13 @@ async function getItemsNearPositionAsync(ctx, query) {
   return results.slice(0, limit);
 }
 
+function getAllItems(ctx) {
+  return Array.from(ctx.itemsById.values());
+}
+
 module.exports = {
   getItem,
+  getAllItems,
   cacheItems,
   getItemsByIdsAsync,
   addItemsAsync,

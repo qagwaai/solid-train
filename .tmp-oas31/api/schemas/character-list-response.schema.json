@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "character-list-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "characters", "correlationId", "requestIdentity"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "playerName": { "type": "string" },
+    "characters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "Character summary snapshot. Only id and characterName are guaranteed; additional canonical fields may be present.",
+        "required": ["id", "characterName"],
+        "properties": {
+          "id": { "type": "string" },
+          "characterName": { "type": "string" },
+          "level": { "type": "number" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "credits": { "type": "number" },
+          "creditLedger": { "type": "array" },
+          "ships": { "type": "array" },
+          "inGame": { "type": "boolean" },
+          "gameJoinedAt": { "type": "string", "format": "date-time" },
+          "gameLastMessageReceivedAt": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

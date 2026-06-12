@@ -1,0 +1,67 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Ledger
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Ledger
+paths:
+  /socket/credit-ledger-list:
+    post:
+      summary: credit-ledger-list-request
+      description: |
+        Lists character credit ledger entries.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketCreditLedgerList
+      tags: [Ledger]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditLedgerListRequest'
+            examples:
+              listCredits:
+                summary: Retrieve credit ledger entries with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 5d8024fd-2cf0-4afd-8c46-b2f3ce65db2e
+                  requestIdentity:
+                    operation: credit-ledger-list
+                    entityType: credit-ledger
+                    containerId: player-pilotone
+      responses:
+        '200':
+          description: credit-ledger-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditLedgerListResponse'
+              examples:
+                successfulCreditLedger:
+                  summary: Success echoes correlation metadata with paged ledger entries
+                  value:
+                    success: true
+                    message: Credit ledger retrieved successfully
+                    playerName: PilotOne
+                    correlationId: 5d8024fd-2cf0-4afd-8c46-b2f3ce65db2e
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: player-pilotone
+                    entries: []
+                    total: 0
+                    offset: 0
+                    limit: 50
+components:
+  schemas:
+    CreditLedgerListRequest:
+      $ref: '../../schemas/credit-ledger-list-request.schema.json'
+    CreditLedgerListResponse:
+      $ref: '../../schemas/credit-ledger-list-response.schema.json'

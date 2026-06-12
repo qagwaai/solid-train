@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "login-response",
+  "type": "object",
+  "required": ["success", "message", "playerId", "sessionKey"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "playerId": { "type": "string" },
+    "sessionKey": { "type": "string" }
+  }
+}

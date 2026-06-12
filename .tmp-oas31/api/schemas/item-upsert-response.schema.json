@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "item-upsert-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "correlationId", "requestIdentity"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "playerName": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "description": "Echo of the requestIdentity block from the request.",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "item": {
+      "$ref": "./item.schema.json",
+      "description": "Present on successful item upsert responses."
+    }
+  }
+}

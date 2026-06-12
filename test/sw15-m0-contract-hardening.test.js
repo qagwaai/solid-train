@@ -21,15 +21,17 @@ const {
 } = require('../src/model/bust-descriptor');
 
 const ROOT = path.resolve(__dirname, '..');
-const OPENAPI_PATH = path.join(ROOT, 'openapi.yaml');
-const BUST_DESCRIPTOR_SCHEMA_PATH = path.join(ROOT, 'schemas', 'bust-descriptor.schema.json');
+const OPENAPI_PATH = path.join(ROOT, 'api', 'openapi.yaml');
+const BUST_DESCRIPTOR_SCHEMA_PATH = path.join(ROOT, 'api', 'schemas', 'bust-descriptor.schema.json');
 const BUST_VALIDATION_ERROR_SCHEMA_PATH = path.join(
   ROOT,
+  'api',
   'schemas',
   'bust-validation-error-response.schema.json'
 );
 const BUST_BLOCKED_SAVE_SCHEMA_PATH = path.join(
   ROOT,
+  'api',
   'schemas',
   'bust-blocked-save-response.schema.json'
 );
@@ -318,7 +320,7 @@ test('SW-15 bust-blocked-save-response schema has success enum false and blocked
 test('SW-15 character-bust-create-request descriptor enum values match bust-descriptor schema', () => {
   const bustSchema = readJson(BUST_DESCRIPTOR_SCHEMA_PATH);
   const createRequestSchema = readJson(
-    path.join(ROOT, 'schemas', 'character-bust-create-request.schema.json')
+    path.join(ROOT, 'api', 'schemas', 'character-bust-create-request.schema.json')
   );
   const requestDescriptor = createRequestSchema.properties.descriptor.properties;
 
@@ -347,7 +349,7 @@ test('SW-15 character-bust-create-request descriptor enum values match bust-desc
 test('SW-15 npc-bust-create-request override enum values match bust-descriptor schema', () => {
   const bustSchema = readJson(BUST_DESCRIPTOR_SCHEMA_PATH);
   const npcCreateRequestSchema = readJson(
-    path.join(ROOT, 'schemas', 'npc-bust-create-request.schema.json')
+    path.join(ROOT, 'api', 'schemas', 'npc-bust-create-request.schema.json')
   );
   const overrideProperties = npcCreateRequestSchema.properties.overrides.properties;
 
@@ -375,10 +377,10 @@ test('SW-15 npc-bust-create-request override enum values match bust-descriptor s
 
 test('SW-15 create/update bust response schemas include blocked-save response variant', () => {
   const responseSchemaPaths = [
-    path.join(ROOT, 'schemas', 'character-bust-create-response.schema.json'),
-    path.join(ROOT, 'schemas', 'character-bust-update-response.schema.json'),
-    path.join(ROOT, 'schemas', 'npc-bust-create-response.schema.json'),
-    path.join(ROOT, 'schemas', 'npc-bust-update-response.schema.json'),
+    path.join(ROOT, 'api', 'schemas', 'character-bust-create-response.schema.json'),
+    path.join(ROOT, 'api', 'schemas', 'character-bust-update-response.schema.json'),
+    path.join(ROOT, 'api', 'schemas', 'npc-bust-create-response.schema.json'),
+    path.join(ROOT, 'api', 'schemas', 'npc-bust-update-response.schema.json'),
   ];
 
   for (const responseSchemaPath of responseSchemaPaths) {

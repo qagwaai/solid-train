@@ -1,0 +1,312 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Character
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Character
+paths:
+  /socket/character-add:
+    post:
+      summary: character-add-request
+      description: |
+        Creates a new character for the authenticated player.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketCharacterAdd
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterAddRequest'
+            examples:
+              createCharacter:
+                summary: Create a player character with correlation metadata
+                value:
+                  playerName: BuilderPilot
+                  sessionKey: session-123
+                  correlationId: 3b7d0a6d-3b44-4d6f-9d82-6bbf8e16f522
+                  requestIdentity:
+                    operation: character-add
+                    entityType: character
+                    containerId: player-builderpilot
+                  characterName: RangerOne
+      responses:
+        '200':
+          description: character-add-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterAddResponse'
+              examples:
+                successfulCharacterAdd:
+                  summary: Success echoes correlation metadata with the new character id
+                  value:
+                    success: true
+                    message: Character added successfully
+                    playerName: BuilderPilot
+                    characterName: RangerOne
+                    characterId: character-1
+                    correlationId: 3b7d0a6d-3b44-4d6f-9d82-6bbf8e16f522
+                    requestIdentity:
+                      operation: character-add
+                      entityType: character
+                      containerId: player-builderpilot
+                failedCharacterAdd:
+                  summary: Failure still echoes correlation metadata
+                  value:
+                    success: false
+                    message: Character name is required
+                    playerName: BuilderPilot
+                    characterName: ''
+                    characterId: ''
+                    correlationId: 3b7d0a6d-3b44-4d6f-9d82-6bbf8e16f522
+                    requestIdentity:
+                      operation: character-add
+                      entityType: character
+                      containerId: player-builderpilot
+
+  /socket/character-delete:
+    post:
+      summary: character-delete-request
+      description: |
+        Deletes an existing character from the authenticated player's roster.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketCharacterDelete
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterDeleteRequest'
+            examples:
+              deleteCharacter:
+                summary: Delete an existing character with correlation metadata
+                value:
+                  playerName: DeletePilot
+                  sessionKey: session-123
+                  correlationId: c157c8a1-d7aa-4e66-8654-03fd69acb57d
+                  requestIdentity:
+                    operation: character-delete
+                    entityType: character
+                    containerId: character-1
+                  characterId: character-1
+      responses:
+        '200':
+          description: character-delete-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterDeleteResponse'
+              examples:
+                successfulCharacterDelete:
+                  summary: Success echoes correlation metadata with deleted character context
+                  value:
+                    success: true
+                    message: Character deleted successfully
+                    playerName: DeletePilot
+                    characterId: character-1
+                    correlationId: c157c8a1-d7aa-4e66-8654-03fd69acb57d
+                    requestIdentity:
+                      operation: character-delete
+                      entityType: character
+                      containerId: character-1
+                failedCharacterDelete:
+                  summary: Failure still echoes correlation metadata
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: DeletePilot
+                    characterId: missing-character-id
+                    correlationId: c157c8a1-d7aa-4e66-8654-03fd69acb57d
+                    requestIdentity:
+                      operation: character-delete
+                      entityType: character
+                      containerId: missing-character-id
+
+  /socket/character-edit:
+    post:
+      summary: character-edit-request
+      description: |
+        Updates a character's display name.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketCharacterEdit
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterEditRequest'
+            examples:
+              renameCharacter:
+                summary: Rename an existing character for a player
+                value:
+                  playerName: EditPilot
+                  sessionKey: session-123
+                  correlationId: f4740f89-47a4-4c43-914e-08c4f4c2fe16
+                  requestIdentity:
+                    operation: character-edit
+                    entityType: character
+                    containerId: character-1
+                  characterId: character-1
+                  characterName: NewName
+      responses:
+        '200':
+          description: character-edit-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterEditResponse'
+              examples:
+                successfulEdit:
+                  summary: Successful response echoes correlation identity
+                  value:
+                    success: true
+                    message: Character edited successfully
+                    playerName: EditPilot
+                    characterId: character-1
+                    characterName: NewName
+                    correlationId: f4740f89-47a4-4c43-914e-08c4f4c2fe16
+                    requestIdentity:
+                      operation: character-edit
+                      entityType: character
+                      containerId: character-1
+                failedEdit:
+                  summary: Validation failure still echoes correlation identity
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: EditPilot
+                    characterId: missing-character-id
+                    characterName: GhostName
+                    correlationId: 87f7dd0a-6022-4c7a-b3b1-6b98aac0e0d9
+                    requestIdentity:
+                      operation: character-edit
+                      entityType: character
+                      containerId: missing-character-id
+
+  /socket/character-list:
+    post:
+      summary: character-list-request
+      description: |
+        Returns the current player's character summaries.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Response notes:
+        - The server returns a defensive copy of the current character list.
+        - `id` and `characterName` are the stable minimum fields on each character.
+        - Additional canonical fields such as ships, credit ledger, and joined-game
+          activity metadata may be present when available.
+      operationId: socketCharacterList
+      tags: [Character]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterListRequest'
+            examples:
+              listCharacters:
+                summary: Retrieve the current character roster with correlation metadata
+                value:
+                  playerName: CharacterPilot
+                  sessionKey: session-123
+                  correlationId: 7967d54c-7843-4450-89b6-8d8a63fdcfbb
+                  requestIdentity:
+                    operation: character-list
+                    entityType: character
+                    containerId: player-characterpilot
+      responses:
+        '200':
+          description: character-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterListResponse'
+              examples:
+                minimalCharacterSummary:
+                  summary: Minimal successful response with stable summary fields
+                  value:
+                    success: true
+                    message: Character list retrieved successfully
+                    playerName: CharacterPilot
+                    correlationId: 7967d54c-7843-4450-89b6-8d8a63fdcfbb
+                    requestIdentity:
+                      operation: character-list
+                      entityType: character
+                      containerId: player-characterpilot
+                    characters:
+                      - id: character-1
+                        characterName: RangerOne
+                richCharacterSummary:
+                  summary: Character list may include ships, credits, and joined-game activity fields
+                  value:
+                    success: true
+                    message: Character list retrieved successfully
+                    playerName: ActivityPilot
+                    correlationId: b3758e6c-b605-4695-8f4d-2c4041f8fc55
+                    requestIdentity:
+                      operation: character-list
+                      entityType: character
+                      containerId: player-activitypilot
+                    characters:
+                      - id: character-1
+                        characterName: RangerOne
+                        credits: 500
+                        inGame: true
+                        gameJoinedAt: '2026-04-17T00:00:00.000Z'
+                        gameLastMessageReceivedAt: '2026-04-17T00:15:00.000Z'
+                        ships:
+                          - id: ship-1
+                            model: Scavenger Pod
+                            tier: 1
+                failedCharacterList:
+                  summary: Failure returns an empty character list
+                  value:
+                    success: false
+                    message: Player is not registered
+                    playerName: GhostPilot
+                    correlationId: 5ec4e0b0-f37d-4d8b-b025-2435ad11eb58
+                    requestIdentity:
+                      operation: character-list
+                      entityType: character
+                      containerId: player-ghostpilot
+                    characters: []
+components:
+  schemas:
+    CharacterAddRequest:
+      $ref: '../../schemas/character-add-request.schema.json'
+    CharacterAddResponse:
+      $ref: '../../schemas/character-add-response.schema.json'
+    CharacterDeleteRequest:
+      $ref: '../../schemas/character-delete-request.schema.json'
+    CharacterDeleteResponse:
+      $ref: '../../schemas/character-delete-response.schema.json'
+    CharacterEditRequest:
+      $ref: '../../schemas/character-edit-request.schema.json'
+    CharacterEditResponse:
+      $ref: '../../schemas/character-edit-response.schema.json'
+    CharacterListRequest:
+      $ref: '../../schemas/character-list-request.schema.json'
+    CharacterListResponse:
+      $ref: '../../schemas/character-list-response.schema.json'

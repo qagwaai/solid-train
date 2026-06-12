@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "item-list-by-location-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "solarSystemId", "items", "correlationId", "requestIdentity"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "playerName": { "type": "string" },
+    "solarSystemId": { "type": "string" },
+    "positionKm": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "distanceKm": { "type": "number" },
+    "itemType": { "type": ["string", "null"] },
+    "items": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          { "$ref": "./item.schema.json" },
+          {
+            "type": "object",
+            "properties": {
+              "distanceKm": { "type": "number" }
+            },
+            "required": ["distanceKm"]
+          }
+        ]
+      }
+    }
+  }
+}

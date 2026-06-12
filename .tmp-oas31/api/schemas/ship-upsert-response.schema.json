@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ship-upsert-response",
+  "type": "object",
+  "required": [
+    "success",
+    "message",
+    "playerName",
+    "characterId",
+    "correlationId",
+    "requestIdentity"
+  ],
+  "properties": {
+    "success": { "type": "boolean" },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "OWNERSHIP_VALIDATION_FAILED",
+        "OWNERSHIP_CONFLICT",
+        "SHIP_OWNERSHIP_MISMATCH",
+        "OWNERSHIP_CLAIM_TOKEN_REQUIRED"
+      ]
+    },
+    "message": { "type": "string" },
+    "playerName": { "type": "string" },
+    "characterId": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "ship": {
+      "type": "object",
+      "description": "Present on successful ship upsert responses.",
+      "additionalProperties": true
+    }
+  }
+}

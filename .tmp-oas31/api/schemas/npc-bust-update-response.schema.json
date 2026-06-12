@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "npc-bust-update-response",
+  "description": "Response after updating an NPC bust descriptor. Returns either the normalized stored descriptor on success or a typed blocked-save payload when persistence is prevented.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "success",
+        "message",
+        "correlationId",
+        "requestIdentity",
+        "npcId",
+        "deterministicSeed",
+        "descriptor"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "success": { "type": "boolean", "enum": [true] },
+        "message": { "type": "string" },
+        "correlationId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Echo of the request correlationId."
+        },
+        "requestIdentity": {
+          "type": "object",
+          "required": ["operation", "entityType", "containerId"],
+          "properties": {
+            "operation": { "type": "string" },
+            "entityType": { "type": "string" },
+            "containerId": { "type": "string" }
+          }
+        },
+        "npcId": {
+          "type": "string",
+          "description": "The NPC whose bust was updated."
+        },
+        "deterministicSeed": {
+          "type": "string",
+          "description": "The seed in effect after the update."
+        },
+        "descriptor": {
+          "$ref": "./bust-descriptor.schema.json",
+          "description": "The normalized stored bust descriptor after the update."
+        },
+        "appliedOverrides": {
+          "type": "array",
+          "description": "List of field names currently overridden by admin-tool input after this update.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    {
+      "allOf": [
+        { "$ref": "./bust-blocked-save-response.schema.json" },
+        {
+          "type": "object",
+          "required": ["npcId"],
+          "properties": {
+            "npcId": { "type": "string" }
+          }
+        }
+      ]
+    }
+  ]
+}

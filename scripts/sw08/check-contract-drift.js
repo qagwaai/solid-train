@@ -464,13 +464,13 @@ async function main() {
 
   const baselinePath = path.resolve(
     rootDir,
-    args.baseline || 'artifacts/contracts/baseline-contract-artifact.json'
+    args.baseline || 'api/artifacts/contracts/baseline-contract-artifact.json'
   );
   const currentPath = path.resolve(
     rootDir,
-    args.current || 'artifacts/contracts/contract-artifact.json'
+    args.current || 'api/artifacts/contracts/contract-artifact.json'
   );
-  const reportPath = path.resolve(rootDir, args.report || 'artifacts/contracts/drift-report.json');
+  const reportPath = path.resolve(rootDir, args.report || 'api/artifacts/contracts/drift-report.json');
   const mode = args.mode || 'report-only';
   const exceptionPath = args.exception
     ? path.resolve(rootDir, args.exception)

@@ -17,6 +17,7 @@ const ARTIFACT_PATH = path.resolve(
   __dirname,
   '..',
   '..',
+  'api',
   'artifacts',
   'contracts',
   'sw13-m4-size-consistency-report.json'
@@ -29,7 +30,7 @@ function readJson(filePath) {
 function main() {
   if (!fs.existsSync(ARTIFACT_PATH)) {
     throw new Error(
-      'Missing artifacts/contracts/sw13-m4-size-consistency-report.json. Run npm run contract:review:sw13:size first.'
+      'Missing api/artifacts/contracts/sw13-m4-size-consistency-report.json. Run npm run contract:review:sw13:size first.'
     );
   }
 

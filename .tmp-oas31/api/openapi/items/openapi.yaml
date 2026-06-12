@@ -1,0 +1,823 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Items
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Items
+paths:
+  /items:
+    get:
+      summary: Get canonical item list
+      description: |
+        Returns the backend canonical item catalog used by clients for item discovery.
+
+        `/items` returns canonical catalog item definitions, not live runtime item
+        instances. These records are keyed by `itemType` and may not include runtime
+        instance identifiers (`id`). Use instance-bearing endpoints for live item
+        records.
+
+        **Canonical material contract:** Clients must use `fabrication.requiredMaterials[].itemType`
+        as the authoritative material reference for lookup, comparison, and validation.
+
+        Canonical naming note:
+        - Conduit seals uses `itemType: conduit-seals` (no aliases).
+        - Conduit seals fabrication uses canonical material `itemType: polymer`
+          (not `polymer-resin`).
+        - Fabrication requirements use `fabrication.requiredMaterials[]` with canonical
+          `itemType` identifiers.
+        - Clients should always use canonical `itemType` values from
+          `fabrication.requiredMaterials[].itemType` for lookup/comparison.
+        - Legacy aliases may be accepted by specific runtime workflows for backward
+          compatibility, but alias resolution is not a global contract guarantee unless
+          explicitly documented by that endpoint.
+        - Some runtime/internal workflows may attach legacy `requiredMaterials` matching
+          metadata (for example `acceptedItemTypes`), but clients should treat
+          `fabrication.requiredMaterials` as the primary contract field.
+      operationId: getItems
+      tags: [Items]
+      responses:
+        '200':
+          description: Canonical item list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CatalogItemDefinition'
+                example:
+                  items:
+                    - itemType: conduit-seals
+                      displayName: Conduit Seals
+                      description: Pressure-rated sealing sleeves for rerouting damaged ship conduits and stabilizing subsystem junctions.
+                      category: manufactured-component
+                      tier: 1
+                      rarity: common
+                      stackable: true
+                      massKg: 2
+                      volumeM3: 0.02
+                      baseValueCredits: 250
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      container: null
+                      fabrication:
+                        durationMs: 600000
+                        requiredMaterials:
+                          - itemType: copper
+                            quantity: 2
+                          - itemType: polymer
+                            quantity: 1
+                    - itemType: hull-patch-kit
+                      displayName: Hull Patch Kit
+                      description: Structural repair kit for hull breach patching and restoring ship integrity. Required for the Scavenger Pod repair mission step.
+                      category: repair
+                      tier: 1
+                      rarity: common
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      fabrication:
+                        durationMs: 300000
+                        requiredMaterials:
+                          - itemType: iron
+                            quantity: 1
+                    - itemType: ship-tractor-beam
+                      displayName: Tractor Beam
+                      description: Ship utility subsystem used for close-range salvage retrieval and object towing.
+                      category: subsystem
+                      tier: 1
+                      rarity: common
+                      launchable: false
+                      state: contained
+                      damageStatus: intact
+                      container: null
+
+  /socket/item-list-by-container:
+    post:
+      summary: item-list-by-container-request
+      description: |
+        Returns canonical item payloads whose `container` matches the requested
+        `containerType` and `containerId`.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        For `containerType: ship`, cold-boot starter Scavenger Pods use the same
+        server-authoritative subsystem backfill behavior as `ship-list`.
+        When persisted rows are missing, these items are included in the response:
+        - `propulsion-manifold`
+        - `sensor-array`
+        - `power-distribution-bus`
+        - `ship-tractor-beam`
+
+        This keeps `ship-list` and `item-list-by-container` consistent for starter
+        ship inventory consumption.
+      operationId: socketItemListByContainer
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemListByContainerRequest'
+            examples:
+              shipInventory:
+                summary: Retrieve canonical ship inventory with correlation metadata
+                value:
+                  playerName: ColdBootPilot
+                  sessionKey: session-123
+                  correlationId: 65a4a621-2c83-4094-8832-af79992095bd
+                  requestIdentity:
+                    operation: item-list-by-container
+                    entityType: item
+                    containerId: ship-1
+                  containerType: ship
+                  containerId: ship-1
+      responses:
+        '200':
+          description: item-list-by-container-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemListByContainerResponse'
+              examples:
+                coldBootStarterShipContainer:
+                  summary: Same subsystem ShipItems are returned for ship container inventory
+                  value:
+                    success: true
+                    message: Items retrieved successfully
+                    playerName: ColdBootPilot
+                    correlationId: 65a4a621-2c83-4094-8832-af79992095bd
+                    requestIdentity:
+                      operation: item-list-by-container
+                      entityType: item
+                      containerId: ship-1
+                    containerType: ship
+                    containerId: ship-1
+                    items:
+                      - id: ship-1-starter-propulsion-manifold
+                        itemType: propulsion-manifold
+                        displayName: Propulsion Manifold
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+                      - id: ship-1-starter-sensor-array
+                        itemType: sensor-array
+                        displayName: Sensor Array
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+                      - id: ship-1-starter-power-distribution-bus
+                        itemType: power-distribution-bus
+                        displayName: Power Distribution Bus
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+                      - id: ship-1-starter-ship-tractor-beam
+                        itemType: ship-tractor-beam
+                        displayName: Tractor Beam
+                        launchable: false
+                        state: contained
+                        damageStatus: damaged
+                        container:
+                          containerType: ship
+                          containerId: ship-1
+                        owningPlayerId: player-cold-boot
+                        owningCharacterId: character-1
+                        spatial: null
+                        createdAt: '2026-04-17T00:00:00.000Z'
+                        updatedAt: '2026-04-17T00:00:00.000Z'
+
+  /socket/item-list-by-location:
+    post:
+      summary: item-list-by-location-request
+      description: |
+        Lists items near a barycentric position in a solar system.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Query behavior:
+        - Only deployed items with canonical `spatial` coordinates are eligible.
+        - Legacy `kinematics` is not used for selection.
+
+        Response notes:
+        - Success responses include query echo fields (`positionKm`, `distanceKm`, `itemType`).
+        - Failure responses omit query echo fields and return `items: []`.
+        - Each returned item includes computed `distanceKm` from the query position.
+      operationId: socketItemListByLocation
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemListByLocationRequest'
+            examples:
+              nearbyItems:
+                summary: Retrieve deployed items near a point in space
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 55753bb2-26dd-45fb-acab-c88f7734b709
+                  requestIdentity:
+                    operation: item-list-by-location
+                    entityType: item
+                    containerId: sol
+                  solarSystemId: sol
+                  positionKm:
+                    x: 0
+                    y: 0
+                    z: 0
+                  distanceKm: 10
+                  itemType: expendable-dart-drone
+      responses:
+        '200':
+          description: item-list-by-location-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemListByLocationResponse'
+              examples:
+                successfulLocationList:
+                  summary: Nearby items are returned nearest-first with computed distance
+                  value:
+                    success: true
+                    message: Item list retrieved successfully
+                    playerName: PilotOne
+                    correlationId: 55753bb2-26dd-45fb-acab-c88f7734b709
+                    requestIdentity:
+                      operation: item-list-by-location
+                      entityType: item
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 0
+                      y: 0
+                      z: 0
+                    distanceKm: 10
+                    itemType: expendable-dart-drone
+                    items:
+                      - id: item-near
+                        itemType: expendable-dart-drone
+                        displayName: Expendable Dart Drone
+                        state: deployed
+                        damageStatus: intact
+                        container: null
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 3
+                            y: 4
+                            z: 0
+                          epochMs: 1000000
+                        motion:
+                          velocityKmPerSec:
+                            x: 0
+                            y: 0
+                            z: 0
+                        distanceKm: 5
+                failedLocationList:
+                  summary: Validation failure returns empty items and omits location echo fields
+                  value:
+                    success: false
+                    message: playerName, solarSystemId, positionKm, and distanceKm are required
+                    playerName: PilotOne
+                    correlationId: 55753bb2-26dd-45fb-acab-c88f7734b709
+                    requestIdentity:
+                      operation: item-list-by-location
+                      entityType: item
+                      containerId: sol
+                    solarSystemId: sol
+                    items: []
+
+  /socket/item-upsert:
+    post:
+      summary: item-upsert-request
+      description: |
+        Creates a new item or updates an existing item.
+
+        `item` behaves as a partial update payload for existing records:
+        - Omitted fields preserve their existing values.
+        - Explicit `null` is significant for `item.container`, `item.spatial`, and
+          `item.motion` and clears those fields.
+
+        Behavior notes:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - Creating a new item requires `item.itemType` and `item.displayName`.
+        - `item.tier` is optional, but when provided it must be an integer from 1 to 20.
+        - Omitting `item.tier` on update preserves the existing stored tier.
+        - `item.kinematics` is not accepted; use canonical `item.spatial` and
+          optional `item.motion`.
+        - Setting `item.state` to `destroyed` auto-populates `destroyedAt` when the
+          item does not already have one.
+        - Successful writes also attempt to synchronize ship inventory references for
+          items contained by ships.
+      operationId: socketItemUpsert
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemUpsertRequest'
+            examples:
+              deployExistingItem:
+                summary: Deploy an existing item by clearing container and setting spatial state
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 7b1c4066-78bd-4611-8d88-3610b054f4ce
+                  requestIdentity:
+                    operation: item-upsert
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
+                  item:
+                    id: item-1
+                    tier: 10
+                    state: deployed
+                    container: null
+                    spatial:
+                      solarSystemId: sol
+                      frame: barycentric
+                      positionKm:
+                        x: 100
+                        y: 200
+                        z: 300
+                      epochMs: 1000000
+                    motion:
+                      velocityKmPerSec:
+                        x: 1
+                        y: 2
+                        z: 3
+              destroyExistingItem:
+                summary: Destroy an existing item and let the server stamp destroyedAt
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 251eccf4-7f07-4331-a214-7d6ef5c57b87
+                  requestIdentity:
+                    operation: item-upsert
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
+                  item:
+                    id: item-1
+                    state: destroyed
+                    destroyedReason: hit by asteroid
+      responses:
+        '200':
+          description: item-upsert-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemUpsertResponse'
+              examples:
+                successfulItemUpsert:
+                  summary: Successful upsert returns the created or updated item
+                  value:
+                    success: true
+                    message: Item updated successfully
+                    playerName: PilotOne
+                    correlationId: 7b1c4066-78bd-4611-8d88-3610b054f4ce
+                    requestIdentity:
+                      operation: item-upsert
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    item:
+                      id: item-1
+                      itemType: expendable-dart-drone
+                      displayName: Expendable Dart Drone
+                      tier: 1
+                      state: deployed
+                failedItemUpsert:
+                  summary: Validation failure omits the item payload
+                  value:
+                    success: false
+                    message: 'item.state must be one of: contained, deployed, destroyed'
+                    playerName: PilotOne
+                    correlationId: 251eccf4-7f07-4331-a214-7d6ef5c57b87
+                    requestIdentity:
+                      operation: item-upsert
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+
+  /socket/launch-item:
+    post:
+      summary: launch-item-request
+      description: |
+        Launches a ship inventory item at a target celestial body.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - `hotkey` must be one of `1` through `5`.
+        - The item must exist in the ship's canonical projected inventory emitted by
+          `ship-list`/`ship-list-by-owner`.
+        - `itemType` must match the persisted item record.
+        - The item must be launchable and not already destroyed.
+        - The target celestial body must exist.
+
+        Contract guarantees:
+        - Launch membership validation uses the same canonical inventory projection as
+          `ship-list` and `ship-list-by-owner`.
+        - Legacy `inventoryIds`/`inventoryItemIds` arrays are not used for launch
+          membership validation.
+        - Every validly framed `launch-item-request` receives exactly one terminal
+          `launch-item-response` (success or failure) for the same correlation id.
+        - On successful launch, the consumed `itemId` is removed from canonical ship
+          inventory projection and is absent from subsequent `ship-list` and
+          `ship-list-by-owner` snapshots unless explicitly re-added by a later
+          mutation.
+        - Launch yield item typing maps materials to canonical runtime item types and
+          does not emit runtime `raw-material-*` item types.
+
+        Success side effects:
+        - The launched item is consumed, marked `destroyed`, removed from ship inventory,
+          and made non-launchable.
+        - For `expendable-dart-drone`, the target is destroyed and raw material yield is
+          spawned as deployed debris near the target with canonical `spatial` and
+          deterministic `motion` vectors.
+        - Other launchable item types currently return success with `resolution.outcome`
+          set to `no-effect` after consuming the launched item.
+      operationId: socketLaunchItem
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchItemRequest'
+            examples:
+              destroyTargetWithDrone:
+                summary: Expendable dart drone destroys a target and yields raw materials
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  correlationId: 0b16ca57-4773-4348-9c69-20598ba55bae
+                  requestIdentity:
+                    operation: launch-item
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
+                  targetCelestialBodyId: cb-1
+                  hotkey: 3
+                  itemId: item-1
+                  itemType: expendable-dart-drone
+              noEffectLaunch:
+                summary: Unsupported launch item type is still consumed but has no target effect
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  correlationId: c77e0eb2-322f-4a6e-bf24-f1eb7e89f5b3
+                  requestIdentity:
+                    operation: launch-item
+                    entityType: basic-mining-laser
+                    containerId: ship-1
+                  targetCelestialBodyId: cb-1
+                  hotkey: 3
+                  itemId: item-2
+                  itemType: basic-mining-laser
+      responses:
+        '200':
+          description: launch-item-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaunchItemResponse'
+              examples:
+                successfulLaunch:
+                  summary: Successful expendable dart launch destroys the target and yields materials
+                  value:
+                    success: true
+                    message: 'Launch successful: target destroyed and materials yielded'
+                    playerName: PilotOne
+                    correlationId: 0b16ca57-4773-4348-9c69-20598ba55bae
+                    requestIdentity:
+                      operation: launch-item
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    characterId: character-1
+                    shipId: ship-1
+                    targetCelestialBodyId: cb-1
+                    hotkey: 3
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+                    launchedItem:
+                      id: item-1
+                      itemType: expendable-dart-drone
+                      tier: 1
+                      state: destroyed
+                      launchable: false
+                    resolution:
+                      outcome: target-destroyed
+                      targetDestroyed: true
+                      yieldedMaterials:
+                        - material: Nickel-Iron
+                          rarity: Rare
+                          quantity: 16
+                      yieldedItems:
+                        - id: generated-1
+                          itemType: iron
+                          displayName: Nickel-Iron (Raw Material)
+                          tier: 1
+                          quantity: 16
+                          state: deployed
+                          container: null
+                          spatial:
+                            solarSystemId: sol
+                            frame: barycentric
+                            positionKm:
+                              x: 112.6
+                              y: 184.3
+                              z: 327.9
+                            epochMs: 1715990400000
+                          motion:
+                            velocityKmPerSec:
+                              x: 0.01
+                              y: -0.007
+                              z: 0.004
+                          launchable: false
+                      launchSeed: 123456789
+                failedLaunch:
+                  summary: Validation failure omits launch resolution fields
+                  value:
+                    success: false
+                    message: Target celestial body does not exist
+                    playerName: PilotOne
+                    correlationId: c77e0eb2-322f-4a6e-bf24-f1eb7e89f5b3
+                    requestIdentity:
+                      operation: launch-item
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    characterId: character-1
+                    shipId: ship-1
+                    targetCelestialBodyId: cb-missing
+                    hotkey: 3
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+
+  /socket/item-remove:
+    post:
+      summary: item-remove-request
+      description: |
+        Removes a ship-contained item from inventory and marks the persisted item as destroyed.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - The item must exist in the target ship inventory.
+      operationId: socketItemRemove
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemRemoveRequest'
+            examples:
+              removeContainedItem:
+                summary: Remove a ship-contained item by id
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  correlationId: 9d4af767-fec8-4fd4-90e7-1776f1f2f7f4
+                  requestIdentity:
+                    operation: item-remove
+                    entityType: expendable-dart-drone
+                    containerId: ship-1
+                  itemId: item-1
+                  itemType: expendable-dart-drone
+                  reason: consumed-by:salvage
+      responses:
+        '200':
+          description: item-remove-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemRemoveResponse'
+              examples:
+                successfulRemove:
+                  summary: Successful remove returns destroyed item state
+                  value:
+                    success: true
+                    message: Item removed successfully
+                    correlationId: 9d4af767-fec8-4fd4-90e7-1776f1f2f7f4
+                    requestIdentity:
+                      operation: item-remove
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+                failedRemove:
+                  summary: Failure response echoes request identity and correlation
+                  value:
+                    success: false
+                    message: Item is not in ship inventory
+                    correlationId: 9d4af767-fec8-4fd4-90e7-1776f1f2f7f4
+                    requestIdentity:
+                      operation: item-remove
+                      entityType: expendable-dart-drone
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    itemId: item-1
+                    itemType: expendable-dart-drone
+
+  /socket/tractor-beam-activate:
+    post:
+      summary: tractor-beam-activate-request
+      description: |
+        Activates a ship tractor beam subsystem for the active ship context.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - The target ship must contain `ship-tractor-beam` in its inventory references.
+      operationId: socketTractorBeamActivate
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TractorBeamActivateRequest'
+            examples:
+              activateTractorBeam:
+                summary: Activate the tractor beam for a ship and optional target
+                value:
+                  playerName: PilotOne
+                  characterId: character-1
+                  shipId: ship-1
+                  sessionKey: session-123
+                  correlationId: 0b45f0c0-9777-4cd9-abce-429f95bc4b03
+                  requestIdentity:
+                    operation: tractor-beam-activate
+                    entityType: ship-tractor-beam
+                    containerId: ship-1
+                  targetItemId: debris-item-1
+                  targetCelestialBodyId: cb-1
+      responses:
+        '200':
+          description: tractor-beam-activate-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TractorBeamActivateResponse'
+              examples:
+                successfulActivation:
+                  summary: Successful activation returns the equipped tractor beam reference
+                  value:
+                    success: true
+                    message: Tractor beam activated
+                    correlationId: 0b45f0c0-9777-4cd9-abce-429f95bc4b03
+                    requestIdentity:
+                      operation: tractor-beam-activate
+                      entityType: ship-tractor-beam
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    tractorBeamItemId: ship-1-starter-ship-tractor-beam
+                    targetItemId: debris-item-1
+                    targetCelestialBodyId: cb-1
+                    activated: true
+                failedActivation:
+                  summary: Activation failure still echoes request identity and correlation
+                  value:
+                    success: false
+                    message: Ship does not have an equipped tractor beam item
+                    correlationId: 0b45f0c0-9777-4cd9-abce-429f95bc4b03
+                    requestIdentity:
+                      operation: tractor-beam-activate
+                      entityType: ship-tractor-beam
+                      containerId: ship-1
+                    playerName: PilotOne
+                    characterId: character-1
+                    shipId: ship-1
+                    targetItemId: debris-item-1
+                    targetCelestialBodyId: cb-1
+
+  /socket/item-list-by-owner:
+    post:
+      summary: item-list-by-owner-request
+      description: |
+        Lists items belonging to a canonical ownership descriptor.
+
+        Ownership contract:
+        - `owner.ownerType` must be a valid canonical type.
+        - For `player-character` owners, `owner.playerId` must match the authenticated actor's playerId.
+        - Cross-player item list queries are rejected with `ITEM_LIST_OWNER_FORBIDDEN`.
+      operationId: socketItemListByOwner
+      tags: [Items]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemListByOwnerRequest'
+      responses:
+        '200':
+          description: item-list-by-owner-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemListByOwnerResponse'
+              examples:
+                success:
+                  summary: Returns matching items for the given owner
+                  value:
+                    success: true
+                    owner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                    items: []
+                crossPlayerForbidden:
+                  summary: Actor cannot list items for another player
+                  value:
+                    success: false
+                    reason: ITEM_LIST_OWNER_FORBIDDEN
+                    message: Actor does not have permission to list items for another player
+                    items: []
+components:
+  schemas:
+    CatalogItemDefinition:
+      $ref: '../../schemas/catalog-item-definition.schema.json'
+    Item:
+      $ref: '../../schemas/item.schema.json'
+    ItemListByContainerRequest:
+      $ref: '../../schemas/item-list-by-container-request.schema.json'
+    ItemListByContainerResponse:
+      $ref: '../../schemas/item-list-by-container-response.schema.json'
+    ItemListByLocationRequest:
+      $ref: '../../schemas/item-list-by-location-request.schema.json'
+    ItemListByLocationResponse:
+      $ref: '../../schemas/item-list-by-location-response.schema.json'
+    ItemRemoveRequest:
+      $ref: '../../schemas/item-remove-request.schema.json'
+    ItemRemoveResponse:
+      $ref: '../../schemas/item-remove-response.schema.json'
+    ItemUpsertRequest:
+      $ref: '../../schemas/item-upsert-request.schema.json'
+    ItemUpsertResponse:
+      $ref: '../../schemas/item-upsert-response.schema.json'
+    LaunchItemRequest:
+      $ref: '../../schemas/launch-item-request.schema.json'
+    LaunchItemResponse:
+      $ref: '../../schemas/launch-item-response.schema.json'
+    TractorBeamActivateRequest:
+      $ref: '../../schemas/tractor-beam-activate-request.schema.json'
+    TractorBeamActivateResponse:
+      $ref: '../../schemas/tractor-beam-activate-response.schema.json'
+    ItemListByOwnerRequest:
+      $ref: '../../schemas/item-list-by-owner-request.schema.json'
+    ItemListByOwnerResponse:
+      $ref: '../../schemas/item-list-by-owner-response.schema.json'

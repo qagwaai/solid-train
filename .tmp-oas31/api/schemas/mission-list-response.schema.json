@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "mission-list-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "characterId", "missions", "correlationId", "requestIdentity"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Exact echo of the request correlationId for the originating list-missions-request."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "description": "Exact echo (deep-equal) of the full requestIdentity object supplied in the request, including additional properties when present.",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "playerName": { "type": "string" },
+    "characterId": { "type": "string" },
+    "missions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["missionId", "status"],
+        "properties": {
+          "missionId": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["available", "active", "completed"]
+          },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "requestId": { "type": "string" }
+  }
+}

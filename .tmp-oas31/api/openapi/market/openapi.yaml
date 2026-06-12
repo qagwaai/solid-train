@@ -1,0 +1,1186 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Market
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Market
+paths:
+  /socket/market-buy:
+    post:
+      summary: market-buy-request
+      description: |
+        Executes a market buy transaction for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Preconditions:
+        - `quantity` must be a positive integer.
+        - The player, character, market, and catalog item must exist.
+        - The market must sell the requested item.
+        - The character must have sufficient credits.
+        - The market must have sufficient stock.
+        - The character must have at least one ship to receive purchased cargo.
+
+        Success side effects:
+        - Market stock is decremented.
+        - A trade item stack is added to the character inventory.
+        - Character and market ledger entries are appended.
+
+        Correlation:
+        - `requestId` is echoed in success and failure responses when provided.
+        - `transactionId` may be supplied by the caller; otherwise the server creates one.
+      operationId: socketMarketBuy
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketBuyRequest'
+            examples:
+              buyIron:
+                summary: Buy a tradeable market item into ship cargo
+                value:
+                  requestId: buy-1
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: d7239128-1483-4517-a6eb-6eecf574e511
+                  requestIdentity:
+                    operation: market-buy
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  quantity: 3
+              buyWithCallerTransactionId:
+                summary: Provide a caller-generated transaction id for downstream correlation
+                value:
+                  requestId: buy-2
+                  transactionId: tx-123
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 51685b3b-5e74-4f55-b9b0-7f044b11fa8f
+                  requestIdentity:
+                    operation: market-buy
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iridium
+                  quantity: 1
+      responses:
+        '200':
+          description: market-buy-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketBuyResponse'
+              examples:
+                successfulBuy:
+                  summary: Successful market buy returns transaction metadata
+                  value:
+                    success: true
+                    message: Market buy transaction completed
+                    correlationId: d7239128-1483-4517-a6eb-6eecf574e511
+                    requestIdentity:
+                      operation: market-buy
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
+                    requestId: buy-1
+                    transaction:
+                      transactionId: tx-123
+                      requestId: buy-1
+                      marketId: sol-ceres-exchange
+                      solarSystemId: sol
+                      characterId: character-1
+                      itemId: iron
+                      direction: buy
+                      quantity: 3
+                      unitPrice: 10
+                      totalPrice: 30
+                      timestamp: '2026-05-18T00:00:00.000Z'
+                      characterCredits: 1970
+                      marketStock: 47
+                insufficientCredits:
+                  summary: Failure response omits transaction and reports a stable reason code
+                  value:
+                    success: false
+                    message: Insufficient credits for purchase
+                    correlationId: 51685b3b-5e74-4f55-b9b0-7f044b11fa8f
+                    requestIdentity:
+                      operation: market-buy
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
+                    requestId: buy-2
+                    reason: INSUFFICIENT_CREDITS
+
+  /socket/market-inventory-list:
+    post:
+      summary: market-inventory-list-request
+      description: |
+        Lists canonical market inventory rows.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketMarketInventoryList
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketInventoryListRequest'
+            examples:
+              inventoryPage:
+                summary: Retrieve market inventory with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: c1f167c8-2964-4ab7-9dde-abfc0ce97997
+                  requestIdentity:
+                    operation: market-inventory-list
+                    entityType: market-inventory
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+      responses:
+        '200':
+          description: market-inventory-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketInventoryListResponse'
+              examples:
+                successfulInventoryList:
+                  summary: Successful market inventory query returns paged inventory rows
+                  value:
+                    success: true
+                    message: Market inventory retrieved successfully
+                    correlationId: c1f167c8-2964-4ab7-9dde-abfc0ce97997
+                    requestIdentity:
+                      operation: market-inventory-list
+                      entityType: market-inventory
+                      containerId: sol-ceres-exchange
+                    playerName: MarketPilot
+                    marketId: sol-ceres-exchange
+                    solarSystemId: sol
+                    marketName: Ceres Exchange
+                    inventory:
+                      - itemId: iron
+                        itemType: iron
+                        displayName: Iron
+                        rarity: Common
+                        stock: 50
+                        maxStock: 100
+                        restockPerInterval: 5
+                        marketCanBuy: true
+                        marketCanSell: true
+                    total: 1
+                    offset: 0
+                    limit: 50
+                    asOf: '2026-05-18T00:00:00.000Z'
+                failedInventoryList:
+                  summary: Failure keeps pagination fields and returns empty inventory
+                  value:
+                    success: false
+                    message: Market was not found
+                    correlationId: c1f167c8-2964-4ab7-9dde-abfc0ce97997
+                    requestIdentity:
+                      operation: market-inventory-list
+                      entityType: market-inventory
+                      containerId: sol-ceres-exchange
+                    reason: MARKET_NOT_FOUND
+                    inventory: []
+                    total: 0
+                    offset: 0
+                    limit: 50
+
+  /socket/market-ledger-list:
+    post:
+      summary: market-ledger-list-request
+      description: |
+        Lists canonical market ledger entries.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketMarketLedgerList
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketLedgerListRequest'
+            examples:
+              ledgerPage:
+                summary: Retrieve market ledger entries with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: a164d0e6-5c0f-48d7-baad-915dcdb12709
+                  requestIdentity:
+                    operation: market-ledger-list
+                    entityType: market-ledger
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+      responses:
+        '200':
+          description: market-ledger-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketLedgerListResponse'
+              examples:
+                successfulLedgerList:
+                  summary: Successful market ledger query returns paged transaction entries
+                  value:
+                    success: true
+                    message: Market ledger retrieved successfully
+                    correlationId: a164d0e6-5c0f-48d7-baad-915dcdb12709
+                    requestIdentity:
+                      operation: market-ledger-list
+                      entityType: market-ledger
+                      containerId: sol-ceres-exchange
+                    playerName: MarketPilot
+                    marketId: sol-ceres-exchange
+                    solarSystemId: sol
+                    requestId: ledger-list-1
+                    entries:
+                      - transactionId: tx-123
+                        requestId: rq-ledger-1
+                        characterId: character-1
+                        itemId: iron
+                        direction: buy
+                        quantity: 2
+                        unitPrice: 10
+                        totalPrice: 20
+                        timestamp: '2026-05-18T00:00:00.000Z'
+                        reversalOfTransactionId: null
+                    total: 1
+                    offset: 0
+                    limit: 50
+                failedLedgerList:
+                  summary: Failure keeps pagination fields and returns empty entries
+                  value:
+                    success: false
+                    message: Market was not found
+                    correlationId: a164d0e6-5c0f-48d7-baad-915dcdb12709
+                    requestIdentity:
+                      operation: market-ledger-list
+                      entityType: market-ledger
+                      containerId: sol-ceres-exchange
+                    reason: MARKET_NOT_FOUND
+                    requestId: ledger-list-2
+                    entries: []
+                    total: 0
+                    offset: 0
+                    limit: 50
+
+  /socket/market-list:
+    post:
+      summary: market-list-request
+      description: |
+        Lists canonical market projections.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketMarketList
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketListRequest'
+            examples:
+              listMarkets:
+                summary: Retrieve market projections for a system with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: 60477298-cc90-4777-a22b-1852c8f087db
+                  requestIdentity:
+                    operation: market-list
+                    entityType: market
+                    containerId: sol
+                  solarSystemId: sol
+      responses:
+        '200':
+          description: market-list-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListResponse'
+              examples:
+                successfulMarketList:
+                  summary: Successful market list returns canonical market projections
+                  value:
+                    success: true
+                    message: Market list retrieved successfully
+                    playerName: MarketPilot
+                    correlationId: 60477298-cc90-4777-a22b-1852c8f087db
+                    requestIdentity:
+                      operation: market-list
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    markets:
+                      - marketId: sol-ceres-exchange
+                        solarSystemId: sol
+                        marketName: Ceres Exchange
+                        siteType: station
+                        siteName: Ceres Main
+                        isStarterMarket: true
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 413000
+                            y: 0
+                            z: 0
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0.002761
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                failedMarketList:
+                  summary: Canonical-shape validation failure returns an empty markets array
+                  value:
+                    success: false
+                    message: "MarketList: market 'broken-market' has invalid canonical spatial/trajectory fields"
+                    playerName: MarketPilot
+                    correlationId: 60477298-cc90-4777-a22b-1852c8f087db
+                    requestIdentity:
+                      operation: market-list
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    markets: []
+
+  /socket/market-list-by-location:
+    post:
+      summary: market-list-by-location-request
+      description: |
+        Lists nearby markets from a barycentric position.
+
+        SW-13C ship-external route entity feed authority:
+        - This endpoint is the authoritative Forge contract source for route entity feeds consumed by ship-external-view.
+        - Route feed entities are returned under `markets[].route`.
+        - Optional route feed arrays are `gates[]`, `stations[]`, and `encounterShips[]`.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketMarketListByLocation
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketListByLocationRequest'
+            examples:
+              localMarkets:
+                summary: Retrieve nearby markets with docking context and correlation metadata
+                value:
+                  playerName: MarketPilot
+                  sessionKey: session-123
+                  correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                  requestIdentity:
+                    operation: market-list-by-location
+                    entityType: market
+                    containerId: sol
+                  solarSystemId: sol
+                  positionKm:
+                    x: 90
+                    y: 0
+                    z: 0
+                  distanceAu: 0.001
+      responses:
+        '200':
+          description: market-list-by-location-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListByLocationResponse'
+              examples:
+                successfulLocalMarketList:
+                  summary: Successful local market query returns nearest-first markets and docking status
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: MarketPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - station
+                    isDocked: true
+                    dockedMarketId: market-near
+                    markets:
+                      - marketId: market-near
+                        solarSystemId: sol
+                        marketName: Near Market
+                        siteType: station
+                        siteName: Ceres Main
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 100
+                            y: 0
+                            z: 0
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0
+                        route:
+                          kind: in-system
+                          gates:
+                            - gateId: sol-ac-g1
+                              sourceSystemId: sol
+                              destSystemId: alpha-centauri
+                              traversalCostAu: 5
+                              traversalTimeHours: 48
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 900
+                                  y: 220
+                                  z: -40
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: gates-ring-gate
+                                schemaVersion: sw-13-m0-v1
+                                domain: gates
+                                objectFamily: ring-gate
+                                roleCue: navigation
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Ring Gate Landmark
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                              approachMetadata:
+                                approachCue: direct-centerline
+                                landmarkFraming: full-ring
+                                navBeaconCue: continuous
+                                hazardCue: low
+                                warningEscalation: none
+                                recommendedStandOffKm: 1400
+                                approachWindowKm:
+                                  min: 1000
+                                  max: 2200
+                          stations:
+                            - marketId: market-near
+                              solarSystemId: sol
+                              marketName: Near Market
+                              siteType: station
+                              siteName: Ceres Main
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 100
+                                  y: 0
+                                  z: 0
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: stations-trade-hub
+                                schemaVersion: sw-13-m0-v1
+                                domain: stations
+                                objectFamily: trade-hub
+                                roleCue: trade
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Trade Hub Station
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                          encounterShips:
+                            - shipId: npc-raider-1
+                              shipName: Raider Harrier
+                              model: Raider Interceptor
+                              tier: 2
+                              ownership:
+                                ownerType: npc-pirate
+                                npcId: pirate-raider-1
+                                factionId: pirate-clan
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 250
+                                  y: 60
+                                  z: 10
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: ships-interceptor
+                                schemaVersion: sw-13-m0-v1
+                                domain: ships
+                                objectFamily: interceptor
+                                roleCue: military
+                                factionCue: imperial-remnant
+                                fallbackTier: hero
+                                displayLabel: Interceptor Hull
+                                silhouetteProfile: needle
+                                materialProfile: metallic
+                                emissiveProfile: high
+                        isDocked: true
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                gatesOnlyRouteFeed:
+                  summary: Route payload with gates feed only
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: GatePilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - free-floating
+                    isDocked: false
+                    dockedMarketId: null
+                    markets:
+                      - marketId: sol-belt-1
+                        solarSystemId: sol
+                        marketName: Belt Relay Market
+                        siteType: free-floating
+                        siteName: Sol Belt Relay
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 240
+                            y: 20
+                            z: -5
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0.000001
+                        route:
+                          kind: in-system
+                          gates:
+                            - gateId: sol-ac-g1
+                              sourceSystemId: sol
+                              destSystemId: alpha-centauri
+                              traversalCostAu: 5
+                              traversalTimeHours: 48
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 900
+                                  y: 220
+                                  z: -40
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: gates-ring-gate
+                                schemaVersion: sw-13-m0-v1
+                                domain: gates
+                                objectFamily: ring-gate
+                                roleCue: navigation
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Ring Gate Landmark
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                              approachMetadata:
+                                approachCue: direct-centerline
+                                landmarkFraming: full-ring
+                                navBeaconCue: continuous
+                                hazardCue: low
+                                warningEscalation: none
+                                recommendedStandOffKm: 1400
+                                approachWindowKm:
+                                  min: 1000
+                                  max: 2200
+                        isDocked: false
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                stationsOnlyRouteFeed:
+                  summary: Route payload with stations feed only
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: StationPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - station
+                    isDocked: true
+                    dockedMarketId: market-near
+                    markets:
+                      - marketId: market-near
+                        solarSystemId: sol
+                        marketName: Near Market
+                        siteType: station
+                        siteName: Ceres Main
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 100
+                            y: 0
+                            z: 0
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0
+                        route:
+                          kind: in-system
+                          stations:
+                            - marketId: market-near
+                              solarSystemId: sol
+                              marketName: Near Market
+                              siteType: station
+                              siteName: Ceres Main
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 100
+                                  y: 0
+                                  z: 0
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: stations-trade-hub
+                                schemaVersion: sw-13-m0-v1
+                                domain: stations
+                                objectFamily: trade-hub
+                                roleCue: trade
+                                factionCue: consortium
+                                fallbackTier: hero
+                                displayLabel: Trade Hub Station
+                                silhouetteProfile: ring
+                                materialProfile: infrastructure
+                                emissiveProfile: navigation
+                        isDocked: true
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                encounterShipsOnlyRouteFeed:
+                  summary: Route payload with encounterShips feed only
+                  value:
+                    success: true
+                    message: Local market list retrieved successfully
+                    playerName: EncounterPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    positionKm:
+                      x: 90
+                      y: 0
+                      z: 0
+                    distanceAu: 0.001
+                    locationTypes:
+                      - free-floating
+                    isDocked: false
+                    dockedMarketId: null
+                    markets:
+                      - marketId: sol-belt-1
+                        solarSystemId: sol
+                        marketName: Belt Relay Market
+                        siteType: free-floating
+                        siteName: Sol Belt Relay
+                        isStarterMarket: false
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 240
+                            y: 20
+                            z: -5
+                          epochMs: 1713360000000
+                        trajectory:
+                          kind: orbital-elements
+                        distanceAu: 0.000001
+                        route:
+                          kind: in-system
+                          encounterShips:
+                            - shipId: npc-raider-1
+                              shipName: Raider Harrier
+                              model: Raider Interceptor
+                              tier: 2
+                              ownership:
+                                ownerType: npc-pirate
+                                npcId: pirate-raider-1
+                                factionId: pirate-clan
+                              spatial:
+                                solarSystemId: sol
+                                frame: barycentric
+                                positionKm:
+                                  x: 250
+                                  y: 60
+                                  z: 10
+                                epochMs: 1713360000000
+                              descriptor:
+                                descriptorId: ships-interceptor
+                                schemaVersion: sw-13-m0-v1
+                                domain: ships
+                                objectFamily: interceptor
+                                roleCue: military
+                                factionCue: imperial-remnant
+                                fallbackTier: hero
+                                displayLabel: Interceptor Hull
+                                silhouetteProfile: needle
+                                materialProfile: metallic
+                                emissiveProfile: high
+                        isDocked: false
+                        priceMultiplier: 1
+                        driftPercentPerHour: 0
+                        restockIntervalMinutes: 60
+                failedLocalMarketList:
+                  summary: Validation failure omits derived location fields and returns empty markets
+                  value:
+                    success: false
+                    message: playerName, solarSystemId, positionKm, and distanceAu are required
+                    playerName: MarketPilot
+                    correlationId: 73a6d220-c4f4-40e1-8ab6-2cb5cb330e86
+                    requestIdentity:
+                      operation: market-list-by-location
+                      entityType: market
+                      containerId: sol
+                    solarSystemId: sol
+                    markets: []
+                    isDocked: false
+                    dockedMarketId: null
+
+  /socket/market-quote:
+    post:
+      summary: market-quote-request
+      description: |
+        Returns normalized market quote pricing.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketMarketQuote
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketQuoteRequest'
+            examples:
+              quoteBuy:
+                summary: Retrieve a buy quote with correlation metadata
+                value:
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 48222fd0-64f6-4d75-a8f0-948f2386e253
+                  requestIdentity:
+                    operation: market-quote
+                    entityType: market-quote
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  direction: buy
+                  quantity: 5
+      responses:
+        '200':
+          description: market-quote-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketQuoteResponse'
+              examples:
+                successfulQuote:
+                  summary: Successful quote returns normalized pricing details
+                  value:
+                    success: true
+                    message: Market quote retrieved successfully
+                    playerName: MarketPilot
+                    characterId: character-1
+                    correlationId: 48222fd0-64f6-4d75-a8f0-948f2386e253
+                    requestIdentity:
+                      operation: market-quote
+                      entityType: market-quote
+                      containerId: sol-ceres-exchange
+                    requestId: rq-1
+                    quote:
+                      marketId: sol-ceres-exchange
+                      solarSystemId: sol
+                      itemId: iron
+                      direction: buy
+                      quantity: 5
+                      unitPrice: 10
+                      totalPrice: 50
+                      displayName: Iron
+                failedQuote:
+                  summary: Failure omits quote and returns a stable reason code
+                  value:
+                    success: false
+                    message: direction must be buy or sell
+                    correlationId: 48222fd0-64f6-4d75-a8f0-948f2386e253
+                    requestIdentity:
+                      operation: market-quote
+                      entityType: market-quote
+                      containerId: sol-ceres-exchange
+                    requestId: rq-invalid-direction-1
+                    reason: INVALID_DIRECTION
+
+  /socket/market-sell:
+    post:
+      summary: market-sell-request
+      description: |
+        Executes a market sell transaction for a character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+
+        Preconditions:
+        - `quantity` must be a positive integer.
+        - The player, character, market, and catalog item must exist.
+        - The market must buy the requested item.
+        - The character must own enough tradeable quantity to sell.
+
+        Success side effects:
+        - Character inventory quantity is decremented or removed.
+        - Market stock is incremented.
+        - Character and market ledger entries are appended.
+
+        Correlation:
+        - `requestId` is echoed in success and failure responses when provided.
+        - `transactionId` may be supplied by the caller; otherwise the server creates one.
+      operationId: socketMarketSell
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketSellRequest'
+            examples:
+              sellIron:
+                summary: Sell owned trade cargo back to the market
+                value:
+                  requestId: sell-1
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 3aa16533-b021-42c2-8419-6614e754d1af
+                  requestIdentity:
+                    operation: market-sell
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  quantity: 4
+              sellWithCallerTransactionId:
+                summary: Provide a caller-generated transaction id for sell-side reconciliation
+                value:
+                  requestId: sell-2
+                  transactionId: tx-456
+                  playerName: MarketPilot
+                  characterId: character-1
+                  sessionKey: session-123
+                  correlationId: 8798f4d3-a6ca-4956-91ec-4c99d8f75a83
+                  requestIdentity:
+                    operation: market-sell
+                    entityType: market-transaction
+                    containerId: sol-ceres-exchange
+                  marketId: sol-ceres-exchange
+                  solarSystemId: sol
+                  itemId: iron
+                  quantity: 1
+      responses:
+        '200':
+          description: market-sell-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketSellResponse'
+              examples:
+                successfulSell:
+                  summary: Successful market sell returns transaction metadata
+                  value:
+                    success: true
+                    message: Market sell transaction completed
+                    correlationId: 3aa16533-b021-42c2-8419-6614e754d1af
+                    requestIdentity:
+                      operation: market-sell
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
+                    requestId: sell-1
+                    transaction:
+                      transactionId: tx-456
+                      requestId: sell-1
+                      marketId: sol-ceres-exchange
+                      solarSystemId: sol
+                      characterId: character-1
+                      itemId: iron
+                      direction: sell
+                      quantity: 4
+                      unitPrice: 10
+                      totalPrice: 40
+                      timestamp: '2026-05-18T00:00:00.000Z'
+                      characterCredits: 540
+                      marketStock: 64
+                insufficientQuantity:
+                  summary: Failure response omits transaction and reports a stable reason code
+                  value:
+                    success: false
+                    message: Insufficient item quantity to sell
+                    correlationId: 8798f4d3-a6ca-4956-91ec-4c99d8f75a83
+                    requestIdentity:
+                      operation: market-sell
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
+                    requestId: sell-2
+                    reason: INSUFFICIENT_ITEM_QUANTITY
+
+  /socket/market-listing-create:
+    post:
+      description: |
+        Creates a market listing with strict ownership enforcement.
+
+        Ownership contract:
+        - `owner.ownerType` must be `player-character`.
+        - `owner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Non-player-character owners are rejected with `OWNERSHIP_VALIDATION_FAILED`.
+        - Cross-player listing attempts are rejected with `OWNERSHIP_LISTING_FORBIDDEN`.
+      operationId: socketMarketListingCreate
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketListingCreateRequest'
+      responses:
+        '200':
+          description: market-listing-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListingCreateResponse'
+              examples:
+                success:
+                  summary: Valid player-character listing succeeds
+                  value:
+                    success: true
+                    message: Market listing created successfully
+                    offerId: listing-1748700000000-abc123
+                    owner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                      npcId: null
+                      factionId: null
+                crossPlayerForbidden:
+                  summary: Actor cannot create listing for another player
+                  value:
+                    success: false
+                    reason: OWNERSHIP_LISTING_FORBIDDEN
+                    message: Actor does not have permission to create listings for another player
+                npcOwnerRejected:
+                  summary: Non-player-character owner is rejected
+                  value:
+                    success: false
+                    reason: OWNERSHIP_VALIDATION_FAILED
+                    message: Only player-character owners can create market listings
+
+  /socket/market-offer-create:
+    post:
+      summary: market-offer-create-request
+      description: |
+        Creates a pending market offer with strict offeror ownership enforcement.
+
+        Ownership contract:
+        - `offerorOwner.ownerType` must be `player-character`.
+        - `offerorOwner.playerId` must match the authenticated actor's playerId (cross-player blocking).
+        - Non-player-character offerors are rejected with `OWNERSHIP_VALIDATION_FAILED`.
+        - Cross-player offer attempts are rejected with `OWNERSHIP_OFFER_FORBIDDEN`.
+      operationId: socketMarketOfferCreate
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketOfferCreateRequest'
+      responses:
+        '200':
+          description: market-offer-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketOfferCreateResponse'
+              examples:
+                success:
+                  summary: Valid player-character offer succeeds
+                  value:
+                    success: true
+                    offerId: offer-1748700000000-abc123
+                    listingId: listing-1
+                    offerorOwner:
+                      ownerType: player-character
+                      playerId: player-1
+                      characterId: char-1
+                      npcId: null
+                      factionId: null
+                    offerPrice: 500
+                    quantity: 1
+                    createdAt: '2026-06-12T00:00:00.000Z'
+                crossPlayerForbidden:
+                  summary: Actor cannot offer on behalf of another player
+                  value:
+                    success: false
+                    reason: OWNERSHIP_OFFER_FORBIDDEN
+                    message: Actor does not have permission to make offers for another player
+
+  /socket/market-offer-accept:
+    post:
+      summary: market-offer-accept-request
+      description: |
+        Accepts a pending market offer and records the trade. Optionally triggers automatic
+        ship ownership transfer when `shipId` is provided.
+
+        Ownership contract:
+        - `listingOwner.ownerType` must be `player-character`.
+        - `listingOwner.playerId` must match the authenticated actor's playerId.
+        - Only the listing owner can accept offers on their own listing.
+        - Cross-player acceptance attempts are rejected with `OWNERSHIP_ACCEPT_FORBIDDEN`.
+        - Trade history is recorded on the accepted offer document.
+      operationId: socketMarketOfferAccept
+      tags: [Market]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketOfferAcceptRequest'
+      responses:
+        '200':
+          description: market-offer-accept-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketOfferAcceptResponse'
+              examples:
+                success:
+                  summary: Listing owner accepts offer and trade completes
+                  value:
+                    success: true
+                    tradeId: trade-1748700000000-abc123
+                    offerId: offer-1
+                    listingId: listing-1
+                    completedAt: '2026-06-12T00:00:00.000Z'
+                    tradeHistory:
+                      at: '2026-06-12T00:00:00.000Z'
+                      offerId: offer-1
+                      listingOwner:
+                        ownerType: player-character
+                        playerId: player-1
+                        characterId: char-1
+                      acceptorCharacterId: char-1
+                crossPlayerForbidden:
+                  summary: Actor cannot accept offer for another player's listing
+                  value:
+                    success: false
+                    reason: OWNERSHIP_ACCEPT_FORBIDDEN
+                    message: Only listing owner can accept this offer
+components:
+  schemas:
+    MarketBuyRequest:
+      $ref: '../../schemas/market-buy-request.schema.json'
+    MarketBuyResponse:
+      $ref: '../../schemas/market-buy-response.schema.json'
+    MarketInventoryListRequest:
+      $ref: '../../schemas/market-inventory-list-request.schema.json'
+    MarketInventoryListResponse:
+      $ref: '../../schemas/market-inventory-list-response.schema.json'
+    MarketLedgerListRequest:
+      $ref: '../../schemas/market-ledger-list-request.schema.json'
+    MarketLedgerListResponse:
+      $ref: '../../schemas/market-ledger-list-response.schema.json'
+    MarketListByLocationRequest:
+      $ref: '../../schemas/market-list-by-location-request.schema.json'
+    MarketListByLocationResponse:
+      $ref: '../../schemas/market-list-by-location-response.schema.json'
+    MarketListRequest:
+      $ref: '../../schemas/market-list-request.schema.json'
+    MarketListResponse:
+      $ref: '../../schemas/market-list-response.schema.json'
+    MarketQuoteRequest:
+      $ref: '../../schemas/market-quote-request.schema.json'
+    MarketQuoteResponse:
+      $ref: '../../schemas/market-quote-response.schema.json'
+    MarketSellRequest:
+      $ref: '../../schemas/market-sell-request.schema.json'
+    MarketSellResponse:
+      $ref: '../../schemas/market-sell-response.schema.json'
+    MarketListingCreateRequest:
+      $ref: '../../schemas/market-listing-create-request.schema.json'
+    MarketListingCreateResponse:
+      $ref: '../../schemas/market-listing-create-response.schema.json'
+    MarketOfferCreateRequest:
+      $ref: '../../schemas/market-offer-create-request.schema.json'
+    MarketOfferCreateResponse:
+      $ref: '../../schemas/market-offer-create-response.schema.json'
+    MarketOfferAcceptRequest:
+      $ref: '../../schemas/market-offer-accept-request.schema.json'
+    MarketOfferAcceptResponse:
+      $ref: '../../schemas/market-offer-accept-response.schema.json'

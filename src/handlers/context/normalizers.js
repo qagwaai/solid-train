@@ -440,7 +440,7 @@ function normalizeShip(ctx, ship) {
 
   const ownershipSource =
     source.ownership && typeof source.ownership === 'object' ? source.ownership : null;
-  const ownership = ownershipSource
+  let ownership = ownershipSource
     ? {
         ownerType: toNonEmptyString(ctx, ownershipSource.ownerType),
         playerId: toNonEmptyString(ctx, ownershipSource.playerId) || null,
@@ -449,6 +449,21 @@ function normalizeShip(ctx, ship) {
         factionId: toNonEmptyString(ctx, ownershipSource.factionId) || null,
       }
     : null;
+
+  // Backfill canonical ownership from legacy owningPlayerId/owningCharacterId fields
+  if (!ownership) {
+    const legacyPlayerId = toNonEmptyString(ctx, source.owningPlayerId) || null;
+    const legacyCharacterId = toNonEmptyString(ctx, source.owningCharacterId) || null;
+    if (legacyPlayerId && legacyCharacterId) {
+      ownership = {
+        ownerType: 'player-character',
+        playerId: legacyPlayerId,
+        characterId: legacyCharacterId,
+        npcId: null,
+        factionId: null,
+      };
+    }
+  }
 
   return {
     id: toNonEmptyString(ctx, source.id),
@@ -550,6 +565,29 @@ function normalizeItem(ctx, item) {
     container: normalizedContainer,
     owningPlayerId: toNonEmptyString(ctx, source.owningPlayerId),
     owningCharacterId: toNonEmptyString(ctx, source.owningCharacterId),
+    ownership: (() => {
+      if (source.ownership && typeof source.ownership === 'object') {
+        return {
+          ownerType: toNonEmptyString(ctx, source.ownership.ownerType),
+          playerId: toNonEmptyString(ctx, source.ownership.playerId) || null,
+          characterId: toNonEmptyString(ctx, source.ownership.characterId) || null,
+          npcId: toNonEmptyString(ctx, source.ownership.npcId) || null,
+          factionId: toNonEmptyString(ctx, source.ownership.factionId) || null,
+        };
+      }
+      const legacyPlayerId = toNonEmptyString(ctx, source.owningPlayerId) || null;
+      const legacyCharacterId = toNonEmptyString(ctx, source.owningCharacterId) || null;
+      if (legacyPlayerId && legacyCharacterId) {
+        return {
+          ownerType: 'player-character',
+          playerId: legacyPlayerId,
+          characterId: legacyCharacterId,
+          npcId: null,
+          factionId: null,
+        };
+      }
+      return null;
+    })(),
     spatial,
     ...(motion ? { motion } : {}),
     createdAt: toNonEmptyString(ctx, source.createdAt),

@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-offer-accept-request",
+  "type": "object",
+  "required": [
+    "playerName",
+    "sessionKey",
+    "correlationId",
+    "requestIdentity",
+    "offerId",
+    "listingId",
+    "listingOwner"
+  ],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": { "type": "string" },
+    "requestIdentity": {
+      "type": "object",
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "offerId": { "type": "string" },
+    "listingId": { "type": "string" },
+    "listingOwner": {
+      "type": "object",
+      "required": ["ownerType"],
+      "properties": {
+        "ownerType": {
+          "type": "string",
+          "enum": ["player-character", "npc-pirate", "unowned", "unknown"]
+        },
+        "playerId": { "type": ["string", "null"] },
+        "characterId": { "type": ["string", "null"] },
+        "npcId": { "type": ["string", "null"] },
+        "factionId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,34 @@
+{
+  "issues": [],
+  "metadata": {
+    "baselineMissing": false,
+    "baselinePath": "test\\fixtures\\sw08\\compat-old.json",
+    "currentPath": "test\\fixtures\\sw08\\compat-new.json",
+    "exceptionFound": false,
+    "exceptionPath": "docs\\planning\\sw-08-approved-bypass.json",
+    "generatedBy": "scripts/sw08/check-contract-drift.js"
+  },
+  "summary": {
+    "byCategory": {
+      "endpoint/event removal or rename": 0,
+      "enum narrowing/mismatch": 0,
+      "removed required fields": 0,
+      "type mismatches": 0
+    },
+    "bypassApproved": false,
+    "enforcementMode": "soft-fail",
+    "hardFailEnforced": false,
+    "impactedConsumers": ["laughing-octo-journey"],
+    "mode": "soft-fail",
+    "nextAction": "No action required.",
+    "owner": "unassigned",
+    "softFailEnforced": false,
+    "totalIssues": 0
+  },
+  "taxonomy": {
+    "ENDPOINT_EVENT_REMOVAL": "endpoint/event removal or rename",
+    "ENUM_MISMATCH": "enum narrowing/mismatch",
+    "REMOVED_REQUIRED": "removed required fields",
+    "TYPE_MISMATCH": "type mismatches"
+  }
+}

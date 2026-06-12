@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ship-list-by-npc-owner-response",
+  "type": "object",
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "INVALID_SESSION",
+        "OWNERSHIP_VALIDATION_FAILED"
+      ]
+    },
+    "correlationId": { "type": "string" },
+    "npcOwner": {
+      "type": "object",
+      "properties": {
+        "ownerType": { "type": "string" },
+        "npcId": { "type": ["string", "null"] },
+        "factionId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "ships": {
+      "type": "array",
+      "items": { "type": "object", "additionalProperties": true }
+    }
+  },
+  "additionalProperties": true
+}

@@ -38,12 +38,14 @@ const EXPECTED_REPORT_PATH = path.join(
 const DESCRIPTOR_PAYLOAD_SCHEMA_PATH = path.join(
   __dirname,
   '..',
+  'api',
   'schemas',
   'external-object-descriptor-payload.schema.json'
 );
 const GATE_PAYLOAD_SCHEMA_PATH = path.join(
   __dirname,
   '..',
+  'api',
   'schemas',
   'external-object-gate-landmark-payload.schema.json'
 );

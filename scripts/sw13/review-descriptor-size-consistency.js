@@ -223,7 +223,7 @@ function main() {
   const rootDir = path.resolve(__dirname, '..', '..');
   const reportPath = path.resolve(
     rootDir,
-    args.report || 'artifacts/contracts/sw13-m4-size-consistency-report.json'
+    args.report || 'api/artifacts/contracts/sw13-m4-size-consistency-report.json'
   );
 
   const report = buildReport(rootDir);

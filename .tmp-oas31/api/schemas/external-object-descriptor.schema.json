@@ -1,0 +1,182 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "external-object-descriptor",
+  "type": "object",
+  "required": [
+    "descriptorId",
+    "schemaVersion",
+    "domain",
+    "objectFamily",
+    "roleCue",
+    "factionCue",
+    "fallbackTier",
+    "displayLabel",
+    "silhouetteProfile",
+    "materialProfile",
+    "emissiveProfile"
+  ],
+  "properties": {
+    "descriptorId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Stable identifier for descriptor content references and fixture assertions."
+    },
+    "schemaVersion": {
+      "type": "string",
+      "const": "sw-13-m0-v1",
+      "description": "Pinned contract version for baseline lock and drift detection."
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["debris", "ships", "gates", "stations", "asteroids"],
+      "description": "Top-level object domain used by selection and downstream rendering adapters."
+    },
+    "objectFamily": {
+      "type": "string",
+      "description": "Canonical family taxonomy value for stable visual identity selection."
+    },
+    "roleCue": {
+      "type": "string",
+      "enum": [
+        "salvage",
+        "industrial",
+        "trade",
+        "military",
+        "navigation",
+        "infrastructure",
+        "hazard",
+        "civilian",
+        "neutral"
+      ],
+      "description": "Role identity cue consumed by selectors and telemetry for readability decisions."
+    },
+    "factionCue": {
+      "type": "string",
+      "enum": [
+        "neutral",
+        "independent",
+        "consortium",
+        "frontier-union",
+        "imperial-remnant",
+        "pirate-clan",
+        "unknown"
+      ],
+      "description": "Faction identity cue for silhouette context and narrative-aligned presentation."
+    },
+    "fallbackTier": {
+      "type": "string",
+      "enum": ["hero", "standard", "minimal"],
+      "description": "Deterministic fallback tier reference for balanced-performance profile handling."
+    },
+    "displayLabel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable label for diagnostics and optional UI overlays."
+    },
+    "silhouetteProfile": {
+      "type": "string",
+      "enum": [
+        "fragmented",
+        "needle",
+        "broad",
+        "modular",
+        "ring",
+        "spire",
+        "clustered",
+        "irregular"
+      ],
+      "description": "Distance-safe silhouette cue for at-a-glance recognition."
+    },
+    "materialProfile": {
+      "type": "string",
+      "enum": [
+        "scrap",
+        "alloy",
+        "composite",
+        "infrastructure",
+        "rocky",
+        "metallic",
+        "icy"
+      ],
+      "description": "Material treatment category to keep rendering semantics explicit."
+    },
+    "emissiveProfile": {
+      "type": "string",
+      "enum": ["none", "low", "medium", "high", "navigation"],
+      "description": "Emissive cue profile for readability under motion and darkness."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "domain": { "const": "debris" }
+        }
+      },
+      "then": {
+        "properties": {
+          "objectFamily": {
+            "enum": ["salvage-fragment", "wreckage-panel", "cargo-canister", "field-shard"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "domain": { "const": "ships" }
+        }
+      },
+      "then": {
+        "properties": {
+          "objectFamily": {
+            "enum": ["scout", "hauler", "frigate", "interceptor", "industrial"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "domain": { "const": "gates" }
+        }
+      },
+      "then": {
+        "properties": {
+          "objectFamily": {
+            "enum": ["ring-gate", "segmented-arch", "relay-spindle"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "domain": { "const": "stations" }
+        }
+      },
+      "then": {
+        "properties": {
+          "objectFamily": {
+            "enum": ["trade-hub", "refinery", "naval-outpost", "research-platform"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "domain": { "const": "asteroids" }
+        }
+      },
+      "then": {
+        "properties": {
+          "objectFamily": {
+            "enum": ["rocky-irregular", "metallic-cluster", "icy-body", "cinematic-hero"]
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

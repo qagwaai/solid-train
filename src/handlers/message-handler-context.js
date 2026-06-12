@@ -240,6 +240,7 @@ defineDelegatedMethods(MessageHandlerContext.prototype, playerService, [
 
 defineDelegatedMethods(MessageHandlerContext.prototype, inventoryService, [
   'getItem',
+  'getAllItems',
   'cacheItems',
   'getItemsByIdsAsync',
   'addItemsAsync',

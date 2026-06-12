@@ -1,0 +1,587 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Bust
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Bust
+paths:
+  /socket/character-bust-create:
+    post:
+      summary: character-bust-create-request
+      description: |
+        Creates a bust descriptor for a playable character. The bust is character-scoped;
+        characterId identifies the target playable-character record.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - All descriptor domain fields must be provided with valid enum values.
+        - Invalid field values result in a hard-reject 422 response with explicit per-field
+          validation errors. No silent correction is applied.
+        - Valid payloads may still be blocked from persistence with a typed blocked-save
+          response containing `blockedSave.reason` and `blockedSave.retryable`.
+      operationId: socketCharacterBustCreate
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterBustCreateRequest'
+            examples:
+              createCharacterBust:
+                summary: Create a canonical bust for a playable character
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                  requestIdentity:
+                    operation: character-bust-create
+                    entityType: character-bust
+                    containerId: character-1
+                  characterId: character-1
+                  descriptor:
+                    presetVersion: v1
+                    faceShape: oval
+                    skinTone: medium
+                    hairStyle: short-crop
+                    hairColor: brown
+                    eyeStyle: almond
+                    eyeColor: green
+                    expressionPreset: neutral
+                    apparelAccent: none
+                    facialHair: none
+                    scar: none
+                    tattoo: none
+      responses:
+        '200':
+          description: character-bust-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterBustCreateResponse'
+              examples:
+                successfulCreate:
+                  summary: Bust created and stored with server-assigned schemaVersion
+                  value:
+                    success: true
+                    message: Character bust created successfully
+                    playerName: PilotOne
+                    correlationId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    requestIdentity:
+                      operation: character-bust-create
+                      entityType: character-bust
+                      containerId: character-1
+                    characterId: character-1
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: oval
+                      skinTone: medium
+                      hairStyle: short-crop
+                      hairColor: brown
+                      eyeStyle: almond
+                      eyeColor: green
+                      expressionPreset: neutral
+                      apparelAccent: none
+                      facialHair: none
+                      scar: none
+                      tattoo: none
+                blockedSave:
+                  summary: Save blocked when character ownership preconditions are not met
+                  value:
+                    success: false
+                    message: Character is not in player list
+                    playerName: PilotOne
+                    correlationId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    requestIdentity:
+                      operation: character-bust-create
+                      entityType: character-bust
+                      containerId: character-1
+                    characterId: character-1
+                    blockedSave:
+                      reason: CHARACTER_NOT_FOUND
+                      retryable: false
+        '422':
+          description: bust-validation-error-response (hard reject on invalid descriptor field values)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BustValidationErrorResponse'
+              examples:
+                invalidEnumHardReject:
+                  summary: Hard-reject response when a descriptor field has an invalid enum value
+                  value:
+                    success: false
+                    message: Bust descriptor validation failed
+                    correlationId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    requestIdentity:
+                      operation: character-bust-create
+                      entityType: character-bust
+                      containerId: character-1
+                    validationErrors:
+                      - field: descriptor.faceShape
+                        reason: not a valid enum value
+                        rejectedValue: triangle
+
+  /socket/character-bust-read:
+    post:
+      summary: character-bust-read-request
+      description: |
+        Reads the current stored bust descriptor for a playable character.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketCharacterBustRead
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterBustReadRequest'
+            examples:
+              readCharacterBust:
+                summary: Read the stored bust for a playable character
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: b2c3d4e5-f6a7-8901-bcde-f12345678901
+                  requestIdentity:
+                    operation: character-bust-read
+                    entityType: character-bust
+                    containerId: character-1
+                  characterId: character-1
+      responses:
+        '200':
+          description: character-bust-read-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterBustReadResponse'
+              examples:
+                successfulRead:
+                  summary: Stored bust descriptor returned
+                  value:
+                    success: true
+                    message: Character bust retrieved successfully
+                    playerName: PilotOne
+                    correlationId: b2c3d4e5-f6a7-8901-bcde-f12345678901
+                    requestIdentity:
+                      operation: character-bust-read
+                      entityType: character-bust
+                      containerId: character-1
+                    characterId: character-1
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: oval
+                      skinTone: medium
+                      hairStyle: short-crop
+                      hairColor: brown
+                      eyeStyle: almond
+                      eyeColor: green
+                      expressionPreset: neutral
+                      apparelAccent: none
+                      facialHair: none
+                      scar: none
+                      tattoo: none
+
+  /socket/character-bust-update:
+    post:
+      summary: character-bust-update-request
+      description: |
+        Updates the bust descriptor for a playable character. The full descriptor must be
+        provided; partial updates are not supported. Invalid field values are hard-rejected.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - All descriptor domain fields must be provided with valid enum values.
+        - Invalid field values result in a hard-reject 422 response. No silent correction is applied.
+        - Valid payloads may still be blocked from persistence with a typed blocked-save
+          response containing `blockedSave.reason` and `blockedSave.retryable`.
+      operationId: socketCharacterBustUpdate
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CharacterBustUpdateRequest'
+            examples:
+              updateCharacterBust:
+                summary: Update a playable character bust descriptor
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: c3d4e5f6-a7b8-9012-cdef-123456789012
+                  requestIdentity:
+                    operation: character-bust-update
+                    entityType: character-bust
+                    containerId: character-1
+                  characterId: character-1
+                  descriptor:
+                    presetVersion: v1
+                    faceShape: square
+                    skinTone: tan
+                    hairStyle: mid-fade
+                    hairColor: black
+                    eyeStyle: narrow
+                    eyeColor: brown
+                    expressionPreset: stern
+                    apparelAccent: collar
+                    facialHair: stubble
+                    scar: brow-left
+                    tattoo: temple-left
+      responses:
+        '200':
+          description: character-bust-update-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterBustUpdateResponse'
+              examples:
+                successfulUpdate:
+                  summary: Bust updated and normalized descriptor returned
+                  value:
+                    success: true
+                    message: Character bust updated successfully
+                    playerName: PilotOne
+                    correlationId: c3d4e5f6-a7b8-9012-cdef-123456789012
+                    requestIdentity:
+                      operation: character-bust-update
+                      entityType: character-bust
+                      containerId: character-1
+                    characterId: character-1
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: square
+                      skinTone: tan
+                      hairStyle: mid-fade
+                      hairColor: black
+                      eyeStyle: narrow
+                      eyeColor: brown
+                      expressionPreset: stern
+                      apparelAccent: collar
+                      facialHair: stubble
+                      scar: brow-left
+                      tattoo: temple-left
+                blockedSave:
+                  summary: Save blocked when a prior descriptor does not exist
+                  value:
+                    success: false
+                    message: Character bust descriptor is not set
+                    playerName: PilotOne
+                    correlationId: c3d4e5f6-a7b8-9012-cdef-123456789012
+                    requestIdentity:
+                      operation: character-bust-update
+                      entityType: character-bust
+                      containerId: character-1
+                    characterId: character-1
+                    blockedSave:
+                      reason: CHARACTER_BUST_NOT_FOUND
+                      retryable: false
+        '422':
+          description: bust-validation-error-response (hard reject on invalid descriptor field values)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BustValidationErrorResponse'
+
+  /socket/npc-bust-create:
+    post:
+      summary: npc-bust-create-request
+      description: |
+        Creates a bust descriptor for an NPC using a deterministicSeed. The seed drives
+        the baseline descriptor so the same seed always produces the same output. Optional
+        admin-tool overrides may be applied on top of the seeded baseline.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - `deterministicSeed` must be non-empty.
+        - Invalid override field values result in a hard-reject 422 response.
+        - Valid payloads may still be blocked from persistence with a typed blocked-save
+          response containing `blockedSave.reason` and `blockedSave.retryable`.
+      operationId: socketNpcBustCreate
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NpcBustCreateRequest'
+            examples:
+              createNpcBust:
+                summary: Create a seeded NPC bust with no overrides
+                value:
+                  playerName: AdminUser
+                  sessionKey: session-admin-1
+                  correlationId: d4e5f6a7-b8c9-0123-defa-234567890123
+                  requestIdentity:
+                    operation: npc-bust-create
+                    entityType: npc-bust
+                    containerId: npc-merchant-001
+                  npcId: npc-merchant-001
+                  deterministicSeed: faction:trade|role:merchant|id:001
+      responses:
+        '200':
+          description: npc-bust-create-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpcBustCreateResponse'
+              examples:
+                successfulNpcCreate:
+                  summary: NPC bust created from deterministic seed
+                  value:
+                    success: true
+                    message: NPC bust created successfully
+                    correlationId: d4e5f6a7-b8c9-0123-defa-234567890123
+                    requestIdentity:
+                      operation: npc-bust-create
+                      entityType: npc-bust
+                      containerId: npc-merchant-001
+                    npcId: npc-merchant-001
+                    deterministicSeed: faction:trade|role:merchant|id:001
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: round
+                      skinTone: light
+                      hairStyle: slicked
+                      hairColor: auburn
+                      eyeStyle: wide
+                      eyeColor: hazel
+                      expressionPreset: warm
+                      apparelAccent: collar
+                      facialHair: none
+                      scar: none
+                      tattoo: none
+                    appliedOverrides: []
+                blockedSave:
+                  summary: Save blocked due to temporary persistence failure
+                  value:
+                    success: false
+                    message: 'Failed to create NPC bust descriptor: database error'
+                    correlationId: d4e5f6a7-b8c9-0123-defa-234567890123
+                    requestIdentity:
+                      operation: npc-bust-create
+                      entityType: npc-bust
+                      containerId: npc-merchant-001
+                    npcId: npc-merchant-001
+                    blockedSave:
+                      reason: DATABASE_ERROR
+                      retryable: true
+        '422':
+          description: bust-validation-error-response (hard reject on invalid override field values)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BustValidationErrorResponse'
+
+  /socket/npc-bust-read:
+    post:
+      summary: npc-bust-read-request
+      description: |
+        Reads the current stored bust descriptor for an NPC, including the deterministicSeed
+        used at creation for replay and cross-session consistency verification.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketNpcBustRead
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NpcBustReadRequest'
+            examples:
+              readNpcBust:
+                summary: Read the stored bust for an NPC
+                value:
+                  playerName: AdminUser
+                  sessionKey: session-admin-1
+                  correlationId: e5f6a7b8-c9d0-1234-efab-345678901234
+                  requestIdentity:
+                    operation: npc-bust-read
+                    entityType: npc-bust
+                    containerId: npc-merchant-001
+                  npcId: npc-merchant-001
+      responses:
+        '200':
+          description: npc-bust-read-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpcBustReadResponse'
+              examples:
+                successfulNpcRead:
+                  summary: Stored NPC bust descriptor with seed returned
+                  value:
+                    success: true
+                    message: NPC bust retrieved successfully
+                    correlationId: e5f6a7b8-c9d0-1234-efab-345678901234
+                    requestIdentity:
+                      operation: npc-bust-read
+                      entityType: npc-bust
+                      containerId: npc-merchant-001
+                    npcId: npc-merchant-001
+                    deterministicSeed: faction:trade|role:merchant|id:001
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: round
+                      skinTone: light
+                      hairStyle: slicked
+                      hairColor: auburn
+                      eyeStyle: wide
+                      eyeColor: hazel
+                      expressionPreset: warm
+                      apparelAccent: collar
+                      facialHair: none
+                      scar: none
+                      tattoo: none
+                    appliedOverrides: []
+
+  /socket/npc-bust-update:
+    post:
+      summary: npc-bust-update-request
+      description: |
+        Updates an NPC bust descriptor. A new deterministicSeed may be provided to
+        regenerate the baseline, or only overrides may be changed while preserving the
+        existing seed. Invalid override field values are hard-rejected.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+        - `deterministicSeed` must be non-empty.
+        - Invalid override field values result in a hard-reject 422 response.
+        - Valid payloads may still be blocked from persistence with a typed blocked-save
+          response containing `blockedSave.reason` and `blockedSave.retryable`.
+      operationId: socketNpcBustUpdate
+      tags: [Bust]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NpcBustUpdateRequest'
+            examples:
+              updateNpcBust:
+                summary: Update NPC bust with an admin-tool expression override
+                value:
+                  playerName: AdminUser
+                  sessionKey: session-admin-1
+                  correlationId: f6a7b8c9-d0e1-2345-fabc-456789012345
+                  requestIdentity:
+                    operation: npc-bust-update
+                    entityType: npc-bust
+                    containerId: npc-merchant-001
+                  npcId: npc-merchant-001
+                  deterministicSeed: faction:trade|role:merchant|id:001
+                  overrides:
+                    expressionPreset: stern
+                    tattoo: neck-left
+      responses:
+        '200':
+          description: npc-bust-update-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpcBustUpdateResponse'
+              examples:
+                successfulNpcUpdate:
+                  summary: NPC bust updated with override applied
+                  value:
+                    success: true
+                    message: NPC bust updated successfully
+                    correlationId: f6a7b8c9-d0e1-2345-fabc-456789012345
+                    requestIdentity:
+                      operation: npc-bust-update
+                      entityType: npc-bust
+                      containerId: npc-merchant-001
+                    npcId: npc-merchant-001
+                    deterministicSeed: faction:trade|role:merchant|id:001
+                    descriptor:
+                      schemaVersion: sw-15-m1-v1
+                      presetVersion: v1
+                      faceShape: round
+                      skinTone: light
+                      hairStyle: slicked
+                      hairColor: auburn
+                      eyeStyle: wide
+                      eyeColor: hazel
+                      expressionPreset: stern
+                      apparelAccent: collar
+                      facialHair: none
+                      scar: none
+                      tattoo: neck-left
+                    appliedOverrides:
+                      - expressionPreset
+                      - tattoo
+                blockedSave:
+                  summary: Save blocked when no prior NPC bust exists
+                  value:
+                    success: false
+                    message: NPC bust descriptor is not set
+                    correlationId: f6a7b8c9-d0e1-2345-fabc-456789012345
+                    requestIdentity:
+                      operation: npc-bust-update
+                      entityType: npc-bust
+                      containerId: npc-merchant-001
+                    npcId: npc-merchant-001
+                    blockedSave:
+                      reason: NPC_BUST_NOT_FOUND
+                      retryable: false
+        '422':
+          description: bust-validation-error-response (hard reject on invalid override field values)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BustValidationErrorResponse'
+components:
+  schemas:
+    BustBlockedSaveResponse:
+      $ref: '../../schemas/bust-blocked-save-response.schema.json'
+    BustDescriptor:
+      $ref: '../../schemas/bust-descriptor.schema.json'
+    BustValidationErrorResponse:
+      $ref: '../../schemas/bust-validation-error-response.schema.json'
+    CharacterBustCreateRequest:
+      $ref: '../../schemas/character-bust-create-request.schema.json'
+    CharacterBustCreateResponse:
+      $ref: '../../schemas/character-bust-create-response.schema.json'
+    CharacterBustReadRequest:
+      $ref: '../../schemas/character-bust-read-request.schema.json'
+    CharacterBustReadResponse:
+      $ref: '../../schemas/character-bust-read-response.schema.json'
+    CharacterBustUpdateRequest:
+      $ref: '../../schemas/character-bust-update-request.schema.json'
+    CharacterBustUpdateResponse:
+      $ref: '../../schemas/character-bust-update-response.schema.json'
+    NpcBustCreateRequest:
+      $ref: '../../schemas/npc-bust-create-request.schema.json'
+    NpcBustCreateResponse:
+      $ref: '../../schemas/npc-bust-create-response.schema.json'
+    NpcBustReadRequest:
+      $ref: '../../schemas/npc-bust-read-request.schema.json'
+    NpcBustReadResponse:
+      $ref: '../../schemas/npc-bust-read-response.schema.json'
+    NpcBustUpdateRequest:
+      $ref: '../../schemas/npc-bust-update-request.schema.json'
+    NpcBustUpdateResponse:
+      $ref: '../../schemas/npc-bust-update-response.schema.json'

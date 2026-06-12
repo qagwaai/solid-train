@@ -65,6 +65,13 @@ const {
 const { MarketLedgerListMessageHandler } = require('./handlers/market-ledger-list-message-handler');
 const { MarketBuyMessageHandler } = require('./handlers/market-buy-message-handler');
 const { MarketSellMessageHandler } = require('./handlers/market-sell-message-handler');
+const { MarketListingCreateMessageHandler } = require('./handlers/market-listing-create-message-handler');
+const { MarketOfferCreateMessageHandler } = require('./handlers/market-offer-create-message-handler');
+const { MarketOfferAcceptMessageHandler } = require('./handlers/market-offer-accept-message-handler');
+const { ItemListByOwnerMessageHandler } = require('./handlers/item-list-by-owner-message-handler');
+const { ShipSalvageClaimMessageHandler } = require('./handlers/ship-salvage-claim-message-handler');
+const { ShipPiracySeizeMessageHandler } = require('./handlers/ship-piracy-seize-message-handler');
+const { ShipListByNpcOwnerMessageHandler } = require('./handlers/ship-list-by-npc-owner-message-handler');
 const { SolarSystemListMessageHandler } = require('./handlers/solar-system-list-message-handler');
 const { SolarSystemGetMessageHandler } = require('./handlers/solar-system-get-message-handler');
 const { StarListMessageHandler } = require('./handlers/star-list-message-handler');
@@ -168,6 +175,13 @@ function createServer(options = {}) {
   const marketLedgerListMessageHandler = new MarketLedgerListMessageHandler(messageHandlerContext);
   const marketBuyMessageHandler = new MarketBuyMessageHandler(messageHandlerContext);
   const marketSellMessageHandler = new MarketSellMessageHandler(messageHandlerContext);
+  const marketListingCreateMessageHandler = new MarketListingCreateMessageHandler(messageHandlerContext);
+  const marketOfferCreateMessageHandler = new MarketOfferCreateMessageHandler(messageHandlerContext);
+  const marketOfferAcceptMessageHandler = new MarketOfferAcceptMessageHandler(messageHandlerContext);
+  const itemListByOwnerMessageHandler = new ItemListByOwnerMessageHandler(messageHandlerContext);
+  const shipSalvageClaimMessageHandler = new ShipSalvageClaimMessageHandler(messageHandlerContext);
+  const shipPiracySeizeMessageHandler = new ShipPiracySeizeMessageHandler(messageHandlerContext);
+  const shipListByNpcOwnerMessageHandler = new ShipListByNpcOwnerMessageHandler(messageHandlerContext);
   const solarSystemListMessageHandler = new SolarSystemListMessageHandler(messageHandlerContext);
   const solarSystemGetMessageHandler = new SolarSystemGetMessageHandler(messageHandlerContext);
   const starListMessageHandler = new StarListMessageHandler(messageHandlerContext);
@@ -175,15 +189,21 @@ function createServer(options = {}) {
 
   // Express app for REST endpoints
   const app = express();
-  const openApiSpecPath = path.resolve(__dirname, '..', 'openapi.yaml');
-  const schemaDirPath = path.resolve(__dirname, '..', 'schemas');
+  const openApiSpecPath = path.resolve(__dirname, '..', 'api', 'openapi.yaml');
+  const openApiModulesDirPath = path.resolve(__dirname, '..', 'api', 'openapi');
+  const schemaDirPath = path.resolve(__dirname, '..', 'api', 'schemas');
 
   app.get('/openapi.yaml', (req, res) => {
     res.sendFile(openApiSpecPath);
   });
 
+  // Expose modular OpenAPI files so root $ref pointers can resolve at runtime.
+  app.use('/openapi', express.static(openApiModulesDirPath));
+
   // Expose schema files so external $ref values in openapi.yaml can resolve.
   app.use('/schemas', express.static(schemaDirPath));
+  // Expose schemas under /openapi/schemas so relative refs inside /openapi/* modules resolve.
+  app.use('/openapi/schemas', express.static(schemaDirPath));
 
   app.use(
     '/docs',
@@ -261,6 +281,13 @@ function createServer(options = {}) {
       marketLedgerListMessageHandler,
       marketBuyMessageHandler,
       marketSellMessageHandler,
+      marketListingCreateMessageHandler,
+      marketOfferCreateMessageHandler,
+      marketOfferAcceptMessageHandler,
+      itemListByOwnerMessageHandler,
+      shipSalvageClaimMessageHandler,
+      shipPiracySeizeMessageHandler,
+      shipListByNpcOwnerMessageHandler,
       solarSystemListMessageHandler,
       solarSystemGetMessageHandler,
       starListMessageHandler,

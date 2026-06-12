@@ -1,0 +1,98 @@
+{
+  "exception": {
+    "approvals": {
+      "backendLead": true,
+      "frontendLead": true
+    },
+    "expiryDate": "2026-06-30T23:59:59.000Z",
+    "followUpTicket": "SW08-123",
+    "impact": "Breaking ship ownership contract drift is allowed only for the approved migration window.",
+    "owner": "backend-lead",
+    "reason": "Temporary compatibility window while frontend migrates ship-transfer owner descriptors",
+    "rollbackSteps": [
+      "Revert the producer change behind the exception",
+      "Remove the bypass file",
+      "Notify frontend consumers and re-run SW-08 gate"
+    ]
+  },
+  "issues": [
+    {
+      "category": "endpoint/event removal or rename",
+      "consumerSurfaces": ["Character/ship"],
+      "detail": "Socket contract endpoint removed or renamed: /socket/ship-transfer",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "socket:/socket/ship-transfer",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Restore socket event alias or keep old event contract during migration window."
+    },
+    {
+      "category": "enum narrowing/mismatch",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Enum narrowed; removed values: [beta]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:FixtureContract.properties.mode",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Avoid enum narrowing or preserve old values with deprecation window."
+    },
+    {
+      "category": "removed required fields",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Required field no longer required in new contract: mode",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:FixtureContract.required.mode",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Keep field required or provide compatibility guarantee plus migration note."
+    },
+    {
+      "category": "type mismatches",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Type changed from [integer] to [string]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:FixtureContract.properties.count",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Preserve prior type support or add compatibility translation in producer payload."
+    },
+    {
+      "category": "type mismatches",
+      "consumerSurfaces": ["Unmapped surface"],
+      "detail": "Type changed from [string] to [number]",
+      "knownConsumers": ["laughing-octo-journey"],
+      "owner": "backend-lead",
+      "producerLocation": "schema:FixtureContract.properties.id",
+      "severity": "high",
+      "suggestedCompatibilityStrategy": "Preserve prior type support or add compatibility translation in producer payload."
+    }
+  ],
+  "metadata": {
+    "baselineMissing": false,
+    "baselinePath": "test\\fixtures\\sw08\\drift-old.json",
+    "currentPath": "test\\fixtures\\sw08\\drift-new.json",
+    "exceptionFound": true,
+    "exceptionPath": "test\\fixtures\\sw08\\approved-exception.json",
+    "generatedBy": "scripts/sw08/check-contract-drift.js"
+  },
+  "summary": {
+    "byCategory": {
+      "endpoint/event removal or rename": 1,
+      "enum narrowing/mismatch": 1,
+      "removed required fields": 1,
+      "type mismatches": 2
+    },
+    "bypassApproved": true,
+    "enforcementMode": "soft-fail",
+    "impactedConsumers": ["laughing-octo-journey"],
+    "mode": "soft-fail",
+    "softFailEnforced": false,
+    "totalIssues": 5
+  },
+  "taxonomy": {
+    "ENDPOINT_EVENT_REMOVAL": "endpoint/event removal or rename",
+    "ENUM_MISMATCH": "enum narrowing/mismatch",
+    "REMOVED_REQUIRED": "removed required fields",
+    "TYPE_MISMATCH": "type mismatches"
+  }
+}

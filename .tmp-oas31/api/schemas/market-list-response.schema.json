@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-list-response",
+  "type": "object",
+  "required": ["success", "message", "playerName", "markets", "correlationId", "requestIdentity"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Echo of the request correlationId."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "playerName": { "type": "string" },
+    "solarSystemId": { "type": ["string", "null"] },
+    "markets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "marketId",
+          "solarSystemId",
+          "marketName",
+          "siteType",
+          "siteName",
+          "isStarterMarket",
+          "spatial",
+          "trajectory",
+          "distanceAu",
+          "priceMultiplier",
+          "driftPercentPerHour",
+          "restockIntervalMinutes"
+        ],
+        "properties": {
+          "marketId": { "type": "string" },
+          "solarSystemId": { "type": "string" },
+          "marketName": { "type": "string" },
+          "siteType": { "type": "string" },
+          "siteName": { "type": "string" },
+          "isStarterMarket": { "type": "boolean" },
+          "spatial": { "type": ["object", "null"], "additionalProperties": true },
+          "trajectory": { "type": ["object", "null"], "additionalProperties": true },
+          "distanceAu": { "type": "number", "minimum": 0 },
+          "priceMultiplier": { "type": "number" },
+          "driftPercentPerHour": { "type": "number" },
+          "restockIntervalMinutes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "solar-system-list-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "source": { "type": "string" },
+    "maxDistanceParsec": { "type": "number" },
+    "search": { "type": "string" },
+    "limit": { "type": "integer" },
+    "requestId": { "type": "string" }
+  }
+}

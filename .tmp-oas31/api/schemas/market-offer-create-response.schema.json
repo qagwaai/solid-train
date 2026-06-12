@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "market-offer-create-response",
+  "type": "object",
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "INVALID_SESSION",
+        "LISTING_NOT_FOUND",
+        "OWNERSHIP_VALIDATION_FAILED",
+        "OWNERSHIP_OFFER_FORBIDDEN"
+      ]
+    },
+    "correlationId": { "type": "string" },
+    "requestIdentity": {
+      "type": "object",
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "offerId": { "type": "string" },
+    "listingId": { "type": "string" },
+    "offerorOwner": {
+      "type": "object",
+      "properties": {
+        "ownerType": { "type": "string" },
+        "playerId": { "type": ["string", "null"] },
+        "characterId": { "type": ["string", "null"] },
+        "npcId": { "type": ["string", "null"] },
+        "factionId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "offerPrice": { "type": "number" },
+    "quantity": { "type": "integer" },
+    "createdAt": { "type": "string" }
+  },
+  "additionalProperties": true
+}

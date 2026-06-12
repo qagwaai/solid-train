@@ -186,6 +186,20 @@ class DatabaseService {
     };
   }
 
+  ownershipEquals(left, right) {
+    if (!left || !right) {
+      return false;
+    }
+
+    return (
+      left.ownerType === right.ownerType &&
+      left.playerId === right.playerId &&
+      left.characterId === right.characterId &&
+      left.npcId === right.npcId &&
+      left.factionId === right.factionId
+    );
+  }
+
   async assertNoDanglingShipInventoryReferences(inventory) {
     if (!Array.isArray(inventory) || inventory.length === 0) {
       return;
@@ -606,6 +620,11 @@ class DatabaseService {
       }
 
       const currentOwnership = this.normalizeShipOwnershipForPersistence(ship.ownership);
+      const expectedFromOwner = this.normalizeShipOwnershipForPersistence(transfer?.fromOwner);
+      if (!this.ownershipEquals(currentOwnership, expectedFromOwner)) {
+        throw new Error('fromOwner does not match current ship ownership');
+      }
+
       const actorPlayerId = this.toNonEmptyString(transfer?.actorPlayerId);
       if (
         currentOwnership.ownerType === 'player-character' &&
@@ -614,7 +633,31 @@ class DatabaseService {
         throw new Error('unauthorized ownership transfer');
       }
 
-      ship.ownership = this.normalizeShipOwnershipForPersistence(transfer?.toOwner);
+      const nextOwner = this.normalizeShipOwnershipForPersistence(transfer?.toOwner);
+      const isClaimFlow =
+        currentOwnership.ownerType === 'unknown' && nextOwner.ownerType === 'player-character';
+      const claimToken = this.toNonEmptyString(transfer?.claimToken);
+      if (isClaimFlow && !claimToken) {
+        throw new Error('ownership claim token is required');
+      }
+
+      const transferReason = this.toNonEmptyString(transfer?.transferReason) || null;
+      const actorCharacterId = this.toNonEmptyString(transfer?.actorCharacterId) || null;
+      const ownershipHistoryEntry = {
+        at: new Date().toISOString(),
+        reason: isClaimFlow ? 'claim' : transferReason || 'transfer',
+        fromOwner: currentOwnership,
+        toOwner: nextOwner,
+        actor: {
+          ownerType: 'player-character',
+          playerId: actorPlayerId || null,
+          characterId: actorCharacterId,
+        },
+      };
+
+      ship.ownership = nextOwner;
+      const existingHistory = Array.isArray(ship.ownershipHistory) ? ship.ownershipHistory : [];
+      ship.ownershipHistory = [...existingHistory, ownershipHistoryEntry];
       await ship.save();
       return ship.toObject();
     } catch (error) {
@@ -834,6 +877,99 @@ class DatabaseService {
 
   async getSolarSystems(query = {}) {
     return solarSystemService.getSolarSystems(this, SolarSystem, query);
+  }
+
+  /**
+   * Create a market offer with ownership tracking
+   * @param {Object} offerData
+   * @returns {Promise<Object>}
+   */
+  async createMarketOffer(offerData) {
+    try {
+      const { MarketOffer } = require('./models/market-offer-model');
+      const offerId = this.toNonEmptyString(offerData?.offerId);
+      const listingId = this.toNonEmptyString(offerData?.listingId);
+      if (!offerId || !listingId) {
+        throw new Error('offerId and listingId are required');
+      }
+
+      const offer = new MarketOffer({
+        offerId,
+        listingId,
+        offerorOwner: offerData.offerorOwner,
+        createdBy: offerData.createdBy,
+        offerPrice: offerData.offerPrice,
+        quantity: offerData.quantity,
+        status: 'pending',
+      });
+
+      await offer.save();
+      return offer.toObject();
+    } catch (error) {
+      this.log(`[db-service] Error creating market offer: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Accept a market offer and optionally transfer ship ownership
+   * @param {Object} acceptanceData
+   * @returns {Promise<Object>}
+   */
+  async acceptMarketOfferAndTransferShip(acceptanceData) {
+    try {
+      const { MarketOffer } = require('./models/market-offer-model');
+      const offerId = this.toNonEmptyString(acceptanceData?.offerId);
+      const shipId = this.toNonEmptyString(acceptanceData?.shipId);
+      if (!offerId) {
+        throw new Error('offerId is required');
+      }
+
+      const offer = await MarketOffer.findOne({ offerId });
+      if (!offer) {
+        throw new Error('offer not found');
+      }
+
+      if (offer.status !== 'pending') {
+        throw new Error(`offer status is ${offer.status}, not pending`);
+      }
+
+      // Transfer ship ownership if shipId provided
+      let updatedShip = null;
+      if (shipId) {
+        const transferResult = await this.transferShipOwnership({
+          shipId,
+          fromOwner: acceptanceData.listingOwner,
+          toOwner: acceptanceData.offerorOwner,
+          actorPlayerId: acceptanceData.actorPlayerId,
+          actorCharacterId: acceptanceData.acceptorCharacterId,
+          transferReason: 'trade-completion',
+        });
+        updatedShip = transferResult;
+      }
+
+      // Update offer status and record trade history
+      const now = new Date();
+      offer.status = 'accepted';
+      offer.acceptedAt = now;
+      offer.tradeHistory = {
+        at: now,
+        offerId,
+        listingOwner: acceptanceData.listingOwner,
+        offerorOwner: acceptanceData.offerorOwner,
+        acceptorCharacterId: acceptanceData.acceptorCharacterId,
+      };
+
+      await offer.save();
+      const result = offer.toObject();
+      if (updatedShip) {
+        result.ship = updatedShip;
+      }
+      return result;
+    } catch (error) {
+      this.log(`[db-service] Error accepting market offer: ${error.message}`);
+      throw error;
+    }
   }
 }
 

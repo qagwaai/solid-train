@@ -1,0 +1,128 @@
+openapi: 3.1.0
+info:
+  title: Stellar API - Context
+  version: 3.1.0
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Context
+paths:
+  /socket/context-distance:
+    post:
+      summary: context-distance-request
+      description: |
+        Computes the scalar distance between two context identifiers.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketContextDistance
+      tags: [Context]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextDistanceRequest'
+            examples:
+              distanceLookup:
+                summary: Calculate context distance with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 3adf84db-48f0-4c53-a8a2-53b6e4b47d3a
+                  requestIdentity:
+                    operation: context-distance
+                    entityType: context
+                    containerId: route-sol-alpha-centauri
+                  source: sol
+                  destination: alpha-centauri
+      responses:
+        '200':
+          description: context-distance-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextDistanceResponse'
+              examples:
+                successfulDistance:
+                  summary: Success echoes correlation metadata with the calculated distance
+                  value:
+                    success: true
+                    message: Distance calculated successfully
+                    playerName: PilotOne
+                    correlationId: 3adf84db-48f0-4c53-a8a2-53b6e4b47d3a
+                    requestIdentity:
+                      operation: context-distance
+                      entityType: context
+                      containerId: route-sol-alpha-centauri
+                    source: sol
+                    destination: alpha-centauri
+                    distance: 4.37
+
+  /socket/context-routing:
+    post:
+      summary: context-routing-request
+      description: |
+        Computes route context between two identifiers.
+
+        Preconditions:
+        - Every request must include a client-generated `correlationId` (UUID v4).
+        - Every request must include `requestIdentity` with `operation`, `entityType`, and
+          `containerId`.
+      operationId: socketContextRouting
+      tags: [Context]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextRoutingRequest'
+            examples:
+              routeLookup:
+                summary: Calculate a route with correlation metadata
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: c94904ef-d5b6-4187-b9e8-3c9e6d8047aa
+                  requestIdentity:
+                    operation: context-routing
+                    entityType: context
+                    containerId: route-sol-alpha-centauri
+                  source: sol
+                  destination: alpha-centauri
+      responses:
+        '200':
+          description: context-routing-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextRoutingResponse'
+              examples:
+                successfulRoute:
+                  summary: Success echoes correlation metadata with route nodes
+                  value:
+                    success: true
+                    message: Route calculated successfully
+                    playerName: PilotOne
+                    correlationId: c94904ef-d5b6-4187-b9e8-3c9e6d8047aa
+                    requestIdentity:
+                      operation: context-routing
+                      entityType: context
+                      containerId: route-sol-alpha-centauri
+                    source: sol
+                    destination: alpha-centauri
+                    route:
+                      - sol
+                      - alpha-centauri
+components:
+  schemas:
+    ContextDistanceRequest:
+      $ref: '../../schemas/context-distance-request.schema.json'
+    ContextDistanceResponse:
+      $ref: '../../schemas/context-distance-response.schema.json'
+    ContextRoutingRequest:
+      $ref: '../../schemas/context-routing-request.schema.json'
+    ContextRoutingResponse:
+      $ref: '../../schemas/context-routing-response.schema.json'

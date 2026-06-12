@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-05-25T01:33:18.191Z",
+  "windowDays": 7,
+  "source": "artifacts/contracts",
+  "reportsConsidered": 6,
+  "driftCount": 20,
+  "bypassCount": 1,
+  "expiredBypassCount": 2,
+  "mttrHours": 0,
+  "openIncidentCount": 0,
+  "resolvedIncidentCount": 5
+}

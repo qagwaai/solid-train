@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "tractor-beam-activate-request",
+  "type": "object",
+  "required": [
+    "playerName",
+    "sessionKey",
+    "correlationId",
+    "requestIdentity",
+    "characterId",
+    "shipId"
+  ],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "characterId": { "type": "string" },
+    "shipId": { "type": "string" },
+    "targetItemId": { "type": "string" },
+    "targetCelestialBodyId": { "type": "string" }
+  }
+}

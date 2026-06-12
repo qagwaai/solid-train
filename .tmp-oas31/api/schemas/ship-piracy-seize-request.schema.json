@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ship-piracy-seize-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "shipId", "seizingOwner"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": { "type": "string" },
+    "requestIdentity": {
+      "type": "object",
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "shipId": { "type": "string" },
+    "seizingOwner": {
+      "type": "object",
+      "required": ["ownerType", "npcId"],
+      "properties": {
+        "ownerType": {
+          "type": "string",
+          "enum": ["npc-pirate"]
+        },
+        "npcId": { "type": "string" },
+        "factionId": { "type": ["string", "null"] },
+        "playerId": { "type": ["string", "null"] },
+        "characterId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

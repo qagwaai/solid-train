@@ -1,0 +1,153 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "item",
+  "description": "Canonical item payload for runtime item records. For catalog definitions returned by /items, use CatalogItemDefinition. Client-facing material requirements are defined only by fabrication.requiredMaterials[].itemType.",
+  "type": "object",
+  "required": ["itemType", "displayName"],
+  "properties": {
+    "id": { "type": ["string", "null"] },
+    "itemType": { "$ref": "./canonical-item-type.schema.json" },
+    "displayName": { "type": "string" },
+    "description": { "type": ["string", "null"] },
+    "category": {
+      "type": ["string", "null"],
+      "enum": [
+        "tool",
+        "repair",
+        "mining",
+        "unit",
+        "subsystem",
+        "structural",
+        "infrastructure",
+        "refined",
+        "alloy",
+        "component",
+        "fuel",
+        "module",
+        "capital-unit",
+        "manufactured-component",
+        "raw-material",
+        null
+      ]
+    },
+    "tier": { "type": ["integer", "null"] },
+    "rarity": {
+      "type": ["string", "null"],
+      "enum": ["common", "uncommon", "rare", "exotic", null]
+    },
+    "stackable": { "type": ["boolean", "null"] },
+    "massKg": { "type": ["number", "null"] },
+    "volumeM3": { "type": ["number", "null"] },
+    "baseValueCredits": { "type": ["number", "null"] },
+    "fabrication": {
+      "type": ["object", "null"],
+      "properties": {
+        "durationMs": { "type": "number" },
+        "requiredMaterials": {
+          "description": "Canonical material requirements for crafting/comparison. Clients should use requiredMaterials[].itemType values for lookups.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "itemType": { "$ref": "./canonical-item-type.schema.json" },
+              "quantity": { "type": "number" }
+            },
+            "required": ["itemType", "quantity"]
+          }
+        }
+      }
+    },
+    "state": { "type": "string", "enum": ["contained", "deployed", "destroyed"] },
+    "damageStatus": { "type": "string", "enum": ["intact", "damaged", "disabled", "destroyed"] },
+    "container": {
+      "type": ["object", "null"],
+      "properties": {
+        "containerType": { "type": "string", "enum": ["ship", "market"] },
+        "containerId": { "type": "string" }
+      },
+      "required": ["containerType", "containerId"]
+    },
+    "spatial": {
+      "type": ["object", "null"],
+      "properties": {
+        "solarSystemId": { "type": "string" },
+        "frame": { "type": "string", "enum": ["barycentric"] },
+        "positionKm": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          },
+          "required": ["x", "y", "z"]
+        },
+        "epochMs": { "type": "number" }
+      },
+      "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
+    },
+    "motion": {
+      "type": ["object", "null"],
+      "properties": {
+        "velocityKmPerSec": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          },
+          "required": ["x", "y", "z"]
+        }
+      },
+      "required": ["velocityKmPerSec"]
+    },
+    "owningPlayerId": { "type": ["string", "null"] },
+    "owningCharacterId": { "type": ["string", "null"] },
+    "ownership": {
+      "type": ["object", "null"],
+      "description": "Canonical ownership discriminator. When provided, ownerType is authoritative.",
+      "properties": {
+        "ownerType": {
+          "type": "string",
+          "enum": ["player-character", "npc-pirate", "unowned", "unknown"]
+        },
+        "playerId": { "type": ["string", "null"] },
+        "characterId": { "type": ["string", "null"] },
+        "npcId": { "type": ["string", "null"] },
+        "factionId": { "type": ["string", "null"] }
+      },
+      "required": ["ownerType"]
+    },
+    "destroyedAt": { "type": ["string", "null"], "format": "date-time" },
+    "destroyedReason": { "type": ["string", "null"] },
+    "discoveredAt": { "type": ["string", "null"], "format": "date-time" },
+    "discoveredByCharacterId": { "type": ["string", "null"] },
+    "launchable": { "type": ["boolean", "null"] },
+    "createdAt": { "type": ["string", "null"], "format": "date-time" },
+    "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "examples": [
+    {
+      "itemType": "conduit-seals",
+      "displayName": "Conduit Seals",
+      "description": "Pressure-rated sealing sleeves for rerouting damaged ship conduits and stabilizing subsystem junctions.",
+      "category": "manufactured-component",
+      "tier": 1,
+      "rarity": "common",
+      "stackable": true,
+      "massKg": 2,
+      "volumeM3": 0.02,
+      "baseValueCredits": 250,
+      "launchable": false,
+      "state": "contained",
+      "damageStatus": "intact",
+      "container": null,
+      "fabrication": {
+        "durationMs": 600000,
+        "requiredMaterials": [
+          { "itemType": "copper", "quantity": 2 },
+          { "itemType": "polymer", "quantity": 1 }
+        ]
+      }
+    }
+  ]
+}

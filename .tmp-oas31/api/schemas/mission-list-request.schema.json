@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "mission-list-request",
+  "type": "object",
+  "required": ["playerName", "characterId", "sessionKey", "correlationId", "requestIdentity"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "characterId": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "description": "Client-supplied identity block that is echoed unchanged in every emitted list-missions-response.",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "statuses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["available", "active", "completed"]
+      }
+    },
+    "requestId": { "type": "string" }
+  }
+}

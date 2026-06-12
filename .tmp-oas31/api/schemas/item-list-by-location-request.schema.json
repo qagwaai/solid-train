@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "item-list-by-location-request",
+  "type": "object",
+  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "solarSystemId", "positionKm", "distanceKm"],
+  "properties": {
+    "playerName": { "type": "string" },
+    "sessionKey": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "type": "string" },
+        "entityType": { "type": "string" },
+        "containerId": { "type": "string" }
+      }
+    },
+    "solarSystemId": { "type": "string" },
+    "positionKm": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "distanceKm": { "type": "number" },
+    "itemType": { "$ref": "./canonical-item-type.schema.json" },
+    "limit": { "type": "integer" }
+  }
+}

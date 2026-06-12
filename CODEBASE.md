@@ -202,6 +202,31 @@ Invalid session always emits `invalid-session` with `{ message: "Invalid session
 
 See `MESSAGE_CONTRACT.md` for full request/response schemas and edge cases.
 
+### OpenAPI Tag Domains
+
+OpenAPI is now organized by semantic domain under `api/openapi/`.
+The root file `api/openapi.yaml` is a thin index that references these modules via `$ref`.
+
+| Tag | Module File | Primary Domain |
+| --- | --- | --- |
+| `Utility` | `api/openapi/utility/openapi.yaml` | Health and runtime utility routes |
+| `Auth` | `api/openapi/auth/openapi.yaml` | Register/login flows |
+| `Character` | `api/openapi/character/openapi.yaml` | Character CRUD and ownership surfaces |
+| `Ship` | `api/openapi/ship/openapi.yaml` | Fleet, transfer, salvage, piracy |
+| `Mission` | `api/openapi/mission/openapi.yaml` | Mission query/upsert surfaces |
+| `Celestial` | `api/openapi/celestial/openapi.yaml` | Celestial body list/upsert surfaces |
+| `Items` | `api/openapi/items/openapi.yaml` | Item catalog, inventory, launch/remove |
+| `Market` | `api/openapi/market/openapi.yaml` | Quotes, inventory, buy/sell, listings/offers |
+| `Context` | `api/openapi/context/openapi.yaml` | Distance and routing calculations |
+| `SolarSystem` | `api/openapi/solarsystem/openapi.yaml` | Solar-system-level reads |
+| `Stars` | `api/openapi/stars/openapi.yaml` | Star catalog reads |
+| `Ledger` | `api/openapi/ledger/openapi.yaml` | Credit ledger query |
+| `Game` | `api/openapi/game/openapi.yaml` | Game join/leave/state |
+| `Realtime` | `api/openapi/realtime/openapi.yaml` | Ping/message/welcome/session envelopes |
+| `Bust` | `api/openapi/bust/openapi.yaml` | Character/NPC bust create/read/update |
+
+Shared cross-domain schemas are in `api/openapi/_shared/schemas.yaml`.
+
 ---
 
 ## Key Domain Concepts
