@@ -77,3 +77,116 @@ test('getMarket returns null for invalid/unknown ids', () => {
   assert.equal(marketOperationsService.getMarket(ctx, ''), null);
   assert.equal(marketOperationsService.getMarket(ctx, 'missing'), null);
 });
+
+test('getMarketWithOwnerProfileAsync returns market joined with owner profile', async () => {
+  const ctx = createCtx({
+    getMarketOwnerProfileAsync: async (marketId, solarSystemId) => ({
+      npcId: 'owner-1',
+      name: 'Elias Fujimoto',
+      marketId,
+      solarSystemId,
+      bust: {
+        descriptor: {
+          faceShape: 'square',
+        },
+      },
+    }),
+  });
+  ctx.marketsByKey.set('sol:m1', {
+    marketId: 'm1',
+    solarSystemId: 'sol',
+    marketName: 'Test Exchange',
+  });
+
+  const joined = await marketOperationsService.getMarketWithOwnerProfileAsync(ctx, 'm1', 'sol');
+
+  assert.equal(joined.marketId, 'm1');
+  assert.equal(joined.owner.npcId, 'owner-1');
+  assert.equal(joined.owner.name, 'Elias Fujimoto');
+});
+
+test('getMarketWithOwnerProfileAsync returns null when market is missing', async () => {
+  const ctx = createCtx({
+    getMarketOwnerProfileAsync: async () => ({ npcId: 'owner-1' }),
+  });
+
+  const joined = await marketOperationsService.getMarketWithOwnerProfileAsync(
+    ctx,
+    'missing',
+    'sol'
+  );
+
+  assert.equal(joined, null);
+});
+
+test('getMarketsWithOwnerProfilesAsync joins owner profiles onto markets', async () => {
+  let seededProfileCalls = 0;
+  let fallbackOwnerCalls = 0;
+  const ctx = createCtx({
+    getMarketsAsync: async () => [
+      { marketId: 'm1', solarSystemId: 'sol', marketName: 'One' },
+      { marketId: 'm2', solarSystemId: 'sol', marketName: 'Two' },
+    ],
+    getSeededNpcProfilesAsync: async () => {
+      seededProfileCalls += 1;
+      return [
+        {
+          npcId: 'owner-1',
+          solarSystemId: 'sol',
+          marketId: 'm1',
+          name: 'Elias Fujimoto',
+        },
+      ];
+    },
+    getMarketOwnerProfileAsync: async () => {
+      fallbackOwnerCalls += 1;
+      return null;
+    },
+  });
+
+  const joined = await marketOperationsService.getMarketsWithOwnerProfilesAsync(ctx, {
+    solarSystemId: 'sol',
+  });
+
+  assert.equal(seededProfileCalls, 1);
+  assert.equal(fallbackOwnerCalls, 1);
+  assert.equal(joined.length, 2);
+  assert.equal(joined[0].owner.npcId, 'owner-1');
+  assert.equal(joined[1].owner, null);
+});
+
+test('getMarketsByLocationWithOwnerProfilesAsync joins owner profiles onto nearby markets', async () => {
+  let seededProfileCalls = 0;
+  let fallbackOwnerCalls = 0;
+  const ctx = createCtx({
+    getMarketsByLocationAsync: async () => [
+      { marketId: 'm1', solarSystemId: 'sol', marketName: 'One' },
+      { marketId: 'm2', solarSystemId: 'sol', marketName: 'Two' },
+    ],
+    getSeededNpcProfilesAsync: async () => {
+      seededProfileCalls += 1;
+      return [
+        {
+          npcId: 'owner-1',
+          solarSystemId: 'sol',
+          marketId: 'm1',
+          name: 'Elias Fujimoto',
+        },
+      ];
+    },
+    getMarketOwnerProfileAsync: async () => {
+      fallbackOwnerCalls += 1;
+      return null;
+    },
+  });
+
+  const joined = await marketOperationsService.getMarketsByLocationWithOwnerProfilesAsync(ctx, {
+    solarSystemId: 'sol',
+  });
+
+  assert.equal(seededProfileCalls, 1);
+  assert.equal(fallbackOwnerCalls, 1);
+  assert.equal(joined.length, 2);
+  assert.equal(joined[0].owner.npcId, 'owner-1');
+  assert.equal(joined[1].owner, null);
+});

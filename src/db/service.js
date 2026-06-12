@@ -22,6 +22,7 @@ const marketSeedStateService = require('./service/market-seed-state-service');
 const celestialWriteService = require('./service/celestial-write-service');
 const celestialQueryService = require('./service/celestial-query-service');
 const celestialSeedStateService = require('./service/celestial-seed-state-service');
+const npcSeedStateService = require('./service/npc-seed-state-service');
 const jumpGateQueryService = require('./service/jump-gate-query-service');
 const starService = require('./service/star-service');
 const solarSystemService = require('./service/solar-system-service');
@@ -733,6 +734,42 @@ class DatabaseService {
       solarSystemId,
       seedVersion,
       seededAt
+    );
+  }
+
+  async getSolarSystemNpcSeedState(solarSystemId) {
+    return npcSeedStateService.getSolarSystemNpcSeedState(
+      this,
+      GameStateDocument,
+      solarSystemId
+    );
+  }
+
+  async setSolarSystemNpcSeedState(solarSystemId, seedVersion, seededAt) {
+    return npcSeedStateService.setSolarSystemNpcSeedState(
+      this,
+      GameStateDocument,
+      solarSystemId,
+      seedVersion,
+      seededAt
+    );
+  }
+
+  async getSeededNpcOwners(query = {}) {
+    return npcSeedStateService.getSeededNpcOwners(this, GameStateDocument, query);
+  }
+
+  async upsertSeededNpcOwner(ownerRecord) {
+    return npcSeedStateService.upsertSeededNpcOwner(this, GameStateDocument, ownerRecord);
+  }
+
+  async updateSeededNpcOwnerCredits(npcId, currentCredits, updatedAt) {
+    return npcSeedStateService.updateSeededNpcOwnerCredits(
+      this,
+      GameStateDocument,
+      npcId,
+      currentCredits,
+      updatedAt
     );
   }
 

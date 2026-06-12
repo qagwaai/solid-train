@@ -100,6 +100,110 @@ test('DatabaseService setSolarSystemMarketSeedState returns null for invalid inp
   assert.equal(await service.setSolarSystemMarketSeedState('sol', 'seed-v1', ''), null);
 });
 
+test('DatabaseService NPC seed-state round-trip normalizes system id and updates existing entry', async () => {
+  const service = mongoHarness.databaseService;
+
+  assert.equal(await service.getSolarSystemNpcSeedState('sol'), null);
+  assert.equal(await service.getSolarSystemNpcSeedState(''), null);
+
+  const created = await service.setSolarSystemNpcSeedState(
+    'SoL',
+    'npc-seed-v1',
+    '2026-06-12T00:00:00.000Z'
+  );
+  assert.ok(created);
+
+  const firstRead = await service.getSolarSystemNpcSeedState('sol');
+  assert.equal(firstRead.solarSystemId, 'sol');
+  assert.equal(firstRead.seedVersion, 'npc-seed-v1');
+
+  await service.setSolarSystemNpcSeedState('SOL', 'npc-seed-v2', '2026-06-12T01:00:00.000Z');
+
+  const secondRead = await service.getSolarSystemNpcSeedState('sOl');
+  assert.equal(secondRead.seedVersion, 'npc-seed-v2');
+  assert.equal(secondRead.seededAt, '2026-06-12T01:00:00.000Z');
+});
+
+test('DatabaseService upsertSeededNpcOwner persists and filters market owner records', async () => {
+  const service = mongoHarness.databaseService;
+
+  assert.deepEqual(await service.getSeededNpcOwners({ solarSystemId: 'sol' }), []);
+  assert.equal(await service.upsertSeededNpcOwner({ npcId: '' }), null);
+
+  const created = await service.upsertSeededNpcOwner({
+    npcId: 'sol-belt-02-market-owner-elias-fujimoto',
+    solarSystemId: 'SoL',
+    marketId: 'sol-belt-02',
+    marketName: 'Belt Prospectors Exchange',
+    locationName: 'Inner Belt Relay 02',
+    name: 'Elias Fujimoto',
+    credits: {
+      current: 4200,
+      seeded: 4200,
+      variableRange: {
+        min: 3200,
+        max: 5400,
+      },
+    },
+    seededAt: '2026-06-12T00:00:00.000Z',
+    updatedAt: '2026-06-12T00:00:00.000Z',
+  });
+  assert.equal(created.solarSystemId, 'sol');
+
+  const bySystem = await service.getSeededNpcOwners({ solarSystemId: 'sol' });
+  assert.equal(bySystem.length, 1);
+  assert.equal(bySystem[0].npcId, 'sol-belt-02-market-owner-elias-fujimoto');
+
+  const byNpcId = await service.getSeededNpcOwners({
+    npcId: 'sol-belt-02-market-owner-elias-fujimoto',
+  });
+  assert.equal(byNpcId.length, 1);
+  assert.equal(byNpcId[0].name, 'Elias Fujimoto');
+
+  const byMarketId = await service.getSeededNpcOwners({
+    marketId: 'sol-belt-02',
+  });
+  assert.equal(byMarketId.length, 1);
+  assert.equal(byMarketId[0].npcId, 'sol-belt-02-market-owner-elias-fujimoto');
+});
+
+test('DatabaseService updateSeededNpcOwnerCredits clamps and persists current credits', async () => {
+  const service = mongoHarness.databaseService;
+
+  await service.upsertSeededNpcOwner({
+    npcId: 'sol-belt-02-market-owner-elias-fujimoto',
+    solarSystemId: 'sol',
+    marketId: 'sol-belt-02',
+    marketName: 'Belt Prospectors Exchange',
+    locationName: 'Inner Belt Relay 02',
+    name: 'Elias Fujimoto',
+    credits: {
+      current: 4200,
+      seeded: 4200,
+      variableRange: {
+        min: 3200,
+        max: 5400,
+      },
+    },
+    seededAt: '2026-06-12T00:00:00.000Z',
+    updatedAt: '2026-06-12T00:00:00.000Z',
+  });
+
+  const updated = await service.updateSeededNpcOwnerCredits(
+    'sol-belt-02-market-owner-elias-fujimoto',
+    999999,
+    '2026-06-12T01:00:00.000Z'
+  );
+
+  assert.equal(updated.credits.current, 5400);
+  assert.equal(updated.updatedAt, '2026-06-12T01:00:00.000Z');
+
+  const byNpcId = await service.getSeededNpcOwners({
+    npcId: 'sol-belt-02-market-owner-elias-fujimoto',
+  });
+  assert.equal(byNpcId[0].credits.current, 5400);
+});
+
 test('DatabaseService upsertMarket/getMarkets supports invalid and filtered query branches', async () => {
   const service = mongoHarness.databaseService;
 
