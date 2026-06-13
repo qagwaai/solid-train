@@ -1,7 +1,7 @@
 {
   "checksums": {
-    "openApiSha256": "b735c1868eff32471077c93874b6eb9fe99fc6013b8c2a7f7ad9ef71e110437a",
-    "schemaBundleSha256": "204875b6721d084d589341124fa070ac8567e51e7cbdf0fb200d03ff0eed29c6"
+    "openApiSha256": "665726c7d948f4bff800ec3b8f886bd792acd739f3d36807191ee18eadde75e0",
+    "schemaBundleSha256": "a01d14670c3d9011c7c733ec1d3bb391e7007efe7efc71f40f2db08f39a4a1a0"
   },
   "components": {
     "schemaRefMap": {
@@ -49,6 +49,8 @@
       "ItemListByContainerResponse": "item-list-by-container-response.schema.json",
       "ItemListByLocationRequest": "item-list-by-location-request.schema.json",
       "ItemListByLocationResponse": "item-list-by-location-response.schema.json",
+      "ItemListByOwnerRequest": "item-list-by-owner-request.schema.json",
+      "ItemListByOwnerResponse": "item-list-by-owner-response.schema.json",
       "ItemRemoveRequest": "item-remove-request.schema.json",
       "ItemRemoveResponse": "item-remove-response.schema.json",
       "ItemUpsertRequest": "item-upsert-request.schema.json",
@@ -67,6 +69,12 @@
       "MarketListByLocationResponse": "market-list-by-location-response.schema.json",
       "MarketListRequest": "market-list-request.schema.json",
       "MarketListResponse": "market-list-response.schema.json",
+      "MarketListingCreateRequest": "market-listing-create-request.schema.json",
+      "MarketListingCreateResponse": "market-listing-create-response.schema.json",
+      "MarketOfferAcceptRequest": "market-offer-accept-request.schema.json",
+      "MarketOfferAcceptResponse": "market-offer-accept-response.schema.json",
+      "MarketOfferCreateRequest": "market-offer-create-request.schema.json",
+      "MarketOfferCreateResponse": "market-offer-create-response.schema.json",
       "MarketQuoteRequest": "market-quote-request.schema.json",
       "MarketQuoteResponse": "market-quote-response.schema.json",
       "MarketSellRequest": "market-sell-request.schema.json",
@@ -87,10 +95,16 @@
       "PongResponse": "pong-response.schema.json",
       "RegisterRequest": "register-request.schema.json",
       "RegisterResponse": "register-response.schema.json",
+      "ShipListByNpcOwnerRequest": "ship-list-by-npc-owner-request.schema.json",
+      "ShipListByNpcOwnerResponse": "ship-list-by-npc-owner-response.schema.json",
       "ShipListByOwnerRequest": "ship-list-by-owner-request.schema.json",
       "ShipListByOwnerResponse": "ship-list-by-owner-response.schema.json",
       "ShipListRequest": "ship-list-request.schema.json",
       "ShipListResponse": "ship-list-response.schema.json",
+      "ShipPiracySeizeRequest": "ship-piracy-seize-request.schema.json",
+      "ShipPiracySeizeResponse": "ship-piracy-seize-response.schema.json",
+      "ShipSalvageClaimRequest": "ship-salvage-claim-request.schema.json",
+      "ShipSalvageClaimResponse": "ship-salvage-claim-response.schema.json",
       "ShipTransferRequest": "ship-transfer-request.schema.json",
       "ShipTransferResponse": "ship-transfer-response.schema.json",
       "ShipUpsertRequest": "ship-upsert-request.schema.json",
@@ -3113,6 +3127,29 @@
             "required": ["velocityKmPerSec"],
             "type": ["object", "null"]
           },
+          "ownership": {
+            "description": "Canonical ownership discriminator. When provided, ownerType is authoritative.",
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "required": ["ownerType"],
+            "type": ["object", "null"]
+          },
           "owningCharacterId": {
             "type": ["string", "null"]
           },
@@ -3439,6 +3476,95 @@
         "title": "item-list-by-location-response",
         "type": "object"
       },
+      "ItemListByOwnerRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "owner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "required": ["ownerType"],
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": ["playerName", "sessionKey", "owner"],
+        "title": "item-list-by-owner-request",
+        "type": "object"
+      },
+      "ItemListByOwnerResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "./item.schema.json"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "owner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "type": "object"
+          },
+          "reason": {
+            "enum": ["INVALID_SESSION", "OWNERSHIP_VALIDATION_FAILED", "ITEM_LIST_OWNER_FORBIDDEN"],
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "title": "item-list-by-owner-response",
+        "type": "object"
+      },
       "ItemRemoveRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
@@ -3638,6 +3764,29 @@
                   }
                 },
                 "required": ["velocityKmPerSec"],
+                "type": ["object", "null"]
+              },
+              "ownership": {
+                "description": "Canonical ownership discriminator. When provided, validated strictly: only player-character allowed, playerId must match actor.",
+                "properties": {
+                  "characterId": {
+                    "type": ["string", "null"]
+                  },
+                  "factionId": {
+                    "type": ["string", "null"]
+                  },
+                  "npcId": {
+                    "type": ["string", "null"]
+                  },
+                  "ownerType": {
+                    "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
+                    "type": "string"
+                  },
+                  "playerId": {
+                    "type": ["string", "null"]
+                  }
+                },
+                "required": ["ownerType"],
                 "type": ["object", "null"]
               },
               "owningCharacterId": {
@@ -5234,6 +5383,504 @@
         "title": "market-list-response",
         "type": "object"
       },
+      "MarketListingCreateRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "expiresInMinutes": {
+            "minimum": 1,
+            "type": ["integer", "null"]
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "listingPrice": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "marketId": {
+            "type": "string"
+          },
+          "owner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "required": ["ownerType"],
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "solarSystemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "marketId",
+          "solarSystemId",
+          "itemId",
+          "quantity",
+          "owner",
+          "listingPrice"
+        ],
+        "title": "market-listing-create-request",
+        "type": "object"
+      },
+      "MarketListingCreateResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": ["string", "null"]
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "listingId": {
+            "type": "string"
+          },
+          "listingPrice": {
+            "type": "number"
+          },
+          "message": {
+            "type": "string"
+          },
+          "owner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "type": "object"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "reason": {
+            "enum": [
+              "INVALID_SESSION",
+              "MARKET_NOT_FOUND",
+              "ITEM_NOT_FOUND",
+              "INSUFFICIENT_QUANTITY",
+              "OWNERSHIP_VALIDATION_FAILED",
+              "OWNERSHIP_LISTING_FORBIDDEN"
+            ],
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "title": "market-listing-create-response",
+        "type": "object"
+      },
+      "MarketOfferAcceptRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "listingId": {
+            "type": "string"
+          },
+          "listingOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "required": ["ownerType"],
+            "type": "object"
+          },
+          "offerId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "offerId",
+          "listingId",
+          "listingOwner"
+        ],
+        "title": "market-offer-accept-request",
+        "type": "object"
+      },
+      "MarketOfferAcceptResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "completedAt": {
+            "type": "string"
+          },
+          "correlationId": {
+            "type": "string"
+          },
+          "listingId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "offerId": {
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "INVALID_SESSION",
+              "OFFER_NOT_FOUND",
+              "LISTING_NOT_FOUND",
+              "OWNERSHIP_VALIDATION_FAILED",
+              "OWNERSHIP_ACCEPT_FORBIDDEN"
+            ],
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "tradeHistory": {
+            "additionalProperties": true,
+            "properties": {
+              "acceptorCharacterId": {
+                "type": "string"
+              },
+              "at": {
+                "type": "string"
+              },
+              "listingOwner": {
+                "additionalProperties": true,
+                "properties": {
+                  "characterId": {
+                    "type": ["string", "null"]
+                  },
+                  "factionId": {
+                    "type": ["string", "null"]
+                  },
+                  "npcId": {
+                    "type": ["string", "null"]
+                  },
+                  "ownerType": {
+                    "type": "string"
+                  },
+                  "playerId": {
+                    "type": ["string", "null"]
+                  }
+                },
+                "type": "object"
+              },
+              "offerId": {
+                "type": "string"
+              },
+              "offerorOwner": {
+                "additionalProperties": true,
+                "properties": {
+                  "characterId": {
+                    "type": ["string", "null"]
+                  },
+                  "factionId": {
+                    "type": ["string", "null"]
+                  },
+                  "npcId": {
+                    "type": ["string", "null"]
+                  },
+                  "ownerType": {
+                    "type": "string"
+                  },
+                  "playerId": {
+                    "type": ["string", "null"]
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "tradeId": {
+            "type": "string"
+          }
+        },
+        "title": "market-offer-accept-response",
+        "type": "object"
+      },
+      "MarketOfferCreateRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "listingId": {
+            "type": "string"
+          },
+          "offerPrice": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "offerorOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "required": ["ownerType"],
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerName",
+          "sessionKey",
+          "correlationId",
+          "requestIdentity",
+          "listingId",
+          "offerorOwner",
+          "offerPrice",
+          "quantity"
+        ],
+        "title": "market-offer-create-request",
+        "type": "object"
+      },
+      "MarketOfferCreateResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "listingId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "offerId": {
+            "type": "string"
+          },
+          "offerPrice": {
+            "type": "number"
+          },
+          "offerorOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "type": "object"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "reason": {
+            "enum": [
+              "INVALID_SESSION",
+              "LISTING_NOT_FOUND",
+              "OWNERSHIP_VALIDATION_FAILED",
+              "OWNERSHIP_OFFER_FORBIDDEN"
+            ],
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "title": "market-offer-create-response",
+        "type": "object"
+      },
       "MarketQuoteRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
@@ -6388,6 +7035,84 @@
         "title": "register-response",
         "type": "object"
       },
+      "ShipListByNpcOwnerRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "npcOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": "string"
+              },
+              "ownerType": {
+                "enum": ["npc-pirate"],
+                "type": "string"
+              }
+            },
+            "required": ["ownerType", "npcId"],
+            "type": "object"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "sessionKey": {
+            "type": "string"
+          }
+        },
+        "required": ["playerName", "sessionKey", "npcOwner"],
+        "title": "ship-list-by-npc-owner-request",
+        "type": "object"
+      },
+      "ShipListByNpcOwnerResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "npcOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "reason": {
+            "enum": ["INVALID_SESSION", "OWNERSHIP_VALIDATION_FAILED"],
+            "type": "string"
+          },
+          "ships": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "title": "ship-list-by-npc-owner-response",
+        "type": "object"
+      },
       "ShipListByOwnerRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
@@ -6478,7 +7203,7 @@
             "type": "object"
           },
           "reason": {
-            "enum": ["INVALID_SESSION"],
+            "enum": ["INVALID_SESSION", "OWNERSHIP_VALIDATION_FAILED", "SHIP_LIST_OWNER_FORBIDDEN"],
             "type": "string"
           },
           "requestIdentity": {
@@ -6575,6 +7300,80 @@
                     }
                   },
                   "type": "object"
+                },
+                "ownershipHistory": {
+                  "items": {
+                    "additionalProperties": true,
+                    "properties": {
+                      "actor": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "characterId": {
+                            "type": ["string", "null"]
+                          },
+                          "ownerType": {
+                            "type": "string"
+                          },
+                          "playerId": {
+                            "type": ["string", "null"]
+                          }
+                        },
+                        "required": ["ownerType", "playerId", "characterId"],
+                        "type": "object"
+                      },
+                      "at": {
+                        "type": "string"
+                      },
+                      "fromOwner": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "characterId": {
+                            "type": ["string", "null"]
+                          },
+                          "factionId": {
+                            "type": ["string", "null"]
+                          },
+                          "npcId": {
+                            "type": ["string", "null"]
+                          },
+                          "ownerType": {
+                            "type": "string"
+                          },
+                          "playerId": {
+                            "type": ["string", "null"]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "reason": {
+                        "type": "string"
+                      },
+                      "toOwner": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "characterId": {
+                            "type": ["string", "null"]
+                          },
+                          "factionId": {
+                            "type": ["string", "null"]
+                          },
+                          "npcId": {
+                            "type": ["string", "null"]
+                          },
+                          "ownerType": {
+                            "type": "string"
+                          },
+                          "playerId": {
+                            "type": ["string", "null"]
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "required": ["at", "reason", "fromOwner", "toOwner", "actor"],
+                    "type": "object"
+                  },
+                  "type": "array"
                 }
               },
               "required": ["id", "inventory"],
@@ -6868,9 +7667,253 @@
         "title": "ship-list-response",
         "type": "object"
       },
+      "ShipPiracySeizeRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "seizingOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": "string"
+              },
+              "ownerType": {
+                "enum": ["npc-pirate"],
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "required": ["ownerType", "npcId"],
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "shipId": {
+            "type": "string"
+          }
+        },
+        "required": ["playerName", "sessionKey", "shipId", "seizingOwner"],
+        "title": "ship-piracy-seize-request",
+        "type": "object"
+      },
+      "ShipPiracySeizeResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "correlationId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "previousOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "type": "object"
+          },
+          "reason": {
+            "enum": [
+              "INVALID_SESSION",
+              "OWNERSHIP_VALIDATION_FAILED",
+              "PIRACY_SEIZE_INVALID_TARGET",
+              "SHIP_NOT_FOUND"
+            ],
+            "type": "string"
+          },
+          "seizedAt": {
+            "type": "string"
+          },
+          "seizingOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "type": "object"
+          },
+          "shipId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "title": "ship-piracy-seize-response",
+        "type": "object"
+      },
+      "ShipSalvageClaimRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "claimantOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": "string"
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "enum": ["player-character"],
+                "type": "string"
+              },
+              "playerId": {
+                "type": "string"
+              }
+            },
+            "required": ["ownerType", "playerId", "characterId"],
+            "type": "object"
+          },
+          "correlationId": {
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "requestIdentity": {
+            "properties": {
+              "containerId": {
+                "type": "string"
+              },
+              "entityType": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "sessionKey": {
+            "type": "string"
+          },
+          "shipId": {
+            "type": "string"
+          }
+        },
+        "required": ["playerName", "sessionKey", "shipId", "claimantOwner"],
+        "title": "ship-salvage-claim-request",
+        "type": "object"
+      },
+      "ShipSalvageClaimResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": true,
+        "properties": {
+          "claimantOwner": {
+            "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "type": "object"
+          },
+          "claimedAt": {
+            "type": "string"
+          },
+          "correlationId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "previousOwnerType": {
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "INVALID_SESSION",
+              "OWNERSHIP_VALIDATION_FAILED",
+              "SALVAGE_CLAIM_FORBIDDEN",
+              "SALVAGE_ALREADY_OWNED",
+              "SHIP_NOT_FOUND"
+            ],
+            "type": "string"
+          },
+          "shipId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "title": "ship-salvage-claim-response",
+        "type": "object"
+      },
       "ShipTransferRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "actorCharacterId": {
+            "type": ["string", "null"]
+          },
           "claimToken": {
             "type": ["string", "null"]
           },
@@ -6881,6 +7924,25 @@
           },
           "fromOwner": {
             "additionalProperties": true,
+            "properties": {
+              "characterId": {
+                "type": ["string", "null"]
+              },
+              "factionId": {
+                "type": ["string", "null"]
+              },
+              "npcId": {
+                "type": ["string", "null"]
+              },
+              "ownerType": {
+                "enum": ["player-character", "npc-pirate", "unowned", "unknown"],
+                "type": "string"
+              },
+              "playerId": {
+                "type": ["string", "null"]
+              }
+            },
+            "required": ["ownerType"],
             "type": ["object", "null"]
           },
           "playerName": {
@@ -6929,6 +7991,9 @@
             },
             "required": ["ownerType"],
             "type": "object"
+          },
+          "transferReason": {
+            "type": ["string", "null"]
           }
         },
         "required": [
@@ -6937,6 +8002,7 @@
           "correlationId",
           "requestIdentity",
           "shipId",
+          "fromOwner",
           "toOwner"
         ],
         "title": "ship-transfer-request",
@@ -7001,7 +8067,10 @@
               "SHIP_ID_REQUIRED",
               "SHIP_NOT_FOUND",
               "SHIP_TRANSFER_FORBIDDEN",
-              "OWNERSHIP_VALIDATION_FAILED"
+              "OWNERSHIP_VALIDATION_FAILED",
+              "OWNERSHIP_TRANSFER_SOURCE_MISMATCH",
+              "OWNERSHIP_CLAIM_TOKEN_REQUIRED",
+              "OWNERSHIP_CLAIM_TOKEN_INVALID"
             ],
             "type": "string"
           },
@@ -8548,7 +9617,7 @@
     }
   },
   "producer": {
-    "contractSource": "openapi.yaml + ./schemas/*.json",
+    "contractSource": "api/openapi.yaml + ./api/schemas/*.json",
     "repo": "solid-train"
   },
   "schemaVersion": "sw-08-v1",
@@ -8573,6 +9642,7 @@
       "/socket/invalid-session",
       "/socket/item-list-by-container",
       "/socket/item-list-by-location",
+      "/socket/item-list-by-owner",
       "/socket/item-remove",
       "/socket/item-upsert",
       "/socket/launch-item",
@@ -8582,6 +9652,9 @@
       "/socket/market-ledger-list",
       "/socket/market-list",
       "/socket/market-list-by-location",
+      "/socket/market-listing-create",
+      "/socket/market-offer-accept",
+      "/socket/market-offer-create",
       "/socket/market-quote",
       "/socket/market-sell",
       "/socket/message",
@@ -8593,7 +9666,10 @@
       "/socket/ping",
       "/socket/register",
       "/socket/ship-list",
+      "/socket/ship-list-by-npc-owner",
       "/socket/ship-list-by-owner",
+      "/socket/ship-piracy-seize",
+      "/socket/ship-salvage-claim",
       "/socket/ship-transfer",
       "/socket/ship-upsert",
       "/socket/solar-system-get",
@@ -8622,6 +9698,7 @@
       "invalid-session",
       "item-list-by-container",
       "item-list-by-location",
+      "item-list-by-owner",
       "item-remove",
       "item-upsert",
       "launch-item",
@@ -8631,6 +9708,9 @@
       "market-ledger-list",
       "market-list",
       "market-list-by-location",
+      "market-listing-create",
+      "market-offer-accept",
+      "market-offer-create",
       "market-quote",
       "market-sell",
       "message",
@@ -8642,7 +9722,10 @@
       "ping",
       "register",
       "ship-list",
+      "ship-list-by-npc-owner",
       "ship-list-by-owner",
+      "ship-piracy-seize",
+      "ship-salvage-claim",
       "ship-transfer",
       "ship-upsert",
       "solar-system-get",

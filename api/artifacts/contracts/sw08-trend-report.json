@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-05-25T01:39:37.476Z",
-  "source": "artifacts/contracts",
+  "generatedAt": "2026-06-12T23:47:26.164Z",
+  "source": "api/artifacts/contracts",
   "thresholds": {
     "recurrenceThreshold": 2,
     "nearExpiryDays": 7,

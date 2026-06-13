@@ -79,13 +79,80 @@ function extractOpenApiPaths(openApiText) {
 }
 
 function extractSchemaRefMap(openApiText) {
-  const refRegex = /^\s{4}([A-Za-z0-9_-]+):\s*\n\s{6}\$ref:\s*'\.\/schemas\/([^']+)'\s*$/gm;
   const refs = {};
 
-  let match = refRegex.exec(openApiText);
+  const rootComponentRefRegex = /^\s{4}([A-Za-z0-9_-]+):\s*\n\s{6}\$ref:\s*'([^']+)'\s*$/gm;
+  const rootMatches = [];
+
+  let match = rootComponentRefRegex.exec(openApiText);
   while (match) {
-    refs[match[1]] = match[2];
-    match = refRegex.exec(openApiText);
+    rootMatches.push({ schemaName: match[1], refPath: match[2] });
+    match = rootComponentRefRegex.exec(openApiText);
+  }
+
+  function toKebabCase(value) {
+    return value
+      .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+      .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+      .replace(/_/g, '-')
+      .toLowerCase();
+  }
+
+  function resolveSchemaFileFromRefPath(refPath) {
+    const jsonMatch = refPath.match(/(?:\.\.\/|\.\/)*schemas\/([^'#]+\.json)$/);
+    return jsonMatch ? jsonMatch[1] : null;
+  }
+
+  function resolveViaModuleRef(schemaName, moduleRefPath) {
+    const moduleMatch = moduleRefPath.match(/^\.\/openapi\/([^'#]+)\.yaml#\/components\/schemas\/([A-Za-z0-9_-]+)$/);
+    if (!moduleMatch) {
+      return null;
+    }
+
+    const moduleFilePath = path.join(path.dirname(path.join('api', 'openapi.yaml')), 'openapi', `${moduleMatch[1]}.yaml`);
+    const moduleAbsolutePath = path.resolve(process.cwd(), moduleFilePath);
+    if (!fs.existsSync(moduleAbsolutePath)) {
+      return null;
+    }
+
+    const moduleText = readText(moduleAbsolutePath);
+    const moduleSchemaName = moduleMatch[2];
+    const escapedSchemaName = moduleSchemaName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const moduleSchemaRefRegex = new RegExp(
+      `^\\s{4}${escapedSchemaName}:\\s*\\n\\s{6}\\$ref:\\s*'([^']+)'\\s*$`,
+      'm'
+    );
+    const moduleRefMatch = moduleText.match(moduleSchemaRefRegex);
+    if (moduleRefMatch) {
+      const schemaFile = resolveSchemaFileFromRefPath(moduleRefMatch[1]);
+      if (schemaFile) {
+        return schemaFile;
+      }
+    }
+
+    const fallbackFile = `${toKebabCase(schemaName)}.schema.json`;
+    const fallbackAbsolutePath = path.resolve(process.cwd(), path.join('api', 'schemas', fallbackFile));
+    return fs.existsSync(fallbackAbsolutePath) ? fallbackFile : null;
+  }
+
+  for (const { schemaName, refPath } of rootMatches) {
+    const directSchemaFile = resolveSchemaFileFromRefPath(refPath);
+    if (directSchemaFile) {
+      refs[schemaName] = directSchemaFile;
+      continue;
+    }
+
+    const moduleResolvedSchemaFile = resolveViaModuleRef(schemaName, refPath);
+    if (moduleResolvedSchemaFile) {
+      refs[schemaName] = moduleResolvedSchemaFile;
+      continue;
+    }
+
+    const fallbackFile = `${toKebabCase(schemaName)}.schema.json`;
+    const fallbackAbsolutePath = path.resolve(process.cwd(), path.join('api', 'schemas', fallbackFile));
+    if (fs.existsSync(fallbackAbsolutePath)) {
+      refs[schemaName] = fallbackFile;
+    }
   }
 
   return refs;
@@ -95,7 +162,7 @@ function loadSchemas(rootDir, schemaRefMap) {
   const loaded = {};
   for (const schemaName of Object.keys(schemaRefMap).sort()) {
     const schemaFile = schemaRefMap[schemaName];
-    const schemaPath = path.join(rootDir, 'schemas', schemaFile);
+    const schemaPath = path.join(rootDir, 'api', 'schemas', schemaFile);
     const raw = readText(schemaPath);
     loaded[schemaName] = JSON.parse(raw);
   }

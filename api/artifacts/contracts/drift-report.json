@@ -1,40 +1,29 @@
 {
-  "issues": [
-    {
-      "category": "endpoint/event removal or rename",
-      "consumerSurfaces": ["Mission progression"],
-      "detail": "Socket contract endpoint removed or renamed: /socket/add-mission",
-      "knownConsumers": ["laughing-octo-journey"],
-      "owner": "backend-lead",
-      "producerLocation": "socket:/socket/add-mission",
-      "severity": "high",
-      "suggestedCompatibilityStrategy": "Restore socket event alias or keep old event contract during migration window."
-    }
-  ],
+  "issues": [],
   "metadata": {
     "baselineMissing": false,
-    "baselinePath": "artifacts\\contracts\\baseline-contract-artifact.json",
-    "currentPath": "artifacts\\contracts\\contract-artifact.json",
+    "baselinePath": "api\\artifacts\\contracts\\baseline-contract-artifact.json",
+    "currentPath": "api\\artifacts\\contracts\\contract-artifact.json",
     "exceptionFound": false,
     "exceptionPath": "docs\\planning\\sw-08-approved-bypass.json",
     "generatedBy": "scripts/sw08/check-contract-drift.js"
   },
   "summary": {
     "byCategory": {
-      "endpoint/event removal or rename": 1,
+      "endpoint/event removal or rename": 0,
       "enum narrowing/mismatch": 0,
       "removed required fields": 0,
       "type mismatches": 0
     },
     "bypassApproved": false,
-    "enforcementMode": "report-only",
+    "enforcementMode": "hard-fail",
     "hardFailEnforced": false,
     "impactedConsumers": ["laughing-octo-journey"],
-    "mode": "report-only",
-    "nextAction": "Complete the missing exception fields or approvals, then rerun the gate.",
-    "owner": "backend-lead",
+    "mode": "hard-fail",
+    "nextAction": "No action required.",
+    "owner": "unassigned",
     "softFailEnforced": false,
-    "totalIssues": 1
+    "totalIssues": 0
   },
   "taxonomy": {
     "ENDPOINT_EVENT_REMOVAL": "endpoint/event removal or rename",
