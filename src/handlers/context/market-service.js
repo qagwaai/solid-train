@@ -12,6 +12,10 @@ const {
   SOLAR_SYSTEM_MARKET_SEED_VERSION,
   buildSeededMarketsForSolarSystem,
 } = require('../../model/solar-system-market-seed');
+const {
+  SHIP_MARKET_CATALOG_BY_ID,
+  buildDefaultShipListings,
+} = require('../../model/ship-market-catalog');
 
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
 const ASTRONOMICAL_UNIT_KM = 149_597_870.7;
@@ -82,7 +86,13 @@ async function seedSolarSystemMarketsAsync(ctx, request = {}) {
     if (!force && isCurrentVersion) {
       const persistedMarkets = await ctx.databaseService.getMarkets({ solarSystemId });
       if (Array.isArray(persistedMarkets) && persistedMarkets.length > 0) {
-        for (const market of persistedMarkets) {
+        const reseededMarkets = persistedMarkets.map((market) => ({
+          ...market,
+          shipListings: buildDefaultShipListings(asOf),
+        }));
+
+        for (const market of reseededMarkets) {
+          await ctx.databaseService.upsertMarket(market);
           ctx.cacheMarket(market);
         }
 
@@ -90,8 +100,8 @@ async function seedSolarSystemMarketsAsync(ctx, request = {}) {
           success: true,
           solarSystemId,
           seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
-          marketCount: persistedMarkets.length,
-          source: 'database-cache',
+          marketCount: reseededMarkets.length,
+          source: 'database-reseed',
         };
       }
     }
@@ -593,6 +603,331 @@ async function removeTradeItemFromCharacterAsync(ctx, playerName, characterId, i
   return remaining === 0;
 }
 
+async function applyMarketShipListingAvailabilityAsync(
+  ctx,
+  marketId,
+  solarSystemId,
+  itemId,
+  quantityAvailable,
+  status
+) {
+  const market = ctx.getMarket(marketId, solarSystemId);
+  if (!market) {
+    return false;
+  }
+
+  const nextMarket = ctx.normalizeMarket({ ...market });
+  const normalizedItemId = ctx.toNonEmptyString(itemId).toLowerCase();
+  let listingFound = false;
+  nextMarket.shipListings = (Array.isArray(nextMarket.shipListings) ? nextMarket.shipListings : []).map(
+    (listing) => {
+      if (ctx.toNonEmptyString(listing?.itemId).toLowerCase() !== normalizedItemId) {
+        return listing;
+      }
+
+      listingFound = true;
+      const normalizedQuantity =
+        Number.isInteger(quantityAvailable) && quantityAvailable >= 0 ? quantityAvailable : 0;
+      const normalizedStatus =
+        ctx.toNonEmptyString(status).toLowerCase() === 'available' && normalizedQuantity > 0
+          ? 'available'
+          : 'sold';
+
+      return {
+        ...listing,
+        quantityAvailable: normalizedQuantity,
+        status: normalizedStatus,
+      };
+    }
+  );
+
+  if (!listingFound) {
+    return false;
+  }
+
+  ctx.cacheMarket(nextMarket);
+  return true;
+}
+
+async function addPurchasedShipToCharacterAsync(
+  ctx,
+  player,
+  character,
+  market,
+  shipCatalogEntry,
+  transactionId
+) {
+  const now = ctx.getCurrentTimestamp();
+  const owningPlayerId = ctx.toNonEmptyString(player.playerId) || ctx.toNonEmptyString(player.playerName);
+  const generatedShipId = `${character.id}-ship-${ctx.createId()}`;
+  const starterInventory = Array.isArray(shipCatalogEntry?.starterInventory)
+    ? shipCatalogEntry.starterInventory
+    : [];
+
+  const createdItems = starterInventory.map((entry, index) => ({
+    id: `${generatedShipId}-starter-${ctx.toNonEmptyString(entry.itemType)}-${index + 1}`,
+    itemType: ctx.toNonEmptyString(entry.itemType),
+    displayName: ctx.toNonEmptyString(entry.displayName) || ctx.toNonEmptyString(entry.itemType),
+    tier: Number.isInteger(entry.tier) && entry.tier > 0 ? entry.tier : 1,
+    state: ITEM_STATE.CONTAINED,
+    damageStatus: ITEM_DAMAGE_STATUS.INTACT,
+    container: {
+      containerType: ITEM_CONTAINER_TYPE.SHIP,
+      containerId: generatedShipId,
+    },
+    owningPlayerId,
+    owningCharacterId: character.id,
+    spatial: null,
+    createdAt: now,
+    updatedAt: now,
+    destroyedAt: null,
+    destroyedReason: null,
+    launchable: Boolean(entry.launchable),
+    quantity: Number.isInteger(entry.quantity) && entry.quantity > 0 ? entry.quantity : 1,
+  }));
+
+  await ctx.addItemsAsync(createdItems);
+
+  const marketPosition = ctx.normalizeSpatialState(market?.spatial) || {
+    solarSystemId: market.solarSystemId,
+    frame: 'barycentric',
+    positionKm: { x: 0, y: 0, z: 0 },
+    epochMs: Date.parse(now),
+  };
+
+  const createdShip = {
+    id: generatedShipId,
+    shipName: `${character.characterName} ${shipCatalogEntry.displayName}`,
+    model: shipCatalogEntry.shipModel,
+    tier: shipCatalogEntry.tier,
+    status: 'docked',
+    createdAt: now,
+    inventory: createdItems.map((item) => ({
+      itemId: item.id,
+      itemType: item.itemType,
+    })),
+    spatial: {
+      ...marketPosition,
+      epochMs: Number.isFinite(Date.parse(now)) ? Date.parse(now) : marketPosition.epochMs,
+    },
+    launchable: true,
+    damageProfile: null,
+    ownership: {
+      ownerType: 'player-character',
+      playerId: owningPlayerId,
+      characterId: character.id,
+      npcId: null,
+      factionId: null,
+    },
+    purchaseMetadata: {
+      source: 'market-seeded-listing',
+      marketId: market.marketId,
+      solarSystemId: market.solarSystemId,
+      transactionId,
+      purchasedAt: now,
+    },
+  };
+
+  const nextShips = Array.isArray(character.ships) ? [...character.ships, createdShip] : [createdShip];
+  try {
+    await ctx.updateCharacterAsync(player.playerName, character.id, { ships: nextShips });
+  } catch (error) {
+    await ctx.deleteItemsAsync(createdItems.map((item) => item.id));
+    throw error;
+  }
+
+  return {
+    ship: createdShip,
+    itemIds: createdItems.map((item) => item.id),
+  };
+}
+
+async function executeShipPurchaseTransactionAsync(ctx, request = {}, player, character) {
+  const marketId = ctx.toNonEmptyString(request.marketId);
+  const solarSystemId = ctx.toNonEmptyString(request.solarSystemId);
+  const itemId = ctx.toNonEmptyString(request.itemId).toLowerCase();
+  const quantity = Number.isInteger(request.quantity) ? request.quantity : Number(request.quantity);
+  const requestId = ctx.toNonEmptyString(request.requestId) || null;
+
+  if (!Number.isInteger(quantity) || quantity !== 1) {
+    return { success: false, reason: 'INVALID_QUANTITY' };
+  }
+
+  const market = ctx.getMarket(marketId, solarSystemId);
+  if (!market) {
+    return { success: false, reason: 'MARKET_NOT_FOUND' };
+  }
+
+  const shipCatalogEntry = SHIP_MARKET_CATALOG_BY_ID.get(itemId);
+  if (!shipCatalogEntry) {
+    return { success: false, reason: 'ITEM_NOT_FOUND' };
+  }
+
+  const shipListings = Array.isArray(market.shipListings) ? market.shipListings : [];
+  const listing = shipListings.find(
+    (entry) =>
+      ctx.toNonEmptyString(entry?.itemId).toLowerCase() === itemId &&
+      ctx.toNonEmptyString(entry?.status).toLowerCase() === 'available' &&
+      Number.isInteger(entry?.quantityAvailable) &&
+      entry.quantityAvailable > 0
+  );
+
+  if (!listing) {
+    return { success: false, reason: 'ITEM_NOT_TRADEABLE' };
+  }
+
+  const totalPrice = Number.isFinite(listing.unitPrice) ? listing.unitPrice : 0;
+  if (ctx.calculateCharacterCredits(character) < totalPrice) {
+    return { success: false, reason: 'INSUFFICIENT_CREDITS' };
+  }
+
+  const transactionId = ctx.toNonEmptyString(request.transactionId) || ctx.createId();
+  const timestamp = ctx.getCurrentTimestamp();
+  const characterLedgerEntry = {
+    type: 'take',
+    amount: totalPrice,
+    description: `Market buy: ${shipCatalogEntry.displayName} x1`,
+    timestamp,
+    referenceId: transactionId,
+  };
+  const marketLedgerEntry = {
+    transactionId,
+    requestId,
+    characterId: character.id,
+    itemId,
+    direction: 'buy',
+    quantity: 1,
+    unitPrice: totalPrice,
+    totalPrice,
+    timestamp,
+    reversalOfTransactionId: null,
+  };
+
+  let listingApplied = false;
+  let shipApplied = false;
+  let characterLedgerApplied = false;
+  let marketLedgerApplied = false;
+  let createdShip = null;
+  let createdItemIds = [];
+
+  try {
+    const listingUpdated = await applyMarketShipListingAvailabilityAsync(
+      ctx,
+      marketId,
+      solarSystemId,
+      itemId,
+      0,
+      'sold'
+    );
+    if (!listingUpdated) {
+      throw new Error('Ship listing mutation failed');
+    }
+    listingApplied = true;
+
+    const shipCreation = await addPurchasedShipToCharacterAsync(
+      ctx,
+      player,
+      character,
+      market,
+      shipCatalogEntry,
+      transactionId
+    );
+    createdShip = shipCreation.ship;
+    createdItemIds = shipCreation.itemIds;
+    shipApplied = true;
+
+    await appendCharacterLedgerEntryAsync(
+      ctx,
+      player.playerName,
+      character.id,
+      characterLedgerEntry
+    );
+    characterLedgerApplied = true;
+
+    await appendMarketLedgerEntryAsync(ctx, marketId, solarSystemId, marketLedgerEntry);
+    marketLedgerApplied = true;
+
+    const updatedCharacter = ctx.findCharacter(player.playerName, character.id);
+    return {
+      success: true,
+      transaction: {
+        transactionId,
+        requestId,
+        marketId,
+        solarSystemId,
+        characterId: character.id,
+        itemId,
+        direction: 'buy',
+        quantity: 1,
+        unitPrice: totalPrice,
+        totalPrice,
+        timestamp,
+        characterCredits: updatedCharacter ? ctx.calculateCharacterCredits(updatedCharacter) : null,
+        marketStock: 0,
+        purchasedShip: {
+          id: createdShip.id,
+          shipName: createdShip.shipName,
+          model: createdShip.model,
+          tier: createdShip.tier,
+          inventory: createdShip.inventory,
+          ownership: createdShip.ownership,
+        },
+      },
+    };
+  } catch (error) {
+    if (marketLedgerApplied) {
+      await appendMarketLedgerEntryAsync(ctx, marketId, solarSystemId, {
+        ...marketLedgerEntry,
+        transactionId: ctx.createId(),
+        direction: 'reversal',
+        reversalOfTransactionId: transactionId,
+        timestamp: ctx.getCurrentTimestamp(),
+      });
+    }
+
+    if (characterLedgerApplied) {
+      await appendCharacterLedgerEntryAsync(ctx, player.playerName, character.id, {
+        type: 'put',
+        amount: totalPrice,
+        description: `Reversal for transaction ${transactionId}`,
+        timestamp: ctx.getCurrentTimestamp(),
+        referenceId: transactionId,
+      });
+    }
+
+    if (shipApplied && createdShip) {
+      const refreshedCharacter = ctx.findCharacter(player.playerName, character.id);
+      const nextShips = Array.isArray(refreshedCharacter?.ships)
+        ? refreshedCharacter.ships.filter((ship) => ship.id !== createdShip.id)
+        : [];
+      await ctx.updateCharacterAsync(player.playerName, character.id, { ships: nextShips });
+      if (createdItemIds.length > 0) {
+        await ctx.deleteItemsAsync(createdItemIds);
+      }
+    }
+
+    if (listingApplied) {
+      await applyMarketShipListingAvailabilityAsync(
+        ctx,
+        marketId,
+        solarSystemId,
+        itemId,
+        1,
+        'available'
+      );
+    }
+
+    ctx.log(`[context] Ship market transaction failed: ${error.message}`);
+    return {
+      success: false,
+      reason:
+        characterLedgerApplied || marketLedgerApplied
+          ? 'PARTIAL_WRITE_REVERSED'
+          : 'TRANSACTION_FAILED',
+    };
+  }
+}
+
 async function executeMarketTransactionAsync(ctx, request = {}) {
   const playerName = ctx.toNonEmptyString(request.playerName);
   const characterId = ctx.toNonEmptyString(request.characterId);
@@ -611,6 +946,11 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
   const character = ctx.findCharacter(player.playerName, characterId);
   if (!character) {
     return { success: false, reason: 'CHARACTER_NOT_FOUND' };
+  }
+
+  const isShipPurchase = direction === 'buy' && SHIP_MARKET_CATALOG_BY_ID.has(itemId);
+  if (isShipPurchase) {
+    return executeShipPurchaseTransactionAsync(ctx, request, player, character);
   }
 
   const quoteResult = await getMarketQuoteAsync(ctx, {

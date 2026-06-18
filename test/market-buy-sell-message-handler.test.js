@@ -414,6 +414,123 @@ test('MarketBuyMessageHandler returns NO_SHIP_AVAILABLE when character has no sh
   assert.equal(response.requestId, 'buy-no-ship-1');
 });
 
+test('MarketBuyMessageHandler buys seeded Scavenger Pod and includes starter inventory', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'MarketPilot',
+    playerId: 'player-1',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Trader',
+        createdAt: '2026-05-05T00:00:00.000Z',
+        ships: [],
+        missions: [],
+        creditLedger: [
+          {
+            type: 'put',
+            amount: 5000,
+            description: 'Seed',
+            timestamp: '2026-05-05T00:00:00.000Z',
+            referenceId: null,
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new MarketBuyMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    requestId: 'buy-ship-1',
+    playerName: 'MarketPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol',
+    itemId: 'scavenger-pod',
+    quantity: 1,
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.requestId, 'buy-ship-1');
+  assert.equal(response.transaction.itemId, 'scavenger-pod');
+  assert.ok(response.transaction.purchasedShip);
+  assert.equal(response.transaction.purchasedShip.model, 'Scavenger Pod');
+  assert.equal(response.transaction.purchasedShip.inventory.length, 5);
+
+  const character = context.findCharacter('MarketPilot', 'character-1');
+  assert.equal(character.ships.length, 1);
+  assert.equal(character.ships[0].model, 'Scavenger Pod');
+
+  const shipInventoryItemIds = new Set(character.ships[0].inventory.map((entry) => entry.itemId));
+  const starterItems = [...context.itemsById.values()].filter(
+    (item) =>
+      item.owningCharacterId === 'character-1' &&
+      shipInventoryItemIds.has(item.id) &&
+      item.state === 'contained'
+  );
+  assert.equal(starterItems.length, 5);
+
+  const drones = starterItems.find((item) => item.itemType === 'expendable-dart-drone');
+  assert.ok(drones);
+  assert.equal(drones.quantity, 2);
+  assert.equal(drones.tier, 1);
+
+  const market = context.getMarket('sol-ceres-exchange', 'sol');
+  const shipListing = market.shipListings.find((entry) => entry.itemId === 'scavenger-pod');
+  assert.ok(shipListing);
+  assert.equal(shipListing.quantityAvailable, 0);
+  assert.equal(shipListing.status, 'sold');
+});
+
+test('MarketBuyMessageHandler returns INVALID_QUANTITY when seeded ship purchase quantity is not 1', async () => {
+  const context = createTestContext();
+  seedPlayer(context, {
+    playerName: 'MarketPilot',
+    playerId: 'player-1',
+    sessionKey: 'session-1',
+    characters: [
+      {
+        id: 'character-1',
+        characterName: 'Trader',
+        createdAt: '2026-05-05T00:00:00.000Z',
+        ships: [],
+        missions: [],
+        creditLedger: [
+          {
+            type: 'put',
+            amount: 5000,
+            description: 'Seed',
+            timestamp: '2026-05-05T00:00:00.000Z',
+            referenceId: null,
+          },
+        ],
+      },
+    ],
+  });
+
+  const handler = new MarketBuyMessageHandler(context);
+  const socket = createMockSocket();
+
+  const response = await handler.handle(socket, {
+    requestId: 'buy-ship-invalid-qty-1',
+    playerName: 'MarketPilot',
+    characterId: 'character-1',
+    sessionKey: 'session-1',
+    marketId: 'sol-ceres-exchange',
+    solarSystemId: 'sol',
+    itemId: 'scavenger-pod',
+    quantity: 2,
+  });
+
+  assert.equal(response.success, false);
+  assert.equal(response.reason, MARKET_BUY_FAILURE_REASONS.INVALID_QUANTITY);
+  assert.equal(response.requestId, 'buy-ship-invalid-qty-1');
+});
+
 test('MarketBuyMessageHandler appends type:take creditLedger entry after successful buy', async () => {
   const context = createTestContext();
   seedTraderCharacter(context, { startingBalance: 2000 });

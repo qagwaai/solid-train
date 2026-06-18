@@ -59,7 +59,40 @@
         "totalPrice": { "type": "number" },
         "timestamp": { "type": "string", "format": "date-time" },
         "characterCredits": { "type": ["number", "null"] },
-        "marketStock": { "type": ["integer", "null"] }
+        "marketStock": { "type": ["integer", "null"] },
+        "purchasedShip": {
+          "type": "object",
+          "description": "Present when the purchase creates a ship from a seeded market ship listing.",
+          "required": ["id", "shipName", "model", "tier", "inventory", "ownership"],
+          "properties": {
+            "id": { "type": "string" },
+            "shipName": { "type": "string" },
+            "model": { "type": "string" },
+            "tier": { "type": "integer", "minimum": 1 },
+            "inventory": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["itemId", "itemType"],
+                "properties": {
+                  "itemId": { "type": "string" },
+                  "itemType": { "$ref": "./canonical-item-type.schema.json" }
+                }
+              }
+            },
+            "ownership": {
+              "type": "object",
+              "required": ["ownerType", "playerId", "characterId"],
+              "properties": {
+                "ownerType": { "type": "string", "enum": ["player-character"] },
+                "playerId": { "type": ["string", "null"] },
+                "characterId": { "type": ["string", "null"] },
+                "npcId": { "type": ["string", "null"] },
+                "factionId": { "type": ["string", "null"] }
+              }
+            }
+          }
+        }
       }
     }
   }

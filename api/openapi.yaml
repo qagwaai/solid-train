@@ -1,11 +1,16 @@
 openapi: 3.1.0
 info:
   title: Stellar API and Message Contract
-  version: 3.1.0
+  version: 3.1.2
   description: >
     Machine-readable contract for HTTP endpoints and Socket.IO message payloads.
     Socket operations are modeled as virtual POST operations under /socket/* so the
     contract can be consumed by tooling that expects OpenAPI.
+
+    Market contract explicit notes (3.1.2):
+    - `/socket/market-buy` supports canonical cargo purchases and seeded ship listing purchases.
+    - Seeded ship purchases require `quantity: 1` and return `transaction.purchasedShip` metadata.
+    - Seeded ship purchases create a new owned ship with bundled starter inventory.
 servers:
   - url: http://localhost:3000
 tags:

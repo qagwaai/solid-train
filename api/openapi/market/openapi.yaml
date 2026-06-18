@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Stellar API - Market
-  version: 3.1.0
+  version: 3.1.1
 servers:
   - url: http://localhost:3000
 tags:
@@ -21,14 +21,15 @@ paths:
         Preconditions:
         - `quantity` must be a positive integer.
         - The player, character, market, and catalog item must exist.
-        - The market must sell the requested item.
+        - The market must sell the requested item or expose a seeded ship listing for the requested id.
         - The character must have sufficient credits.
-        - The market must have sufficient stock.
-        - The character must have at least one ship to receive purchased cargo.
+        - For cargo items, the market must have sufficient stock.
+        - For seeded ship listings, `quantity` must be `1` and the listing must be available.
+        - Buying cargo requires at least one existing ship; buying a seeded ship does not.
 
         Success side effects:
-        - Market stock is decremented.
-        - A trade item stack is added to the character inventory.
+        - Cargo purchases decrement market stock and add trade items to ship cargo.
+        - Seeded ship purchases create a new owned ship with bundled starter inventory.
         - Character and market ledger entries are appended.
 
         Correlation:
@@ -109,6 +110,53 @@ paths:
                       timestamp: '2026-05-18T00:00:00.000Z'
                       characterCredits: 1970
                       marketStock: 47
+                successfulShipBuy:
+                  summary: Successful seeded ship purchase returns purchased ship metadata
+                  value:
+                    success: true
+                    message: Market buy transaction completed
+                    correlationId: e63d2754-f307-4568-8762-f7f334e841f8
+                    requestIdentity:
+                      operation: market-buy
+                      entityType: market-transaction
+                      containerId: sol-ceres-exchange
+                    requestId: buy-ship-1
+                    transaction:
+                      transactionId: tx-ship-1
+                      requestId: buy-ship-1
+                      marketId: sol-ceres-exchange
+                      solarSystemId: sol
+                      characterId: character-1
+                      itemId: scavenger-pod
+                      direction: buy
+                      quantity: 1
+                      unitPrice: 500
+                      totalPrice: 500
+                      timestamp: '2026-05-18T00:00:00.000Z'
+                      characterCredits: 1500
+                      marketStock: 0
+                      purchasedShip:
+                        id: character-1-ship-generated-1
+                        shipName: Trader Scavenger Pod
+                        model: Scavenger Pod
+                        tier: 1
+                        inventory:
+                          - itemId: character-1-ship-generated-1-starter-expendable-dart-drone-1
+                            itemType: expendable-dart-drone
+                          - itemId: character-1-ship-generated-1-starter-propulsion-manifold-2
+                            itemType: propulsion-manifold
+                          - itemId: character-1-ship-generated-1-starter-sensor-array-3
+                            itemType: sensor-array
+                          - itemId: character-1-ship-generated-1-starter-power-distribution-bus-4
+                            itemType: power-distribution-bus
+                          - itemId: character-1-ship-generated-1-starter-ship-tractor-beam-5
+                            itemType: ship-tractor-beam
+                        ownership:
+                          ownerType: player-character
+                          playerId: player-1
+                          characterId: character-1
+                          npcId: null
+                          factionId: null
                 insufficientCredits:
                   summary: Failure response omits transaction and reports a stable reason code
                   value:

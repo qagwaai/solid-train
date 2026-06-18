@@ -1,6 +1,7 @@
 'use strict';
 
 const { MARKET_CATALOG } = require('../../model/market-catalog');
+const { buildDefaultShipListings } = require('../../model/ship-market-catalog');
 const { buildSeededNpcsForSolarSystem } = require('../../model/solar-system-npc-seed');
 const { buildSeededMarketsForSolarSystem } = require('../../model/solar-system-market-seed');
 const npcService = require('./npc-service');
@@ -84,6 +85,7 @@ function createSeedMarketPayload(ctx, seedMarket, timestamp) {
       normalizers.getDefaultInventoryEntry(catalogEntry)
     ),
     ledger: [],
+    shipListings: buildDefaultShipListings(timestamp),
   };
 }
 

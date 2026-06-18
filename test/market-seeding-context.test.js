@@ -51,6 +51,14 @@ test('seedSolarSystemMarketsAsync upserts seeded markets and writes seed-state m
   const fromCache = await context.getMarketsAsync({ solarSystemId: 'sol' });
   assert.equal(fromCache.length, 14);
   assert.ok(fromCache.some((market) => market.isStarterMarket));
+  assert.ok(
+    fromCache.every(
+      (market) =>
+        Array.isArray(market.shipListings) &&
+        market.shipListings.length === 1 &&
+        market.shipListings[0].itemId === 'scavenger-pod'
+    )
+  );
 });
 
 test('seedSolarSystemMarketsAsync uses cached database markets when seed version is current', async () => {
@@ -88,6 +96,7 @@ test('seedSolarSystemMarketsAsync uses cached database markets when seed version
       lastRestockAt: '2026-05-05T00:00:00.000Z',
       inventory: [],
       ledger: [],
+      shipListings: [],
     },
   ];
 
@@ -118,13 +127,18 @@ test('seedSolarSystemMarketsAsync uses cached database markets when seed version
   const result = await context.seedSolarSystemMarketsAsync({ solarSystemId: 'sol' });
 
   assert.equal(result.success, true);
-  assert.equal(result.source, 'database-cache');
+  assert.equal(result.source, 'database-reseed');
   assert.equal(result.marketCount, 1);
-  assert.equal(upsertCalls, 0);
+  assert.equal(upsertCalls, 1);
 
   const fromCache = await context.getMarketsAsync({ solarSystemId: 'sol' });
   assert.equal(fromCache.length, 1);
   assert.equal(fromCache[0].marketName, 'Persisted Belt One');
   assert.equal(fromCache[0].siteType, 'free-floating');
   assert.deepEqual(fromCache[0].spatial.positionKm, { x: 6100, y: 0, z: 0 });
+  assert.ok(Array.isArray(fromCache[0].shipListings));
+  assert.equal(fromCache[0].shipListings.length, 1);
+  assert.equal(fromCache[0].shipListings[0].itemId, 'scavenger-pod');
+  assert.equal(fromCache[0].shipListings[0].quantityAvailable, 1);
+  assert.equal(fromCache[0].shipListings[0].status, 'available');
 });

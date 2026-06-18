@@ -363,12 +363,15 @@ async function startServer(options = {}) {
     `[server] Celestial body seeding ${alphaCentauriSeedResult.success ? 'completed' : 'skipped'} for ${alphaCentauriSeedResult.solarSystemId}: ${alphaCentauriSeedResult.bodyCount}`
   );
 
-  const marketSeedResult = await messageHandlerContext.seedSolarSystemMarketsAsync({
-    solarSystemId: 'sol',
-  });
-  logger.info(
-    `[server] Market seeding ${marketSeedResult.success ? 'completed' : 'skipped'} for ${marketSeedResult.solarSystemId}: ${marketSeedResult.marketCount}`
-  );
+  const marketSystems = ['sol', 'alpha-centauri', 'barnards-star'];
+  for (const solarSystemId of marketSystems) {
+    const marketSeedResult = await messageHandlerContext.seedSolarSystemMarketsAsync({
+      solarSystemId,
+    });
+    logger.info(
+      `[server] Market seeding ${marketSeedResult.success ? 'completed' : 'skipped'} for ${marketSeedResult.solarSystemId}: ${marketSeedResult.marketCount}`
+    );
+  }
 
   const npcSeedResult = await messageHandlerContext.seedSolarSystemNpcsAsync({
     solarSystemId: 'sol',

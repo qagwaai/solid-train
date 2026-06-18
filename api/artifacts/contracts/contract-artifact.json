@@ -1,7 +1,7 @@
 {
   "checksums": {
-    "openApiSha256": "665726c7d948f4bff800ec3b8f886bd792acd739f3d36807191ee18eadde75e0",
-    "schemaBundleSha256": "a01d14670c3d9011c7c733ec1d3bb391e7007efe7efc71f40f2db08f39a4a1a0"
+    "openApiSha256": "bfc8d6ba11cea695bd2f7cb89a7441a7777d7a1fe3f009096510dc5d12a9d4f0",
+    "schemaBundleSha256": "fc6b3570fd70b178beb817643b7d9882301f6cc5ee5d9cf8f016392fd0dbd597"
   },
   "components": {
     "schemaRefMap": {
@@ -4232,7 +4232,7 @@
             "type": "string"
           },
           "itemId": {
-            "description": "Catalog or market inventory item id. The server normalizes matching case-insensitively.",
+            "description": "Catalog item id or seeded ship listing id. The server normalizes matching case-insensitively.",
             "type": "string"
           },
           "marketId": {
@@ -4348,6 +4348,63 @@
               },
               "marketStock": {
                 "type": ["integer", "null"]
+              },
+              "purchasedShip": {
+                "description": "Present when the purchase creates a ship from a seeded market ship listing.",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "inventory": {
+                    "items": {
+                      "properties": {
+                        "itemId": {
+                          "type": "string"
+                        },
+                        "itemType": {
+                          "$ref": "./canonical-item-type.schema.json"
+                        }
+                      },
+                      "required": ["itemId", "itemType"],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "ownership": {
+                    "properties": {
+                      "characterId": {
+                        "type": ["string", "null"]
+                      },
+                      "factionId": {
+                        "type": ["string", "null"]
+                      },
+                      "npcId": {
+                        "type": ["string", "null"]
+                      },
+                      "ownerType": {
+                        "enum": ["player-character"],
+                        "type": "string"
+                      },
+                      "playerId": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "required": ["ownerType", "playerId", "characterId"],
+                    "type": "object"
+                  },
+                  "shipName": {
+                    "type": "string"
+                  },
+                  "tier": {
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": ["id", "shipName", "model", "tier", "inventory", "ownership"],
+                "type": "object"
               },
               "quantity": {
                 "minimum": 1,

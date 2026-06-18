@@ -35,7 +35,7 @@
     "characterId": { "type": "string" },
     "itemId": {
       "type": "string",
-      "description": "Catalog or market inventory item id. The server normalizes matching case-insensitively."
+      "description": "Catalog item id or seeded ship listing id. The server normalizes matching case-insensitively."
     },
     "quantity": {
       "type": "integer",

@@ -95,6 +95,85 @@ function createMarketModelArtifacts({ mongoose, spatialStateSchema }) {
     { _id: false }
   );
 
+  const marketShipListingStarterInventoryEntrySchema = new mongoose.Schema(
+    {
+      itemType: {
+        type: String,
+        required: true,
+      },
+      displayName: {
+        type: String,
+        required: true,
+      },
+      quantity: {
+        type: Number,
+        required: true,
+        min: 1,
+        default: 1,
+      },
+      launchable: {
+        type: Boolean,
+        required: true,
+        default: false,
+      },
+    },
+    { _id: false }
+  );
+
+  const marketShipListingSchema = new mongoose.Schema(
+    {
+      listingId: {
+        type: String,
+        required: true,
+      },
+      itemId: {
+        type: String,
+        required: true,
+        index: true,
+      },
+      shipModel: {
+        type: String,
+        required: true,
+      },
+      displayName: {
+        type: String,
+        required: true,
+      },
+      tier: {
+        type: Number,
+        required: true,
+        min: 1,
+        default: 1,
+      },
+      unitPrice: {
+        type: Number,
+        required: true,
+        min: 1,
+      },
+      quantityAvailable: {
+        type: Number,
+        required: true,
+        min: 0,
+        default: 0,
+      },
+      status: {
+        type: String,
+        enum: ['available', 'sold'],
+        required: true,
+        default: 'available',
+      },
+      starterInventory: {
+        type: [marketShipListingStarterInventoryEntrySchema],
+        default: [],
+      },
+      createdAt: {
+        type: String,
+        required: true,
+      },
+    },
+    { _id: false }
+  );
+
   const marketOrbitSchema = new mongoose.Schema(
     {
       anchorBodyId: {
@@ -230,6 +309,10 @@ function createMarketModelArtifacts({ mongoose, spatialStateSchema }) {
       },
       ledger: {
         type: [marketLedgerEntrySchema],
+        default: [],
+      },
+      shipListings: {
+        type: [marketShipListingSchema],
         default: [],
       },
     },

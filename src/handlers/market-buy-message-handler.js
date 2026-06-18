@@ -92,6 +92,8 @@ class MarketBuyMessageHandler {
         return 'Item was not found in market catalog';
       case MARKET_BUY_FAILURE_REASONS.ITEM_NOT_TRADEABLE:
         return 'Item is not tradeable at this market';
+      case MARKET_BUY_FAILURE_REASONS.INVALID_QUANTITY:
+        return 'Quantity is invalid for requested market purchase';
       case MARKET_BUY_FAILURE_REASONS.INSUFFICIENT_CREDITS:
         return 'Insufficient credits for purchase';
       case MARKET_BUY_FAILURE_REASONS.INSUFFICIENT_MARKET_STOCK:

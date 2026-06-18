@@ -320,6 +320,63 @@ function normalizeMarketLedgerEntry(ctx, entry) {
   };
 }
 
+function normalizeMarketShipListingStarterInventoryEntry(ctx, entry) {
+  const source = toPlainObject(ctx, entry) || {};
+  const itemType = toNonEmptyString(ctx, source.itemType);
+  const displayName = toNonEmptyString(ctx, source.displayName) || itemType;
+  const quantity = Number.isInteger(source.quantity) && source.quantity > 0 ? source.quantity : 1;
+
+  if (!itemType) {
+    return null;
+  }
+
+  return {
+    itemType,
+    displayName,
+    tier: Number.isInteger(source.tier) && source.tier > 0 ? source.tier : 1,
+    quantity,
+    launchable: Boolean(source.launchable),
+  };
+}
+
+function normalizeMarketShipListingEntry(ctx, entry) {
+  const source = toPlainObject(ctx, entry) || {};
+  const itemId = toNonEmptyString(ctx, source.itemId).toLowerCase();
+  const shipModel = toNonEmptyString(ctx, source.shipModel);
+  const displayName = toNonEmptyString(ctx, source.displayName) || shipModel;
+
+  if (!itemId || !shipModel) {
+    return null;
+  }
+
+  const starterInventory = Array.isArray(source.starterInventory)
+    ? source.starterInventory
+        .map((inventoryEntry) => normalizeMarketShipListingStarterInventoryEntry(ctx, inventoryEntry))
+        .filter((inventoryEntry) => Boolean(inventoryEntry))
+    : [];
+
+  return {
+    listingId: toNonEmptyString(ctx, source.listingId) || `seed-ship-${itemId}`,
+    itemId,
+    shipModel,
+    displayName,
+    tier: Number.isInteger(source.tier) && source.tier > 0 ? source.tier : 1,
+    unitPrice: isFiniteNumber(ctx, source.unitPrice) && source.unitPrice > 0 ? source.unitPrice : 0,
+    quantityAvailable:
+      Number.isInteger(source.quantityAvailable) && source.quantityAvailable >= 0
+        ? source.quantityAvailable
+        : 0,
+    status:
+      toNonEmptyString(ctx, source.status).toLowerCase() === 'available' &&
+      Number.isInteger(source.quantityAvailable) &&
+      source.quantityAvailable > 0
+        ? 'available'
+        : 'sold',
+    starterInventory,
+    createdAt: toNonEmptyString(ctx, source.createdAt) || ctx.getCurrentTimestamp(),
+  };
+}
+
 function normalizeMarket(ctx, market) {
   const source = toPlainObject(ctx, market) || {};
   const marketId = toNonEmptyString(ctx, source.marketId);
@@ -334,6 +391,11 @@ function normalizeMarket(ctx, market) {
     .filter((entry) => Boolean(entry.itemId));
   const ledger = Array.isArray(source.ledger)
     ? source.ledger.map((entry) => normalizeMarketLedgerEntry(ctx, entry))
+    : [];
+  const shipListings = Array.isArray(source.shipListings)
+    ? source.shipListings
+        .map((entry) => normalizeMarketShipListingEntry(ctx, entry))
+        .filter((entry) => Boolean(entry))
     : [];
 
   const result = {
@@ -358,6 +420,7 @@ function normalizeMarket(ctx, market) {
     lastRestockAt: toNonEmptyString(ctx, source.lastRestockAt) || ctx.getCurrentTimestamp(),
     inventory,
     ledger,
+    shipListings,
   };
 
   if (spatial) {
@@ -830,6 +893,7 @@ module.exports = {
   inferMarketSiteType,
   normalizeMarketInventoryEntry,
   normalizeMarketLedgerEntry,
+  normalizeMarketShipListingEntry,
   normalizeMarket,
   normalizeInventoryItemReference,
   normalizeDriveProfile,

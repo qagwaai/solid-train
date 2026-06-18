@@ -42,7 +42,13 @@ Legend: P1 high value, P2 quality-of-life
 
 Use this section for net-new gameplay/product functionality.
 
-1. (open)
+1. FX-14 - Market ship listing discoverability contract
+  - Goal: expose seeded/persisted ship listings through a read surface so clients can render available ships before purchase.
+  - API/events touched: market list/inventory read surfaces (candidate: market-inventory-list or new market-ship-list event).
+  - Files touched: OpenAPI market module + response schemas + corresponding market read handler.
+  - Tests added/changed: contract/schema tests and handler tests covering available/sold listing states.
+  - Behavioral impact: clients can discover ship listings without implicit knowledge of seeded catalog ids.
+  - Notes: follow-up to ship purchase slice; keep strict canonical itemType and ownership semantics.
 
 ## Tracking Template
 
