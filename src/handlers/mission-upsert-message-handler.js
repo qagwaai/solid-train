@@ -10,8 +10,8 @@ const {
   MISSION_STATUS_VALUES,
   MISSION_UNLOCK_SOURCE_STATUSES,
 } = require('../model/mission');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { DEFAULT_SOLAR_SYSTEM_ID } = require('../model/celestial-body-upsert');
+const { attachRequestId } = require('./handler-utils');
 const {
   resolveCorrelationId,
   normalizeRequestIdentity: normalizeCorrelationRequestIdentity,
@@ -53,15 +53,6 @@ class MissionUpsertMessageHandler {
       },
       this.context.toNonEmptyString.bind(this.context)
     );
-  }
-
-  attachRequestId(response, payload) {
-    const requestId = this.context.toNonEmptyString(payload?.requestId);
-    if (requestId) {
-      response.requestId = requestId;
-    }
-
-    return response;
   }
 
   formatMissionForResponse(mission) {
@@ -118,7 +109,7 @@ class MissionUpsertMessageHandler {
     const status = this.context.toNonEmptyString(payload?.status);
 
     if (!playerName || !characterId || !missionId || !status) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'playerName, characterId, missionId, and status are required',
@@ -130,7 +121,7 @@ class MissionUpsertMessageHandler {
     }
 
     if (!MISSION_CATALOG_ID_SET.has(missionId)) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: `missionId must be one of: ${MISSION_CATALOG_IDS.join(', ')}`,
@@ -142,7 +133,7 @@ class MissionUpsertMessageHandler {
     }
 
     if (!MISSION_STATUS_SET.has(status)) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: `status must be one of: ${MISSION_STATUS_VALUES.join(', ')}`,
@@ -155,7 +146,7 @@ class MissionUpsertMessageHandler {
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'Player is not registered',
@@ -168,7 +159,7 @@ class MissionUpsertMessageHandler {
 
     const character = this.context.findCharacter(playerName, characterId);
     if (!character) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'Character is not in player list',
@@ -179,7 +170,7 @@ class MissionUpsertMessageHandler {
       );
     }
 
-    return this.attachRequestId(
+    return attachRequestId(
       {
         success: true,
         message: 'Mission recorded successfully',
@@ -411,14 +402,8 @@ class MissionUpsertMessageHandler {
       );
     };
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = this.buildResponse(payload);
     response.correlationId = correlationId;

@@ -260,6 +260,15 @@ defineDelegatedMethods(MessageHandlerContext.prototype, gameParticipationService
   'detachIdleGameCharacters',
 ]);
 
+/**
+ * Convenience: evict stale characters then refresh presence for the current player.
+ * @param {Object} payload
+ */
+MessageHandlerContext.prototype.refreshCharacterPresence = function refreshCharacterPresence(payload) {
+  this.detachIdleGameCharacters();
+  this.touchJoinedCharacters(payload);
+};
+
 module.exports = {
   MessageHandlerContext,
 };

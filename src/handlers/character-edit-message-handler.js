@@ -1,7 +1,6 @@
 'use strict';
 
 const { CHARACTER_EDIT_RESPONSE_EVENT } = require('../model/character-edit');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const {
   resolveCorrelationId,
   normalizeRequestIdentity,
@@ -91,14 +90,8 @@ class CharacterEditMessageHandler {
     );
     const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = this.buildResponse(payload);
     response.correlationId = correlationId;

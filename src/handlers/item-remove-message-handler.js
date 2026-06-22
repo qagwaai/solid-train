@@ -1,7 +1,6 @@
 'use strict';
 
 const { ITEM_REMOVE_RESPONSE_EVENT } = require('../model/item-remove');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { ITEM_STATE } = require('../model/canonical-items');
 const {
   resolveCorrelationId,
@@ -192,14 +191,8 @@ class ItemRemoveMessageHandler {
     );
     const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const parsed = await this.buildParsed(payload);
     const response = {

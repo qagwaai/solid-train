@@ -165,19 +165,8 @@ class ShipListByOwnerMessageHandler {
       level: 'debug',
     });
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = {
-        success: false,
-        reason: 'INVALID_SESSION',
-        message: INVALID_SESSION_MESSAGE,
-        ships: [],
-      };
-      socket.emit(SHIP_LIST_BY_OWNER_RESPONSE_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(SHIP_LIST_BY_OWNER_RESPONSE_EVENT, response);

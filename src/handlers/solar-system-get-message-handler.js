@@ -1,19 +1,15 @@
 'use strict';
 
 const { SOLAR_SYSTEM_GET_RESPONSE_EVENT } = require('../model/solar-system-get');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { getSolarSystemById } = require('../model/solar-system-registry');
+const { attachRequestId } = require('./handler-utils');
 
 class SolarSystemGetMessageHandler {
   constructor(context) {
     this.context = context;
   }
 
-  attachRequestId(response, payload) {
-    const requestId = this.context.toNonEmptyString(payload?.requestId);
-    if (requestId) response.requestId = requestId;
-    return response;
-  }
+
 
   deriveAsteroidPhysicalCatalog(body) {
     const physicalCatalog =
@@ -84,7 +80,7 @@ class SolarSystemGetMessageHandler {
     const asOf = this.context.toNonEmptyString(payload?.asOf);
 
     if (!playerName || !solarSystemId) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'playerName and solarSystemId are required',
@@ -97,7 +93,7 @@ class SolarSystemGetMessageHandler {
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'Player is not registered',
@@ -110,7 +106,7 @@ class SolarSystemGetMessageHandler {
 
     const summary = getSolarSystemById(solarSystemId);
     if (!summary) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'Unknown solar system',
@@ -129,7 +125,7 @@ class SolarSystemGetMessageHandler {
     );
     const stars = bodies.filter((body) => body.bodyType === 'star');
 
-    return this.attachRequestId(
+    return attachRequestId(
       {
         success: true,
         message: 'Solar system retrieved successfully',
@@ -148,14 +144,8 @@ class SolarSystemGetMessageHandler {
       level: 'debug',
     });
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(SOLAR_SYSTEM_GET_RESPONSE_EVENT, response);

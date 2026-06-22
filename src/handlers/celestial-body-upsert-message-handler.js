@@ -6,7 +6,7 @@ const {
   CELESTIAL_BODY_UPSERT_RESPONSE_EVENT,
   DEFAULT_SOLAR_SYSTEM_ID,
 } = require('../model/celestial-body-upsert');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const { isFiniteNumber, isTriple } = require('./handler-utils');
 
 class CelestialBodyUpsertMessageHandler {
   /**
@@ -16,26 +16,13 @@ class CelestialBodyUpsertMessageHandler {
     this.context = context;
   }
 
-  isFiniteNumber(value) {
-    return typeof value === 'number' && Number.isFinite(value);
-  }
-
-  isTriple(value) {
-    return (
-      Boolean(value) &&
-      this.isFiniteNumber(value.x) &&
-      this.isFiniteNumber(value.y) &&
-      this.isFiniteNumber(value.z)
-    );
-  }
-
   hasValidSpatial(spatial) {
     return (
       Boolean(spatial) &&
       Boolean(this.context.toNonEmptyString(spatial.solarSystemId)) &&
       spatial.frame === 'barycentric' &&
-      this.isTriple(spatial.positionKm) &&
-      this.isFiniteNumber(spatial.epochMs)
+      isTriple(spatial.positionKm) &&
+      isFiniteNumber(spatial.epochMs)
     );
   }
 
@@ -72,11 +59,11 @@ class CelestialBodyUpsertMessageHandler {
       return false;
     }
 
-    if (clusterCenterKm !== undefined && !this.isTriple(clusterCenterKm)) {
+    if (clusterCenterKm !== undefined && !isTriple(clusterCenterKm)) {
       return false;
     }
 
-    if (localOffsetKm !== undefined && !this.isTriple(localOffsetKm)) {
+    if (localOffsetKm !== undefined && !isTriple(localOffsetKm)) {
       return false;
     }
 
@@ -314,14 +301,8 @@ class CelestialBodyUpsertMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('celestial-body-upsert-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = this.buildResponse(payload);
 

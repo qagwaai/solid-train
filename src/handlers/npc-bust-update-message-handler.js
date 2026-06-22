@@ -1,13 +1,13 @@
 'use strict';
 
 const { NPC_BUST_UPDATE_RESPONSE_EVENT } = require('../model/npc-bust-update');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
-const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
+const { resolveCorrelationId } = require('./correlation-metadata');
 const {
   BUST_BLOCKED_SAVE_REASONS,
   buildBlockedSaveResponse,
   buildNpcDescriptorForWrite,
   buildValidationFailureResponse,
+  makeBustRequestIdentity,
 } = require('./bust-lifecycle');
 
 class NpcBustUpdateMessageHandler {
@@ -15,28 +15,11 @@ class NpcBustUpdateMessageHandler {
     this.context = context;
   }
 
-  normalizeRequestIdentity(requestIdentity, payload) {
-    return normalizeRequestIdentity(
-      {
-        requestIdentity,
-        operation: 'npc-bust-update',
-        entityTypeCandidates: ['npc-bust'],
-        containerIdCandidates: [payload?.npcId, '-'],
-      },
-      this.context.toNonEmptyString.bind(this.context)
-    );
-  }
-
   async handle(socket, payload) {
     this.context.logHandlerMessage('npc-bust-update', payload);
     const correlationId = resolveCorrelationId(payload, this.context.toNonEmptyString.bind(this.context));
-    const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
+    const requestIdentity = makeBustRequestIdentity('npc-bust-update', 'npc-bust', [payload?.npcId, '-'], payload?.requestIdentity, this.context.toNonEmptyString.bind(this.context));
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
     const npcId = this.context.toNonEmptyString(payload?.npcId);
     const baseResponse = {

@@ -1,7 +1,6 @@
 'use strict';
 
 const { MARKET_OFFER_CREATE_RESPONSE_EVENT } = require('../model/market-offer-create');
-const { INVALID_SESSION_MESSAGE } = require('../model/session');
 const { normalizeOwnership } = require('./context/ship-ownership');
 
 class MarketOfferCreateMessageHandler {
@@ -105,14 +104,7 @@ class MarketOfferCreateMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-offer-create-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit('invalid-session', response);
-      return response;
-    }
-
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(MARKET_OFFER_CREATE_RESPONSE_EVENT, response);

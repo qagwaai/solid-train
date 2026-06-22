@@ -8,7 +8,7 @@ const {
 const {
   TRACTOR_BEAM_ACTIVATE_RESPONSE_EVENT,
 } = require('../src/model/tractor-beam-activate');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
+
 const {
   createMockSocket,
   createTestContext,
@@ -110,20 +110,4 @@ test('TractorBeamActivateMessageHandler activates when ship has tractor beam equ
   assert.equal(response.activated, true);
   assert.equal(socket.events[0].eventName, TRACTOR_BEAM_ACTIVATE_RESPONSE_EVENT);
 });
-
-test('TractorBeamActivateMessageHandler emits invalid-session when session is invalid', async () => {
-  const context = createTestContext();
-  seedTractorScenario(context, { includeTractorBeam: true });
-  const handler = new TractorBeamActivateMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'PilotOne',
-    sessionKey: 'wrong-session-key',
-    characterId: 'character-1',
-    shipId: 'ship-1',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-});
+

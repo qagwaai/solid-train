@@ -12,7 +12,6 @@ const {
   MARKET_SELL_RESPONSE_EVENT,
   MARKET_SELL_FAILURE_REASONS,
 } = require('../src/model/market-sell');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
@@ -233,27 +232,6 @@ test('MarketSellMessageHandler returns INSUFFICIENT_ITEM_QUANTITY when inventory
 });
 
 // ─── Buy: additional branch coverage ───────────────────────────────────────
-
-test('MarketBuyMessageHandler emits invalid-session for bad session', async () => {
-  const context = createTestContext();
-  seedTraderCharacter(context, { startingBalance: 2000 });
-  const handler = new MarketBuyMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    requestId: 'buy-invalid-qty-1',
-    playerName: 'MarketPilot',
-    characterId: 'character-1',
-    sessionKey: 'wrong-key',
-    marketId: 'sol-ceres-exchange',
-    solarSystemId: 'sol',
-    itemId: 'iron',
-    quantity: 1,
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-});
 
 test('MarketBuyMessageHandler returns INVALID_PAYLOAD and echoes requestId when marketId is missing', async () => {
   const context = createTestContext();
@@ -590,27 +568,6 @@ test('MarketBuyMessageHandler buys successfully after restock interval elapses',
 });
 
 // ─── Sell: additional branch coverage ──────────────────────────────────────
-
-test('MarketSellMessageHandler emits invalid-session for bad session', async () => {
-  const context = createTestContext();
-  seedTraderCharacter(context, { startingBalance: 500 });
-  const handler = new MarketSellMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    requestId: 'sell-invalid-qty-1',
-    playerName: 'MarketPilot',
-    characterId: 'character-1',
-    sessionKey: 'wrong-key',
-    marketId: 'sol-ceres-exchange',
-    solarSystemId: 'sol',
-    itemId: 'iron',
-    quantity: 1,
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-});
 
 test('MarketSellMessageHandler returns INVALID_PAYLOAD and echoes requestId when itemId is missing', async () => {
   const context = createTestContext();

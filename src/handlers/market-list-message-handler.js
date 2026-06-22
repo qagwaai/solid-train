@@ -1,7 +1,6 @@
 'use strict';
 
 const { MARKET_LIST_RESPONSE_EVENT } = require('../model/market-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketListMessageHandler {
   /**
@@ -114,14 +113,8 @@ class MarketListMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-list-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(MARKET_LIST_RESPONSE_EVENT, response);

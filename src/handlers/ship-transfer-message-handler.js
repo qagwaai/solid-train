@@ -62,16 +62,6 @@ class ShipTransferMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-transfer-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = {
-        success: false,
-        reason: 'INVALID_SESSION',
-        message: INVALID_SESSION_MESSAGE,
-        ships: [],
-      };
-      socket.emit(SHIP_TRANSFER_RESPONSE_EVENT, response);
-      return response;
-    }
 
     const shipId = this.context.toNonEmptyString(payload?.shipId);
     if (!shipId) {

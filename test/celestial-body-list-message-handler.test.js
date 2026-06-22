@@ -6,7 +6,6 @@ const {
   CelestialBodyListMessageHandler,
 } = require('../src/handlers/celestial-body-list-message-handler');
 const { CELESTIAL_BODY_LIST_RESPONSE_EVENT } = require('../src/model/celestial-body-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createCelestialBody,
   createMockSocket,
@@ -143,28 +142,6 @@ test('CelestialBodyListMessageHandler validates required search inputs', async (
   assert.deepEqual(response.celestialBodies, []);
   assert.equal('bodies' in response, false);
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_LIST_RESPONSE_EVENT);
-});
-
-test('CelestialBodyListMessageHandler emits invalid session before query', async () => {
-  const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'ScannerOne',
-    sessionKey: 'session-1',
-  });
-
-  const handler = new CelestialBodyListMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'ScannerOne',
-    sessionKey: 'wrong-session',
-    solarSystemId: 'sol',
-    positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 10,
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('CelestialBodyListMessageHandler merges cache results when DB query returns empty', async () => {

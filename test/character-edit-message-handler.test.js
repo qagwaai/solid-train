@@ -4,7 +4,6 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { CharacterEditMessageHandler } = require('../src/handlers/character-edit-message-handler');
 const { CHARACTER_EDIT_RESPONSE_EVENT } = require('../src/model/character-edit');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
@@ -83,28 +82,6 @@ test('CharacterEditMessageHandler handles missing character in player list', asy
   assert.deepEqual(context.getCharacters('edgepilot'), [
     { id: 'character-1', characterName: 'ExistingCharacter' },
   ]);
-});
-
-test('CharacterEditMessageHandler rejects invalid sessions before state changes', async () => {
-  const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'SessionPilot',
-    sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'OriginalName' }],
-  });
-  const handler = new CharacterEditMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'SessionPilot',
-    sessionKey: 'wrong-session',
-    characterId: 'character-1',
-    characterName: 'UpdatedName',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-  assert.equal(context.getCharacters('sessionpilot')[0].characterName, 'OriginalName');
 });
 
 test('CharacterEditMessageHandler updates joined game participant name', async () => {

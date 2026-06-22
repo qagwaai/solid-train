@@ -1,7 +1,7 @@
 'use strict';
 
 const { MARKET_SELL_RESPONSE_EVENT, MARKET_SELL_FAILURE_REASONS } = require('../model/market-sell');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const { buildMarketTransactionResponse } = require('./market-transaction-utils');
 
 class MarketSellMessageHandler {
   /**
@@ -17,62 +17,10 @@ class MarketSellMessageHandler {
    * @returns {Promise<Object>}
    */
   async buildResponse(payload) {
-    const playerName = this.context.toNonEmptyString(payload?.playerName);
-    const characterId = this.context.toNonEmptyString(payload?.characterId);
-    const marketId = this.context.toNonEmptyString(payload?.marketId);
-    const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
-    const itemId = this.context.toNonEmptyString(payload?.itemId).toLowerCase();
-    const quantity = Number.isInteger(payload?.quantity)
-      ? payload.quantity
-      : Number(payload?.quantity);
-    const requestId = this.context.toNonEmptyString(payload?.requestId) || null;
-
-    if (
-      !playerName ||
-      !characterId ||
-      !marketId ||
-      !solarSystemId ||
-      !itemId ||
-      !Number.isInteger(quantity) ||
-      quantity <= 0
-    ) {
-      return {
-        success: false,
-        message:
-          'playerName, characterId, marketId, solarSystemId, itemId, and positive integer quantity are required',
-        reason: MARKET_SELL_FAILURE_REASONS.INVALID_PAYLOAD,
-        requestId,
-      };
-    }
-
-    // Shared market transaction executor keeps buy/sell side effects aligned.
-    const result = await this.context.executeMarketTransactionAsync({
-      playerName,
-      characterId,
-      marketId,
-      solarSystemId,
-      itemId,
-      quantity,
-      direction: 'sell',
-      requestId,
-      transactionId: this.context.toNonEmptyString(payload?.transactionId),
-    });
-
-    if (!result.success) {
-      return {
-        success: false,
-        message: this.messageForReason(result.reason),
-        reason: result.reason,
-        requestId,
-      };
-    }
-
-    return {
-      success: true,
-      message: 'Market sell transaction completed',
-      requestId,
-      transaction: result.transaction,
-    };
+    return buildMarketTransactionResponse(
+      this.context, payload, 'sell', MARKET_SELL_FAILURE_REASONS,
+      this.messageForReason.bind(this)
+    );
   }
 
   /**
@@ -112,14 +60,8 @@ class MarketSellMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-sell-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(MARKET_SELL_RESPONSE_EVENT, response);

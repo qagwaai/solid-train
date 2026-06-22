@@ -6,7 +6,6 @@ const {
   ItemListByLocationMessageHandler,
 } = require('../src/handlers/item-list-by-location-message-handler');
 const { ITEM_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../src/model/item-list-by-location');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
@@ -376,25 +375,6 @@ test('ItemListByLocationMessageHandler rejects invalid limit', async () => {
   assert.equal(response.message, 'limit must be a positive integer when provided');
   assert.deepEqual(response.items, []);
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_LOCATION_RESPONSE_EVENT);
-});
-
-test('ItemListByLocationMessageHandler emits invalid session before query', async () => {
-  const context = createTestContext();
-  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
-
-  const handler = new ItemListByLocationMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'PilotOne',
-    sessionKey: 'wrong-session',
-    solarSystemId: 'sol',
-    positionKm: { x: 0, y: 0, z: 0 },
-    distanceKm: 10,
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('ItemListByLocationMessageHandler merges cache results when DB query returns empty', async () => {

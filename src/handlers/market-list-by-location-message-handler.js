@@ -1,7 +1,6 @@
 'use strict';
 
 const { MARKET_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../model/market-list-by-location');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const {
   createGateLandmarkDescriptorPayload,
   createShipDescriptorPayloads,
@@ -530,14 +529,8 @@ class MarketListByLocationMessageHandler {
       level: 'debug',
     });
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(MARKET_LIST_BY_LOCATION_RESPONSE_EVENT, response);

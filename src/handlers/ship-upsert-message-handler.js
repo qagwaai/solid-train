@@ -1,7 +1,6 @@
 'use strict';
 
 const { SHIP_UPSERT_RESPONSE_EVENT } = require('../model/ship-upsert');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const {
   ITEM_STATE,
   ITEM_DAMAGE_STATUS,
@@ -12,6 +11,7 @@ const {
   resolveCorrelationId,
   normalizeRequestIdentity: normalizeCorrelationRequestIdentity,
 } = require('./correlation-metadata');
+const { isFiniteNumber, isTriple } = require('./handler-utils');
 
 class ShipUpsertMessageHandler {
   /**
@@ -72,26 +72,13 @@ class ShipUpsertMessageHandler {
     };
   }
 
-  isFiniteNumber(value) {
-    return typeof value === 'number' && Number.isFinite(value);
-  }
-
-  isTriple(value) {
-    return (
-      Boolean(value) &&
-      this.isFiniteNumber(value.x) &&
-      this.isFiniteNumber(value.y) &&
-      this.isFiniteNumber(value.z)
-    );
-  }
-
   normalizeSpatial(spatial) {
     if (!spatial) return null;
     const solarSystemId = this.context.toNonEmptyString(spatial.solarSystemId);
     if (!solarSystemId) return null;
     if (spatial.frame !== 'barycentric') return null;
-    if (!this.isTriple(spatial.positionKm)) return null;
-    if (!this.isFiniteNumber(spatial.epochMs)) return null;
+    if (!isTriple(spatial.positionKm)) return null;
+    if (!isFiniteNumber(spatial.epochMs)) return null;
     return {
       solarSystemId,
       frame: 'barycentric',
@@ -102,7 +89,7 @@ class ShipUpsertMessageHandler {
 
   normalizeMotion(motion) {
     if (!motion) return null;
-    if (!this.isTriple(motion.velocityKmPerSec)) return null;
+    if (!isTriple(motion.velocityKmPerSec)) return null;
     return {
       velocityKmPerSec: {
         x: motion.velocityKmPerSec.x,
@@ -633,14 +620,8 @@ class ShipUpsertMessageHandler {
       );
     }
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = this.buildResponse(payload);
     response.correlationId = correlationId;

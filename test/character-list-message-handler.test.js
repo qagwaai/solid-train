@@ -4,33 +4,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { CharacterListMessageHandler } = require('../src/handlers/character-list-message-handler');
 const { CHARACTER_LIST_RESPONSE_EVENT } = require('../src/model/character-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
   seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
-
-test('CharacterListMessageHandler emits invalid session when session is missing', async () => {
-  const context = createTestContext();
-  seedPlayer(context, { playerName: 'CharacterPilot' });
-  const handler = new CharacterListMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'CharacterPilot',
-    sessionKey: 'wrong-session',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.deepEqual(socket.events, [
-    {
-      eventName: INVALID_SESSION_EVENT,
-      payload: { message: INVALID_SESSION_MESSAGE },
-    },
-  ]);
-});
 
 test('CharacterListMessageHandler returns a defensive copy of characters', async () => {
   const context = createTestContext();

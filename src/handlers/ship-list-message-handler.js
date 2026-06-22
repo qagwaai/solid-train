@@ -1,7 +1,6 @@
 'use strict';
 
 const { SHIP_LIST_RESPONSE_EVENT } = require('../model/ship-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class ShipListMessageHandler {
   /**
@@ -99,14 +98,8 @@ class ShipListMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-list-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(SHIP_LIST_RESPONSE_EVENT, response);

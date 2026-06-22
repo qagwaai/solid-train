@@ -1,36 +1,19 @@
 'use strict';
 
 const { CHARACTER_BUST_READ_RESPONSE_EVENT } = require('../model/character-bust-read');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
-const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
+
+const { resolveCorrelationId } = require('./correlation-metadata');
+const { makeBustRequestIdentity } = require('./bust-lifecycle');
 
 class CharacterBustReadMessageHandler {
   constructor(context) {
     this.context = context;
   }
 
-  normalizeRequestIdentity(requestIdentity, payload) {
-    return normalizeRequestIdentity(
-      {
-        requestIdentity,
-        operation: 'character-bust-read',
-        entityTypeCandidates: ['character-bust'],
-        containerIdCandidates: [payload?.characterId, '-'],
-      },
-      this.context.toNonEmptyString.bind(this.context)
-    );
-  }
-
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-bust-read', payload);
     const correlationId = resolveCorrelationId(payload, this.context.toNonEmptyString.bind(this.context));
-    const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
-
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
+    const requestIdentity = makeBustRequestIdentity('character-bust-read', 'character-bust', [payload?.characterId, '-'], payload?.requestIdentity, this.context.toNonEmptyString.bind(this.context));
 
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);

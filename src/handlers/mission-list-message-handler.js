@@ -2,11 +2,11 @@
 
 const { MISSION_LIST_RESPONSE_EVENT } = require('../model/mission-list');
 const { MISSION_CATALOG_IDS, MISSION_STATUS_SET, MISSION_STATUS_VALUES } = require('../model/mission');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const {
   resolveCorrelationId,
   normalizeRequestIdentity: normalizeCorrelationRequestIdentity,
 } = require('./correlation-metadata');
+const { attachRequestId } = require('./handler-utils');
 
 const MISSION_CATALOG_INDEX = new Map(
   MISSION_CATALOG_IDS.map((missionId, index) => [missionId, index])
@@ -87,7 +87,7 @@ class MissionListMessageHandler {
   }
 
   buildInvalidStatusFailure(payload, playerName, characterId, message) {
-    return this.attachRequestId(
+    return attachRequestId(
       {
         success: false,
         message,
@@ -126,7 +126,7 @@ class MissionListMessageHandler {
     const characterId = this.context.toNonEmptyString(payload?.characterId);
 
     if (!playerName || !characterId) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'playerName and characterId are required',
@@ -140,7 +140,7 @@ class MissionListMessageHandler {
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'Player is not registered',
@@ -154,7 +154,7 @@ class MissionListMessageHandler {
 
     const character = this.context.findCharacter(playerName, characterId);
     if (!character) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'Character is not in player list',
@@ -199,7 +199,7 @@ class MissionListMessageHandler {
     const sortedMissions = this.sortMissions(filteredMissions);
 
     try {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: true,
           message: 'Mission list retrieved successfully',
@@ -236,14 +236,8 @@ class MissionListMessageHandler {
     );
     const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     if (!response.success && /unsupported (status|values)/.test(this.context.toNonEmptyString(response.message))) {

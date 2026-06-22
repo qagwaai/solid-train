@@ -6,7 +6,6 @@ const {
   ItemListByContainerMessageHandler,
 } = require('../src/handlers/item-list-by-container-message-handler');
 const { ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT } = require('../src/model/item-list-by-container');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
@@ -168,41 +167,6 @@ test('ItemListByContainerMessageHandler rejects missing containerId', async () =
   assert.equal(response.success, false);
   assert.equal(response.message, 'containerId is required');
   assert.equal(socket.events[0].eventName, ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT);
-});
-
-test('ItemListByContainerMessageHandler rejects unregistered player', async () => {
-  const context = createTestContext();
-
-  const handler = new ItemListByContainerMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'Ghost',
-    sessionKey: 'session-1',
-    containerType: 'ship',
-    containerId: 'ship-1',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-});
-
-test('ItemListByContainerMessageHandler emits invalid-session before query', async () => {
-  const context = createTestContext();
-  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
-
-  const handler = new ItemListByContainerMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'PilotOne',
-    sessionKey: 'wrong-session',
-    containerType: 'ship',
-    containerId: 'ship-1',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('ItemListByContainerMessageHandler merges cache and DB matches for a ship container', async () => {

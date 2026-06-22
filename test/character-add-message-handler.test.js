@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { CharacterAddMessageHandler } = require('../src/handlers/character-add-message-handler');
 const { CHARACTER_ADD_RESPONSE_EVENT } = require('../src/model/character-add');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
+
 const {
   createMockSocket,
   createTestContext,
@@ -187,23 +187,4 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
     quantity: 1,
   });
 });
-
-test('CharacterAddMessageHandler rejects invalid sessions before mutating state', async () => {
-  const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'BuilderPilot',
-    sessionKey: 'session-1',
-  });
-  const handler = new CharacterAddMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'BuilderPilot',
-    sessionKey: 'wrong-session',
-    characterName: 'GhostUnit',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.deepEqual(context.getCharacters('builderpilot'), []);
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-});
+

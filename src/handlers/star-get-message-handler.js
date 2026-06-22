@@ -1,18 +1,12 @@
 'use strict';
 
 const { STAR_GET_RESPONSE_EVENT } = require('../model/star-get');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { getHygStars } = require('../model/hyg-star-catalog');
+const { attachRequestId } = require('./handler-utils');
 
 class StarGetMessageHandler {
   constructor(context) {
     this.context = context;
-  }
-
-  attachRequestId(response, payload) {
-    const requestId = this.context.toNonEmptyString(payload?.requestId);
-    if (requestId) response.requestId = requestId;
-    return response;
   }
 
   async buildResponse(payload) {
@@ -20,7 +14,7 @@ class StarGetMessageHandler {
     const hygId = this.context.toNonEmptyString(payload?.hygId);
 
     if (!playerName || !hygId) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'playerName and hygId are required',
@@ -33,7 +27,7 @@ class StarGetMessageHandler {
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'Player is not registered',
@@ -46,7 +40,7 @@ class StarGetMessageHandler {
 
     const star = getHygStars().find((entry) => entry.hygId === hygId) || null;
     if (!star) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'Star not found',
@@ -57,7 +51,7 @@ class StarGetMessageHandler {
       );
     }
 
-    return this.attachRequestId(
+    return attachRequestId(
       {
         success: true,
         message: 'Star retrieved successfully',
@@ -72,14 +66,7 @@ class StarGetMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('star-get-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
-
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(STAR_GET_RESPONSE_EVENT, response);

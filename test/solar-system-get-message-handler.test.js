@@ -6,7 +6,6 @@ const {
   SolarSystemGetMessageHandler,
 } = require('../src/handlers/solar-system-get-message-handler');
 const { SOLAR_SYSTEM_GET_RESPONSE_EVENT } = require('../src/model/solar-system-get');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createCelestialBody,
@@ -65,22 +64,6 @@ test('SolarSystemGetMessageHandler validates required fields', async () => {
   assert.match(response.message, /required/);
 });
 
-test('SolarSystemGetMessageHandler emits invalid session before query', async () => {
-  const context = createTestContext();
-  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
-
-  const handler = new SolarSystemGetMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'PilotOne',
-    sessionKey: 'wrong',
-    solarSystemId: 'sol',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-});
 
 test('SolarSystemGetMessageHandler returns canonical asteroid fields for mission-generated bodies', async () => {
   const context = createTestContext();

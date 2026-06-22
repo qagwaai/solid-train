@@ -1,13 +1,13 @@
 'use strict';
 
 const { CHARACTER_BUST_UPDATE_RESPONSE_EVENT } = require('../model/character-bust-update');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
-const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
+const { resolveCorrelationId } = require('./correlation-metadata');
 const {
   BUST_BLOCKED_SAVE_REASONS,
   buildBlockedSaveResponse,
   buildCharacterDescriptorForWrite,
   buildValidationFailureResponse,
+  makeBustRequestIdentity,
 } = require('./bust-lifecycle');
 
 class CharacterBustUpdateMessageHandler {
@@ -15,28 +15,11 @@ class CharacterBustUpdateMessageHandler {
     this.context = context;
   }
 
-  normalizeRequestIdentity(requestIdentity, payload) {
-    return normalizeRequestIdentity(
-      {
-        requestIdentity,
-        operation: 'character-bust-update',
-        entityTypeCandidates: ['character-bust'],
-        containerIdCandidates: [payload?.characterId, '-'],
-      },
-      this.context.toNonEmptyString.bind(this.context)
-    );
-  }
-
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-bust-update', payload);
     const correlationId = resolveCorrelationId(payload, this.context.toNonEmptyString.bind(this.context));
-    const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
+    const requestIdentity = makeBustRequestIdentity('character-bust-update', 'character-bust', [payload?.characterId, '-'], payload?.requestIdentity, this.context.toNonEmptyString.bind(this.context));
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);

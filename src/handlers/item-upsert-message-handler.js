@@ -1,7 +1,6 @@
 'use strict';
 
 const { ITEM_UPSERT_RESPONSE_EVENT } = require('../model/item-upsert');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const {
   getItemByType,
   ITEM_CONTAINER_TYPE_VALUES,
@@ -15,6 +14,7 @@ const {
   normalizeRequestIdentity,
 } = require('./correlation-metadata');
 const { normalizeOwnership } = require('./context/ship-ownership');
+const { isFiniteNumber, isTriple } = require('./handler-utils');
 
 const VALID_STATES = ITEM_STATE_VALUES;
 const VALID_DAMAGE_STATUSES = ITEM_DAMAGE_STATUS_VALUES;
@@ -26,19 +26,6 @@ class ItemUpsertMessageHandler {
    */
   constructor(context) {
     this.context = context;
-  }
-
-  isFiniteNumber(value) {
-    return typeof value === 'number' && Number.isFinite(value);
-  }
-
-  isTriple(value) {
-    return (
-      Boolean(value) &&
-      this.isFiniteNumber(value.x) &&
-      this.isFiniteNumber(value.y) &&
-      this.isFiniteNumber(value.z)
-    );
   }
 
   normalizeContainer(container) {
@@ -63,10 +50,10 @@ class ItemUpsertMessageHandler {
 
     const solarSystemId = this.context.toNonEmptyString(spatial.solarSystemId);
     const frame = this.context.toNonEmptyString(spatial.frame);
-    const positionKm = this.isTriple(spatial.positionKm)
+    const positionKm = isTriple(spatial.positionKm)
       ? { x: spatial.positionKm.x, y: spatial.positionKm.y, z: spatial.positionKm.z }
       : null;
-    const epochMs = this.isFiniteNumber(spatial.epochMs) ? spatial.epochMs : null;
+    const epochMs = isFiniteNumber(spatial.epochMs) ? spatial.epochMs : null;
 
     if (!solarSystemId || frame !== 'barycentric' || !positionKm || epochMs === null) {
       return null;
@@ -85,7 +72,7 @@ class ItemUpsertMessageHandler {
       return null;
     }
 
-    const velocityKmPerSec = this.isTriple(motion.velocityKmPerSec)
+    const velocityKmPerSec = isTriple(motion.velocityKmPerSec)
       ? {
           x: motion.velocityKmPerSec.x,
           y: motion.velocityKmPerSec.y,
@@ -292,11 +279,6 @@ class ItemUpsertMessageHandler {
       );
     }
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
     const parsed = this.buildParsed(payload);
 

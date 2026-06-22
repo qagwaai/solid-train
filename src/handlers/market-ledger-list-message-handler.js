@@ -1,7 +1,6 @@
 'use strict';
 
 const { MARKET_LEDGER_LIST_RESPONSE_EVENT } = require('../model/market-ledger-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class MarketLedgerListMessageHandler {
   /**
@@ -97,14 +96,8 @@ class MarketLedgerListMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-ledger-list-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(MARKET_LEDGER_LIST_RESPONSE_EVENT, response);

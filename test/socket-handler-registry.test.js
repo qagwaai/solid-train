@@ -27,8 +27,17 @@ function createMockSocket() {
   };
 }
 
+function createMockContext() {
+  return {
+    async hasValidSessionAsync() {
+      return true;
+    },
+  };
+}
+
 test('registerSocketHandlers injects correlation echo for handlers that omit it', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     characterListMessageHandler: {
       async handle(currentSocket) {
@@ -40,7 +49,7 @@ test('registerSocketHandlers injects correlation echo for handlers that omit it'
         });
       },
     },
-  });
+  }, mockContext);
 
   await socket.trigger('character-list-request', {
     playerName: 'PilotOne',
@@ -65,6 +74,7 @@ test('registerSocketHandlers injects correlation echo for handlers that omit it'
 
 test('registerSocketHandlers preserves existing correlation echo from hardened handlers', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     itemUpsertMessageHandler: {
       async handle(currentSocket) {
@@ -80,7 +90,7 @@ test('registerSocketHandlers preserves existing correlation echo from hardened h
         });
       },
     },
-  });
+  }, mockContext);
 
   await socket.trigger('item-upsert-request', {
     playerName: 'PilotOne',
@@ -105,6 +115,7 @@ test('registerSocketHandlers preserves existing correlation echo from hardened h
 
 test('registerSocketHandlers does not register upsert-item-request anymore', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     itemUpsertMessageHandler: {
       async handle(currentSocket) {
@@ -114,7 +125,7 @@ test('registerSocketHandlers does not register upsert-item-request anymore', asy
         });
       },
     },
-  });
+  }, mockContext);
 
   assert.equal(socket.hasListener('upsert-item-request'), false);
   assert.equal(socket.hasListener('item-upsert-request'), true);
@@ -123,13 +134,14 @@ test('registerSocketHandlers does not register upsert-item-request anymore', asy
 
 test('registerSocketHandlers does not inject correlation fields into invalid-session event', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     shipListMessageHandler: {
       async handle(currentSocket) {
         currentSocket.emit('invalid-session', { message: 'Invalid session' });
       },
     },
-  });
+  }, mockContext);
 
   await socket.trigger('ship-list-request', {
     playerName: 'PilotOne',
@@ -149,6 +161,7 @@ test('registerSocketHandlers does not inject correlation fields into invalid-ses
 
 test('registerSocketHandlers blocks mismatched response channel emissions', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     shipListByOwnerMessageHandler: {
       async handle(currentSocket) {
@@ -158,7 +171,7 @@ test('registerSocketHandlers blocks mismatched response channel emissions', asyn
         });
       },
     },
-  });
+  }, mockContext);
 
   await socket.trigger('ship-list-by-owner-request', {
     playerName: 'PilotOne',
@@ -176,6 +189,7 @@ test('registerSocketHandlers blocks mismatched response channel emissions', asyn
 
 test('registerSocketHandlers keeps correlation metadata isolated across overlapping requests', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     shipListByOwnerMessageHandler: {
       async handle(currentSocket) {
@@ -196,7 +210,7 @@ test('registerSocketHandlers keeps correlation metadata isolated across overlapp
         });
       },
     },
-  });
+  }, mockContext);
 
   const shipRequestPromise = socket.trigger('ship-list-by-owner-request', {
     playerName: 'PilotOne',
@@ -239,6 +253,7 @@ test('registerSocketHandlers keeps correlation metadata isolated across overlapp
 
 test('registerSocketHandlers strictly echoes mission-list request identity on list-missions responses', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     missionListMessageHandler: {
       async handle(currentSocket) {
@@ -255,7 +270,7 @@ test('registerSocketHandlers strictly echoes mission-list request identity on li
         });
       },
     },
-  });
+  }, mockContext);
 
   const requestIdentity = {
     operation: 'mission-list',
@@ -280,6 +295,7 @@ test('registerSocketHandlers strictly echoes mission-list request identity on li
 
 test('registerSocketHandlers includes mission-list requestIdentity on emitted error responses', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     missionListMessageHandler: {
       async handle(currentSocket) {
@@ -290,7 +306,7 @@ test('registerSocketHandlers includes mission-list requestIdentity on emitted er
         });
       },
     },
-  });
+  }, mockContext);
 
   const requestIdentity = {
     operation: 'list-missions',
@@ -315,6 +331,7 @@ test('registerSocketHandlers includes mission-list requestIdentity on emitted er
 
 test('registerSocketHandlers blocks legacy add-mission-response for mission-upsert requests', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     missionUpsertMessageHandler: {
       async handle(currentSocket) {
@@ -328,7 +345,7 @@ test('registerSocketHandlers blocks legacy add-mission-response for mission-upse
         });
       },
     },
-  });
+  }, mockContext);
 
   await socket.trigger('mission-upsert-request', {
     playerName: 'PilotOne',
@@ -349,6 +366,7 @@ test('registerSocketHandlers blocks legacy add-mission-response for mission-upse
 
 test('registerSocketHandlers emits mission-upsert-response for canonical mission-upsert requests only', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     missionUpsertMessageHandler: {
       async handle(currentSocket) {
@@ -362,7 +380,7 @@ test('registerSocketHandlers emits mission-upsert-response for canonical mission
         });
       },
     },
-  });
+  }, mockContext);
 
   await socket.trigger('mission-upsert-request', {
     playerName: 'PilotOne',
@@ -384,6 +402,7 @@ test('registerSocketHandlers emits mission-upsert-response for canonical mission
 
 test('registerSocketHandlers does not register add-mission-request anymore', async () => {
   const socket = createMockSocket();
+  const mockContext = createMockContext();
   registerSocketHandlers(socket, {
     missionUpsertMessageHandler: {
       async handle(currentSocket) {
@@ -397,7 +416,7 @@ test('registerSocketHandlers does not register add-mission-request anymore', asy
         });
       },
     },
-  });
+  }, mockContext);
 
   assert.equal(socket.hasListener('add-mission-request'), false);
   assert.equal(socket.events.length, 0);

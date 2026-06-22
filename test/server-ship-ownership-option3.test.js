@@ -19,6 +19,7 @@ const {
   SHIP_UPSERT_REQUEST_EVENT,
   SHIP_UPSERT_RESPONSE_EVENT,
 } = require('../src/model/ship-upsert');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 
 const SHIP_LIST_BY_OWNER_REQUEST_EVENT = 'ship-list-by-owner-request';
 const SHIP_LIST_BY_OWNER_RESPONSE_EVENT = 'ship-list-by-owner-response';
@@ -701,8 +702,8 @@ test('Option3 server negative: invalid session/identity on ship-list-by-owner an
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    // Try ship-list-by-owner with invalid session
-    const listPromise = waitForEvent(client, SHIP_LIST_BY_OWNER_RESPONSE_EVENT);
+    // Try ship-list-by-owner with invalid session (registry blocks before handler)
+    const listPromise = waitForEvent(client, INVALID_SESSION_EVENT);
     client.emit(SHIP_LIST_BY_OWNER_REQUEST_EVENT, {
       playerName: 'InvalidSessionPilot',
       sessionKey: 'not-a-real-session',
@@ -715,21 +716,10 @@ test('Option3 server negative: invalid session/identity on ship-list-by-owner an
       },
     });
     const listResponse = await withTimeout(listPromise, 1200, 'invalid session list-by-owner');
-    assert.deepEqual(listResponse, {
-      success: false,
-      reason: 'INVALID_SESSION',
-      message: 'Invalid session',
-      ships: [],
-      correlationId: 'missing-correlation-id',
-      requestIdentity: {
-        operation: 'ship-list-by-owner',
-        entityType: 'unknown',
-        containerId: '-',
-      },
-    });
+    assert.deepEqual(listResponse, { message: INVALID_SESSION_MESSAGE });
 
-    // Try ship-transfer with invalid session
-    const transferPromise = waitForEvent(client, SHIP_TRANSFER_RESPONSE_EVENT);
+    // Try ship-transfer with invalid session (registry blocks before handler)
+    const transferPromise = waitForEvent(client, INVALID_SESSION_EVENT);
     client.emit(SHIP_TRANSFER_REQUEST_EVENT, {
       playerName: 'InvalidSessionPilot',
       sessionKey: 'not-a-real-session',
@@ -750,18 +740,7 @@ test('Option3 server negative: invalid session/identity on ship-list-by-owner an
       },
     });
     const transferResponse = await withTimeout(transferPromise, 1200, 'invalid session transfer');
-    assert.deepEqual(transferResponse, {
-      success: false,
-      reason: 'INVALID_SESSION',
-      message: 'Invalid session',
-      ships: [],
-      correlationId: 'missing-correlation-id',
-      requestIdentity: {
-        operation: 'ship-transfer',
-        entityType: 'unknown',
-        containerId: 'fake-ship',
-      },
-    });
+    assert.deepEqual(transferResponse, { message: INVALID_SESSION_MESSAGE });
   } finally {
     await closeClient(client);
     io.close();

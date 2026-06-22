@@ -1,7 +1,6 @@
 'use strict';
 
 const { LAUNCH_ITEM_RESPONSE_EVENT } = require('../model/launch-item');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const {
   ITEM_STATE,
   ITEM_DAMAGE_STATUS,
@@ -714,14 +713,8 @@ class LaunchItemMessageHandler {
       itemType: this.context.toNonEmptyString(payload?.itemType),
     });
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     try {
       const parsed = await this.buildParsed(payload);

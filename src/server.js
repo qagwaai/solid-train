@@ -292,7 +292,7 @@ function createServer(options = {}) {
       solarSystemGetMessageHandler,
       starListMessageHandler,
       starGetMessageHandler,
-    });
+    }, messageHandlerContext);
 
   });
 

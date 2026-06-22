@@ -4,7 +4,6 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { GameJoinMessageHandler } = require('../src/handlers/game-join-message-handler');
 const { GAME_JOIN_RESPONSE_EVENT } = require('../src/model/game-join');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
@@ -67,22 +66,3 @@ test('GameJoinMessageHandler handles character missing from player list', async 
   assert.equal(context.getCharacters('edgepilot')[0].inGame, undefined);
 });
 
-test('GameJoinMessageHandler emits invalid session when session is not valid', async () => {
-  const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'SessionPilot',
-    sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
-  });
-  const handler = new GameJoinMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'SessionPilot',
-    sessionKey: 'wrong-session',
-    characterId: 'character-1',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-});

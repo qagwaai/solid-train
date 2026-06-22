@@ -4,7 +4,7 @@
   "description": "Simple Socket.IO server with Node.js best practices",
   "main": "src/server.js",
   "scripts": {
-    "test": "npx --yes @apidevtools/swagger-cli validate api/openapi.yaml && node --test",
+    "test": "npx --yes @apidevtools/swagger-cli validate api/openapi.yaml && node scripts/lint-handler-patterns.js && node --test",
     "start": "cross-env MONGODB_URI=mongodb://localhost:27017/solid-train node src/server.js",
     "start:dev": "cross-env LOG_LEVEL=debug MONGODB_URI=mongodb://localhost:27017/solid-train node src/server.js",
     "dev": "node --watch src/server.js",

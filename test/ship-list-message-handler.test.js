@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { ShipListMessageHandler } = require('../src/handlers/ship-list-message-handler');
 const { SHIP_LIST_RESPONSE_EVENT } = require('../src/model/ship-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
+
 const {
   createMockSocket,
   createTestContext,
@@ -227,26 +227,6 @@ test('ShipListMessageHandler emits expendable dart drone as launchable even when
   assert.equal(response.ships[0].inventory.length, 1);
   assert.equal(response.ships[0].inventory[0].itemType, 'expendable-dart-drone');
   assert.equal(response.ships[0].inventory[0].launchable, true);
-});
-
-test('ShipListMessageHandler emits invalid session when session is not valid', async () => {
-  const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'SessionPilot',
-    sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
-  });
-  const handler = new ShipListMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'SessionPilot',
-    characterId: 'character-1',
-    sessionKey: 'wrong-session',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('ShipListMessageHandler returns ships with kinematics data', async () => {

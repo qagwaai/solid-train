@@ -1,20 +1,14 @@
 'use strict';
 
 const { SOLAR_SYSTEM_LIST_RESPONSE_EVENT } = require('../model/solar-system-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { getSolarSystemRegistry } = require('../model/solar-system-registry');
+const { attachRequestId } = require('./handler-utils');
 
 const VALID_SOURCES = new Set(['curated', 'procedural']);
 
 class SolarSystemListMessageHandler {
   constructor(context) {
     this.context = context;
-  }
-
-  attachRequestId(response, payload) {
-    const requestId = this.context.toNonEmptyString(payload?.requestId);
-    if (requestId) response.requestId = requestId;
-    return response;
   }
 
   /**
@@ -25,7 +19,7 @@ class SolarSystemListMessageHandler {
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     if (!playerName) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'playerName is required',
@@ -38,7 +32,7 @@ class SolarSystemListMessageHandler {
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'Player is not registered',
@@ -52,7 +46,7 @@ class SolarSystemListMessageHandler {
     const registry = getSolarSystemRegistry();
     const source = this.context.toNonEmptyString(payload?.source).toLowerCase();
     if (source && !VALID_SOURCES.has(source)) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: `source must be one of: ${[...VALID_SOURCES].join(', ')}`,
@@ -99,7 +93,7 @@ class SolarSystemListMessageHandler {
       filtered.map((system) => this.enrichSystemWithCounts(system))
     );
 
-    return this.attachRequestId(
+    return attachRequestId(
       {
         success: true,
         message: enrichedSystems.length
@@ -151,14 +145,8 @@ class SolarSystemListMessageHandler {
       level: 'debug',
     });
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(SOLAR_SYSTEM_LIST_RESPONSE_EVENT, response);

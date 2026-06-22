@@ -9,7 +9,6 @@ const {
   CELESTIAL_BODY_UPSERT_RESPONSE_EVENT,
   DEFAULT_SOLAR_SYSTEM_ID,
 } = require('../src/model/celestial-body-upsert');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createCelestialBody,
   createMockSocket,
@@ -64,28 +63,6 @@ test('CelestialBodyUpsertMessageHandler validates createdByCharacterId', async (
   assert.equal(response.message, 'Character is not in player list');
   assert.equal(context.getCelestialBody('cb-1'), null);
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
-});
-
-test('CelestialBodyUpsertMessageHandler emits invalid session before mutation', async () => {
-  const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'ScannerOne',
-    sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
-  });
-
-  const handler = new CelestialBodyUpsertMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'ScannerOne',
-    sessionKey: 'wrong-session',
-    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' }),
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(context.getCelestialBody('cb-1'), null);
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('CelestialBodyUpsertMessageHandler supports unscanned mission-seeded asteroid creation', async () => {

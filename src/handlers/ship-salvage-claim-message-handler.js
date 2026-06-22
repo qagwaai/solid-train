@@ -1,7 +1,6 @@
 'use strict';
 
 const { SHIP_SALVAGE_CLAIM_RESPONSE_EVENT } = require('../model/ship-salvage-claim');
-const { INVALID_SESSION_MESSAGE } = require('../model/session');
 const { normalizeOwnership } = require('./context/ship-ownership');
 
 class ShipSalvageClaimMessageHandler {
@@ -167,14 +166,7 @@ class ShipSalvageClaimMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-salvage-claim-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit('invalid-session', response);
-      return response;
-    }
-
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(SHIP_SALVAGE_CLAIM_RESPONSE_EVENT, response);

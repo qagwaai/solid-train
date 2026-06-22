@@ -54,6 +54,7 @@ const {
   normalizeRequestIdentity,
   applyCorrelationEcho,
 } = require('./correlation-metadata');
+const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { createLogger } = require('../logging/logger');
 
 const socketLogger = createLogger({ minLevel: process.env.LOG_LEVEL || 'info' });
@@ -271,8 +272,8 @@ function createScopedSocket(entry, socket, correlationMetadata) {
 
 // Central table for request-event to handler bindings used by server socket wiring.
 const SOCKET_HANDLER_REGISTRY = [
-  { event: REGISTER_EVENT, handlerKey: 'registerMessageHandler', errorLabel: 'Register' },
-  { event: LOGIN_EVENT, handlerKey: 'loginMessageHandler', errorLabel: 'Login' },
+  { event: REGISTER_EVENT, handlerKey: 'registerMessageHandler', errorLabel: 'Register', requiresSession: false },
+  { event: LOGIN_EVENT, handlerKey: 'loginMessageHandler', errorLabel: 'Login', requiresSession: false },
   {
     event: CHARACTER_LIST_REQUEST_EVENT,
     handlerKey: 'characterListMessageHandler',
@@ -489,7 +490,7 @@ const SOCKET_HANDLER_REGISTRY = [
  * @param {import('socket.io').Socket} socket
  * @param {Record<string, { handle: Function }>} handlersByKey
  */
-function registerSocketHandlers(socket, handlersByKey) {
+function registerSocketHandlers(socket, handlersByKey, context) {
   for (const entry of SOCKET_HANDLER_REGISTRY) {
     const handler = handlersByKey[entry.handlerKey];
     if (!handler || typeof handler.handle !== 'function') {
@@ -499,6 +500,15 @@ function registerSocketHandlers(socket, handlersByKey) {
     socket.on(entry.event, async (payload) => {
       const correlationMetadata = resolveCorrelationMetadata(entry, payload);
       const scopedSocket = createScopedSocket(entry, socket, correlationMetadata);
+
+      // Session guard: enforced centrally for all handlers except those that explicitly opt out.
+      if (entry.requiresSession !== false) {
+        if (!(await context.hasValidSessionAsync(payload))) {
+          const response = { message: INVALID_SESSION_MESSAGE };
+          scopedSocket.emit(INVALID_SESSION_EVENT, response);
+          return;
+        }
+      }
 
       try {
         await handler.handle(scopedSocket, payload);

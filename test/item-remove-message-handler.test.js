@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { ItemRemoveMessageHandler } = require('../src/handlers/item-remove-message-handler');
 const { ITEM_REMOVE_RESPONSE_EVENT } = require('../src/model/item-remove');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
+
 const {
   createMockSocket,
   createTestContext,
@@ -130,21 +130,4 @@ test('ItemRemoveMessageHandler removes inventory reference and marks item destro
   const character = context.findCharacter('PilotOne', 'character-1');
   assert.equal(character.ships[0].inventory.length, 0);
 });
-
-test('ItemRemoveMessageHandler emits invalid-session when session is invalid', async () => {
-  const context = createTestContext();
-  seedRemovalScenario(context);
-  const handler = new ItemRemoveMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'PilotOne',
-    sessionKey: 'wrong-session-key',
-    characterId: 'character-1',
-    shipId: 'ship-1',
-    itemId: 'item-1',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-});
+

@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { ShipUpsertMessageHandler } = require('../src/handlers/ship-upsert-message-handler');
 const { SHIP_UPSERT_RESPONSE_EVENT } = require('../src/model/ship-upsert');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
+
 const {
   createMockSocket,
   createTestContext,
@@ -476,46 +476,6 @@ test('ShipUpsertMessageHandler accepts hydrated ship.inventory rows with id and 
     },
   ]);
   assert.equal(socket.events[0].eventName, SHIP_UPSERT_RESPONSE_EVENT);
-});
-
-test('ShipUpsertMessageHandler emits invalid session before mutation', async () => {
-  const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'SessionPilot',
-    sessionKey: 'session-1',
-    characters: [
-      {
-        id: 'character-1',
-        characterName: 'RangerOne',
-        ships: [
-          {
-            id: 'ship-1',
-            shipName: 'Scout Ship',
-            createdAt: '2026-04-17T00:00:00.000Z',
-            spatial: {
-              solarSystemId: 'sol',
-              frame: 'barycentric',
-              positionKm: { x: 0, y: 0, z: 0 },
-              epochMs: 0,
-            },
-          },
-        ],
-      },
-    ],
-  });
-
-  const handler = new ShipUpsertMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'SessionPilot',
-    characterId: 'character-1',
-    sessionKey: 'wrong-session',
-    ship: createShipUpdate(),
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('ShipUpsertMessageHandler updates ship model and tier', async () => {

@@ -1,7 +1,6 @@
 'use strict';
 
 const { SHIP_PIRACY_SEIZE_RESPONSE_EVENT } = require('../model/ship-piracy-seize');
-const { INVALID_SESSION_MESSAGE } = require('../model/session');
 const { normalizeOwnership } = require('./context/ship-ownership');
 
 class ShipPiracySeizeMessageHandler {
@@ -140,14 +139,7 @@ class ShipPiracySeizeMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-piracy-seize-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit('invalid-session', response);
-      return response;
-    }
-
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(SHIP_PIRACY_SEIZE_RESPONSE_EVENT, response);

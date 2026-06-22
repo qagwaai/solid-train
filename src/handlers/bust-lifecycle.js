@@ -1,6 +1,7 @@
 'use strict';
 
 const { createHash } = require('node:crypto');
+const { normalizeRequestIdentity } = require('./correlation-metadata');
 const {
   BUST_SCHEMA_VERSION,
   BUST_FACE_SHAPE_VALUES,
@@ -329,6 +330,27 @@ function buildBlockedSaveResponse(message, reason, baseResponse = {}, options = 
   };
 }
 
+/**
+ * Build the standard requestIdentity object for bust handlers.
+ * @param {string} operation  e.g. 'character-bust-create'
+ * @param {string} entityType e.g. 'character-bust' or 'npc-bust'
+ * @param {string[]} containerIdCandidates ordered list of candidate container ids
+ * @param {Object} requestIdentity raw requestIdentity from payload
+ * @param {function} toNonEmptyString bound from context
+ * @returns {Object}
+ */
+function makeBustRequestIdentity(operation, entityType, containerIdCandidates, requestIdentity, toNonEmptyString) {
+  return normalizeRequestIdentity(
+    {
+      requestIdentity,
+      operation,
+      entityTypeCandidates: [entityType],
+      containerIdCandidates,
+    },
+    toNonEmptyString
+  );
+}
+
 module.exports = {
   BUST_SCHEMA_VERSION,
   BUST_BLOCKED_SAVE_REASONS,
@@ -337,4 +359,5 @@ module.exports = {
   buildCharacterDescriptorForWrite,
   buildNpcDescriptorForWrite,
   buildValidationFailureResponse,
+  makeBustRequestIdentity,
 };

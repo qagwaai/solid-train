@@ -1,7 +1,6 @@
 'use strict';
 
 const { SHIP_LIST_BY_NPC_OWNER_RESPONSE_EVENT } = require('../model/ship-list-by-npc-owner');
-const { INVALID_SESSION_MESSAGE } = require('../model/session');
 const { normalizeOwnership } = require('./context/ship-ownership');
 
 class ShipListByNpcOwnerMessageHandler {
@@ -90,14 +89,7 @@ class ShipListByNpcOwnerMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-list-by-npc-owner-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit('invalid-session', response);
-      return response;
-    }
-
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(SHIP_LIST_BY_NPC_OWNER_RESPONSE_EVENT, response);

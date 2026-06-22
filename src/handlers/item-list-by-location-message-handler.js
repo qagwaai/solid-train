@@ -2,6 +2,7 @@
 
 const { ITEM_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../model/item-list-by-location');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const { isFiniteNumber, isTriple } = require('./handler-utils');
 
 class ItemListByLocationMessageHandler {
   /**
@@ -11,21 +12,8 @@ class ItemListByLocationMessageHandler {
     this.context = context;
   }
 
-  isFiniteNumber(value) {
-    return typeof value === 'number' && Number.isFinite(value);
-  }
-
-  isTriple(value) {
-    return (
-      Boolean(value) &&
-      this.isFiniteNumber(value.x) &&
-      this.isFiniteNumber(value.y) &&
-      this.isFiniteNumber(value.z)
-    );
-  }
-
   toPositiveNumberOrZero(value) {
-    if (!this.isFiniteNumber(value) || value < 0) {
+    if (!isFiniteNumber(value) || value < 0) {
       return null;
     }
 
@@ -53,7 +41,7 @@ class ItemListByLocationMessageHandler {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
     const positionKm =
-      payload?.positionKm && this.isTriple(payload.positionKm)
+      payload?.positionKm && isTriple(payload.positionKm)
         ? {
             x: payload.positionKm.x,
             y: payload.positionKm.y,
@@ -139,15 +127,7 @@ class ItemListByLocationMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-list-by-location-request', payload);
-
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
-
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(ITEM_LIST_BY_LOCATION_RESPONSE_EVENT, response);

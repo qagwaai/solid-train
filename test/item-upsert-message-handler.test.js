@@ -4,7 +4,6 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { ItemUpsertMessageHandler } = require('../src/handlers/item-upsert-message-handler');
 const { ITEM_UPSERT_RESPONSE_EVENT } = require('../src/model/item-upsert');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMockSocket,
   createTestContext,
@@ -385,39 +384,6 @@ test('ItemUpsertMessageHandler rejects invalid container', async () => {
   assert.equal(response.success, false);
   assert.match(response.message, /item\.container must include/);
   assert.equal(socket.events[0].eventName, ITEM_UPSERT_RESPONSE_EVENT);
-});
-
-test('ItemUpsertMessageHandler rejects unregistered player', async () => {
-  const context = createTestContext();
-
-  const handler = new ItemUpsertMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'Ghost',
-    sessionKey: 'session-1',
-    item: createItemPayload(),
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-});
-
-test('ItemUpsertMessageHandler emits invalid-session before mutation', async () => {
-  const context = createTestContext();
-  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
-
-  const handler = new ItemUpsertMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'PilotOne',
-    sessionKey: 'wrong-session',
-    item: createItemPayload({ id: '' }),
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('ItemUpsertMessageHandler adds created ship-contained items to ship inventory references', async () => {

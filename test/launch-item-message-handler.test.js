@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const { LaunchItemMessageHandler } = require('../src/handlers/launch-item-message-handler');
 const { ITEM_STATE, ITEM_DAMAGE_STATUS } = require('../src/model/canonical-items');
 const { LAUNCH_ITEM_RESPONSE_EVENT } = require('../src/model/launch-item');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
+
 const {
   createMockSocket,
   createTestContext,
@@ -424,24 +424,6 @@ test('LaunchItemMessageHandler rejects missing target celestial body', async () 
   assert.equal(response.success, false);
   assert.equal(response.message, 'Target celestial body does not exist');
   assert.equal(socket.events[0].eventName, LAUNCH_ITEM_RESPONSE_EVENT);
-});
-
-test('LaunchItemMessageHandler emits invalid session before processing', async () => {
-  const context = createTestContext();
-  seedLaunchScenario(context);
-
-  const handler = new LaunchItemMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(
-    socket,
-    createLaunchPayload({
-      sessionKey: 'wrong-session',
-    })
-  );
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('LaunchItemMessageHandler resolves launch against an unscanned target asteroid', async () => {

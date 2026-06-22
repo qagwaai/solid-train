@@ -1,24 +1,18 @@
 'use strict';
 
 const { STAR_LIST_RESPONSE_EVENT } = require('../model/star-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { getHygStars } = require('../model/hyg-star-catalog');
+const { attachRequestId } = require('./handler-utils');
 
 class StarListMessageHandler {
   constructor(context) {
     this.context = context;
   }
 
-  attachRequestId(response, payload) {
-    const requestId = this.context.toNonEmptyString(payload?.requestId);
-    if (requestId) response.requestId = requestId;
-    return response;
-  }
-
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     if (!playerName) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'playerName is required',
@@ -31,7 +25,7 @@ class StarListMessageHandler {
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return this.attachRequestId(
+      return attachRequestId(
         {
           success: false,
           message: 'Player is not registered',
@@ -61,7 +55,7 @@ class StarListMessageHandler {
       Number.isInteger(payload?.limit) && payload.limit > 0 ? Math.min(payload.limit, 5000) : 0;
     if (limit) stars = stars.slice(0, limit);
 
-    return this.attachRequestId(
+    return attachRequestId(
       {
         success: true,
         message: stars.length ? 'Star list retrieved successfully' : 'No stars matched the query',
@@ -75,14 +69,7 @@ class StarListMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('star-list-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
-
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(STAR_LIST_RESPONSE_EVENT, response);

@@ -2,7 +2,7 @@
 
 const { CELESTIAL_BODY_LIST_RESPONSE_EVENT } = require('../model/celestial-body-list');
 const { CELESTIAL_BODY_STATE_VALUES } = require('../model/celestial-body-upsert');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
+const { isFiniteNumber, isTriple } = require('./handler-utils');
 
 class CelestialBodyListMessageHandler {
   /**
@@ -12,21 +12,8 @@ class CelestialBodyListMessageHandler {
     this.context = context;
   }
 
-  isFiniteNumber(value) {
-    return typeof value === 'number' && Number.isFinite(value);
-  }
-
-  isTriple(value) {
-    return (
-      Boolean(value) &&
-      this.isFiniteNumber(value.x) &&
-      this.isFiniteNumber(value.y) &&
-      this.isFiniteNumber(value.z)
-    );
-  }
-
   toPositiveNumberOrZero(value) {
-    if (!this.isFiniteNumber(value) || value < 0) {
+    if (!isFiniteNumber(value) || value < 0) {
       return null;
     }
 
@@ -74,7 +61,7 @@ class CelestialBodyListMessageHandler {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
     const positionKm =
-      payload?.positionKm && this.isTriple(payload.positionKm)
+      payload?.positionKm && isTriple(payload.positionKm)
         ? {
             x: payload.positionKm.x,
             y: payload.positionKm.y,
@@ -211,14 +198,8 @@ class CelestialBodyListMessageHandler {
       level: 'debug',
     });
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
-    this.context.detachIdleGameCharacters();
-    this.context.touchJoinedCharacters(payload);
+    this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
     socket.emit(CELESTIAL_BODY_LIST_RESPONSE_EVENT, response);

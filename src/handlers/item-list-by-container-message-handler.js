@@ -1,7 +1,6 @@
 'use strict';
 
 const { ITEM_LIST_BY_CONTAINER_RESPONSE_EVENT } = require('../model/item-list-by-container');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { ITEM_CONTAINER_TYPE_VALUES } = require('../model/canonical-items');
 
 const VALID_CONTAINER_TYPES = ITEM_CONTAINER_TYPE_VALUES;
@@ -23,11 +22,6 @@ class ItemListByContainerMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-list-by-container-request', payload);
 
-    if (!(await this.context.hasValidSessionAsync(payload))) {
-      const response = { message: INVALID_SESSION_MESSAGE };
-      socket.emit(INVALID_SESSION_EVENT, response);
-      return response;
-    }
 
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const player = this.context.getPlayer(playerName);

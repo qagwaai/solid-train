@@ -6,7 +6,6 @@ const {
   SolarSystemListMessageHandler,
 } = require('../src/handlers/solar-system-list-message-handler');
 const { SOLAR_SYSTEM_LIST_RESPONSE_EVENT } = require('../src/model/solar-system-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createCelestialBody,
   createMarket,
@@ -88,21 +87,6 @@ test('SolarSystemListMessageHandler rejects invalid source values', async () => 
   assert.match(response.message, /source must be one of/);
 });
 
-test('SolarSystemListMessageHandler emits invalid session before query', async () => {
-  const context = createTestContext();
-  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
-
-  const handler = new SolarSystemListMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'PilotOne',
-    sessionKey: 'wrong-session',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
-});
 
 test('SolarSystemListMessageHandler echoes requestId when supplied', async () => {
   const context = createTestContext();

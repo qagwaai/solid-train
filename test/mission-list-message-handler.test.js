@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { MissionListMessageHandler } = require('../src/handlers/mission-list-message-handler');
 const { MISSION_LIST_RESPONSE_EVENT } = require('../src/model/mission-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
+
 const {
   createMockSocket,
   createTestContext,
@@ -109,33 +109,6 @@ test('MissionListMessageHandler echoes requestId when present', async () => {
   assert.equal(response.success, true);
   assert.equal(response.requestId, 'req-list-123');
   assert.ok(Array.isArray(response.missions));
-});
-
-test('MissionListMessageHandler emits invalid session for wrong key', async () => {
-  const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'MissionPilot',
-    sessionKey: 'session-1',
-    characters: [
-      {
-        id: 'character-1',
-        characterName: 'RangerOne',
-        missions: [{ missionId: 'The First Target', status: 'available' }],
-      },
-    ],
-  });
-
-  const handler = new MissionListMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'MissionPilot',
-    characterId: 'character-1',
-    sessionKey: 'wrong-session',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('MissionListMessageHandler rejects unknown requested statuses with terminal failure', async () => {

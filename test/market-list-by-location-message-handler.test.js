@@ -6,7 +6,6 @@ const {
   MarketListByLocationMessageHandler,
 } = require('../src/handlers/market-list-by-location-message-handler');
 const { MARKET_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../src/model/market-list-by-location');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
 const {
   createMarket,
   createMockSocket,
@@ -229,28 +228,6 @@ test('MarketListByLocationMessageHandler validates required fields and locationT
 
   assert.equal(socket.events[0].eventName, MARKET_LIST_BY_LOCATION_RESPONSE_EVENT);
   assert.equal(socket.events[1].eventName, MARKET_LIST_BY_LOCATION_RESPONSE_EVENT);
-});
-
-test('MarketListByLocationMessageHandler emits invalid session before query', async () => {
-  const context = createTestContext();
-  seedPlayer(context, {
-    playerName: 'MarketPilot',
-    sessionKey: 'session-1',
-  });
-
-  const handler = new MarketListByLocationMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'MarketPilot',
-    sessionKey: 'bad-session',
-    solarSystemId: 'sol',
-    positionKm: { x: 0, y: 0, z: 0 },
-    distanceAu: 0.001,
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('MarketListByLocationMessageHandler only returns markets in the requested solar system', async () => {

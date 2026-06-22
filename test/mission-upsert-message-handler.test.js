@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { MissionUpsertMessageHandler } = require('../src/handlers/mission-upsert-message-handler');
 const { MISSION_UPSERT_RESPONSE_EVENT } = require('../src/model/mission-upsert');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../src/model/session');
+
 const {
   createMockSocket,
   createTestContext,
@@ -188,26 +188,6 @@ test('MissionUpsertMessageHandler rejects unknown character', async () => {
   assert.equal(response.success, false);
   assert.equal(response.message, 'Character is not in player list');
   assert.equal(socket.events[0].eventName, MISSION_UPSERT_RESPONSE_EVENT);
-});
-
-test('MissionUpsertMessageHandler emits invalid session before mutation', async () => {
-  const context = createTestContext();
-  seedMissionPilot(context, []);
-
-  const handler = new MissionUpsertMessageHandler(context);
-  const socket = createMockSocket();
-
-  const response = await handler.handle(socket, {
-    playerName: 'MissionPilot',
-    characterId: 'character-1',
-    missionId: 'first-target',
-    status: 'active',
-    sessionKey: 'wrong-session',
-  });
-
-  assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-  assert.equal(context.getCharacters('missionpilot')[0].missions.length, 0);
-  assert.equal(socket.events[0].eventName, INVALID_SESSION_EVENT);
 });
 
 test('MissionUpsertMessageHandler handles all canonical status values', async () => {
