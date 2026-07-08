@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Stellar API - Ship
-  version: 3.1.0
+  version: 3.1.1
 servers:
   - url: http://localhost:3000
 tags:
@@ -397,6 +397,15 @@ paths:
                       factionId: null
                     ships:
                       - id: ship-1
+                        model: Scavenger Pod
+                        spatial:
+                          solarSystemId: sol
+                          frame: barycentric
+                          positionKm:
+                            x: 0
+                            y: 0
+                            z: 0
+                          epochMs: 0
                         inventory:
                           - id: character-1-ship-1-item-1
                             itemType: expendable-dart-drone

@@ -39,9 +39,28 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "inventory"],
+        "required": ["id", "model", "spatial", "inventory"],
         "properties": {
           "id": { "type": "string" },
+          "model": { "type": "string" },
+          "spatial": {
+            "type": "object",
+            "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+            "properties": {
+              "solarSystemId": { "type": "string" },
+              "frame": { "type": "string", "enum": ["barycentric"] },
+              "positionKm": {
+                "type": "object",
+                "required": ["x", "y", "z"],
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" },
+                  "z": { "type": "number" }
+                }
+              },
+              "epochMs": { "type": "number" }
+            }
+          },
           "inventory": {
             "type": "array",
             "items": {

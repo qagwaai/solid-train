@@ -1,7 +1,7 @@
 {
   "checksums": {
-    "openApiSha256": "bfc8d6ba11cea695bd2f7cb89a7441a7777d7a1fe3f009096510dc5d12a9d4f0",
-    "schemaBundleSha256": "fc6b3570fd70b178beb817643b7d9882301f6cc5ee5d9cf8f016392fd0dbd597"
+    "openApiSha256": "ee35274b964712b76562e9cfb465636e203f4dd6a67af0a8793af64b808f868b",
+    "schemaBundleSha256": "db8224b13bded8e86d74c74398abed12d87d496d5c8c2314c6959c56ae06a2b5"
   },
   "components": {
     "schemaRefMap": {
@@ -7337,6 +7337,9 @@
                   },
                   "type": "array"
                 },
+                "model": {
+                  "type": "string"
+                },
                 "ownership": {
                   "additionalProperties": true,
                   "properties": {
@@ -7431,9 +7434,40 @@
                     "type": "object"
                   },
                   "type": "array"
+                },
+                "spatial": {
+                  "properties": {
+                    "epochMs": {
+                      "type": "number"
+                    },
+                    "frame": {
+                      "enum": ["barycentric"],
+                      "type": "string"
+                    },
+                    "positionKm": {
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        },
+                        "z": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["x", "y", "z"],
+                      "type": "object"
+                    },
+                    "solarSystemId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
+                  "type": "object"
                 }
               },
-              "required": ["id", "inventory"],
+              "required": ["id", "model", "spatial", "inventory"],
               "type": "object"
             },
             "type": "array"

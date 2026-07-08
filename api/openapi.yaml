@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Stellar API and Message Contract
-  version: 3.1.2
+  version: 3.1.3
   description: >
     Machine-readable contract for HTTP endpoints and Socket.IO message payloads.
     Socket operations are modeled as virtual POST operations under /socket/* so the
