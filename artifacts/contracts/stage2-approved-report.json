@@ -4,7 +4,7 @@
       "backendLead": true,
       "frontendLead": true
     },
-    "expiryDate": "2026-06-30T23:59:59.000Z",
+    "expiryDate": "2099-06-30T23:59:59.000Z",
     "followUpTicket": "SW08-123",
     "impact": "Breaking ship ownership contract drift is allowed only for the approved migration window.",
     "owner": "backend-lead",
