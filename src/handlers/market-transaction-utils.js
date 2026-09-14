@@ -8,7 +8,7 @@
  * @param {Object} payload
  * @param {'buy'|'sell'} direction
  * @param {Object} FAILURE_REASONS - domain-specific reason constants (must include INVALID_PAYLOAD)
- * @param {function(string): string} messageForReason - maps result.reason to a client message
+ * @param {(reason: string) => string} messageForReason - maps result.reason to a client message
  * @returns {Promise<Object>}
  */
 async function buildMarketTransactionResponse(context, payload, direction, FAILURE_REASONS, messageForReason) {

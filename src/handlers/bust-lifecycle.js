@@ -41,6 +41,7 @@ const DOMAIN_DEFINITIONS = Object.freeze([
   { field: 'tattoo', values: BUST_TATTOO_VALUES },
 ]);
 
+/** @type {Readonly<Record<string, Set<string>>>} */
 const DOMAIN_VALUE_SET_BY_FIELD = Object.freeze(
   Object.fromEntries(DOMAIN_DEFINITIONS.map((domain) => [domain.field, new Set(domain.values)]))
 );
@@ -336,7 +337,7 @@ function buildBlockedSaveResponse(message, reason, baseResponse = {}, options = 
  * @param {string} entityType e.g. 'character-bust' or 'npc-bust'
  * @param {string[]} containerIdCandidates ordered list of candidate container ids
  * @param {Object} requestIdentity raw requestIdentity from payload
- * @param {function} toNonEmptyString bound from context
+ * @param {(value: unknown) => string} toNonEmptyString bound from context
  * @returns {Object}
  */
 function makeBustRequestIdentity(operation, entityType, containerIdCandidates, requestIdentity, toNonEmptyString) {

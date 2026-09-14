@@ -261,10 +261,23 @@ defineDelegatedMethods(MessageHandlerContext.prototype, gameParticipationService
 ]);
 
 /**
+ * @typedef {MessageHandlerContext & {
+ *   refreshCharacterPresence: (payload: Object) => void,
+ *   detachIdleGameCharacters: () => unknown,
+ *   touchJoinedCharacters: (payload: Object) => unknown
+ * }} DelegatedMessageHandlerContext
+ */
+
+const contextPrototype = /** @type {DelegatedMessageHandlerContext} */ (
+  MessageHandlerContext.prototype
+);
+
+/**
  * Convenience: evict stale characters then refresh presence for the current player.
  * @param {Object} payload
+ * @this {DelegatedMessageHandlerContext}
  */
-MessageHandlerContext.prototype.refreshCharacterPresence = function refreshCharacterPresence(payload) {
+contextPrototype.refreshCharacterPresence = function refreshCharacterPresence(payload) {
   this.detachIdleGameCharacters();
   this.touchJoinedCharacters(payload);
 };

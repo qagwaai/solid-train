@@ -96,7 +96,7 @@ function resolvePort(value = process.env.PORT) {
 
 /**
  * Build server dependencies, bind socket handlers, and return runtime objects.
- * @param {{ port?: string, databaseService?: Object|null, initializeContext?: boolean }} [options]
+ * @param {{ port?: string, databaseService?: Object|null, initializeContext?: boolean, logger?: Object, logLevel?: string }} [options]
  * @returns {{ port: number, server: import('node:http').Server, io: import('socket.io').Server, messageHandlerContext: Object }}
  */
 function createServer(options = {}) {
@@ -301,7 +301,7 @@ function createServer(options = {}) {
 
 /**
  * Start the production server and optional MongoDB connection lifecycle.
- * @param {{ port?: string, databaseService?: Object|null }} [options]
+ * @param {{ port?: string, databaseService?: Object|null, logger?: Object, logLevel?: string }} [options]
  * @returns {Promise<{ port: number, server: import('node:http').Server, io: import('socket.io').Server, shutdown: Function, mongoConnection: Object, databaseService: Object|null, messageHandlerContext: Object }>}
  */
 async function startServer(options = {}) {

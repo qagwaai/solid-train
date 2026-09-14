@@ -30,6 +30,19 @@ const npcBustService = require('./service/npc-bust-service');
 const { createLogger } = require('../logging/logger');
 
 /**
+ * @typedef {{ spatial?: { positionKm?: { x: number, y: number, z: number } } }} ShipSearchResult
+ */
+
+/**
+ * @typedef {{
+ *   ownership: Object,
+ *   ownershipHistory?: Array<Object>,
+ *   save: () => Promise<unknown>,
+ *   toObject: () => Object
+ * }} ShipRecordDocument
+ */
+
+/**
  * Database service layer - provides a clean interface for CRUD operations
  * Bridges between handlers and Mongoose models
  */
@@ -454,10 +467,12 @@ class DatabaseService {
       const ownership = this.normalizeShipOwnershipForPersistence(shipData?.ownership);
       await this.assertNoDanglingShipInventoryReferences(shipData?.inventory);
 
-      const createdShip = await ShipRecord.create({
-        ...shipData,
-        ownership,
-      });
+      const createdShip = /** @type {{ toObject: () => Object }} */ (
+        await ShipRecord.create({
+          ...shipData,
+          ownership,
+        })
+      );
       return createdShip.toObject();
     } catch (error) {
       this.log(`[db-service] Error creating ship: ${error.message}`);
@@ -576,7 +591,9 @@ class DatabaseService {
         boundsQuery['ownership.ownerType'] = { $in: ownerTypes };
       }
 
-      const candidateShips = await ShipRecord.find(boundsQuery).lean();
+      const candidateShips = /** @type {Array<ShipSearchResult>} */ (
+        await ShipRecord.find(boundsQuery).lean()
+      );
       const exactMatches = candidateShips
         .map((ship) => {
           if (!this.isTriple(ship?.spatial?.positionKm)) {
@@ -614,7 +631,9 @@ class DatabaseService {
         throw new Error('shipId is required');
       }
 
-      const ship = await ShipRecord.findOne({ id: shipId });
+      const ship = /** @type {ShipRecordDocument|null} */ (
+        await ShipRecord.findOne({ id: shipId })
+      );
       if (!ship) {
         throw new Error('ship not found');
       }
@@ -961,7 +980,7 @@ class DatabaseService {
       };
 
       await offer.save();
-      const result = offer.toObject();
+      const result = /** @type {{ ship?: Object }} */ (offer.toObject());
       if (updatedShip) {
         result.ship = updatedShip;
       }
