@@ -1,0 +1,7 @@
+[allowlist]
+description = "Deterministic contract hashes and documented example identifiers are not credentials."
+paths = [
+  '''^MONGODB_SCHEMA\.md$''',
+  '''^(?:\.tmp-oas31/)?api/artifacts/contracts/(?:baseline-contract-artifact|contract-artifact)\.json$''',
+  '''^docs/planning/sw-08/backend-contract-artifact\.json$''',
+]

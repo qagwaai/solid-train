@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -29,9 +31,9 @@ jobs:
       - name: Collect changed files for SW-08 PR hygiene
         if: github.event_name == 'pull_request'
         run: |
-          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
-          mkdir -p artifacts/contracts
-          git diff --name-only "origin/${{ github.base_ref }}"...HEAD > artifacts/contracts/sw08-changed-files.txt
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          mkdir -p api/artifacts/contracts
+          git diff --name-only "origin/${{ github.base_ref }}"...HEAD > api/artifacts/contracts/sw08-changed-files.txt
 
       - name: Enforce SW-08 producer checklist and migration note
         if: github.event_name == 'pull_request'
@@ -79,31 +81,31 @@ jobs:
         with:
           name: sw08-contract-safety-gate-report
           path: |
-            artifacts/contracts/contract-artifact.json
-            artifacts/contracts/drift-report.json
-            artifacts/contracts/drift-fixture-report.json
-            artifacts/contracts/stage3-hard-fail-report.json
-            artifacts/contracts/stage3-approved-report.json
-            artifacts/contracts/stage3-expired-report.json
-            artifacts/contracts/stage3-missing-approval-report.json
-            artifacts/contracts/stage3-compat-report.json
-            artifacts/contracts/sw01-m4-nova-preflight-report.json
-            artifacts/contracts/sw01-m4-forge-pass-report.json
-            artifacts/contracts/sw01-m4-forge-drift-enum-report.json
-            artifacts/contracts/sw01-m4-forge-drift-unsupported-status-report.json
-            artifacts/contracts/sw01-m4-forge-drift-shape-report.json
-            artifacts/contracts/sw01-m3-alignment-report.json
-            artifacts/contracts/sw01-m3-drift-enum-report.json
-            artifacts/contracts/sw01-m3-drift-unsupported-status-report.json
-            artifacts/contracts/sw01-m3-drift-shape-report.json
-            artifacts/contracts/sw13-m4-nova-preflight-report.json
-            artifacts/contracts/sw13-m4-forge-pass-report.json
-            artifacts/contracts/sw13-m4-forge-drift-enum-report.json
-            artifacts/contracts/sw13-m4-forge-drift-unsupported-domain-report.json
-            artifacts/contracts/sw13-m4-forge-drift-shape-report.json
-            artifacts/contracts/sw13-m3-alignment-report.json
-            artifacts/contracts/sw13-m3-drift-enum-report.json
-            artifacts/contracts/sw13-m3-drift-unsupported-domain-report.json
-            artifacts/contracts/sw13-m3-drift-shape-report.json
-            artifacts/contracts/sw08-trend-report.json
+            api/artifacts/contracts/contract-artifact.json
+            api/artifacts/contracts/drift-report.json
+            api/artifacts/contracts/drift-fixture-report.json
+            api/artifacts/contracts/stage3-hard-fail-report.json
+            api/artifacts/contracts/stage3-approved-report.json
+            api/artifacts/contracts/stage3-expired-report.json
+            api/artifacts/contracts/stage3-missing-approval-report.json
+            api/artifacts/contracts/stage3-compat-report.json
+            api/artifacts/contracts/sw01-m4-nova-preflight-report.json
+            api/artifacts/contracts/sw01-m4-forge-pass-report.json
+            api/artifacts/contracts/sw01-m4-forge-drift-enum-report.json
+            api/artifacts/contracts/sw01-m4-forge-drift-unsupported-status-report.json
+            api/artifacts/contracts/sw01-m4-forge-drift-shape-report.json
+            api/artifacts/contracts/sw01-m3-alignment-report.json
+            api/artifacts/contracts/sw01-m3-drift-enum-report.json
+            api/artifacts/contracts/sw01-m3-drift-unsupported-status-report.json
+            api/artifacts/contracts/sw01-m3-drift-shape-report.json
+            api/artifacts/contracts/sw13-m4-nova-preflight-report.json
+            api/artifacts/contracts/sw13-m4-forge-pass-report.json
+            api/artifacts/contracts/sw13-m4-forge-drift-enum-report.json
+            api/artifacts/contracts/sw13-m4-forge-drift-unsupported-domain-report.json
+            api/artifacts/contracts/sw13-m4-forge-drift-shape-report.json
+            api/artifacts/contracts/sw13-m3-alignment-report.json
+            api/artifacts/contracts/sw13-m3-drift-enum-report.json
+            api/artifacts/contracts/sw13-m3-drift-unsupported-domain-report.json
+            api/artifacts/contracts/sw13-m3-drift-shape-report.json
+            api/artifacts/contracts/sw08-trend-report.json
           if-no-files-found: error
