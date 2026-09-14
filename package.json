@@ -86,6 +86,12 @@
     "socket.io-client": "^4.8.3",
     "typescript": "^6.0.3"
   },
+  "overrides": {
+    "body-parser": "2.3.0",
+    "brace-expansion": "5.0.9",
+    "socket.io-parser": "4.2.7",
+    "ws": "8.21.3"
+  },
   "engines": {
     "node": ">=20"
   },
