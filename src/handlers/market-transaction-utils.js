@@ -11,7 +11,13 @@
  * @param {(reason: string) => string} messageForReason - maps result.reason to a client message
  * @returns {Promise<Object>}
  */
-async function buildMarketTransactionResponse(context, payload, direction, FAILURE_REASONS, messageForReason) {
+async function buildMarketTransactionResponse(
+  context,
+  payload,
+  direction,
+  FAILURE_REASONS,
+  messageForReason
+) {
   const playerName = context.toNonEmptyString(payload?.playerName);
   const characterId = context.toNonEmptyString(payload?.characterId);
   const marketId = context.toNonEmptyString(payload?.marketId);

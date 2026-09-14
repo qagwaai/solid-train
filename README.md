@@ -110,11 +110,10 @@ open source.
 
 - All rights are reserved by the owner.
 - You may not copy, modify, redistribute, or use this project commercially
-	without prior written permission.
+  without prior written permission.
 - See LICENSE for binding terms.
 
 Commercial licensing requests:
 
 - Open an issue at https://github.com/qagwaai/solid-train/issues
 - Use the subject prefix "[Commercial License]"
-

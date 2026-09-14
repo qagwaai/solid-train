@@ -9,10 +9,7 @@ const {
   ITEM_STATE_VALUES,
   ITEM_DAMAGE_STATUS_VALUES,
 } = require('../model/canonical-items');
-const {
-  resolveCorrelationId,
-  normalizeRequestIdentity,
-} = require('./correlation-metadata');
+const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
 const { normalizeOwnership } = require('./context/ship-ownership');
 const { isFiniteNumber, isTriple } = require('./handler-utils');
 
@@ -279,7 +276,6 @@ class ItemUpsertMessageHandler {
       );
     }
 
-
     const parsed = this.buildParsed(payload);
 
     // Validate canonical ownership if provided
@@ -310,7 +306,9 @@ class ItemUpsertMessageHandler {
         return errResponse;
       }
       const actorPlayer = this.context.getPlayer(parsed.playerName);
-      const actorPlayerId = actorPlayer ? this.context.toNonEmptyString(actorPlayer.playerId) : null;
+      const actorPlayerId = actorPlayer
+        ? this.context.toNonEmptyString(actorPlayer.playerId)
+        : null;
       if (ownershipNorm.playerId !== actorPlayerId) {
         const errResponse = {
           success: false,
@@ -370,7 +368,8 @@ class ItemUpsertMessageHandler {
           ...(resolvedMotion ? { motion: resolvedMotion } : {}),
           owningPlayerId: parsed.owningPlayerId || existing?.owningPlayerId || '',
           owningCharacterId: parsed.owningCharacterId || existing?.owningCharacterId || '',
-          ownership: parsed.ownership !== undefined ? parsed.ownership : (existing?.ownership ?? null),
+          ownership:
+            parsed.ownership !== undefined ? parsed.ownership : (existing?.ownership ?? null),
           destroyedAt:
             parsed.destroyedAt ||
             (resolvedState === ITEM_STATE.DESTROYED && !existing?.destroyedAt ? now : null) ||

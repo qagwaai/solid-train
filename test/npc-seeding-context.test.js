@@ -295,10 +295,7 @@ test('getSeededNpcProfilesWithOwnedMarketsAsync returns profiles joined with own
   assert.equal(profiles[0].npcId, 'sol-belt-02-market-owner-elias-fujimoto');
   assert.equal(profiles[0].ownedMarkets.length, 1);
   assert.equal(profiles[0].ownedMarkets[0].marketId, 'sol-belt-02');
-  assert.equal(
-    profiles[0].ownedMarkets[0].owner.npcId,
-    'sol-belt-02-market-owner-elias-fujimoto'
-  );
+  assert.equal(profiles[0].ownedMarkets[0].owner.npcId, 'sol-belt-02-market-owner-elias-fujimoto');
 });
 
 test('getSeededNpcProfilesWithOwnedMarketsAsync returns empty for unmatched filters', async () => {
@@ -318,9 +315,7 @@ test('getNpcOwnedMarketsAsync returns markets owned by seeded NPC', async () => 
 
   await context.initializeAsync({ seedDefaults: true });
 
-  const markets = await context.getNpcOwnedMarketsAsync(
-    'sol-belt-02-market-owner-elias-fujimoto'
-  );
+  const markets = await context.getNpcOwnedMarketsAsync('sol-belt-02-market-owner-elias-fujimoto');
 
   assert.equal(markets.length, 1);
   assert.equal(markets[0].marketId, 'sol-belt-02');
@@ -341,9 +336,7 @@ test('credit read helpers return seeded NPC credits by npc and by market', async
 
   await context.seedSolarSystemNpcsAsync({ solarSystemId: 'sol' });
 
-  const byNpc = await context.getSeededNpcCreditsAsync(
-    'sol-belt-02-market-owner-elias-fujimoto'
-  );
+  const byNpc = await context.getSeededNpcCreditsAsync('sol-belt-02-market-owner-elias-fujimoto');
   const byMarket = await context.getMarketOwnerCreditsAsync('sol-belt-02', 'sol');
 
   assert.equal(byNpc.current, 4200);
@@ -619,12 +612,6 @@ test('adjustMarketOwnerCreditsAsync applies delta through market lookup', async 
 test('market-based credit helpers return null when market owner is missing', async () => {
   const context = createContextWithDb(null, []);
 
-  assert.equal(
-    await context.updateMarketOwnerCreditsAsync('missing-market', 'sol', 4000),
-    null
-  );
-  assert.equal(
-    await context.adjustMarketOwnerCreditsAsync('missing-market', 'sol', 200),
-    null
-  );
+  assert.equal(await context.updateMarketOwnerCreditsAsync('missing-market', 'sol', 4000), null);
+  assert.equal(await context.adjustMarketOwnerCreditsAsync('missing-market', 'sol', 200), null);
 });

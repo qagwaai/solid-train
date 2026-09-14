@@ -402,14 +402,16 @@ class MissionUpsertMessageHandler {
       );
     };
 
-
     this.context.refreshCharacterPresence(payload);
 
     const response = this.buildResponse(payload);
     response.correlationId = correlationId;
     response.requestIdentity = requestIdentity;
 
-    if (!response.success && /^status must be one of:/.test(this.context.toNonEmptyString(response.message))) {
+    if (
+      !response.success &&
+      /^status must be one of:/.test(this.context.toNonEmptyString(response.message))
+    ) {
       this.context.log(
         `[mission-upsert-validation] operation=mission-upsert entityType=${requestIdentity.entityType} containerId=${requestIdentity.containerId} correlationId=${correlationId} player=${this.context.toNonEmptyString(payload?.playerName) || '-'} characterId=${this.context.toNonEmptyString(payload?.characterId) || '-'} message=${this.context.toNonEmptyString(response.message)}`
       );

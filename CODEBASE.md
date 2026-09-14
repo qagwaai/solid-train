@@ -170,33 +170,33 @@ Each file exports event name constants and optionally JSDoc typedefs.
 
 All events use Socket.IO. Request/response pairs listed below.
 
-| Request Event                                           | Response Event                                            | Session Required |
-| ------------------------------------------------------- | --------------------------------------------------------- | ---------------- |
-| `register`                                              | `register-response`                                       | No               |
-| `login`                                                 | `login-response`                                          | No               |
-| `character-list-request`                                | `character-list-response`                                 | Yes              |
-| `character-add-request`                                 | `character-add-response`                                  | Yes              |
-| `character-delete-request`                              | `character-delete-response`                               | Yes              |
-| `character-edit`                                        | `character-edit-response`                                 | Yes              |
-| `ship-list-request`                                     | `ship-list-response`                                      | Yes              |
-| `ship-upsert-request`                                   | `ship-upsert-response`                                    | Yes              |
-| `game-join`                                             | `game-join-response`                                      | Yes              |
-| `mission-upsert-request`                               | `mission-upsert-response`                                 | Yes              |
-| `list-missions-request`                                 | `list-missions-response`                                  | Yes              |
-| `celestial-body-upsert-request`                         | `celestial-body-upsert-response`                          | Yes              |
-| `celestial-body-list-request`                           | `celestial-body-list-response`                            | Yes              |
-| `item-upsert-request`                                   | `item-upsert-response`                                    | Yes              |
-| `item-list-by-container-request`                        | `item-list-by-container-response`                         | Yes              |
-| `item-list-by-location-request`                         | `item-list-by-location-response`                          | Yes              |
-| `launch-item-request`                                   | `launch-item-response`                                    | Yes              |
-| `market-list-request`                                   | `market-list-response`                                    | Yes              |
-| `market-list-by-location-request`                       | `market-list-by-location-response`                        | Yes              |
-| `market-quote-request`                                  | `market-quote-response`                                   | Yes              |
-| `market-inventory-list-request`                         | `market-inventory-list-response`                          | Yes              |
-| `market-buy-request`                                    | `market-buy-response`                                     | Yes              |
-| `market-sell-request`                                   | `market-sell-response`                                    | Yes              |
-| `market-ledger-list-request`                            | `market-ledger-list-response`                             | Yes              |
-| `mission-upsert-alias-request`                          | `mission-upsert-alias-response`                           | Yes              |
+| Request Event                     | Response Event                     | Session Required |
+| --------------------------------- | ---------------------------------- | ---------------- |
+| `register`                        | `register-response`                | No               |
+| `login`                           | `login-response`                   | No               |
+| `character-list-request`          | `character-list-response`          | Yes              |
+| `character-add-request`           | `character-add-response`           | Yes              |
+| `character-delete-request`        | `character-delete-response`        | Yes              |
+| `character-edit`                  | `character-edit-response`          | Yes              |
+| `ship-list-request`               | `ship-list-response`               | Yes              |
+| `ship-upsert-request`             | `ship-upsert-response`             | Yes              |
+| `game-join`                       | `game-join-response`               | Yes              |
+| `mission-upsert-request`          | `mission-upsert-response`          | Yes              |
+| `list-missions-request`           | `list-missions-response`           | Yes              |
+| `celestial-body-upsert-request`   | `celestial-body-upsert-response`   | Yes              |
+| `celestial-body-list-request`     | `celestial-body-list-response`     | Yes              |
+| `item-upsert-request`             | `item-upsert-response`             | Yes              |
+| `item-list-by-container-request`  | `item-list-by-container-response`  | Yes              |
+| `item-list-by-location-request`   | `item-list-by-location-response`   | Yes              |
+| `launch-item-request`             | `launch-item-response`             | Yes              |
+| `market-list-request`             | `market-list-response`             | Yes              |
+| `market-list-by-location-request` | `market-list-by-location-response` | Yes              |
+| `market-quote-request`            | `market-quote-response`            | Yes              |
+| `market-inventory-list-request`   | `market-inventory-list-response`   | Yes              |
+| `market-buy-request`              | `market-buy-response`              | Yes              |
+| `market-sell-request`             | `market-sell-response`             | Yes              |
+| `market-ledger-list-request`      | `market-ledger-list-response`      | Yes              |
+| `mission-upsert-alias-request`    | `mission-upsert-alias-response`    | Yes              |
 
 Invalid session always emits `invalid-session` with `{ message: "Invalid session" }` before the normal response event.
 
@@ -207,23 +207,23 @@ See `MESSAGE_CONTRACT.md` for full request/response schemas and edge cases.
 OpenAPI is now organized by semantic domain under `api/openapi/`.
 The root file `api/openapi.yaml` is a thin index that references these modules via `$ref`.
 
-| Tag | Module File | Primary Domain |
-| --- | --- | --- |
-| `Utility` | `api/openapi/utility/openapi.yaml` | Health and runtime utility routes |
-| `Auth` | `api/openapi/auth/openapi.yaml` | Register/login flows |
-| `Character` | `api/openapi/character/openapi.yaml` | Character CRUD and ownership surfaces |
-| `Ship` | `api/openapi/ship/openapi.yaml` | Fleet, transfer, salvage, piracy |
-| `Mission` | `api/openapi/mission/openapi.yaml` | Mission query/upsert surfaces |
-| `Celestial` | `api/openapi/celestial/openapi.yaml` | Celestial body list/upsert surfaces |
-| `Items` | `api/openapi/items/openapi.yaml` | Item catalog, inventory, launch/remove |
-| `Market` | `api/openapi/market/openapi.yaml` | Quotes, inventory, buy/sell, listings/offers |
-| `Context` | `api/openapi/context/openapi.yaml` | Distance and routing calculations |
-| `SolarSystem` | `api/openapi/solarsystem/openapi.yaml` | Solar-system-level reads |
-| `Stars` | `api/openapi/stars/openapi.yaml` | Star catalog reads |
-| `Ledger` | `api/openapi/ledger/openapi.yaml` | Credit ledger query |
-| `Game` | `api/openapi/game/openapi.yaml` | Game join/leave/state |
-| `Realtime` | `api/openapi/realtime/openapi.yaml` | Ping/message/welcome/session envelopes |
-| `Bust` | `api/openapi/bust/openapi.yaml` | Character/NPC bust create/read/update |
+| Tag           | Module File                            | Primary Domain                               |
+| ------------- | -------------------------------------- | -------------------------------------------- |
+| `Utility`     | `api/openapi/utility/openapi.yaml`     | Health and runtime utility routes            |
+| `Auth`        | `api/openapi/auth/openapi.yaml`        | Register/login flows                         |
+| `Character`   | `api/openapi/character/openapi.yaml`   | Character CRUD and ownership surfaces        |
+| `Ship`        | `api/openapi/ship/openapi.yaml`        | Fleet, transfer, salvage, piracy             |
+| `Mission`     | `api/openapi/mission/openapi.yaml`     | Mission query/upsert surfaces                |
+| `Celestial`   | `api/openapi/celestial/openapi.yaml`   | Celestial body list/upsert surfaces          |
+| `Items`       | `api/openapi/items/openapi.yaml`       | Item catalog, inventory, launch/remove       |
+| `Market`      | `api/openapi/market/openapi.yaml`      | Quotes, inventory, buy/sell, listings/offers |
+| `Context`     | `api/openapi/context/openapi.yaml`     | Distance and routing calculations            |
+| `SolarSystem` | `api/openapi/solarsystem/openapi.yaml` | Solar-system-level reads                     |
+| `Stars`       | `api/openapi/stars/openapi.yaml`       | Star catalog reads                           |
+| `Ledger`      | `api/openapi/ledger/openapi.yaml`      | Credit ledger query                          |
+| `Game`        | `api/openapi/game/openapi.yaml`        | Game join/leave/state                        |
+| `Realtime`    | `api/openapi/realtime/openapi.yaml`    | Ping/message/welcome/session envelopes       |
+| `Bust`        | `api/openapi/bust/openapi.yaml`        | Character/NPC bust create/read/update        |
 
 Shared cross-domain schemas are in `api/openapi/_shared/schemas.yaml`.
 

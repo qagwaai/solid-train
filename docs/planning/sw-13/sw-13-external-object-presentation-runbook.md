@@ -44,10 +44,12 @@ Hard rules:
 1. Assign owner within 1 business day.
 2. Reproduce failure locally using the same gate mode as CI.
 3. Classify root cause:
+
 - producer schema drift
 - producer emission bug
 - consumer inventory drift
 - merge sequencing error
+
 4. Apply producer fix first when schema/emission is at fault.
 5. Re-run strict gates and attach evidence.
 6. Update SW-13 cross-repo index with status.
@@ -61,12 +63,15 @@ Architecture triage checks (required):
 ## 5. Drift Classes
 
 1. Enum/domain mismatch
+
 - Example: `jumpGate` emitted instead of `jump_gate`.
 
 2. Unsupported descriptor value
+
 - Example: `derelict_station` emitted without canonical contract addition.
 
 3. Shape mismatch
+
 - Example: descriptor field type changed from enum/string union to open string.
 
 ## 6. Canary Readiness Checklist
@@ -77,10 +82,12 @@ Architecture triage checks (required):
 4. Rollback procedure validated and documented.
 
 5. Architecture and maintainability checks are green:
+
 - Layering boundaries validated in review.
 - No duplicated canonical descriptor constants in producer modules.
 
 6. Test quality checks are green:
+
 - Unit, integration, contract, and cross-repo compatibility suites are all passing.
 - Drift fixtures fail deterministically with actionable diagnostics.
 

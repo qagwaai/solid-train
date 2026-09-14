@@ -17,9 +17,17 @@ class CharacterBustCreateMessageHandler {
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('character-bust-create', payload);
-    const correlationId = resolveCorrelationId(payload, this.context.toNonEmptyString.bind(this.context));
-    const requestIdentity = makeBustRequestIdentity('character-bust-create', 'character-bust', [payload?.characterId, '-'], payload?.requestIdentity, this.context.toNonEmptyString.bind(this.context));
-
+    const correlationId = resolveCorrelationId(
+      payload,
+      this.context.toNonEmptyString.bind(this.context)
+    );
+    const requestIdentity = makeBustRequestIdentity(
+      'character-bust-create',
+      'character-bust',
+      [payload?.characterId, '-'],
+      payload?.requestIdentity,
+      this.context.toNonEmptyString.bind(this.context)
+    );
 
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const characterId = this.context.toNonEmptyString(payload?.characterId);

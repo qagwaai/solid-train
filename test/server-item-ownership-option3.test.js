@@ -11,8 +11,14 @@ const {
   registerAndLogin,
 } = require('../test-support/socket-test-helpers');
 
-const { ITEM_UPSERT_REQUEST_EVENT, ITEM_UPSERT_RESPONSE_EVENT } = require('../src/model/item-upsert');
-const { CHARACTER_ADD_REQUEST_EVENT, CHARACTER_ADD_RESPONSE_EVENT } = require('../src/model/character-add');
+const {
+  ITEM_UPSERT_REQUEST_EVENT,
+  ITEM_UPSERT_RESPONSE_EVENT,
+} = require('../src/model/item-upsert');
+const {
+  CHARACTER_ADD_REQUEST_EVENT,
+  CHARACTER_ADD_RESPONSE_EVENT,
+} = require('../src/model/character-add');
 
 function withTimeout(promise, ms, label = 'operation') {
   return Promise.race([
@@ -39,10 +45,25 @@ test('Option3 item negative: upsert with cross-player ownership is forbidden', a
   await withTimeout(waitForEvent(actorClient, 'connect'), 1200, 'actor connect');
 
   try {
-    const ownerLogin = await registerAndLogin(ownerClient, 'ItemOwnerPlayer', 'item-owner@example.com', 'secret');
-    const ownerCharacter = await addCharacter(ownerClient, 'ItemOwnerPlayer', ownerLogin.sessionKey, 'OwnerChar');
+    const ownerLogin = await registerAndLogin(
+      ownerClient,
+      'ItemOwnerPlayer',
+      'item-owner@example.com',
+      'secret'
+    );
+    const ownerCharacter = await addCharacter(
+      ownerClient,
+      'ItemOwnerPlayer',
+      ownerLogin.sessionKey,
+      'OwnerChar'
+    );
 
-    const actorLogin = await registerAndLogin(actorClient, 'ItemActorPlayer', 'item-actor@example.com', 'secret');
+    const actorLogin = await registerAndLogin(
+      actorClient,
+      'ItemActorPlayer',
+      'item-actor@example.com',
+      'secret'
+    );
 
     const upsertPromise = waitForEvent(actorClient, ITEM_UPSERT_RESPONSE_EVENT);
     actorClient.emit(ITEM_UPSERT_REQUEST_EVENT, {
@@ -82,7 +103,12 @@ test('Option3 item positive: upsert with valid player-character ownership succee
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'ItemOwnerPilot', 'item-pilot@example.com', 'secret');
+    const login = await registerAndLogin(
+      client,
+      'ItemOwnerPilot',
+      'item-pilot@example.com',
+      'secret'
+    );
     const character = await addCharacter(client, 'ItemOwnerPilot', login.sessionKey, 'PilotChar');
 
     const upsertPromise = waitForEvent(client, ITEM_UPSERT_RESPONSE_EVENT);
@@ -124,7 +150,12 @@ test('Option3 item negative: upsert rejects non-player-character ownership types
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'ItemNpcOwnerPilot', 'item-npc@example.com', 'secret');
+    const login = await registerAndLogin(
+      client,
+      'ItemNpcOwnerPilot',
+      'item-npc@example.com',
+      'secret'
+    );
 
     const upsertPromise = waitForEvent(client, ITEM_UPSERT_RESPONSE_EVENT);
     client.emit(ITEM_UPSERT_REQUEST_EVENT, {

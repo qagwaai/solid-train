@@ -128,6 +128,7 @@ Status: Complete (Vertical Slice 2 - Market Listing Creation)
 Extend ownership contract to marketplace/trading domain. Establish canonical owner tracking for listed items, pending offers, and completed trades.
 
 **Initial Implementation Targets (Completed):**
+
 1. ✅ Market listing ownership (who can create/modify/cancel listings).
 2. ✅ Cross-player listing blocking (OWNERSHIP_LISTING_FORBIDDEN reason code).
 3. ✅ Strict player-character ownership requirement.
@@ -135,6 +136,7 @@ Extend ownership contract to marketplace/trading domain. Establish canonical own
 5. ✅ Market listing creation handler with ownership contract enforcement.
 
 **Deferred to Slice 3:**
+
 1. Pending offer ownership model and actor authorization.
 2. Trade completion with automatic ownership transfer.
 3. Market history audit trail (who listed, who offered, who accepted).
@@ -149,6 +151,7 @@ Status: Complete ✅
 Add canonical ownership discriminator to items. Characters are the only valid owners (ownerType: 'player-character'). Cross-player item upsert is blocked.
 
 **Implementation Targets:**
+
 1. ✅ Add `ownership` embedded schema to item Mongoose model
 2. ✅ Add `ownership` field to item.schema.json and item-upsert-request.schema.json
 3. ✅ Ownership validation in item-upsert handler (normalizeOwnership, player-character only, cross-player block)
@@ -163,6 +166,7 @@ Status: Complete ✅
 New `item-list-by-owner` handler and event that queries items by canonical ownership discriminator with cross-player blocking.
 
 **Implementation Targets:**
+
 1. ✅ `item-list-by-owner-request/response` event constants and schemas
 2. ✅ Handler with ownership validation + cross-player block (ITEM_LIST_OWNER_FORBIDDEN)
 3. ✅ `getAllItems()` helper on inventory service and context
@@ -177,6 +181,7 @@ Status: Complete ✅
 A character can claim an `unknown` ship via `ship-salvage-claim`, producing an ownership history entry with reason `salvage`. Already-owned ships are rejected.
 
 **Implementation Targets:**
+
 1. ✅ `ship-salvage-claim-request/response` event constants and schemas
 2. ✅ Handler: player-character only, cross-player block, unknown only, history entry
 3. ✅ Server registration and socket-handler-registry entry
@@ -190,6 +195,7 @@ Status: Complete ✅
 An NPC can seize a `player-character` owned ship via `ship-piracy-seize`. Only `npc-pirate` ownerType can initiate, target must currently be `player-character` owned, and a history entry with reason `piracy` is recorded.
 
 **Implementation Targets:**
+
 1. ✅ `ship-piracy-seize-request/response` event constants and schemas
 2. ✅ Handler: npc-pirate only, target must be player-character, history entry
 3. ✅ Server registration and socket-handler-registry entry
@@ -203,6 +209,7 @@ Status: Complete ✅
 Legacy ship/item records without canonical `ownership` field are normalized on read by deriving `ownership` from `owningPlayerId`/`owningCharacterId` fields. Canonical `ownership` takes precedence when both are present.
 
 **Implementation Targets:**
+
 1. ✅ `normalizeShip` backfills `ownership` from `owningPlayerId`/`owningCharacterId` if missing
 2. ✅ `normalizeItem` adds canonical `ownership` from explicit field or backfills from legacy fields
 3. ✅ Tests: 3/3 passing (starter ship has ownership, legacy item backfill, canonical precedence)
@@ -216,6 +223,7 @@ Status: Complete ✅
 NPC ownership identity surface — query ships currently owned by a specific `npc-pirate`. Completes scope area 3 (NPC ownership identity and relationship to characters).
 
 **Implementation Targets:**
+
 1. ✅ `ship-list-by-npc-owner-request/response` event constants and schemas
 2. ✅ Handler: npc-pirate only query, scans all characters for matching ownership
 3. ✅ Server registration and socket-handler-registry entry
@@ -229,6 +237,7 @@ Status: Complete ✅
 Final OpenAPI sync — NPC ship list endpoint and version bump.
 
 **Implementation Targets:**
+
 1. ✅ `/socket/ship-list-by-npc-owner` endpoint with NPC ownership contract docs
 2. ✅ Component schema refs: `ShipListByNpcOwnerRequest`, `ShipListByNpcOwnerResponse`
 3. ✅ `info.version` bumped to 3.0.4
@@ -237,18 +246,18 @@ Final OpenAPI sync — NPC ship list endpoint and version bump.
 
 ## Summary: Ownership Contract Formalization — All Scope Areas Complete
 
-| Scope Area | Slice(s) |
-|---|---|
-| Canonical ownership schema/fragment | Slice 1 (ship), Slices 4/10 (item) |
-| Market ownership model | Slices 2, 3 |
-| NPC ownership identity | Slices 8 (piracy), 11 (NPC ship list) |
-| Item ownership normalization | Slices 4, 10 |
-| Ship ownership normalization | Slice 1 |
-| Transfer semantics: salvage | Slice 7 |
-| Transfer semantics: piracy | Slice 8 |
-| Transfer semantics: sale/trade | Slice 3 |
-| Persistence migration/backfill | Slice 10 |
-| OpenAPI and JSON schema updates | Slices 5, 9, 12 |
+| Scope Area                          | Slice(s)                              |
+| ----------------------------------- | ------------------------------------- |
+| Canonical ownership schema/fragment | Slice 1 (ship), Slices 4/10 (item)    |
+| Market ownership model              | Slices 2, 3                           |
+| NPC ownership identity              | Slices 8 (piracy), 11 (NPC ship list) |
+| Item ownership normalization        | Slices 4, 10                          |
+| Ship ownership normalization        | Slice 1                               |
+| Transfer semantics: salvage         | Slice 7                               |
+| Transfer semantics: piracy          | Slice 8                               |
+| Transfer semantics: sale/trade      | Slice 3                               |
+| Persistence migration/backfill      | Slice 10                              |
+| OpenAPI and JSON schema updates     | Slices 5, 9, 12                       |
 
 Status: Complete ✅
 
@@ -256,6 +265,7 @@ Status: Complete ✅
 Sync openapi.yaml with all new ownership surfaces from slices 6–8.
 
 **Implementation Targets:**
+
 1. ✅ `/socket/item-list-by-owner` with cross-player ownership contract docs
 2. ✅ `/socket/ship-salvage-claim` with salvage claim contract docs
 3. ✅ `/socket/ship-piracy-seize` with piracy seize contract docs
@@ -268,6 +278,7 @@ Status: Complete ✅
 Sync openapi.yaml with all new ownership surfaces introduced in Slices 2-4.
 
 **Implementation Targets:**
+
 1. ✅ `/socket/market-listing-create` endpoint with ownership contract docs
 2. ✅ `/socket/market-offer-create` endpoint with offeror ownership docs
 3. ✅ `/socket/market-offer-accept` endpoint with trade completion and ship transfer docs
@@ -280,6 +291,7 @@ Status: Complete ✅
 Establish offer ownership contract and automatic ownership transfer on trade completion. Track offer actor authorization and market history audit trail.
 
 **Implementation Targets:**
+
 1. ✅ Pending offer creation with actor and offeror ownership.
 2. ✅ Offer acceptance validation (owner can only accept own listings).
 3. ✅ Automatic ship ownership transfer on accepted offer.
@@ -287,6 +299,7 @@ Establish offer ownership contract and automatic ownership transfer on trade com
 5. ✅ Reason codes for offer authorization failures.
 
 **Implementation Status (Phase 1 - Create):**
+
 - ✅ Offer create handler with strict ownership validation
 - ✅ Cross-player offer blocking (OWNERSHIP_OFFER_FORBIDDEN)
 - ✅ Non-player-character offeror rejection
@@ -295,6 +308,7 @@ Establish offer ownership contract and automatic ownership transfer on trade com
 - ✅ Tests: 3/3 passing
 
 **Implementation Status (Phase 2 - Accept):**
+
 - ✅ Offer accept handler with listing owner validation
 - ✅ Cross-player acceptance blocking (OWNERSHIP_ACCEPT_FORBIDDEN)
 - ✅ Non-player-character listing owner rejection
@@ -304,6 +318,7 @@ Establish offer ownership contract and automatic ownership transfer on trade com
 - ✅ Tests: 3/3 passing
 
 **Implementation Status (Phase 3 - Transfer):**
+
 - ✅ Market offer model with offer persistence and status tracking
 - ✅ DB service methods: createMarketOffer() and acceptMarketOfferAndTransferShip()
 - ✅ Automatic ship ownership transfer on offer acceptance

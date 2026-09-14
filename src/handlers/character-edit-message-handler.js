@@ -1,10 +1,7 @@
 'use strict';
 
 const { CHARACTER_EDIT_RESPONSE_EVENT } = require('../model/character-edit');
-const {
-  resolveCorrelationId,
-  normalizeRequestIdentity,
-} = require('./correlation-metadata');
+const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
 
 class CharacterEditMessageHandler {
   /**
@@ -89,7 +86,6 @@ class CharacterEditMessageHandler {
       this.context.toNonEmptyString.bind(this.context)
     );
     const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
-
 
     this.context.refreshCharacterPresence(payload);
 

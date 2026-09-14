@@ -142,7 +142,8 @@ function buildReport(rootDir) {
         }
       }
 
-      descriptorStatsByDomain[descriptor.domain] = (descriptorStatsByDomain[descriptor.domain] || 0) + 1;
+      descriptorStatsByDomain[descriptor.domain] =
+        (descriptorStatsByDomain[descriptor.domain] || 0) + 1;
       addSize(descriptorSizeStatsByDomain, descriptor.domain, JSON.stringify(descriptor).length);
     }
 
@@ -152,8 +153,12 @@ function buildReport(rootDir) {
     );
   }
 
-  const approachMetadataEntries = payloads.m3GateLandmarks.gates.map((entry) => entry.approachMetadata);
-  const approachMetadataKeySet = new Set(approachMetadataEntries.flatMap((entry) => Object.keys(entry)));
+  const approachMetadataEntries = payloads.m3GateLandmarks.gates.map(
+    (entry) => entry.approachMetadata
+  );
+  const approachMetadataKeySet = new Set(
+    approachMetadataEntries.flatMap((entry) => Object.keys(entry))
+  );
   const canonicalApproachMetadataKeys = [...approachMetadataKeySet].sort();
   const approachMetadataMismatch = [];
   const approachMetadataSizeStats = {};
@@ -166,20 +171,26 @@ function buildReport(rootDir) {
         keys,
       });
     }
-    addSize(approachMetadataSizeStats, 'gateApproachMetadata', JSON.stringify(gate.approachMetadata).length);
+    addSize(
+      approachMetadataSizeStats,
+      'gateApproachMetadata',
+      JSON.stringify(gate.approachMetadata).length
+    );
   }
 
   finalizeStats(descriptorSizeStatsByDomain);
   finalizeStats(approachMetadataSizeStats);
 
-  const payloadOrderingChecks = Object.entries(descriptorsByPayload).map(([bundle, descriptors]) => {
-    const descriptorIds = descriptors.map((entry) => entry.descriptorId);
-    const isSorted = descriptorIds.join('|') === [...descriptorIds].sort().join('|');
-    return {
-      bundle,
-      sortedByDescriptorId: isSorted,
-    };
-  });
+  const payloadOrderingChecks = Object.entries(descriptorsByPayload).map(
+    ([bundle, descriptors]) => {
+      const descriptorIds = descriptors.map((entry) => entry.descriptorId);
+      const isSorted = descriptorIds.join('|') === [...descriptorIds].sort().join('|');
+      return {
+        bundle,
+        sortedByDescriptorId: isSorted,
+      };
+    }
+  );
 
   const report = {
     summary: {
@@ -189,8 +200,7 @@ function buildReport(rootDir) {
       consistencyChecks: {
         schemaVersionLocked:
           schemaVersions.length === 1 && schemaVersions[0] === LOCKED_SCHEMA_VERSION,
-        fallbackTierLocked:
-          fallbackTiers.join('|') === LOCKED_FALLBACK_TIERS.join('|'),
+        fallbackTierLocked: fallbackTiers.join('|') === LOCKED_FALLBACK_TIERS.join('|'),
         descriptorShapeConsistent: descriptorShapeMismatch.length === 0,
         approachMetadataShapeConsistent: approachMetadataMismatch.length === 0,
         noLegacyFallbackFields: legacyFieldHits.length === 0,

@@ -18,7 +18,10 @@ class MarketSellMessageHandler {
    */
   async buildResponse(payload) {
     return buildMarketTransactionResponse(
-      this.context, payload, 'sell', MARKET_SELL_FAILURE_REASONS,
+      this.context,
+      payload,
+      'sell',
+      MARKET_SELL_FAILURE_REASONS,
       this.messageForReason.bind(this)
     );
   }
@@ -59,7 +62,6 @@ class MarketSellMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-sell-request', payload);
-
 
     this.context.refreshCharacterPresence(payload);
 

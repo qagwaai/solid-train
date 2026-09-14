@@ -2,7 +2,15 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ship-transfer-request",
   "type": "object",
-  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "shipId", "fromOwner", "toOwner"],
+  "required": [
+    "playerName",
+    "sessionKey",
+    "correlationId",
+    "requestIdentity",
+    "shipId",
+    "fromOwner",
+    "toOwner"
+  ],
   "properties": {
     "playerName": { "type": "string" },
     "sessionKey": { "type": "string" },

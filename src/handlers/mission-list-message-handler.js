@@ -1,7 +1,11 @@
 'use strict';
 
 const { MISSION_LIST_RESPONSE_EVENT } = require('../model/mission-list');
-const { MISSION_CATALOG_IDS, MISSION_STATUS_SET, MISSION_STATUS_VALUES } = require('../model/mission');
+const {
+  MISSION_CATALOG_IDS,
+  MISSION_STATUS_SET,
+  MISSION_STATUS_VALUES,
+} = require('../model/mission');
 const {
   resolveCorrelationId,
   normalizeRequestIdentity: normalizeCorrelationRequestIdentity,
@@ -168,7 +172,12 @@ class MissionListMessageHandler {
 
     const statusValidation = this.validateStatuses(payload?.statuses);
     if (!statusValidation.success) {
-      return this.buildInvalidStatusFailure(payload, player.playerName, characterId, statusValidation.message);
+      return this.buildInvalidStatusFailure(
+        payload,
+        player.playerName,
+        characterId,
+        statusValidation.message
+      );
     }
 
     const statuses = statusValidation.statuses;
@@ -236,11 +245,13 @@ class MissionListMessageHandler {
     );
     const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
 
-
     this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);
-    if (!response.success && /unsupported (status|values)/.test(this.context.toNonEmptyString(response.message))) {
+    if (
+      !response.success &&
+      /unsupported (status|values)/.test(this.context.toNonEmptyString(response.message))
+    ) {
       this.context.log(
         `[mission-list-validation] operation=list-missions entityType=${requestIdentity.entityType} containerId=${requestIdentity.containerId} correlationId=${correlationId} player=${this.context.toNonEmptyString(payload?.playerName) || '-'} characterId=${this.context.toNonEmptyString(payload?.characterId) || '-'} message=${this.context.toNonEmptyString(response.message)}`
       );

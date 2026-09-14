@@ -10,6 +10,7 @@
 ## What Was Accomplished
 
 ### 1. ✅ Directory Structure Created
+
 Organized OpenAPI into **15 tag-based semantic domains** plus shared schemas:
 
 ```
@@ -36,7 +37,9 @@ api/openapi/
 **Total:** 15 tag modules + _shared + README = **18 files**
 
 ### 2. ✅ Complete Content Extraction
+
 Each tag module includes:
+
 - ✅ All paths for that tag with complete definitions
 - ✅ All examples preserved from main openapi.yaml
 - ✅ All schema dependencies (`$ref` to `../schemas/*.schema.json`)
@@ -46,25 +49,32 @@ Each tag module includes:
 **Lines of Content:** ~5600 lines across all tag modules
 
 ### 3. ✅ Master File Maintained
+
 `api/openapi.yaml` remains:
+
 - **Single source of truth** for complete contract
 - Version bumped to **3.1.0** (minor: modular structure added)
 - Used by all tests, Swagger UI, contract validation
 - All 570 tests passing with no changes required
 
 ### 4. ✅ Documentation Updated
+
 **Frontend (Nova) guide:**
+
 - New Section 8 in `nova-ownership-api-guide.md`: "API Tags & Complete Contract Reference"
 - Links all ownership-related tags to tag modules
 - References implementation checklist, test files, architectural docs
 
 **Backend (CODEBASE.md):**
+
 - Added comprehensive API Tags Reference table (15 tags × 4 columns)
 - Documentation links: master file, modular refs, shared schemas, Swagger UI, JSON schemas
 - Developer guidance for finding tag-specific code
 
 ### 5. ✅ Migration Foundation
+
 Tag modules provide foundation for **future decomposition** with `$ref` imports:
+
 - All paths and schemas extracted and organized
 - Consistent naming and structure
 - $ref patterns established for schema references
@@ -74,14 +84,14 @@ Tag modules provide foundation for **future decomposition** with `$ref` imports:
 
 ## File Count Summary
 
-| Component | Count |
-|-----------|-------|
-| Tag Modules | 15 |
-| Shared Schemas | 1 |
-| Documentation | 2 (README.md + agent output) |
-| Total Modular Files | 18 |
-| Master File | 1 (api/openapi.yaml) |
-| Schema Files | ~120 (in api/schemas/) |
+| Component           | Count                        |
+| ------------------- | ---------------------------- |
+| Tag Modules         | 15                           |
+| Shared Schemas      | 1                            |
+| Documentation       | 2 (README.md + agent output) |
+| Total Modular Files | 18                           |
+| Master File         | 1 (api/openapi.yaml)         |
+| Schema Files        | ~120 (in api/schemas/)       |
 
 ---
 
@@ -95,6 +105,7 @@ Tag modules provide foundation for **future decomposition** with `$ref` imports:
 ```
 
 All tests continue to reference and pass with:
+
 - Main `api/openapi.yaml` (version 3.1.0)
 - All schema files in `api/schemas/`
 - Swagger UI at `/docs`
@@ -104,24 +115,24 @@ All tests continue to reference and pass with:
 
 ## Tag Breakdown
 
-| # | Tag | Paths | Lines | Type | Key Endpoints |
-|---|-----|-------|-------|------|---|
-| 1 | **Utility** | 1 | 28 | HTTP | health |
-| 2 | **Auth** | 2 | 70 | Socket | register, login |
-| 3 | **Character** | 4 | 312 | Socket | character-{add,list,edit,delete} |
-| 4 | **Ship** | 7 | 739 | Socket | ship-{list,upsert,transfer,list-by-owner,list-by-npc,salvage,piracy} |
-| 5 | **Mission** | 2 | 231 | Socket | mission-{list,upsert} |
-| 6 | **Celestial** | 2 | 241 | Socket | celestial-{list,upsert} |
-| 7 | **Items** | 8 | 550 | Socket | item-{list-*,upsert,launch,remove,tractor}, /items |
-| 8 | **Market** | 10 | 1186 | Socket | market-{list,quote,buy,sell,inventory,ledger,listing,offer-*} |
-| 9 | **Context** | 2 | 219 | Socket | context-{distance,routing} |
-| 10 | **SolarSystem** | 2 | 267 | Socket | solar-system-{get,list} |
-| 11 | **Stars** | 2 | 219 | Socket | star-{get,list} |
-| 12 | **Ledger** | 1 | 125 | Socket | credit-ledger-list |
-| 13 | **Game** | 3 | 235 | Socket | game-{join,leave,state} |
-| 14 | **Realtime** | 4 | 387 | Socket | ping, message, welcome, invalid-session |
-| 15 | **Bust** | 6 | 795 | Socket | {character,npc}-bust-{create,read,update} |
-| — | **TOTAL** | 56 | ~5600 | — | — |
+| #   | Tag             | Paths | Lines | Type   | Key Endpoints                                                        |
+| --- | --------------- | ----- | ----- | ------ | -------------------------------------------------------------------- |
+| 1   | **Utility**     | 1     | 28    | HTTP   | health                                                               |
+| 2   | **Auth**        | 2     | 70    | Socket | register, login                                                      |
+| 3   | **Character**   | 4     | 312   | Socket | character-{add,list,edit,delete}                                     |
+| 4   | **Ship**        | 7     | 739   | Socket | ship-{list,upsert,transfer,list-by-owner,list-by-npc,salvage,piracy} |
+| 5   | **Mission**     | 2     | 231   | Socket | mission-{list,upsert}                                                |
+| 6   | **Celestial**   | 2     | 241   | Socket | celestial-{list,upsert}                                              |
+| 7   | **Items**       | 8     | 550   | Socket | item-{list-*,upsert,launch,remove,tractor}, /items                   |
+| 8   | **Market**      | 10    | 1186  | Socket | market-{list,quote,buy,sell,inventory,ledger,listing,offer-*}        |
+| 9   | **Context**     | 2     | 219   | Socket | context-{distance,routing}                                           |
+| 10  | **SolarSystem** | 2     | 267   | Socket | solar-system-{get,list}                                              |
+| 11  | **Stars**       | 2     | 219   | Socket | star-{get,list}                                                      |
+| 12  | **Ledger**      | 1     | 125   | Socket | credit-ledger-list                                                   |
+| 13  | **Game**        | 3     | 235   | Socket | game-{join,leave,state}                                              |
+| 14  | **Realtime**    | 4     | 387   | Socket | ping, message, welcome, invalid-session                              |
+| 15  | **Bust**        | 6     | 795   | Socket | {character,npc}-bust-{create,read,update}                            |
+| —   | **TOTAL**       | 56    | ~5600 | —      | —                                                                    |
 
 ---
 
@@ -137,13 +148,13 @@ All tests continue to reference and pass with:
 
 ## Key Decisions
 
-| Decision | Rationale |
-|----------|-----------|
+| Decision                               | Rationale                                                   |
+| -------------------------------------- | ----------------------------------------------------------- |
 | Keep main `api/openapi.yaml` as master | No breaking changes, all tests pass, single source of truth |
-| Extract all tag content immediately | Foundation ready for future `$ref`-based imports |
-| Version bump to 3.1.0 | Minor: modular structure added (not breaking) |
-| Update Nova + CODEBASE docs | Frontend/backend can discover API by tag |
-| Preserve all examples and descriptions | Full content fidelity for tag modules |
+| Extract all tag content immediately    | Foundation ready for future `$ref`-based imports            |
+| Version bump to 3.1.0                  | Minor: modular structure added (not breaking)               |
+| Update Nova + CODEBASE docs            | Frontend/backend can discover API by tag                    |
+| Preserve all examples and descriptions | Full content fidelity for tag modules                       |
 
 ---
 

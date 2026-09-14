@@ -24,11 +24,7 @@
       "silhouetteProfile"
     ],
     "descriptorShapeMismatch": [],
-    "fallbackTierValues": [
-      "hero",
-      "minimal",
-      "standard"
-    ],
+    "fallbackTierValues": ["hero", "minimal", "standard"],
     "generatedBy": "scripts/sw13/review-descriptor-size-consistency.js",
     "legacyFieldHits": [],
     "payloadFiles": {
@@ -50,9 +46,7 @@
         "sortedByDescriptorId": true
       }
     ],
-    "schemaVersions": [
-      "sw-13-m0-v1"
-    ]
+    "schemaVersions": ["sw-13-m0-v1"]
   },
   "summary": {
     "approachMetadataSize": {
@@ -116,11 +110,7 @@
         "total": 1272
       }
     },
-    "lockedFallbackTiers": [
-      "hero",
-      "minimal",
-      "standard"
-    ],
+    "lockedFallbackTiers": ["hero", "minimal", "standard"],
     "lockedSchemaVersion": "sw-13-m0-v1",
     "payloadByteSizeByBundle": {
       "m1DebrisAsteroids": 3320,

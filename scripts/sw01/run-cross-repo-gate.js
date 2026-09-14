@@ -29,10 +29,16 @@ function printIssue(issue, index) {
   const consumerSurface = Array.isArray(issue.consumerSurfaces)
     ? issue.consumerSurfaces.join(', ')
     : 'unknown';
-  process.stderr.write(`[sw01-m3] issue#${index + 1} severity=${issue.severity || 'unknown'} owner=${issue.owner || 'unknown'}\n`);
-  process.stderr.write(`[sw01-m3] producerLocation=${issue.producerLocation || 'unknown'} impactedConsumerSurface=${consumerSurface}\n`);
+  process.stderr.write(
+    `[sw01-m3] issue#${index + 1} severity=${issue.severity || 'unknown'} owner=${issue.owner || 'unknown'}\n`
+  );
+  process.stderr.write(
+    `[sw01-m3] producerLocation=${issue.producerLocation || 'unknown'} impactedConsumerSurface=${consumerSurface}\n`
+  );
   process.stderr.write(`[sw01-m3] detail=${issue.detail || 'unknown'}\n`);
-  process.stderr.write(`[sw01-m3] remediationHint=${issue.suggestedCompatibilityStrategy || 'none'}\n`);
+  process.stderr.write(
+    `[sw01-m3] remediationHint=${issue.suggestedCompatibilityStrategy || 'none'}\n`
+  );
 }
 
 function main() {
@@ -55,10 +61,14 @@ function main() {
 
   const driftArgs = [
     driftScript,
-    '--baseline', baseline,
-    '--current', current,
-    '--report', report,
-    '--mode', mode,
+    '--baseline',
+    baseline,
+    '--current',
+    current,
+    '--report',
+    report,
+    '--mode',
+    mode,
   ];
 
   if (exception) {
@@ -80,7 +90,9 @@ function main() {
   const issues = Array.isArray(parsed.issues) ? parsed.issues : [];
 
   if (issues.length === 0) {
-    process.stderr.write('[sw01-m3] No compatibility issues detected. Forge and Nova contract surfaces are aligned.\n');
+    process.stderr.write(
+      '[sw01-m3] No compatibility issues detected. Forge and Nova contract surfaces are aligned.\n'
+    );
   } else {
     process.stderr.write(`[sw01-m3] actionableIssues=${issues.length}\n`);
     const previewCount = Math.min(issues.length, 5);

@@ -89,7 +89,6 @@ class MarketInventoryListMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-inventory-list-request', payload);
 
-
     this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);

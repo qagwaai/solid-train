@@ -186,7 +186,9 @@ class MarketListByLocationMessageHandler {
     }
 
     const ownership =
-      ship.ownership && typeof ship.ownership === 'object' ? ship.ownership : { ownerType: 'unknown' };
+      ship.ownership && typeof ship.ownership === 'object'
+        ? ship.ownership
+        : { ownerType: 'unknown' };
     if (ownership.ownerType !== 'npc-pirate') {
       return null;
     }
@@ -197,7 +199,8 @@ class MarketListByLocationMessageHandler {
 
     const modeledFamily = normalizeShipFamilyFromModel(ship.model);
     const descriptor =
-      findShipDescriptorByFamily(modeledFamily) || pickByStableHash(SHIP_DESCRIPTOR_PAYLOAD, ship.id);
+      findShipDescriptorByFamily(modeledFamily) ||
+      pickByStableHash(SHIP_DESCRIPTOR_PAYLOAD, ship.id);
 
     return {
       shipId: this.context.toNonEmptyString(ship.id),
@@ -310,7 +313,11 @@ class MarketListByLocationMessageHandler {
       positionKm,
       distanceKm
     );
-    const inMemoryShips = this.listEncounterShipsFromInMemoryState(solarSystemId, positionKm, distanceKm);
+    const inMemoryShips = this.listEncounterShipsFromInMemoryState(
+      solarSystemId,
+      positionKm,
+      distanceKm
+    );
 
     const dedupedById = new Map();
     for (const shipEntry of [...inMemoryShips, ...dbShips]) {
@@ -528,7 +535,6 @@ class MarketListByLocationMessageHandler {
     this.context.logHandlerMessage('market-list-by-location-request', payload, {
       level: 'debug',
     });
-
 
     this.context.refreshCharacterPresence(payload);
 

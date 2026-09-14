@@ -25,10 +25,12 @@ Frontend log excerpt:
 ## Contract Reference
 
 Distinct socket operations/channels are defined for:
+
 - ship-list-by-owner request/response
 - mission-list request/response
 
 Frontend uses separate constants/listeners for each channel:
+
 - laughing-octo-journey ship-list-by-owner contract
 - laughing-octo-journey mission-list contract
 - laughing-octo-journey ship-exterior socket service listener
@@ -70,15 +72,18 @@ Frontend uses separate constants/listeners for each channel:
 ## Suggested Backend Diagnostics
 
 Add server-side structured logging at emit point with:
+
 - socket event name emitted
 - requestIdentity.operation
 - correlationId
 - request route/handler name
 
 Add assertion/guard before emit:
+
 - emitted channel must match operation mapping table
 
 Add integration tests for channel-operation mapping:
+
 - operation ship-list-by-owner -> channel ship-list-by-owner-response
 - operation mission-list -> channel list-missions-response
 

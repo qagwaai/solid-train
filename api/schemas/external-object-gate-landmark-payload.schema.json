@@ -60,7 +60,7 @@
         "hazardCue": {
           "type": "string",
           "enum": ["low", "medium", "high"],
-          "description": "Approach hazard cue for navigation decision support." 
+          "description": "Approach hazard cue for navigation decision support."
         },
         "warningEscalation": {
           "type": "string",

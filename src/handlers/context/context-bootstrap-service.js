@@ -64,8 +64,7 @@ function seedDefaultNpcs(ctx) {
 function createSeedMarketPayload(ctx, seedMarket, timestamp) {
   const source = ctx.toPlainObject(seedMarket) || {};
   const siteType = ctx.inferMarketSiteType(source);
-  const siteName =
-    ctx.toNonEmptyString(source.siteName) || ctx.toNonEmptyString(source.marketName);
+  const siteName = ctx.toNonEmptyString(source.siteName) || ctx.toNonEmptyString(source.marketName);
   const spatial = ctx.normalizeSpatialState(source.spatial) || undefined;
   const trajectory = ctx.normalizeTrajectoryDescriptor(source.trajectory) || undefined;
 

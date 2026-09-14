@@ -212,7 +212,10 @@ test('SW-15 M1 character bust create/read/update persists and normalizes descrip
     assert.equal(postUpdateRead.success, true);
     assert.deepEqual(postUpdateRead.descriptor, updateResponse.descriptor);
 
-    const persistedDescriptor = await mongoHarness.databaseService.getCharacterBust(playerName, characterId);
+    const persistedDescriptor = await mongoHarness.databaseService.getCharacterBust(
+      playerName,
+      characterId
+    );
     assert.ok(persistedDescriptor);
     assert.equal(persistedDescriptor.schemaVersion, 'sw-15-m1-v1');
     assert.equal(persistedDescriptor.presetVersion, 'v2');
@@ -301,7 +304,12 @@ test('SW-15 M1 NPC bust create/read/update persists deterministic seed lifecycle
     assert.equal(updateResponse.descriptor.facialHair, 'short-beard');
     assert.equal(updateResponse.descriptor.scar, 'chin');
     assert.equal(updateResponse.descriptor.tattoo, 'neck-right');
-    assert.deepEqual(updateResponse.appliedOverrides, ['facialHair', 'hairColor', 'scar', 'tattoo']);
+    assert.deepEqual(updateResponse.appliedOverrides, [
+      'facialHair',
+      'hairColor',
+      'scar',
+      'tattoo',
+    ]);
 
     const postUpdateReadPromise = waitForEvent(client, NPC_BUST_READ_RESPONSE_EVENT);
     client.emit(NPC_BUST_READ_REQUEST_EVENT, {
@@ -315,14 +323,24 @@ test('SW-15 M1 NPC bust create/read/update persists deterministic seed lifecycle
 
     assert.equal(postUpdateRead.success, true);
     assert.deepEqual(postUpdateRead.descriptor, updateResponse.descriptor);
-    assert.deepEqual(postUpdateRead.appliedOverrides, ['facialHair', 'hairColor', 'scar', 'tattoo']);
+    assert.deepEqual(postUpdateRead.appliedOverrides, [
+      'facialHair',
+      'hairColor',
+      'scar',
+      'tattoo',
+    ]);
 
     const persistedRecord = await mongoHarness.databaseService.getNpcBust('npc-merchant-001');
     assert.ok(persistedRecord);
     assert.equal(persistedRecord.deterministicSeed, 'faction:trade|role:merchant|id:001');
     assert.equal(persistedRecord.descriptor.schemaVersion, 'sw-15-m1-v1');
     assert.equal(persistedRecord.descriptor.presetVersion, 'v2');
-    assert.deepEqual(persistedRecord.appliedOverrides, ['facialHair', 'hairColor', 'scar', 'tattoo']);
+    assert.deepEqual(persistedRecord.appliedOverrides, [
+      'facialHair',
+      'hairColor',
+      'scar',
+      'tattoo',
+    ]);
   } finally {
     await closeClient(client);
   }
@@ -343,7 +361,10 @@ test('SW-15 M1 invalid writes hard-reject with validationErrors field/reason/rej
     const { sessionKey } = loginResponse;
     const characterId = await addCharacter(client, playerName, sessionKey, 'InvalidWriteOne');
 
-    const invalidCharacterResponsePromise = waitForEvent(client, CHARACTER_BUST_CREATE_RESPONSE_EVENT);
+    const invalidCharacterResponsePromise = waitForEvent(
+      client,
+      CHARACTER_BUST_CREATE_RESPONSE_EVENT
+    );
     client.emit(CHARACTER_BUST_CREATE_REQUEST_EVENT, {
       playerName,
       sessionKey,
@@ -646,7 +667,10 @@ test('SW-15 M2-A blocked-save responses emit typed reason and retryable semantic
     const { sessionKey } = loginResponse;
     const characterId = await addCharacter(client, playerName, sessionKey, 'BlockedTarget');
 
-    const missingCharacterResponsePromise = waitForEvent(client, CHARACTER_BUST_CREATE_RESPONSE_EVENT);
+    const missingCharacterResponsePromise = waitForEvent(
+      client,
+      CHARACTER_BUST_CREATE_RESPONSE_EVENT
+    );
     client.emit(CHARACTER_BUST_CREATE_REQUEST_EVENT, {
       playerName,
       sessionKey,
@@ -695,7 +719,6 @@ test('SW-15 M2-A blocked-save responses emit typed reason and retryable semantic
       reason: 'NPC_BUST_NOT_FOUND',
       retryable: false,
     });
-
   } finally {
     await closeClient(client);
   }

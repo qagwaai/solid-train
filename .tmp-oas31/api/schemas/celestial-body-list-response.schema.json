@@ -149,7 +149,15 @@
       "additionalProperties": true
     }
   },
-  "required": ["success", "message", "playerName", "solarSystemId", "celestialBodies", "correlationId", "requestIdentity"],
+  "required": [
+    "success",
+    "message",
+    "playerName",
+    "solarSystemId",
+    "celestialBodies",
+    "correlationId",
+    "requestIdentity"
+  ],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },

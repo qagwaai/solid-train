@@ -106,7 +106,16 @@ function createCelestialModelArtifacts({
             },
             silhouetteProfile: {
               type: String,
-              enum: ['fragmented', 'needle', 'broad', 'modular', 'ring', 'spire', 'clustered', 'irregular'],
+              enum: [
+                'fragmented',
+                'needle',
+                'broad',
+                'modular',
+                'ring',
+                'spire',
+                'clustered',
+                'irregular',
+              ],
               required: true,
             },
             materialProfile: {
@@ -307,7 +316,16 @@ function createCelestialModelArtifacts({
             },
             silhouetteProfile: {
               type: String,
-              enum: ['fragmented', 'needle', 'broad', 'modular', 'ring', 'spire', 'clustered', 'irregular'],
+              enum: [
+                'fragmented',
+                'needle',
+                'broad',
+                'modular',
+                'ring',
+                'spire',
+                'clustered',
+                'irregular',
+              ],
               required: true,
             },
             materialProfile: {

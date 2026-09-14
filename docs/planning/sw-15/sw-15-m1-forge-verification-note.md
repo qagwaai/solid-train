@@ -9,6 +9,7 @@ Scope: Forge M1-A, M1-B, M1-C
 SW-15 M1 persistence lifecycle is implemented for both character-scoped playable-character busts and NPC busts.
 
 Implemented outcomes:
+
 - Playable-character bust create/read/update lifecycle is wired through socket handlers and persisted in player character records.
 - NPC bust create/read/update lifecycle is wired through socket handlers and persisted in a dedicated npc bust collection.
 - Write paths enforce strict validation and normalization.
@@ -44,17 +45,21 @@ Implemented outcomes:
 ## Test Evidence
 
 Command:
+
 - node --test test/sw15-m0-contract-hardening.test.js test/sw15-m1-persistence-lifecycle.mongo.integration.test.js
 
 Result:
+
 - tests: 19
 - pass: 19
 - fail: 0
 
 M1 integration tests added:
+
 - test/sw15-m1-persistence-lifecycle.mongo.integration.test.js
 
 Covered assertions:
+
 - Playable-character save -> read round-trip.
 - Playable-character update -> read round-trip.
 - NPC save -> read round-trip.

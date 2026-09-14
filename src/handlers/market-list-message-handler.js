@@ -113,7 +113,6 @@ class MarketListMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-list-request', payload);
 
-
     this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);

@@ -2,7 +2,15 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "market-list-by-location-request",
   "type": "object",
-  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "solarSystemId", "positionKm", "distanceAu"],
+  "required": [
+    "playerName",
+    "sessionKey",
+    "correlationId",
+    "requestIdentity",
+    "solarSystemId",
+    "positionKm",
+    "distanceAu"
+  ],
   "properties": {
     "playerName": { "type": "string" },
     "sessionKey": { "type": "string" },

@@ -104,12 +104,18 @@ function extractSchemaRefMap(openApiText) {
   }
 
   function resolveViaModuleRef(schemaName, moduleRefPath) {
-    const moduleMatch = moduleRefPath.match(/^\.\/openapi\/([^'#]+)\.yaml#\/components\/schemas\/([A-Za-z0-9_-]+)$/);
+    const moduleMatch = moduleRefPath.match(
+      /^\.\/openapi\/([^'#]+)\.yaml#\/components\/schemas\/([A-Za-z0-9_-]+)$/
+    );
     if (!moduleMatch) {
       return null;
     }
 
-    const moduleFilePath = path.join(path.dirname(path.join('api', 'openapi.yaml')), 'openapi', `${moduleMatch[1]}.yaml`);
+    const moduleFilePath = path.join(
+      path.dirname(path.join('api', 'openapi.yaml')),
+      'openapi',
+      `${moduleMatch[1]}.yaml`
+    );
     const moduleAbsolutePath = path.resolve(process.cwd(), moduleFilePath);
     if (!fs.existsSync(moduleAbsolutePath)) {
       return null;
@@ -131,7 +137,10 @@ function extractSchemaRefMap(openApiText) {
     }
 
     const fallbackFile = `${toKebabCase(schemaName)}.schema.json`;
-    const fallbackAbsolutePath = path.resolve(process.cwd(), path.join('api', 'schemas', fallbackFile));
+    const fallbackAbsolutePath = path.resolve(
+      process.cwd(),
+      path.join('api', 'schemas', fallbackFile)
+    );
     return fs.existsSync(fallbackAbsolutePath) ? fallbackFile : null;
   }
 
@@ -149,7 +158,10 @@ function extractSchemaRefMap(openApiText) {
     }
 
     const fallbackFile = `${toKebabCase(schemaName)}.schema.json`;
-    const fallbackAbsolutePath = path.resolve(process.cwd(), path.join('api', 'schemas', fallbackFile));
+    const fallbackAbsolutePath = path.resolve(
+      process.cwd(),
+      path.join('api', 'schemas', fallbackFile)
+    );
     if (fs.existsSync(fallbackAbsolutePath)) {
       refs[schemaName] = fallbackFile;
     }

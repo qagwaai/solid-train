@@ -2,10 +2,7 @@
 
 const { ITEM_REMOVE_RESPONSE_EVENT } = require('../model/item-remove');
 const { ITEM_STATE } = require('../model/canonical-items');
-const {
-  resolveCorrelationId,
-  normalizeRequestIdentity,
-} = require('./correlation-metadata');
+const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
 
 class ItemRemoveMessageHandler {
   /**
@@ -190,7 +187,6 @@ class ItemRemoveMessageHandler {
       this.context.toNonEmptyString.bind(this.context)
     );
     const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
-
 
     this.context.refreshCharacterPresence(payload);
 

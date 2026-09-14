@@ -54,7 +54,11 @@ function normalizeRequestIdentity(options = {}, toNonEmptyString = defaultToNonE
   };
 }
 
-function applyCorrelationEcho(responsePayload, correlationMetadata, toNonEmptyString = defaultToNonEmptyString) {
+function applyCorrelationEcho(
+  responsePayload,
+  correlationMetadata,
+  toNonEmptyString = defaultToNonEmptyString
+) {
   if (!responsePayload || typeof responsePayload !== 'object' || Array.isArray(responsePayload)) {
     return responsePayload;
   }

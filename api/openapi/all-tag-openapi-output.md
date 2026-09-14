@@ -26,9 +26,7 @@ paths:
                     type: string
                     example: ok
 components:
-  schemas:
-    {}
-
+  schemas: {}
 ```
 
 ```yaml
@@ -103,7 +101,6 @@ components:
       $ref: '../schemas/register-request.schema.json'
     RegisterResponse:
       $ref: '../schemas/register-response.schema.json'
-
 ```
 
 ```yaml
@@ -420,7 +417,6 @@ components:
       $ref: '../schemas/character-list-request.schema.json'
     CharacterListResponse:
       $ref: '../schemas/character-list-response.schema.json'
-
 ```
 
 ```yaml
@@ -1164,7 +1160,6 @@ components:
       $ref: '../schemas/ship-piracy-seize-request.schema.json'
     ShipPiracySeizeResponse:
       $ref: '../schemas/ship-piracy-seize-response.schema.json'
-
 ```
 
 ```yaml
@@ -1386,7 +1381,6 @@ components:
       $ref: '../schemas/mission-upsert-request.schema.json'
     MissionUpsertResponse:
       $ref: '../schemas/mission-upsert-response.schema.json'
-
 ```
 
 ```yaml
@@ -1783,7 +1777,6 @@ components:
       $ref: '../schemas/celestial-body-upsert-request.schema.json'
     CelestialBodyUpsertResponse:
       $ref: '../schemas/celestial-body-upsert-response.schema.json'
-
 ```
 
 ```yaml
@@ -2609,7 +2602,6 @@ components:
       $ref: '../schemas/item-list-by-owner-request.schema.json'
     ItemListByOwnerResponse:
       $ref: '../schemas/item-list-by-owner-response.schema.json'
-
 ```
 
 ```yaml
@@ -3800,7 +3792,6 @@ components:
       $ref: '../schemas/market-offer-accept-request.schema.json'
     MarketOfferAcceptResponse:
       $ref: '../schemas/market-offer-accept-response.schema.json'
-
 ```
 
 ```yaml
@@ -3933,7 +3924,6 @@ components:
       $ref: '../schemas/context-routing-request.schema.json'
     ContextRoutingResponse:
       $ref: '../schemas/context-routing-response.schema.json'
-
 ```
 
 ```yaml
@@ -4117,7 +4107,6 @@ components:
       $ref: '../schemas/solar-system-list-request.schema.json'
     SolarSystemListResponse:
       $ref: '../schemas/solar-system-list-response.schema.json'
-
 ```
 
 ```yaml
@@ -4287,7 +4276,6 @@ components:
       $ref: '../schemas/star-list-request.schema.json'
     StarListResponse:
       $ref: '../schemas/star-list-response.schema.json'
-
 ```
 
 ```yaml
@@ -4359,7 +4347,6 @@ components:
       $ref: '../schemas/credit-ledger-list-request.schema.json'
     CreditLedgerListResponse:
       $ref: '../schemas/credit-ledger-list-response.schema.json'
-
 ```
 
 ```yaml
@@ -4504,7 +4491,6 @@ components:
       $ref: '../schemas/game-leave-response.schema.json'
     GameState:
       $ref: '../schemas/game-state.schema.json'
-
 ```
 
 ```yaml
@@ -4598,7 +4584,6 @@ components:
       $ref: '../schemas/pong-response.schema.json'
     WelcomeEvent:
       $ref: '../schemas/welcome-event.schema.json'
-
 ```
 
 ```yaml
@@ -5188,4 +5173,3 @@ components:
       $ref: '../schemas/npc-bust-update-response.schema.json'
 
 ```
-

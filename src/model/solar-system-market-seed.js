@@ -352,31 +352,30 @@ function buildAlphaCentauriSeedMarkets(asOfTimestamp) {
       })
   );
 
-  const belt = ALPHA_CENTAURI_MARKETS.filter((entry) => !entry.anchorBodyId).map(
-    (entry, index) =>
-      buildSeedMarket({
-        solarSystemId: 'alpha-centauri',
-        marketId: entry.marketId,
-        marketName: entry.marketName,
-        siteType: 'free-floating',
-        siteName: entry.locationName,
-        priceMultiplier: entry.priceMultiplier,
-        driftPercentPerHour: entry.driftPercentPerHour,
-        restockIntervalMinutes: 60,
-        orbit: buildOrbit(
-          {
-            anchorBodyId: 'ac-dust-belt',
-            anchorBodyName: 'Centauri Dust Belt',
-            semiMajorAxisKm: entry.semiMajorAxisKm,
-            eccentricity: entry.eccentricity,
-            inclinationDeg: 4 + index * 1.2,
-            argumentOfPeriapsisDeg: (60 + index * 23) % 360,
-            meanAnomalyAtEpochDeg: (index * 97) % 360,
-            orbitalPeriodSec: entry.orbitalPeriodSec,
-          },
-          epoch
-        ),
-      })
+  const belt = ALPHA_CENTAURI_MARKETS.filter((entry) => !entry.anchorBodyId).map((entry, index) =>
+    buildSeedMarket({
+      solarSystemId: 'alpha-centauri',
+      marketId: entry.marketId,
+      marketName: entry.marketName,
+      siteType: 'free-floating',
+      siteName: entry.locationName,
+      priceMultiplier: entry.priceMultiplier,
+      driftPercentPerHour: entry.driftPercentPerHour,
+      restockIntervalMinutes: 60,
+      orbit: buildOrbit(
+        {
+          anchorBodyId: 'ac-dust-belt',
+          anchorBodyName: 'Centauri Dust Belt',
+          semiMajorAxisKm: entry.semiMajorAxisKm,
+          eccentricity: entry.eccentricity,
+          inclinationDeg: 4 + index * 1.2,
+          argumentOfPeriapsisDeg: (60 + index * 23) % 360,
+          meanAnomalyAtEpochDeg: (index * 97) % 360,
+          orbitalPeriodSec: entry.orbitalPeriodSec,
+        },
+        epoch
+      ),
+    })
   );
 
   return [...stations, ...belt];

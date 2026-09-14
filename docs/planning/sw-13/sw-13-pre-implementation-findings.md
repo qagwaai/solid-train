@@ -12,22 +12,27 @@ Identify backend contract and producer gaps that must be closed before SW-13 exe
 ## 2. Key Findings
 
 1. Descriptor contract surface is not yet standardized for SW-13 domains.
+
 - Impact: Nova cannot safely depend on stable external-object family semantics.
 - Required action: add canonical descriptor domains and strict schema validation.
 
 2. Producer emission paths may contain implicit mapping assumptions.
+
 - Impact: unknown/legacy values can leak to consumers.
 - Required action: enforce validation-first producer emission with hard-fail on non-canonical descriptor values.
 
 3. Cross-repo gate path does not yet include SW-13-specific drift fixtures.
+
 - Impact: descriptor drift could pass PR checks undetected.
 - Required action: add SW-13 compatibility checks and intentional drift scenarios.
 
 4. Asteroid variation support is not explicitly represented in producer descriptor taxonomy.
+
 - Impact: rocky-to-cinematic variance cannot be guaranteed by contract.
 - Required action: include `asteroid` style domain with canonical style constraints.
 
 5. Legacy compatibility assumptions may still exist in edge mapping code.
+
 - Impact: full-cutover requirement may be violated silently.
 - Required action: remove legacy fallback mappings and gate against reintroduction.
 

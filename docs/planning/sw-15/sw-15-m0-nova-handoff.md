@@ -23,29 +23,29 @@ New `Bust` tag groups all bust endpoints.
 
 ### Playable-Character Bust Endpoints
 
-| operationId | Path |
-|---|---|
+| operationId                 | Path                            |
+| --------------------------- | ------------------------------- |
 | `socketCharacterBustCreate` | `/socket/character-bust-create` |
-| `socketCharacterBustRead` | `/socket/character-bust-read` |
+| `socketCharacterBustRead`   | `/socket/character-bust-read`   |
 | `socketCharacterBustUpdate` | `/socket/character-bust-update` |
 
 Request schemas use `characterId` to identify the target playable character. All bust operations are character-scoped.
 
 ### NPC Bust Endpoints
 
-| operationId | Path |
-|---|---|
+| operationId           | Path                      |
+| --------------------- | ------------------------- |
 | `socketNpcBustCreate` | `/socket/npc-bust-create` |
-| `socketNpcBustRead` | `/socket/npc-bust-read` |
+| `socketNpcBustRead`   | `/socket/npc-bust-read`   |
 | `socketNpcBustUpdate` | `/socket/npc-bust-update` |
 
 NPC bust create/update requests use `deterministicSeed` for baseline generation. Optional `overrides` field supports admin-tool manual field overrides.
 
 ## 3. Core Schema Components
 
-| Component | Description |
-|---|---|
-| `BustDescriptor` | Normalized descriptor with all 6 domain fields + `schemaVersion` + `presetVersion` |
+| Component                     | Description                                                                                     |
+| ----------------------------- | ----------------------------------------------------------------------------------------------- |
+| `BustDescriptor`              | Normalized descriptor with all 6 domain fields + `schemaVersion` + `presetVersion`              |
 | `BustValidationErrorResponse` | Hard-reject shape: `success: false`, `validationErrors[]` with `field`/`reason`/`rejectedValue` |
 
 All bust response schemas embed `BustDescriptor` as the `descriptor` field.
@@ -54,16 +54,16 @@ All bust response schemas embed `BustDescriptor` as the `descriptor` field.
 
 Nova selector controls must map to these canonical values only. Unknown values are hard-rejected by Forge.
 
-| Domain | Canonical Values |
-|---|---|
-| `faceShape` | `oval`, `round`, `square`, `angular`, `narrow` |
-| `skinTone` | `pale`, `light`, `medium`, `tan`, `dark`, `deep` |
-| `hairStyle` | `short-crop`, `mid-fade`, `long-loose`, `braided`, `shaved`, `slicked` |
-| `hairColor` | `black`, `brown`, `auburn`, `blonde`, `silver`, `white`, `red` |
-| `eyeStyle` | `narrow`, `wide`, `almond`, `hooded`, `round` |
-| `eyeColor` | `brown`, `hazel`, `green`, `blue`, `grey`, `amber`, `violet` |
-| `expressionPreset` | `neutral`, `focused`, `smirk`, `stern`, `warm`, `weary` |
-| `apparelAccent` | `none`, `collar`, `hood`, `visor`, `goggles`, `headband` |
+| Domain             | Canonical Values                                                       |
+| ------------------ | ---------------------------------------------------------------------- |
+| `faceShape`        | `oval`, `round`, `square`, `angular`, `narrow`                         |
+| `skinTone`         | `pale`, `light`, `medium`, `tan`, `dark`, `deep`                       |
+| `hairStyle`        | `short-crop`, `mid-fade`, `long-loose`, `braided`, `shaved`, `slicked` |
+| `hairColor`        | `black`, `brown`, `auburn`, `blonde`, `silver`, `white`, `red`         |
+| `eyeStyle`         | `narrow`, `wide`, `almond`, `hooded`, `round`                          |
+| `eyeColor`         | `brown`, `hazel`, `green`, `blue`, `grey`, `amber`, `violet`           |
+| `expressionPreset` | `neutral`, `focused`, `smirk`, `stern`, `warm`, `weary`                |
+| `apparelAccent`    | `none`, `collar`, `hood`, `visor`, `goggles`, `headband`               |
 
 ## 5. Fixture Pass Evidence
 
@@ -74,6 +74,7 @@ Run: `node --test test/sw15-m0-contract-hardening.test.js`
 Expected result: `✔ SW-15 canonical character bust fixture passes schema validation`
 
 Fixture content:
+
 ```json
 {
   "schemaVersion": "sw-15-m0-v1",
@@ -135,6 +136,7 @@ Nova PR: [laughing-octo-journey PR #2](https://github.com/qagwaai/laughing-octo-
 Verification note: `docs/planning/sw-15/sw-15-m0v-verification-note.md` (Nova repo)
 
 Acknowledgment summary:
+
 1. All 14 Forge schema components consumed — types match schemas exactly, no ad hoc additions.
 2. All 6 endpoint paths verified against request/response interface shapes.
 3. Character-scoped ownership confirmed end-to-end (`characterId` / `npcId`, no player-level bust).

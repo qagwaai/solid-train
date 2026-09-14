@@ -166,7 +166,9 @@ class CelestialBodyUpsertMessageHandler {
               objectFamily: this.context.toNonEmptyString(
                 celestialBody.externalObjectDescriptor.objectFamily
               ),
-              roleCue: this.context.toNonEmptyString(celestialBody.externalObjectDescriptor.roleCue),
+              roleCue: this.context.toNonEmptyString(
+                celestialBody.externalObjectDescriptor.roleCue
+              ),
               factionCue: this.context.toNonEmptyString(
                 celestialBody.externalObjectDescriptor.factionCue
               ),
@@ -300,7 +302,6 @@ class CelestialBodyUpsertMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('celestial-body-upsert-request', payload);
-
 
     this.context.refreshCharacterPresence(payload);
 

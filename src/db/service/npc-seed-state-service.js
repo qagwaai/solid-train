@@ -108,7 +108,13 @@ async function getSolarSystemNpcSeedState(ctx, GameStateDocument, solarSystemId)
   }
 }
 
-async function setSolarSystemNpcSeedState(ctx, GameStateDocument, solarSystemId, seedVersion, seededAt) {
+async function setSolarSystemNpcSeedState(
+  ctx,
+  GameStateDocument,
+  solarSystemId,
+  seedVersion,
+  seededAt
+) {
   try {
     const normalizedSolarSystemId = ctx.toNonEmptyString(solarSystemId).toLowerCase();
     const normalizedSeedVersion = ctx.toNonEmptyString(seedVersion);
@@ -171,19 +177,19 @@ async function getSeededNpcOwners(ctx, GameStateDocument, query = {}) {
 
     return owners
       .filter((entry) => {
-      if (normalizedSolarSystemId && entry.solarSystemId !== normalizedSolarSystemId) {
-        return false;
-      }
+        if (normalizedSolarSystemId && entry.solarSystemId !== normalizedSolarSystemId) {
+          return false;
+        }
 
-      if (normalizedNpcId && entry.npcId !== normalizedNpcId) {
-        return false;
-      }
+        if (normalizedNpcId && entry.npcId !== normalizedNpcId) {
+          return false;
+        }
 
-      if (normalizedMarketId && entry.marketId !== normalizedMarketId) {
-        return false;
-      }
+        if (normalizedMarketId && entry.marketId !== normalizedMarketId) {
+          return false;
+        }
 
-      return true;
+        return true;
       })
       .sort(compareOwnerRecords);
   } catch (error) {

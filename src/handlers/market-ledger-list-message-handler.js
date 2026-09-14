@@ -96,7 +96,6 @@ class MarketLedgerListMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-ledger-list-request', payload);
 
-
     this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);

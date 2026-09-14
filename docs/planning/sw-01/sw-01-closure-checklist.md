@@ -7,6 +7,7 @@ Repo: solid-train
 ## 1. Contract Completion
 
 1. Mission status enum in producer schema is canonical only:
+
 - available
 - active
 - completed
@@ -49,12 +50,12 @@ Repo: solid-train
 
 ## 7. Sign-Off
 
-| Role | Name | Date | Decision | Notes |
-| --- | --- | --- | --- | --- |
-| Forge lead | Forge | 2026-05-30 | Approved | SW-01 backend milestones and gates complete |
-| Nova lead | Nova | 2026-05-30 | Approved | Cross-repo alignment and Nova closures confirmed |
-| QA lead | QA | 2026-05-30 | Approved | Verification evidence accepted |
-| Orion | Orion | 2026-05-30 | Approved | M6 Go decision recorded; SW-01 complete |
+| Role       | Name  | Date       | Decision | Notes                                            |
+| ---------- | ----- | ---------- | -------- | ------------------------------------------------ |
+| Forge lead | Forge | 2026-05-30 | Approved | SW-01 backend milestones and gates complete      |
+| Nova lead  | Nova  | 2026-05-30 | Approved | Cross-repo alignment and Nova closures confirmed |
+| QA lead    | QA    | 2026-05-30 | Approved | Verification evidence accepted                   |
+| Orion      | Orion | 2026-05-30 | Approved | M6 Go decision recorded; SW-01 complete          |
 
 ## 8. Final Exit Criteria
 

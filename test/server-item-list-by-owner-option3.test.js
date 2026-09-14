@@ -11,9 +11,18 @@ const {
   registerAndLogin,
 } = require('../test-support/socket-test-helpers');
 
-const { ITEM_LIST_BY_OWNER_REQUEST_EVENT, ITEM_LIST_BY_OWNER_RESPONSE_EVENT } = require('../src/model/item-list-by-owner');
-const { ITEM_UPSERT_REQUEST_EVENT, ITEM_UPSERT_RESPONSE_EVENT } = require('../src/model/item-upsert');
-const { CHARACTER_ADD_REQUEST_EVENT, CHARACTER_ADD_RESPONSE_EVENT } = require('../src/model/character-add');
+const {
+  ITEM_LIST_BY_OWNER_REQUEST_EVENT,
+  ITEM_LIST_BY_OWNER_RESPONSE_EVENT,
+} = require('../src/model/item-list-by-owner');
+const {
+  ITEM_UPSERT_REQUEST_EVENT,
+  ITEM_UPSERT_RESPONSE_EVENT,
+} = require('../src/model/item-upsert');
+const {
+  CHARACTER_ADD_REQUEST_EVENT,
+  CHARACTER_ADD_RESPONSE_EVENT,
+} = require('../src/model/character-add');
 
 function withTimeout(promise, ms, label = 'operation') {
   return Promise.race([
@@ -62,10 +71,25 @@ test('Option3 item-list-by-owner negative: cross-player query is forbidden', asy
   await withTimeout(waitForEvent(actorClient, 'connect'), 1200, 'actor connect');
 
   try {
-    const ownerLogin = await registerAndLogin(ownerClient, 'ItemListOwnerPlayer', 'item-list-owner@example.com', 'secret');
-    const ownerCharacter = await addCharacter(ownerClient, 'ItemListOwnerPlayer', ownerLogin.sessionKey, 'OwnerChar');
+    const ownerLogin = await registerAndLogin(
+      ownerClient,
+      'ItemListOwnerPlayer',
+      'item-list-owner@example.com',
+      'secret'
+    );
+    const ownerCharacter = await addCharacter(
+      ownerClient,
+      'ItemListOwnerPlayer',
+      ownerLogin.sessionKey,
+      'OwnerChar'
+    );
 
-    const actorLogin = await registerAndLogin(actorClient, 'ItemListActorPlayer', 'item-list-actor@example.com', 'secret');
+    const actorLogin = await registerAndLogin(
+      actorClient,
+      'ItemListActorPlayer',
+      'item-list-actor@example.com',
+      'secret'
+    );
 
     const listPromise = waitForEvent(actorClient, ITEM_LIST_BY_OWNER_RESPONSE_EVENT);
     actorClient.emit(ITEM_LIST_BY_OWNER_REQUEST_EVENT, {
@@ -97,7 +121,12 @@ test('Option3 item-list-by-owner positive: player can list own items', async () 
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'ItemListPilot', 'item-list-pilot@example.com', 'secret');
+    const login = await registerAndLogin(
+      client,
+      'ItemListPilot',
+      'item-list-pilot@example.com',
+      'secret'
+    );
     const character = await addCharacter(client, 'ItemListPilot', login.sessionKey, 'PilotChar');
 
     // Create an item with canonical ownership
@@ -142,7 +171,12 @@ test('Option3 item-list-by-owner negative: invalid owner type is rejected', asyn
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'ItemListBadTypePilot', 'item-list-bad@example.com', 'secret');
+    const login = await registerAndLogin(
+      client,
+      'ItemListBadTypePilot',
+      'item-list-bad@example.com',
+      'secret'
+    );
 
     const listPromise = waitForEvent(client, ITEM_LIST_BY_OWNER_RESPONSE_EVENT);
     client.emit(ITEM_LIST_BY_OWNER_REQUEST_EVENT, {

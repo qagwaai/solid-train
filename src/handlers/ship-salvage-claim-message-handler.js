@@ -82,9 +82,7 @@ class ShipSalvageClaimMessageHandler {
       if (!Array.isArray(characters)) continue;
       for (const char of characters) {
         const ships = Array.isArray(char?.ships) ? char.ships : [];
-        const found = ships.find(
-          (s) => this.context.toNonEmptyString(s?.id) === shipId
-        );
+        const found = ships.find((s) => this.context.toNonEmptyString(s?.id) === shipId);
         if (found) {
           targetShip = found;
           targetCharacterShips = ships;
@@ -104,7 +102,10 @@ class ShipSalvageClaimMessageHandler {
 
     // Validate current ownership — must be unowned or unknown
     const currentNorm = normalizeOwnership(this.context, targetShip.ownership || {});
-    if (currentNorm.error || (currentNorm.ownerType !== 'unowned' && currentNorm.ownerType !== 'unknown')) {
+    if (
+      currentNorm.error ||
+      (currentNorm.ownerType !== 'unowned' && currentNorm.ownerType !== 'unknown')
+    ) {
       return {
         success: false,
         reason: 'SALVAGE_ALREADY_OWNED',
@@ -127,7 +128,13 @@ class ShipSalvageClaimMessageHandler {
     if (this.context.db && typeof this.context.db.transferShipOwnership === 'function') {
       await this.context.db.transferShipOwnership({
         shipId,
-        fromOwner: { ownerType: previousOwnerType, playerId: null, characterId: null, npcId: null, factionId: null },
+        fromOwner: {
+          ownerType: previousOwnerType,
+          playerId: null,
+          characterId: null,
+          npcId: null,
+          factionId: null,
+        },
         toOwner: claimantOwner,
         actorPlayerId: actorPlayerId,
         actorCharacterId: claimantNorm.characterId,
@@ -137,13 +144,21 @@ class ShipSalvageClaimMessageHandler {
 
     // Update in-memory ship ownership
     targetShip.ownership = claimantOwner;
-    const existingHistory = Array.isArray(targetShip.ownershipHistory) ? targetShip.ownershipHistory : [];
+    const existingHistory = Array.isArray(targetShip.ownershipHistory)
+      ? targetShip.ownershipHistory
+      : [];
     targetShip.ownershipHistory = [
       ...existingHistory,
       {
         at: claimedAt,
         reason: 'salvage',
-        fromOwner: { ownerType: previousOwnerType, playerId: null, characterId: null, npcId: null, factionId: null },
+        fromOwner: {
+          ownerType: previousOwnerType,
+          playerId: null,
+          characterId: null,
+          npcId: null,
+          factionId: null,
+        },
         toOwner: claimantOwner,
         actor: {
           ownerType: 'player-character',

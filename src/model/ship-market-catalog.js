@@ -81,7 +81,8 @@ function buildDefaultShipListings(asOfTimestamp) {
     starterInventory: entry.starterInventory.map((inventoryEntry) => ({
       itemType: inventoryEntry.itemType,
       displayName: inventoryEntry.displayName,
-      tier: Number.isInteger(inventoryEntry.tier) && inventoryEntry.tier > 0 ? inventoryEntry.tier : 1,
+      tier:
+        Number.isInteger(inventoryEntry.tier) && inventoryEntry.tier > 0 ? inventoryEntry.tier : 1,
       quantity: inventoryEntry.quantity,
       launchable: inventoryEntry.launchable,
     })),

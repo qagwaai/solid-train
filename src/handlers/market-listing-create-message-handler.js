@@ -14,7 +14,9 @@ class MarketListingCreateMessageHandler {
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
     const itemId = this.context.toNonEmptyString(payload?.itemId);
     const quantity = Number.isInteger(payload?.quantity) ? payload.quantity : 0;
-    const listingPrice = this.context.isFiniteNumber(payload?.listingPrice) ? payload.listingPrice : 0;
+    const listingPrice = this.context.isFiniteNumber(payload?.listingPrice)
+      ? payload.listingPrice
+      : 0;
 
     if (!playerName) {
       return {

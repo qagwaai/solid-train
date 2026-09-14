@@ -206,7 +206,14 @@
       "additionalProperties": true
     }
   },
-  "required": ["success", "message", "playerName", "solarSystemId", "correlationId", "requestIdentity"],
+  "required": [
+    "success",
+    "message",
+    "playerName",
+    "solarSystemId",
+    "correlationId",
+    "requestIdentity"
+  ],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },

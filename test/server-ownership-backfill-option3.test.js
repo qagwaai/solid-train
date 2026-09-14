@@ -11,10 +11,19 @@ const {
   registerAndLogin,
 } = require('../test-support/socket-test-helpers');
 
-const { CHARACTER_ADD_REQUEST_EVENT, CHARACTER_ADD_RESPONSE_EVENT } = require('../src/model/character-add');
+const {
+  CHARACTER_ADD_REQUEST_EVENT,
+  CHARACTER_ADD_RESPONSE_EVENT,
+} = require('../src/model/character-add');
 const { SHIP_LIST_RESPONSE_EVENT, SHIP_LIST_REQUEST_EVENT } = require('../src/model/ship-list');
-const { ITEM_UPSERT_REQUEST_EVENT, ITEM_UPSERT_RESPONSE_EVENT } = require('../src/model/item-upsert');
-const { ITEM_LIST_BY_OWNER_REQUEST_EVENT, ITEM_LIST_BY_OWNER_RESPONSE_EVENT } = require('../src/model/item-list-by-owner');
+const {
+  ITEM_UPSERT_REQUEST_EVENT,
+  ITEM_UPSERT_RESPONSE_EVENT,
+} = require('../src/model/item-upsert');
+const {
+  ITEM_LIST_BY_OWNER_REQUEST_EVENT,
+  ITEM_LIST_BY_OWNER_RESPONSE_EVENT,
+} = require('../src/model/item-list-by-owner');
 
 function withTimeout(promise, ms, label = 'operation') {
   return Promise.race([
@@ -39,8 +48,18 @@ test('Option3 backfill: starter ship has canonical ownership on read', async () 
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'BackfillShipPilot', 'backfill-ship@example.com', 'secret');
-    const character = await addCharacter(client, 'BackfillShipPilot', login.sessionKey, 'BackfillChar');
+    const login = await registerAndLogin(
+      client,
+      'BackfillShipPilot',
+      'backfill-ship@example.com',
+      'secret'
+    );
+    const character = await addCharacter(
+      client,
+      'BackfillShipPilot',
+      login.sessionKey,
+      'BackfillChar'
+    );
 
     const listPromise = waitForEvent(client, SHIP_LIST_RESPONSE_EVENT);
     client.emit(SHIP_LIST_REQUEST_EVENT, {
@@ -73,8 +92,18 @@ test('Option3 backfill: item upserted with legacy owningPlayerId/owningCharacter
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'BackfillItemPilot', 'backfill-item@example.com', 'secret');
-    const character = await addCharacter(client, 'BackfillItemPilot', login.sessionKey, 'BackfillItemChar');
+    const login = await registerAndLogin(
+      client,
+      'BackfillItemPilot',
+      'backfill-item@example.com',
+      'secret'
+    );
+    const character = await addCharacter(
+      client,
+      'BackfillItemPilot',
+      login.sessionKey,
+      'BackfillItemChar'
+    );
 
     // Upsert item with only legacy fields (no canonical ownership)
     const upsertPromise = waitForEvent(client, ITEM_UPSERT_RESPONSE_EVENT);
@@ -116,8 +145,18 @@ test('Option3 backfill: item with canonical ownership takes precedence over lega
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'BackfillPrecedencePilot', 'backfill-prec@example.com', 'secret');
-    const character = await addCharacter(client, 'BackfillPrecedencePilot', login.sessionKey, 'PrecedenceChar');
+    const login = await registerAndLogin(
+      client,
+      'BackfillPrecedencePilot',
+      'backfill-prec@example.com',
+      'secret'
+    );
+    const character = await addCharacter(
+      client,
+      'BackfillPrecedencePilot',
+      login.sessionKey,
+      'PrecedenceChar'
+    );
 
     const upsertPromise = waitForEvent(client, ITEM_UPSERT_RESPONSE_EVENT);
     client.emit(ITEM_UPSERT_REQUEST_EVENT, {
@@ -142,7 +181,10 @@ test('Option3 backfill: item with canonical ownership takes precedence over lega
     assert.equal(upsertResponse.success, true);
     assert.ok(upsertResponse.item.ownership);
     // Canonical ownership should be used, not the legacy fields
-    assert.equal(upsertResponse.item.ownership.playerId, login.playerId || 'BackfillPrecedencePilot');
+    assert.equal(
+      upsertResponse.item.ownership.playerId,
+      login.playerId || 'BackfillPrecedencePilot'
+    );
     assert.equal(upsertResponse.item.ownership.characterId, character.characterId);
   } finally {
     await closeClient(client);

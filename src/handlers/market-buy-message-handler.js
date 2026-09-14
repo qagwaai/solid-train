@@ -18,7 +18,10 @@ class MarketBuyMessageHandler {
    */
   async buildResponse(payload) {
     return buildMarketTransactionResponse(
-      this.context, payload, 'buy', MARKET_BUY_FAILURE_REASONS,
+      this.context,
+      payload,
+      'buy',
+      MARKET_BUY_FAILURE_REASONS,
       this.messageForReason.bind(this)
     );
   }
@@ -63,7 +66,6 @@ class MarketBuyMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-buy-request', payload);
-
 
     this.context.refreshCharacterPresence(payload);
 

@@ -89,15 +89,7 @@
     },
     "materialProfile": {
       "type": "string",
-      "enum": [
-        "scrap",
-        "alloy",
-        "composite",
-        "infrastructure",
-        "rocky",
-        "metallic",
-        "icy"
-      ],
+      "enum": ["scrap", "alloy", "composite", "infrastructure", "rocky", "metallic", "icy"],
       "description": "Material treatment category to keep rendering semantics explicit."
     },
     "emissiveProfile": {

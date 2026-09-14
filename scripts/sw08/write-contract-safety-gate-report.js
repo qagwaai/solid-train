@@ -49,7 +49,8 @@ function buildReport({ stage, driftPath, drift, trendPath, trend }) {
 
   const stage3Pass = driftIssues === 0 || bypassApproved;
   const stage5Pass = stage3Pass && (!trend || !trendFailOnRecurrence || !trendRecurrenceActive);
-  const decision = stage === 'stage5' ? (stage5Pass ? 'pass' : 'fail') : stage3Pass ? 'pass' : 'fail';
+  const decision =
+    stage === 'stage5' ? (stage5Pass ? 'pass' : 'fail') : stage3Pass ? 'pass' : 'fail';
 
   const lines = [
     '# SW-08 Contract Safety Gate Report',
@@ -97,7 +98,8 @@ function main() {
   const outAbsolutePath = path.resolve(rootDir, args.out);
 
   const drift = readJson(driftAbsolutePath);
-  const trend = trendAbsolutePath && fs.existsSync(trendAbsolutePath) ? readJson(trendAbsolutePath) : null;
+  const trend =
+    trendAbsolutePath && fs.existsSync(trendAbsolutePath) ? readJson(trendAbsolutePath) : null;
 
   const markdown = buildReport({
     stage: args.stage,

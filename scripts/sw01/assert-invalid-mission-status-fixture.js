@@ -6,7 +6,15 @@ const { MISSION_STATUS_VALUES } = require('../../src/model/mission');
 
 const fixturePath = process.argv[2]
   ? path.resolve(process.argv[2])
-  : path.resolve(__dirname, '..', '..', 'test', 'fixtures', 'sw01', 'mission-status-invalid-request.json');
+  : path.resolve(
+      __dirname,
+      '..',
+      '..',
+      'test',
+      'fixtures',
+      'sw01',
+      'mission-status-invalid-request.json'
+    );
 
 function fail(message, code = 1) {
   process.stderr.write(`${message}\n`);

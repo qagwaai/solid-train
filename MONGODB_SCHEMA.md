@@ -786,26 +786,29 @@ A character with no bust record has ust: null or the field absent. Bust is crea
 - presetVersion: String (required)
   - Identifies the preset bundle version used as the customization baseline.
   - Stored to support cross-session and cross-device reproducibility.
-- aceShape: String (required)
-  - Enum: oval, ound, square, ngular, 
-arrow
+- aceShape: String (required)
+  - Enum: oval,
+    ound, square, ngular,
+    arrow
 - skinTone: String (required)
-  - Enum: pale, light, medium, 	an, dark, deep
+  - Enum: pale, light, medium, an, dark, deep
 - hairStyle: String (required)
   - Enum: short-crop, mid-fade, long-loose, raided, shaved, slicked
 - hairColor: String (required)
-  - Enum: lack, rown, uburn, londe, silver, white, ed
+  - Enum: lack, rown, uburn, londe, silver, white,
+    ed
 - eyeStyle: String (required)
-  - Enum: 
-arrow, wide, lmond, hooded, ound
+  - Enum:
+    arrow, wide, lmond, hooded,
+    ound
 - eyeColor: String (required)
   - Enum: rown, hazel, green, lue, grey, mber, iolet
 - expressionPreset: String (required)
-  - Enum: 
-eutral, ocused, smirk, stern, warm, weary
+  - Enum:
+    eutral, ocused, smirk, stern, warm, weary
 - pparelAccent: String (required)
-  - Enum: 
-one, collar, hood, isor, goggles, headband
+  - Enum:
+    one, collar, hood, isor, goggles, headband
 
 #### Normalization Semantics
 
@@ -832,15 +835,17 @@ one, collar, hood, isor, goggles, headband
 
 ### NPC Bust Record Shape
 
-NPC bust records are stored in a dedicated 
+NPC bust records are stored in a dedicated
 pc_busts collection (not embedded in the players collection).
 
 #### Fields
 
 - _id: ObjectId (MongoDB-generated)
-- 
+-
+
 pcId: String (required, unique index)
-  - Application-level NPC identifier. Used as the lookup key for all read/update operations.
+
+- Application-level NPC identifier. Used as the lookup key for all read/update operations.
 - deterministicSeed: String (required)
   - The seed used to generate the NPC bust baseline at creation time.
   - Stored to support deterministic replay: the same seed always produces the same baseline descriptor.
@@ -848,14 +853,14 @@ pcId: String (required, unique index)
 - schemaVersion: String (required)
   - Hard-pinned to sw-15-m0-v1 for this contract baseline.
 - presetVersion: String (required)
-- aceShape: String (required) — same enum as character bust
-- skinTone: String (required) — same enum as character bust
-- hairStyle: String (required) — same enum as character bust
-- hairColor: String (required) — same enum as character bust
-- eyeStyle: String (required) — same enum as character bust
-- eyeColor: String (required) — same enum as character bust
-- expressionPreset: String (required) — same enum as character bust
-- pparelAccent: String (required) — same enum as character bust
+- aceShape: String (required) ï¿½ same enum as character bust
+- skinTone: String (required) ï¿½ same enum as character bust
+- hairStyle: String (required) ï¿½ same enum as character bust
+- hairColor: String (required) ï¿½ same enum as character bust
+- eyeStyle: String (required) ï¿½ same enum as character bust
+- eyeColor: String (required) ï¿½ same enum as character bust
+- expressionPreset: String (required) ï¿½ same enum as character bust
+- pparelAccent: String (required) ï¿½ same enum as character bust
 - ppliedOverrides: String[] (required, default: [])
   - List of field names that were overridden by admin-tool input.
   - Empty array when all fields are seed-derived.
@@ -887,5 +892,5 @@ pcId: String (required, unique index)
 - schemaVersion is hard-pinned at write time to sw-15-m0-v1. Any schema update for a future milestone requires a version bump (e.g., sw-15-m1-v1) and a migration path before new writes proceed.
 - presetVersion is supplied by the caller (character bust create/update) or derived from server defaults (NPC bust). It is stored verbatim and returned on read for cross-session reproducibility.
 - Records created before SW-15 M0 are not affected. No backfill is required for existing character records; the ust subdocument is absent until first write.
-- NPC bust records have no pre-existing counterpart; the 
-pc_busts collection is new in SW-15 M0.
+- NPC bust records have no pre-existing counterpart; the
+  pc_busts collection is new in SW-15 M0.

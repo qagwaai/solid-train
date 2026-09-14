@@ -65,13 +65,21 @@ const {
 const { MarketLedgerListMessageHandler } = require('./handlers/market-ledger-list-message-handler');
 const { MarketBuyMessageHandler } = require('./handlers/market-buy-message-handler');
 const { MarketSellMessageHandler } = require('./handlers/market-sell-message-handler');
-const { MarketListingCreateMessageHandler } = require('./handlers/market-listing-create-message-handler');
-const { MarketOfferCreateMessageHandler } = require('./handlers/market-offer-create-message-handler');
-const { MarketOfferAcceptMessageHandler } = require('./handlers/market-offer-accept-message-handler');
+const {
+  MarketListingCreateMessageHandler,
+} = require('./handlers/market-listing-create-message-handler');
+const {
+  MarketOfferCreateMessageHandler,
+} = require('./handlers/market-offer-create-message-handler');
+const {
+  MarketOfferAcceptMessageHandler,
+} = require('./handlers/market-offer-accept-message-handler');
 const { ItemListByOwnerMessageHandler } = require('./handlers/item-list-by-owner-message-handler');
 const { ShipSalvageClaimMessageHandler } = require('./handlers/ship-salvage-claim-message-handler');
 const { ShipPiracySeizeMessageHandler } = require('./handlers/ship-piracy-seize-message-handler');
-const { ShipListByNpcOwnerMessageHandler } = require('./handlers/ship-list-by-npc-owner-message-handler');
+const {
+  ShipListByNpcOwnerMessageHandler,
+} = require('./handlers/ship-list-by-npc-owner-message-handler');
 const { SolarSystemListMessageHandler } = require('./handlers/solar-system-list-message-handler');
 const { SolarSystemGetMessageHandler } = require('./handlers/solar-system-get-message-handler');
 const { StarListMessageHandler } = require('./handlers/star-list-message-handler');
@@ -101,7 +109,8 @@ function resolvePort(value = process.env.PORT) {
  */
 function createServer(options = {}) {
   const logger =
-    options.logger || createLogger({ minLevel: options.logLevel || process.env.LOG_LEVEL || 'info' });
+    options.logger ||
+    createLogger({ minLevel: options.logLevel || process.env.LOG_LEVEL || 'info' });
   const port = resolvePort(options.port);
   const registeredPlayers = new Map();
   const charactersByPlayer = new Map();
@@ -175,13 +184,21 @@ function createServer(options = {}) {
   const marketLedgerListMessageHandler = new MarketLedgerListMessageHandler(messageHandlerContext);
   const marketBuyMessageHandler = new MarketBuyMessageHandler(messageHandlerContext);
   const marketSellMessageHandler = new MarketSellMessageHandler(messageHandlerContext);
-  const marketListingCreateMessageHandler = new MarketListingCreateMessageHandler(messageHandlerContext);
-  const marketOfferCreateMessageHandler = new MarketOfferCreateMessageHandler(messageHandlerContext);
-  const marketOfferAcceptMessageHandler = new MarketOfferAcceptMessageHandler(messageHandlerContext);
+  const marketListingCreateMessageHandler = new MarketListingCreateMessageHandler(
+    messageHandlerContext
+  );
+  const marketOfferCreateMessageHandler = new MarketOfferCreateMessageHandler(
+    messageHandlerContext
+  );
+  const marketOfferAcceptMessageHandler = new MarketOfferAcceptMessageHandler(
+    messageHandlerContext
+  );
   const itemListByOwnerMessageHandler = new ItemListByOwnerMessageHandler(messageHandlerContext);
   const shipSalvageClaimMessageHandler = new ShipSalvageClaimMessageHandler(messageHandlerContext);
   const shipPiracySeizeMessageHandler = new ShipPiracySeizeMessageHandler(messageHandlerContext);
-  const shipListByNpcOwnerMessageHandler = new ShipListByNpcOwnerMessageHandler(messageHandlerContext);
+  const shipListByNpcOwnerMessageHandler = new ShipListByNpcOwnerMessageHandler(
+    messageHandlerContext
+  );
   const solarSystemListMessageHandler = new SolarSystemListMessageHandler(messageHandlerContext);
   const solarSystemGetMessageHandler = new SolarSystemGetMessageHandler(messageHandlerContext);
   const starListMessageHandler = new StarListMessageHandler(messageHandlerContext);
@@ -246,54 +263,57 @@ function createServer(options = {}) {
       });
     });
 
-    registerSocketHandlers(socket, {
-      registerMessageHandler,
-      loginMessageHandler,
-      characterListMessageHandler,
-      characterAddMessageHandler,
-      characterDeleteMessageHandler,
-      characterEditMessageHandler,
-      characterBustCreateMessageHandler,
-      characterBustReadMessageHandler,
-      characterBustUpdateMessageHandler,
-      npcBustCreateMessageHandler,
-      npcBustReadMessageHandler,
-      npcBustUpdateMessageHandler,
-      shipListMessageHandler,
-      shipListByOwnerMessageHandler,
-      shipUpsertMessageHandler,
-      shipTransferMessageHandler,
-      gameJoinMessageHandler,
-      missionUpsertMessageHandler,
-      celestialBodyUpsertMessageHandler,
-      celestialBodyListMessageHandler,
-      missionListMessageHandler,
-      itemUpsertMessageHandler,
-      itemListByContainerMessageHandler,
-      itemListByLocationMessageHandler,
-      itemRemoveMessageHandler,
-      launchItemMessageHandler,
-      tractorBeamActivateMessageHandler,
-      marketListMessageHandler,
-      marketListByLocationMessageHandler,
-      marketQuoteMessageHandler,
-      marketInventoryListMessageHandler,
-      marketLedgerListMessageHandler,
-      marketBuyMessageHandler,
-      marketSellMessageHandler,
-      marketListingCreateMessageHandler,
-      marketOfferCreateMessageHandler,
-      marketOfferAcceptMessageHandler,
-      itemListByOwnerMessageHandler,
-      shipSalvageClaimMessageHandler,
-      shipPiracySeizeMessageHandler,
-      shipListByNpcOwnerMessageHandler,
-      solarSystemListMessageHandler,
-      solarSystemGetMessageHandler,
-      starListMessageHandler,
-      starGetMessageHandler,
-    }, messageHandlerContext);
-
+    registerSocketHandlers(
+      socket,
+      {
+        registerMessageHandler,
+        loginMessageHandler,
+        characterListMessageHandler,
+        characterAddMessageHandler,
+        characterDeleteMessageHandler,
+        characterEditMessageHandler,
+        characterBustCreateMessageHandler,
+        characterBustReadMessageHandler,
+        characterBustUpdateMessageHandler,
+        npcBustCreateMessageHandler,
+        npcBustReadMessageHandler,
+        npcBustUpdateMessageHandler,
+        shipListMessageHandler,
+        shipListByOwnerMessageHandler,
+        shipUpsertMessageHandler,
+        shipTransferMessageHandler,
+        gameJoinMessageHandler,
+        missionUpsertMessageHandler,
+        celestialBodyUpsertMessageHandler,
+        celestialBodyListMessageHandler,
+        missionListMessageHandler,
+        itemUpsertMessageHandler,
+        itemListByContainerMessageHandler,
+        itemListByLocationMessageHandler,
+        itemRemoveMessageHandler,
+        launchItemMessageHandler,
+        tractorBeamActivateMessageHandler,
+        marketListMessageHandler,
+        marketListByLocationMessageHandler,
+        marketQuoteMessageHandler,
+        marketInventoryListMessageHandler,
+        marketLedgerListMessageHandler,
+        marketBuyMessageHandler,
+        marketSellMessageHandler,
+        marketListingCreateMessageHandler,
+        marketOfferCreateMessageHandler,
+        marketOfferAcceptMessageHandler,
+        itemListByOwnerMessageHandler,
+        shipSalvageClaimMessageHandler,
+        shipPiracySeizeMessageHandler,
+        shipListByNpcOwnerMessageHandler,
+        solarSystemListMessageHandler,
+        solarSystemGetMessageHandler,
+        starListMessageHandler,
+        starGetMessageHandler,
+      },
+      messageHandlerContext
+    );
   });
 
   return { port, server, io, messageHandlerContext };
@@ -306,7 +326,8 @@ function createServer(options = {}) {
  */
 async function startServer(options = {}) {
   const logger =
-    options.logger || createLogger({ minLevel: options.logLevel || process.env.LOG_LEVEL || 'info' });
+    options.logger ||
+    createLogger({ minLevel: options.logLevel || process.env.LOG_LEVEL || 'info' });
   const mongoConnection = new MongoConnection({
     mongoUri: process.env.MONGODB_URI,
     logger,
@@ -320,7 +341,9 @@ async function startServer(options = {}) {
       databaseService = new DatabaseService({ logger });
       logger.info('[server] MongoDB connection established');
     } catch (error) {
-      logger.error(`[server] Failed to connect to MongoDB, using in-memory storage: ${error.message}`);
+      logger.error(
+        `[server] Failed to connect to MongoDB, using in-memory storage: ${error.message}`
+      );
     }
   } else {
     logger.info('[server] MONGODB_URI not configured; running with in-memory storage');
@@ -345,7 +368,9 @@ async function startServer(options = {}) {
       await databaseService.upsertSolarSystems(getSolarSystemRegistry());
       logger.info('[server] HYG star + solar-system registry persisted');
     } catch (registryError) {
-      logger.error(`[server] Failed to persist star/solar-system registry: ${registryError.message}`);
+      logger.error(
+        `[server] Failed to persist star/solar-system registry: ${registryError.message}`
+      );
     }
   }
 

@@ -2,30 +2,39 @@
 
 const mongoose = require('mongoose');
 
-const marketOfferOwnershipSchema = new mongoose.Schema({
-  ownerType: {
-    type: String,
-    enum: ['player-character', 'npc-pirate', 'unowned', 'unknown'],
-    required: true,
+const marketOfferOwnershipSchema = new mongoose.Schema(
+  {
+    ownerType: {
+      type: String,
+      enum: ['player-character', 'npc-pirate', 'unowned', 'unknown'],
+      required: true,
+    },
+    playerId: { type: String, default: null },
+    characterId: { type: String, default: null },
+    npcId: { type: String, default: null },
+    factionId: { type: String, default: null },
   },
-  playerId: { type: String, default: null },
-  characterId: { type: String, default: null },
-  npcId: { type: String, default: null },
-  factionId: { type: String, default: null },
-}, { _id: false });
+  { _id: false }
+);
 
-const marketOfferActorSchema = new mongoose.Schema({
-  playerId: { type: String, required: true },
-  characterId: { type: String, required: true },
-}, { _id: false });
+const marketOfferActorSchema = new mongoose.Schema(
+  {
+    playerId: { type: String, required: true },
+    characterId: { type: String, required: true },
+  },
+  { _id: false }
+);
 
-const tradeHistoryEntrySchema = new mongoose.Schema({
-  at: { type: Date, required: true },
-  offerId: { type: String, required: true },
-  listingOwner: { type: marketOfferOwnershipSchema, required: true },
-  offerorOwner: { type: marketOfferOwnershipSchema, required: true },
-  acceptorCharacterId: { type: String, required: true },
-}, { _id: false });
+const tradeHistoryEntrySchema = new mongoose.Schema(
+  {
+    at: { type: Date, required: true },
+    offerId: { type: String, required: true },
+    listingOwner: { type: marketOfferOwnershipSchema, required: true },
+    offerorOwner: { type: marketOfferOwnershipSchema, required: true },
+    acceptorCharacterId: { type: String, required: true },
+  },
+  { _id: false }
+);
 
 const marketOfferSchema = new mongoose.Schema({
   offerId: { type: String, required: true, unique: true, index: true },

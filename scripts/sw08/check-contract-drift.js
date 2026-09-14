@@ -470,7 +470,10 @@ async function main() {
     rootDir,
     args.current || 'api/artifacts/contracts/contract-artifact.json'
   );
-  const reportPath = path.resolve(rootDir, args.report || 'api/artifacts/contracts/drift-report.json');
+  const reportPath = path.resolve(
+    rootDir,
+    args.report || 'api/artifacts/contracts/drift-report.json'
+  );
   const mode = args.mode || 'report-only';
   const exceptionPath = args.exception
     ? path.resolve(rootDir, args.exception)

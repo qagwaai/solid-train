@@ -2,9 +2,7 @@
 
 const mongoose = require('mongoose');
 
-function createMarketListingModelArtifacts({
-  mongooseInstance = mongoose,
-} = {}) {
+function createMarketListingModelArtifacts({ mongooseInstance = mongoose } = {}) {
   const marketListingOwnershipSchema = new mongooseInstance.Schema(
     {
       ownerType: {

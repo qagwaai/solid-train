@@ -227,9 +227,7 @@ Continue using old fixture format; conversion layer handles it automatically dur
 const body = {
   location: { positionKm: { x: 100, y: 200, z: 300 } },
   solarSystemId: 'sol',
-  kinematics: {
-    /* ... */
-  },
+  kinematics: {/* ... */},
 };
 // Automatically converted to spatial + motion + physical during normalize
 ```

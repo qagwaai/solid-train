@@ -22,8 +22,8 @@ Use this runbook when SW-01 contract gates fail, mission status payload checks f
 2. Regenerate contract artifact.
 3. Run strict contract gate command set for SW-01.
 4. Run mission status unit and integration tests.
-	- `node --test test/server.test.js --test-name-pattern "mission-list integration|mission add stores mission progress|mission-list operation emits only|mission-list responses strictly echo|mission list emits invalid session"`
-	- `node --test test/db-service-branch.mongo.integration.test.js`
+   - `node --test test/server.test.js --test-name-pattern "mission-list integration|mission add stores mission progress|mission-list operation emits only|mission-list responses strictly echo|mission list emits invalid session"`
+   - `node --test test/db-service-branch.mongo.integration.test.js`
 5. Run negative fixture test injecting invalid mission status.
 6. Compare generated artifact against expected canonical enum.
 7. If cross-repo drift is reported, validate Nova inventory compatibility.

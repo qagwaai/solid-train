@@ -89,9 +89,9 @@ function buildSeededNpcsForSolarSystem(solarSystemId, asOfTimestamp) {
     return [];
   }
 
-  return SOL_MARKET_OWNER_NPCS.filter((entry) => entry.solarSystemId === normalizedSolarSystemId).map(
-    (entry) => buildSeededNpc(entry, seededAt)
-  );
+  return SOL_MARKET_OWNER_NPCS.filter(
+    (entry) => entry.solarSystemId === normalizedSolarSystemId
+  ).map((entry) => buildSeededNpc(entry, seededAt));
 }
 
 module.exports = {

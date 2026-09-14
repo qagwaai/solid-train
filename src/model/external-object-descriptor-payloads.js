@@ -272,7 +272,9 @@ function createDebrisDescriptorPayloads() {
 
   return Object.freeze(
     families
-      .map((family) => buildDescriptor(EXTERNAL_OBJECT_DOMAIN.DEBRIS, family, DEBRIS_DESCRIPTOR_SEED[family]))
+      .map((family) =>
+        buildDescriptor(EXTERNAL_OBJECT_DOMAIN.DEBRIS, family, DEBRIS_DESCRIPTOR_SEED[family])
+      )
       .sort(compareByDescriptorId)
   );
 }
@@ -294,7 +296,9 @@ function createShipDescriptorPayloads() {
 
   return Object.freeze(
     families
-      .map((family) => buildDescriptor(EXTERNAL_OBJECT_DOMAIN.SHIPS, family, SHIP_DESCRIPTOR_SEED[family]))
+      .map((family) =>
+        buildDescriptor(EXTERNAL_OBJECT_DOMAIN.SHIPS, family, SHIP_DESCRIPTOR_SEED[family])
+      )
       .sort(compareByDescriptorId)
   );
 }
@@ -316,7 +320,9 @@ function createGateDescriptorPayloads() {
 
   return Object.freeze(
     families
-      .map((family) => buildDescriptor(EXTERNAL_OBJECT_DOMAIN.GATES, family, GATE_DESCRIPTOR_SEED[family]))
+      .map((family) =>
+        buildDescriptor(EXTERNAL_OBJECT_DOMAIN.GATES, family, GATE_DESCRIPTOR_SEED[family])
+      )
       .sort(compareByDescriptorId)
   );
 }
@@ -324,20 +330,22 @@ function createGateDescriptorPayloads() {
 function createDebrisAndAsteroidDescriptorPayload() {
   return Object.freeze({
     schemaVersion: EXTERNAL_OBJECT_SCHEMA_VERSION,
-    descriptors: Object.freeze([
-      ...createDebrisDescriptorPayloads(),
-      ...createAsteroidDescriptorPayloads(),
-    ].sort(compareByDescriptorId)),
+    descriptors: Object.freeze(
+      [...createDebrisDescriptorPayloads(), ...createAsteroidDescriptorPayloads()].sort(
+        compareByDescriptorId
+      )
+    ),
   });
 }
 
 function createShipAndStationDescriptorPayload() {
   return Object.freeze({
     schemaVersion: EXTERNAL_OBJECT_SCHEMA_VERSION,
-    descriptors: Object.freeze([
-      ...createShipDescriptorPayloads(),
-      ...createStationDescriptorPayloads(),
-    ].sort(compareByDescriptorId)),
+    descriptors: Object.freeze(
+      [...createShipDescriptorPayloads(), ...createStationDescriptorPayloads()].sort(
+        compareByDescriptorId
+      )
+    ),
   });
 }
 
@@ -354,7 +362,9 @@ function createGateLandmarkDescriptorPayload() {
             ...GATE_APPROACH_METADATA_BY_FAMILY[descriptor.objectFamily],
           },
         }))
-        .sort((left, right) => left.descriptor.descriptorId.localeCompare(right.descriptor.descriptorId))
+        .sort((left, right) =>
+          left.descriptor.descriptorId.localeCompare(right.descriptor.descriptorId)
+        )
     ),
   });
 }

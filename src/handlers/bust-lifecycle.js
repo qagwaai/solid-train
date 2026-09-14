@@ -105,7 +105,11 @@ function normalizeDescriptorInput(descriptor, options = {}) {
     const presetVersion = normalizePresetVersion(rawPresetVersion);
     if (!presetVersion) {
       errors.push(
-        toValidationError(`${fieldPrefix}.presetVersion`, 'must be a non-empty string', rawPresetVersion)
+        toValidationError(
+          `${fieldPrefix}.presetVersion`,
+          'must be a non-empty string',
+          rawPresetVersion
+        )
       );
     } else {
       normalized.presetVersion = presetVersion;
@@ -118,7 +122,11 @@ function normalizeDescriptorInput(descriptor, options = {}) {
       const normalizedValue = normalizeDomainValue(rawValue);
       if (!normalizedValue) {
         errors.push(
-          toValidationError(`${fieldPrefix}.${domain.field}`, 'must be a non-empty string', rawValue)
+          toValidationError(
+            `${fieldPrefix}.${domain.field}`,
+            'must be a non-empty string',
+            rawValue
+          )
         );
         continue;
       }
@@ -173,15 +181,15 @@ function normalizeOverrides(overrides) {
 
   for (const [field, rawValue] of Object.entries(overrides)) {
     if (!allowedFields.has(field)) {
-      errors.push(toValidationError(`overrides.${field}`, 'is not an overridable bust field', rawValue));
+      errors.push(
+        toValidationError(`overrides.${field}`, 'is not an overridable bust field', rawValue)
+      );
       continue;
     }
 
     const normalizedValue = normalizeDomainValue(rawValue);
     if (!normalizedValue) {
-      errors.push(
-        toValidationError(`overrides.${field}`, 'must be a non-empty string', rawValue)
-      );
+      errors.push(toValidationError(`overrides.${field}`, 'must be a non-empty string', rawValue));
       continue;
     }
 
@@ -208,16 +216,17 @@ function normalizeOverrides(overrides) {
 }
 
 function hashIndex(seed, fieldName, modulo) {
-  const digest = createHash('sha256')
-    .update(`${seed}|${fieldName}|sw-15`) 
-    .digest('hex');
+  const digest = createHash('sha256').update(`${seed}|${fieldName}|sw-15`).digest('hex');
   const hashPrefix = digest.slice(0, 8);
   const asInt = Number.parseInt(hashPrefix, 16);
 
   return asInt % modulo;
 }
 
-function generateNpcBaselineDescriptor(deterministicSeed, presetVersion = DEFAULT_BUST_PRESET_VERSION) {
+function generateNpcBaselineDescriptor(
+  deterministicSeed,
+  presetVersion = DEFAULT_BUST_PRESET_VERSION
+) {
   const seed = normalizeSeed(deterministicSeed);
 
   if (seed === FIXTURE_SEED) {
@@ -276,7 +285,11 @@ function buildNpcDescriptorForWrite(payload, existing = null) {
 
   if (!deterministicSeed) {
     errors.push(
-      toValidationError('deterministicSeed', 'must be a non-empty string', payload?.deterministicSeed)
+      toValidationError(
+        'deterministicSeed',
+        'must be a non-empty string',
+        payload?.deterministicSeed
+      )
     );
   }
 
@@ -340,7 +353,13 @@ function buildBlockedSaveResponse(message, reason, baseResponse = {}, options = 
  * @param {(value: unknown) => string} toNonEmptyString bound from context
  * @returns {Object}
  */
-function makeBustRequestIdentity(operation, entityType, containerIdCandidates, requestIdentity, toNonEmptyString) {
+function makeBustRequestIdentity(
+  operation,
+  entityType,
+  containerIdCandidates,
+  requestIdentity,
+  toNonEmptyString
+) {
   return normalizeRequestIdentity(
     {
       requestIdentity,

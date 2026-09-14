@@ -7,11 +7,7 @@
     "message": { "type": "string" },
     "reason": {
       "type": "string",
-      "enum": [
-        "INVALID_SESSION",
-        "OWNERSHIP_VALIDATION_FAILED",
-        "ITEM_LIST_OWNER_FORBIDDEN"
-      ]
+      "enum": ["INVALID_SESSION", "OWNERSHIP_VALIDATION_FAILED", "ITEM_LIST_OWNER_FORBIDDEN"]
     },
     "correlationId": { "type": "string" },
     "owner": {

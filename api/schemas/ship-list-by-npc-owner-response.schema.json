@@ -7,10 +7,7 @@
     "message": { "type": "string" },
     "reason": {
       "type": "string",
-      "enum": [
-        "INVALID_SESSION",
-        "OWNERSHIP_VALIDATION_FAILED"
-      ]
+      "enum": ["INVALID_SESSION", "OWNERSHIP_VALIDATION_FAILED"]
     },
     "correlationId": { "type": "string" },
     "npcOwner": {

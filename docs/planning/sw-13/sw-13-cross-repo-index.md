@@ -40,15 +40,15 @@ Nova documents (laughing-octo-journey):
 
 ## Milestone Sync Board
 
-| Milestone | Forge (solid-train) | Nova (laughing-octo-journey) | QA Evidence | Status |
-| --- | --- | --- | --- | --- |
-| M0 Contract baseline lock | Planned | Planned | Pending | Open |
-| M1 Producer emission compliance | Planned | N/A | Pending | Open |
-| M2 Integration contract confidence | Complete (Forge scope) | Planned | Forge evidence attached; Nova evidence pending | In Progress |
-| M3 Cross-repo gate alignment | Planned | Planned | Pending | Open |
-| M4 Descriptor size and payload consistency review | Complete (Forge scope) | Planned | Forge evidence attached; Nova evidence pending | In Progress |
-| M5 Canary validation | Planned | Planned | Pending | Open |
-| M6 Release decision | Pending | Pending | Pending | Open |
+| Milestone                                         | Forge (solid-train)    | Nova (laughing-octo-journey) | QA Evidence                                    | Status      |
+| ------------------------------------------------- | ---------------------- | ---------------------------- | ---------------------------------------------- | ----------- |
+| M0 Contract baseline lock                         | Planned                | Planned                      | Pending                                        | Open        |
+| M1 Producer emission compliance                   | Planned                | N/A                          | Pending                                        | Open        |
+| M2 Integration contract confidence                | Complete (Forge scope) | Planned                      | Forge evidence attached; Nova evidence pending | In Progress |
+| M3 Cross-repo gate alignment                      | Planned                | Planned                      | Pending                                        | Open        |
+| M4 Descriptor size and payload consistency review | Complete (Forge scope) | Planned                      | Forge evidence attached; Nova evidence pending | In Progress |
+| M5 Canary validation                              | Planned                | Planned                      | Pending                                        | Open        |
+| M6 Release decision                               | Pending                | Pending                      | Pending                                        | Open        |
 
 ## Merge and Release Sequence
 
@@ -71,14 +71,14 @@ When SW-13 drift is detected:
 
 ## Status Updates
 
-| Date | Repo | Update | Owner |
-| --- | --- | --- | --- |
-| 2026-05-30 | solid-train | SW-13 Forge planning set created (requirements, implementation, findings, runbook, closure, M0 artifacts) | Orion |
-| 2026-05-30 | solid-train | Orion M2 decision lock captured: full-9 ship/station coverage, fallback tier behavior assertions, no additional API surface required for M2 | Orion |
+| Date       | Repo        | Update                                                                                                                                                                                                                     | Owner |
+| ---------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| 2026-05-30 | solid-train | SW-13 Forge planning set created (requirements, implementation, findings, runbook, closure, M0 artifacts)                                                                                                                  | Orion |
+| 2026-05-30 | solid-train | Orion M2 decision lock captured: full-9 ship/station coverage, fallback tier behavior assertions, no additional API surface required for M2                                                                                | Orion |
 | 2026-05-30 | solid-train | M2 Forge evidence pass recorded: deterministic full-9 ship/station payload fixture, tier-behavior assertions (hero/standard/minimal), OpenAPI component-level contract surface confirmed, and SW-13 lint/gate checks green | Forge |
-| 2026-05-30 | solid-train | Orion M3 decision lock captured and enforced in Forge tests: all-family per-run gate coverage and medium hazard mandatory warning escalation | Orion |
-| 2026-05-30 | solid-train | M4 Forge evidence pass recorded: deterministic size/consistency review generator, locked report fixture parity checks, and bounded payload item counts for descriptor and gate bundles | Forge |
-| 2026-05-30 | solid-train | Orion M4 decision lock captured: authoritative 16/3 envelope runtime guardrails, hard byte thresholds (including gate descriptor max 328), and required artifact-to-fixture parity for sign-off | Orion |
+| 2026-05-30 | solid-train | Orion M3 decision lock captured and enforced in Forge tests: all-family per-run gate coverage and medium hazard mandatory warning escalation                                                                               | Orion |
+| 2026-05-30 | solid-train | M4 Forge evidence pass recorded: deterministic size/consistency review generator, locked report fixture parity checks, and bounded payload item counts for descriptor and gate bundles                                     | Forge |
+| 2026-05-30 | solid-train | Orion M4 decision lock captured: authoritative 16/3 envelope runtime guardrails, hard byte thresholds (including gate descriptor max 328), and required artifact-to-fixture parity for sign-off                            | Orion |
 
 ## Change Log
 

@@ -69,9 +69,7 @@ class ShipPiracySeizeMessageHandler {
       if (!Array.isArray(characters)) continue;
       for (const char of characters) {
         const ships = Array.isArray(char?.ships) ? char.ships : [];
-        const found = ships.find(
-          (s) => this.context.toNonEmptyString(s?.id) === shipId
-        );
+        const found = ships.find((s) => this.context.toNonEmptyString(s?.id) === shipId);
         if (found) {
           targetShip = found;
           break;
@@ -110,7 +108,9 @@ class ShipPiracySeizeMessageHandler {
 
     // Update in-memory ship ownership
     targetShip.ownership = seizingOwner;
-    const existingHistory = Array.isArray(targetShip.ownershipHistory) ? targetShip.ownershipHistory : [];
+    const existingHistory = Array.isArray(targetShip.ownershipHistory)
+      ? targetShip.ownershipHistory
+      : [];
     targetShip.ownershipHistory = [
       ...existingHistory,
       {

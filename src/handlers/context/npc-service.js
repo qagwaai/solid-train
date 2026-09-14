@@ -196,9 +196,10 @@ async function getNpcOwnedMarketsAsync(ctx, npcId) {
         return ctx.getMarketWithOwnerProfileAsync(profile.marketId, profile.solarSystemId);
       }
 
-      const market = typeof ctx.getMarket === 'function'
-        ? ctx.getMarket(profile.marketId, profile.solarSystemId)
-        : null;
+      const market =
+        typeof ctx.getMarket === 'function'
+          ? ctx.getMarket(profile.marketId, profile.solarSystemId)
+          : null;
 
       return market
         ? {

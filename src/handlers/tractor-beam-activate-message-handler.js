@@ -1,12 +1,7 @@
 'use strict';
 
-const {
-  TRACTOR_BEAM_ACTIVATE_RESPONSE_EVENT,
-} = require('../model/tractor-beam-activate');
-const {
-  resolveCorrelationId,
-  normalizeRequestIdentity,
-} = require('./correlation-metadata');
+const { TRACTOR_BEAM_ACTIVATE_RESPONSE_EVENT } = require('../model/tractor-beam-activate');
+const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
 
 const TRACTOR_BEAM_ITEM_TYPE = 'ship-tractor-beam';
 
@@ -35,7 +30,8 @@ class TractorBeamActivateMessageHandler {
     const characterId = this.context.toNonEmptyString(payload?.characterId);
     const shipId = this.context.toNonEmptyString(payload?.shipId);
     const targetItemId = this.context.toNonEmptyString(payload?.targetItemId) || null;
-    const targetCelestialBodyId = this.context.toNonEmptyString(payload?.targetCelestialBodyId) || null;
+    const targetCelestialBodyId =
+      this.context.toNonEmptyString(payload?.targetCelestialBodyId) || null;
 
     if (!playerName || !characterId || !shipId) {
       return {
@@ -127,7 +123,6 @@ class TractorBeamActivateMessageHandler {
     );
     const requestIdentity = this.normalizeRequestIdentity(payload?.requestIdentity, payload);
 
-
     this.context.refreshCharacterPresence(payload);
 
     const parsed = await this.buildParsed(payload);
@@ -140,10 +135,12 @@ class TractorBeamActivateMessageHandler {
       characterId: this.context.toNonEmptyString(parsed.characterId || payload?.characterId),
       shipId: this.context.toNonEmptyString(parsed.shipId || payload?.shipId),
       tractorBeamItemId: this.context.toNonEmptyString(parsed.tractorBeamItemId),
-      targetItemId: this.context.toNonEmptyString(parsed.targetItemId || payload?.targetItemId) || null,
+      targetItemId:
+        this.context.toNonEmptyString(parsed.targetItemId || payload?.targetItemId) || null,
       targetCelestialBodyId:
-        this.context.toNonEmptyString(parsed.targetCelestialBodyId || payload?.targetCelestialBodyId) ||
-        null,
+        this.context.toNonEmptyString(
+          parsed.targetCelestialBodyId || payload?.targetCelestialBodyId
+        ) || null,
     };
 
     if (response.success) {

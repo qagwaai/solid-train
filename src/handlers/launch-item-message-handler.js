@@ -1,11 +1,7 @@
 'use strict';
 
 const { LAUNCH_ITEM_RESPONSE_EVENT } = require('../model/launch-item');
-const {
-  ITEM_STATE,
-  ITEM_DAMAGE_STATUS,
-  ITEM_CONTAINER_TYPE,
-} = require('../model/canonical-items');
+const { ITEM_STATE, ITEM_DAMAGE_STATUS, ITEM_CONTAINER_TYPE } = require('../model/canonical-items');
 const { isCanonicalRuntimeItemType } = require('../model/canonical-item-type-registry');
 const {
   DEFAULT_STARTER_MISSION_ID,
@@ -13,10 +9,7 @@ const {
   MISSION_PREREQUISITES_BY_ID,
   MISSION_UNLOCK_SOURCE_STATUSES,
 } = require('../model/mission');
-const {
-  resolveCorrelationId,
-  normalizeRequestIdentity,
-} = require('./correlation-metadata');
+const { resolveCorrelationId, normalizeRequestIdentity } = require('./correlation-metadata');
 
 const EXPENDABLE_DART_DRONE_ITEM_TYPE = 'expendable-dart-drone';
 const HOTKEY_VALUES = new Set([1, 2, 3, 4, 5]);
@@ -126,7 +119,8 @@ class LaunchItemMessageHandler {
 
   resolveYieldItemType(material) {
     const normalizedMaterial = this.normalizeMaterialToken(material);
-    const aliasedItemType = YIELD_MATERIAL_ITEM_TYPE_ALIASES[normalizedMaterial] || normalizedMaterial;
+    const aliasedItemType =
+      YIELD_MATERIAL_ITEM_TYPE_ALIASES[normalizedMaterial] || normalizedMaterial;
 
     if (!aliasedItemType || aliasedItemType.startsWith('raw-material-')) {
       return null;
@@ -172,7 +166,10 @@ class LaunchItemMessageHandler {
       return null;
     }
 
-    const missions = await this.context.getMissionsAsync(parsed.player.playerName, parsed.characterId);
+    const missions = await this.context.getMissionsAsync(
+      parsed.player.playerName,
+      parsed.characterId
+    );
     const missionsById = new Map(
       (Array.isArray(missions) ? missions : []).map((mission) => [mission.missionId, mission])
     );
@@ -322,16 +319,15 @@ class LaunchItemMessageHandler {
       updatedAt: now,
     });
 
-    const effectiveUpdatedItem =
-      updatedItem || {
-        ...parsed.item,
-        state: ITEM_STATE.DESTROYED,
-        launchable: false,
-        destroyedAt: parsed.item.destroyedAt || now,
-        destroyedReason: `expended-on-target:${parsed.targetCelestialBodyId}`,
-        updatedAt: now,
-        container: null,
-      };
+    const effectiveUpdatedItem = updatedItem || {
+      ...parsed.item,
+      state: ITEM_STATE.DESTROYED,
+      launchable: false,
+      destroyedAt: parsed.item.destroyedAt || now,
+      destroyedReason: `expended-on-target:${parsed.targetCelestialBodyId}`,
+      updatedAt: now,
+      container: null,
+    };
 
     await this.context.syncShipInventoryReferenceForItemAsync(
       parsed.player.playerName,
@@ -407,26 +403,33 @@ class LaunchItemMessageHandler {
       };
     }
 
-    const hydratedShip = await this.context.hydrateShipAsync(this.buildHydrationShipCandidate(ship), {
-      playerName: player.playerName,
-      characterId,
-      correlationId: this.context.toNonEmptyString(payload?.correlationId) || '-',
-      owningPlayerId: this.context.toNonEmptyString(player.playerId),
-      owningCharacterId: characterId,
-    });
+    const hydratedShip = await this.context.hydrateShipAsync(
+      this.buildHydrationShipCandidate(ship),
+      {
+        playerName: player.playerName,
+        characterId,
+        correlationId: this.context.toNonEmptyString(payload?.correlationId) || '-',
+        owningPlayerId: this.context.toNonEmptyString(player.playerId),
+        owningCharacterId: characterId,
+      }
+    );
     const projectedInventory = Array.isArray(hydratedShip?.inventory) ? hydratedShip.inventory : [];
     const projectedItem = projectedInventory.find((candidate) => candidate?.id === itemId);
-    this.logLaunchDiag('membership-check', this.context.toNonEmptyString(payload?.correlationId) || '-', {
-      source: 'canonical-ship-projection',
-      playerName: player.playerName,
-      characterId,
-      shipId,
-      itemId,
-      projectedInventoryItemIds: projectedInventory.map((candidate) =>
-        this.context.toNonEmptyString(candidate?.id)
-      ),
-      hasProjectedMembership: Boolean(projectedItem),
-    });
+    this.logLaunchDiag(
+      'membership-check',
+      this.context.toNonEmptyString(payload?.correlationId) || '-',
+      {
+        source: 'canonical-ship-projection',
+        playerName: player.playerName,
+        characterId,
+        shipId,
+        itemId,
+        projectedInventoryItemIds: projectedInventory.map((candidate) =>
+          this.context.toNonEmptyString(candidate?.id)
+        ),
+        hasProjectedMembership: Boolean(projectedItem),
+      }
+    );
     if (!projectedItem) {
       return {
         error: 'Item is not in ship inventory',
@@ -712,7 +715,6 @@ class LaunchItemMessageHandler {
       itemId: this.context.toNonEmptyString(payload?.itemId),
       itemType: this.context.toNonEmptyString(payload?.itemType),
     });
-
 
     this.context.refreshCharacterPresence(payload);
 

@@ -567,7 +567,12 @@ class DatabaseService {
         : [];
       const limit = Number.isInteger(query?.limit) && query.limit > 0 ? query.limit : null;
 
-      if (!solarSystemId || !this.isTriple(positionKm) || !this.isFiniteNumber(distanceKm) || distanceKm < 0) {
+      if (
+        !solarSystemId ||
+        !this.isTriple(positionKm) ||
+        !this.isFiniteNumber(distanceKm) ||
+        distanceKm < 0
+      ) {
         return [];
       }
 
@@ -800,11 +805,7 @@ class DatabaseService {
   }
 
   async getSolarSystemNpcSeedState(solarSystemId) {
-    return npcSeedStateService.getSolarSystemNpcSeedState(
-      this,
-      GameStateDocument,
-      solarSystemId
-    );
+    return npcSeedStateService.getSolarSystemNpcSeedState(this, GameStateDocument, solarSystemId);
   }
 
   async setSolarSystemNpcSeedState(solarSystemId, seedVersion, seededAt) {

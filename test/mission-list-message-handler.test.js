@@ -228,7 +228,9 @@ test('MissionListMessageHandler logs correlation diagnostics for unsupported sta
 
   assert.equal(response.success, false);
 
-  const validationLog = logMessages.find((message) => message.includes('[mission-list-validation]'));
+  const validationLog = logMessages.find((message) =>
+    message.includes('[mission-list-validation]')
+  );
   assert.ok(validationLog);
   assert.match(validationLog, /operation=list-missions/);
   assert.match(validationLog, /entityType=mission/);

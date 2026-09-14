@@ -68,68 +68,87 @@ Forbidden producer behavior:
 ## 5. Functional Requirements
 
 1. Descriptor emission
+
 - Object descriptor producers emit only canonical domains and style values.
 
 2. Deterministic rendering semantics
+
 - Descriptor values map one-to-one with Nova rendering taxonomy.
 
 3. Validation-first behavior
+
 - Invalid descriptor values are rejected before outbound emission.
 
 4. Asteroid variety support
+
 - Producer payloads must support both rocky and hero-cinematic asteroid style selection.
 
 5. Observability
+
 - Invalid descriptor attempts include operation name, entity key, and correlation metadata.
 
 ## 6. Non-Functional Requirements
 
 1. Determinism
+
 - Contract artifacts and descriptor ordering are deterministic across runs.
 
 2. Reliability
+
 - Contract checks run in CI and local parity commands.
 
 3. Latency safety
+
 - Descriptor validation logic does not regress critical external-object response latency beyond agreed threshold.
 
 4. Operability
+
 - Gate failures provide actionable producer location and remediation path.
 
 5. Separation of concerns
+
 - Contract schema, descriptor normalization, and transport emission must remain separate layers.
 - Business/domain logic must not depend on consumer renderer implementation details.
 
 6. Testability
+
 - Descriptor mapping and validation paths must be executable through pure or near-pure modules.
 - Deterministic fixtures must exist for canonical and drift scenarios.
 
 7. Maintainability
+
 - Descriptor domains and style enums must be centrally defined to avoid duplication.
 - Any schema evolution requires explicit migration notes and ownership assignment.
 
 ## 7. Gate and Verification Requirements
 
 1. Producer contract gate
+
 - Hard-fail PR checks when descriptor schema drifts from canonical set.
 
 2. Consumer compatibility gate
+
 - Hard-fail when Nova consumer inventory disagrees with producer descriptor schema.
 
 3. Dual gate enforcement
+
 - Forge producer gate and Nova preflight gate are both active and blocking in PR workflow.
 - Local parity commands must match CI pass/fail behavior.
 
 4. Negative fixture coverage
+
 - Intentional invalid descriptor fixture must fail reliably in CI.
 
 5. Canary validation
+
 - SW-13 release promotion is blocked if canary shows descriptor drift or unreadable object identity regressions.
 
 6. Legacy fallback prevention gate
+
 - PR checks must fail if legacy descriptor fallback/remap logic is reintroduced.
 
 7. Test-layer minimum coverage
+
 - Unit: descriptor validation and normalization rules.
 - Integration: producer emission with canonical descriptor payloads.
 - Contract: drift fixtures for casing, unsupported values, and shape mismatches.

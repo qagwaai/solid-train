@@ -20,10 +20,7 @@ function isFiniteNumber(value) {
  */
 function isTriple(value) {
   return (
-    Boolean(value) &&
-    isFiniteNumber(value.x) &&
-    isFiniteNumber(value.y) &&
-    isFiniteNumber(value.z)
+    Boolean(value) && isFiniteNumber(value.x) && isFiniteNumber(value.y) && isFiniteNumber(value.z)
   );
 }
 

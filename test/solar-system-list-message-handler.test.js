@@ -87,7 +87,6 @@ test('SolarSystemListMessageHandler rejects invalid source values', async () => 
   assert.match(response.message, /source must be one of/);
 });
 
-
 test('SolarSystemListMessageHandler echoes requestId when supplied', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });

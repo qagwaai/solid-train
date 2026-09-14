@@ -25,11 +25,7 @@ const EXTERNAL_OBJECT_FAMILY_BY_DOMAIN = Object.freeze({
     'interceptor',
     'industrial',
   ]),
-  [EXTERNAL_OBJECT_DOMAIN.GATES]: Object.freeze([
-    'ring-gate',
-    'segmented-arch',
-    'relay-spindle',
-  ]),
+  [EXTERNAL_OBJECT_DOMAIN.GATES]: Object.freeze(['ring-gate', 'segmented-arch', 'relay-spindle']),
   [EXTERNAL_OBJECT_DOMAIN.STATIONS]: Object.freeze([
     'trade-hub',
     'refinery',
@@ -69,7 +65,9 @@ const EXTERNAL_OBJECT_FACTION_CUE = Object.freeze({
   UNKNOWN: 'unknown',
 });
 
-const EXTERNAL_OBJECT_FACTION_CUE_VALUES = Object.freeze(Object.values(EXTERNAL_OBJECT_FACTION_CUE));
+const EXTERNAL_OBJECT_FACTION_CUE_VALUES = Object.freeze(
+  Object.values(EXTERNAL_OBJECT_FACTION_CUE)
+);
 const EXTERNAL_OBJECT_FACTION_CUE_SET = new Set(EXTERNAL_OBJECT_FACTION_CUE_VALUES);
 
 const EXTERNAL_OBJECT_FALLBACK_TIER = Object.freeze({
@@ -78,7 +76,9 @@ const EXTERNAL_OBJECT_FALLBACK_TIER = Object.freeze({
   MINIMAL: 'minimal',
 });
 
-const EXTERNAL_OBJECT_FALLBACK_TIER_VALUES = Object.freeze(Object.values(EXTERNAL_OBJECT_FALLBACK_TIER));
+const EXTERNAL_OBJECT_FALLBACK_TIER_VALUES = Object.freeze(
+  Object.values(EXTERNAL_OBJECT_FALLBACK_TIER)
+);
 const EXTERNAL_OBJECT_FALLBACK_TIER_SET = new Set(EXTERNAL_OBJECT_FALLBACK_TIER_VALUES);
 
 const EXTERNAL_OBJECT_SILHOUETTE_PROFILE = Object.freeze({
@@ -133,7 +133,8 @@ function isCanonicalExternalObjectDomain(domain) {
 
 function isCanonicalExternalObjectFamily(domain, family) {
   return Boolean(
-    EXTERNAL_OBJECT_FAMILY_BY_DOMAIN[domain] && EXTERNAL_OBJECT_FAMILY_BY_DOMAIN[domain].includes(family)
+    EXTERNAL_OBJECT_FAMILY_BY_DOMAIN[domain] &&
+    EXTERNAL_OBJECT_FAMILY_BY_DOMAIN[domain].includes(family)
   );
 }
 

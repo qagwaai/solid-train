@@ -48,16 +48,19 @@ Status: Completed (Maintenance Mode)
 Completed: 2026-05-25
 
 Purpose:
+
 - SW-08 remains the shape-level contract gate.
 - SW-COR is the communication-semantics companion for request/response correlation guarantees.
 
 Canonical references:
+
 1. [SW-COR spec (solid-train)](socket-correlation-contract-spec.md)
 2. [SW-COR spec (laughing-octo-journey)](../../../laughing-octo-journey/docs/planning/socket-correlation-contract-spec.md)
 3. [SW-COR prompt pack (solid-train)](sw-cor-correlation-hardening-prompt-pack.md)
 4. [SW-COR prompt pack (laughing-octo-journey)](../../../laughing-octo-journey/docs/planning/sw-cor-correlation-hardening-prompt-pack.md)
 
 Sign-off:
+
 - Nova and Forge confirmed SW-COR + SW-08 complete on 2026-05-25.
 
 ## Shared Status Board Template

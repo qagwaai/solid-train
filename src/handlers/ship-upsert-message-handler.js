@@ -620,7 +620,6 @@ class ShipUpsertMessageHandler {
       );
     }
 
-
     this.context.refreshCharacterPresence(payload);
 
     const response = this.buildResponse(payload);

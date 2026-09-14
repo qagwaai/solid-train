@@ -17,9 +17,7 @@ const { SHIP_UPSERT_REQUEST_EVENT } = require('../model/ship-upsert');
 const { SHIP_LIST_BY_OWNER_REQUEST_EVENT } = require('../model/ship-list-by-owner');
 const { SHIP_TRANSFER_REQUEST_EVENT } = require('../model/ship-transfer');
 const { GAME_JOIN_REQUEST_EVENT } = require('../model/game-join');
-const {
-  MISSION_UPSERT_REQUEST_EVENT,
-} = require('../model/mission-upsert');
+const { MISSION_UPSERT_REQUEST_EVENT } = require('../model/mission-upsert');
 const { CELESTIAL_BODY_UPSERT_REQUEST_EVENT } = require('../model/celestial-body-upsert');
 const { CELESTIAL_BODY_LIST_REQUEST_EVENT } = require('../model/celestial-body-list');
 const { MISSION_LIST_REQUEST_EVENT } = require('../model/mission-list');
@@ -28,9 +26,7 @@ const { ITEM_LIST_BY_CONTAINER_REQUEST_EVENT } = require('../model/item-list-by-
 const { ITEM_LIST_BY_LOCATION_REQUEST_EVENT } = require('../model/item-list-by-location');
 const { ITEM_REMOVE_REQUEST_EVENT } = require('../model/item-remove');
 const { LAUNCH_ITEM_REQUEST_EVENT } = require('../model/launch-item');
-const {
-  TRACTOR_BEAM_ACTIVATE_REQUEST_EVENT,
-} = require('../model/tractor-beam-activate');
+const { TRACTOR_BEAM_ACTIVATE_REQUEST_EVENT } = require('../model/tractor-beam-activate');
 const { MARKET_LIST_REQUEST_EVENT } = require('../model/market-list');
 const { MARKET_LIST_BY_LOCATION_REQUEST_EVENT } = require('../model/market-list-by-location');
 const { MARKET_QUOTE_REQUEST_EVENT } = require('../model/market-quote');
@@ -172,10 +168,7 @@ function buildEchoPayload(entry, eventName, payload, correlationMetadata) {
   }
 
   const echoedPayload = applyCorrelationEcho(payload, correlationMetadata, toNonEmptyString);
-  if (
-    entry.strictCorrelationIdEcho !== true &&
-    entry.strictRequestIdentityEcho !== true
-  ) {
+  if (entry.strictCorrelationIdEcho !== true && entry.strictRequestIdentityEcho !== true) {
     return echoedPayload;
   }
 
@@ -272,8 +265,18 @@ function createScopedSocket(entry, socket, correlationMetadata) {
 
 // Central table for request-event to handler bindings used by server socket wiring.
 const SOCKET_HANDLER_REGISTRY = [
-  { event: REGISTER_EVENT, handlerKey: 'registerMessageHandler', errorLabel: 'Register', requiresSession: false },
-  { event: LOGIN_EVENT, handlerKey: 'loginMessageHandler', errorLabel: 'Login', requiresSession: false },
+  {
+    event: REGISTER_EVENT,
+    handlerKey: 'registerMessageHandler',
+    errorLabel: 'Register',
+    requiresSession: false,
+  },
+  {
+    event: LOGIN_EVENT,
+    handlerKey: 'loginMessageHandler',
+    errorLabel: 'Login',
+    requiresSession: false,
+  },
   {
     event: CHARACTER_LIST_REQUEST_EVENT,
     handlerKey: 'characterListMessageHandler',

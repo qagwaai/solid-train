@@ -24,5 +24,4 @@ paths:
                     type: string
                     example: ok
 components:
-  schemas:
-    {}
+  schemas: {}

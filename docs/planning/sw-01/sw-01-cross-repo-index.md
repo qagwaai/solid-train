@@ -34,15 +34,15 @@ Nova document (laughing-octo-journey):
 
 ## Milestone Sync Board
 
-| Milestone | Forge (solid-train) | Nova (laughing-octo-journey) | QA Evidence | Status |
-| --- | --- | --- | --- | --- |
-| M0 Contract baseline lock | Complete | Acknowledged | Evidence accepted | Closed |
-| M1 Producer emission compliance | Complete | N/A | Evidence accepted | Closed |
-| M2 Integration contract confidence | Complete | N/A | Evidence accepted | Closed |
-| M3 Cross-repo gate alignment | Complete | Shared inventory validated | Evidence accepted | Closed |
-| M4 Dual gate enforcement | Complete | Complete | Evidence accepted | Closed |
-| M5 Canary validation | Complete | Complete | Evidence accepted | Closed |
-| M6 Release decision | Go | Go | Release decision recorded | Closed |
+| Milestone                          | Forge (solid-train) | Nova (laughing-octo-journey) | QA Evidence               | Status |
+| ---------------------------------- | ------------------- | ---------------------------- | ------------------------- | ------ |
+| M0 Contract baseline lock          | Complete            | Acknowledged                 | Evidence accepted         | Closed |
+| M1 Producer emission compliance    | Complete            | N/A                          | Evidence accepted         | Closed |
+| M2 Integration contract confidence | Complete            | N/A                          | Evidence accepted         | Closed |
+| M3 Cross-repo gate alignment       | Complete            | Shared inventory validated   | Evidence accepted         | Closed |
+| M4 Dual gate enforcement           | Complete            | Complete                     | Evidence accepted         | Closed |
+| M5 Canary validation               | Complete            | Complete                     | Evidence accepted         | Closed |
+| M6 Release decision                | Go                  | Go                           | Release decision recorded | Closed |
 
 ## Merge and Release Sequence
 
@@ -65,23 +65,23 @@ When SW-01 drift is detected:
 
 ## Status Updates
 
-| Date | Repo | Update | Owner |
-| --- | --- | --- | --- |
-| 2026-05-30 | solid-train | SW-01 marked complete; M6 release decision recorded as Go and milestone chain M0-M6 closed | Orion |
-| 2026-05-30 | solid-train | SW-01 M5 canary validation closed: no non-canonical status emissions, soak criteria satisfied, rollback drill completed, and post-drill canonical checks green | Orion |
-| 2026-05-30 | solid-train | SW-01 M6 recommendation updated to Go based on completed M0-M5 evidence chain and resolved canary operability gaps | Orion |
-| 2026-05-30 | solid-train | SW-01 Nova M4 dual-gate enforcement reported complete with PR hard-fail gate wiring, deterministic drift hard-fail evidence (enum/unsupported/shape), and canonical re-pass confirmation | Nova |
-| 2026-05-30 | solid-train | SW-01 Nova M3 violation-path behavior reported complete with strict visible contract-violation UI, stable telemetry field contract, and passing component + route smoke evidence | Nova |
-| 2026-05-30 | solid-train | SW-01 Nova M2 lane rendering/filtering reported complete with strict unknown-status violation UI, telemetry diagnostics context, and passing component + route smoke evidence | Nova |
-| 2026-05-30 | solid-train | SW-01 M4 dual gate enforcement complete: Forge hard-fail gate and Nova preflight hard-fail gate active in PR workflow; local parity confirms deterministic pass/fail/re-pass behavior | Forge |
-| 2026-05-30 | solid-train | SW-01 M5 recommendation: go for canary validation based on dual-gate enforcement evidence and clean post-drift recovery | Orion |
+| Date       | Repo        | Update                                                                                                                                                                                             | Owner |
+| ---------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| 2026-05-30 | solid-train | SW-01 marked complete; M6 release decision recorded as Go and milestone chain M0-M6 closed                                                                                                         | Orion |
+| 2026-05-30 | solid-train | SW-01 M5 canary validation closed: no non-canonical status emissions, soak criteria satisfied, rollback drill completed, and post-drill canonical checks green                                     | Orion |
+| 2026-05-30 | solid-train | SW-01 M6 recommendation updated to Go based on completed M0-M5 evidence chain and resolved canary operability gaps                                                                                 | Orion |
+| 2026-05-30 | solid-train | SW-01 Nova M4 dual-gate enforcement reported complete with PR hard-fail gate wiring, deterministic drift hard-fail evidence (enum/unsupported/shape), and canonical re-pass confirmation           | Nova  |
+| 2026-05-30 | solid-train | SW-01 Nova M3 violation-path behavior reported complete with strict visible contract-violation UI, stable telemetry field contract, and passing component + route smoke evidence                   | Nova  |
+| 2026-05-30 | solid-train | SW-01 Nova M2 lane rendering/filtering reported complete with strict unknown-status violation UI, telemetry diagnostics context, and passing component + route smoke evidence                      | Nova  |
+| 2026-05-30 | solid-train | SW-01 M4 dual gate enforcement complete: Forge hard-fail gate and Nova preflight hard-fail gate active in PR workflow; local parity confirms deterministic pass/fail/re-pass behavior              | Forge |
+| 2026-05-30 | solid-train | SW-01 M5 recommendation: go for canary validation based on dual-gate enforcement evidence and clean post-drift recovery                                                                            | Orion |
 | 2026-05-30 | solid-train | SW-01 M3 cross-repo gate alignment complete: hard alignment pass plus deterministic hard-fail drift checks for enum casing, unsupported status, and payload shape; actionable diagnostics verified | Forge |
-| 2026-05-30 | solid-train | SW-01 M4 recommendation: go for canary quality gate execution based on stable M0-M3 evidence chain | Orion |
-| 2026-05-30 | solid-train | SW-01 M2 integration contract confidence complete with server + persistence + contract gate evidence; closure recommended | Forge |
-| 2026-05-30 | solid-train | SW-01 M1 producer emission compliance complete with canonical mission-list emission and strict invalid-status rejection evidence | Forge |
-| 2026-05-30 | solid-train | SW-01 M0 closed with Forge/Nova/QA/Orion sign-offs; M1 kickoff authorized | Orion |
-| 2026-05-30 | solid-train | SW-01 M0 contract lock implemented; Nova handoff packet published for acknowledgment | Forge |
-| 2026-05-26 | solid-train | SW-01 Forge planning set created | Orion |
+| 2026-05-30 | solid-train | SW-01 M4 recommendation: go for canary quality gate execution based on stable M0-M3 evidence chain                                                                                                 | Orion |
+| 2026-05-30 | solid-train | SW-01 M2 integration contract confidence complete with server + persistence + contract gate evidence; closure recommended                                                                          | Forge |
+| 2026-05-30 | solid-train | SW-01 M1 producer emission compliance complete with canonical mission-list emission and strict invalid-status rejection evidence                                                                   | Forge |
+| 2026-05-30 | solid-train | SW-01 M0 closed with Forge/Nova/QA/Orion sign-offs; M1 kickoff authorized                                                                                                                          | Orion |
+| 2026-05-30 | solid-train | SW-01 M0 contract lock implemented; Nova handoff packet published for acknowledgment                                                                                                               | Forge |
+| 2026-05-26 | solid-train | SW-01 Forge planning set created                                                                                                                                                                   | Orion |
 
 ## Change Log
 

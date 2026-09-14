@@ -11,9 +11,18 @@ const {
   registerAndLogin,
 } = require('../test-support/socket-test-helpers');
 
-const { SHIP_LIST_BY_NPC_OWNER_REQUEST_EVENT, SHIP_LIST_BY_NPC_OWNER_RESPONSE_EVENT } = require('../src/model/ship-list-by-npc-owner');
-const { SHIP_PIRACY_SEIZE_REQUEST_EVENT, SHIP_PIRACY_SEIZE_RESPONSE_EVENT } = require('../src/model/ship-piracy-seize');
-const { CHARACTER_ADD_REQUEST_EVENT, CHARACTER_ADD_RESPONSE_EVENT } = require('../src/model/character-add');
+const {
+  SHIP_LIST_BY_NPC_OWNER_REQUEST_EVENT,
+  SHIP_LIST_BY_NPC_OWNER_RESPONSE_EVENT,
+} = require('../src/model/ship-list-by-npc-owner');
+const {
+  SHIP_PIRACY_SEIZE_REQUEST_EVENT,
+  SHIP_PIRACY_SEIZE_RESPONSE_EVENT,
+} = require('../src/model/ship-piracy-seize');
+const {
+  CHARACTER_ADD_REQUEST_EVENT,
+  CHARACTER_ADD_RESPONSE_EVENT,
+} = require('../src/model/character-add');
 const { SHIP_LIST_RESPONSE_EVENT, SHIP_LIST_REQUEST_EVENT } = require('../src/model/ship-list');
 
 function withTimeout(promise, ms, label = 'operation') {
@@ -46,9 +55,19 @@ test('Option3 npc-ship-list positive: returns ships seized by a specific NPC', a
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'NpcListVictim', 'npc-list-victim@example.com', 'secret');
+    const login = await registerAndLogin(
+      client,
+      'NpcListVictim',
+      'npc-list-victim@example.com',
+      'secret'
+    );
     const character = await addCharacter(client, 'NpcListVictim', login.sessionKey, 'VictimChar');
-    const shipId = await getShipId(client, 'NpcListVictim', login.sessionKey, character.characterId);
+    const shipId = await getShipId(
+      client,
+      'NpcListVictim',
+      login.sessionKey,
+      character.characterId
+    );
     assert.ok(shipId);
 
     // NPC seizes the ship
@@ -93,7 +112,12 @@ test('Option3 npc-ship-list positive: returns empty list for NPC with no ships',
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'NpcListEmptyPilot', 'npc-list-empty@example.com', 'secret');
+    const login = await registerAndLogin(
+      client,
+      'NpcListEmptyPilot',
+      'npc-list-empty@example.com',
+      'secret'
+    );
     await addCharacter(client, 'NpcListEmptyPilot', login.sessionKey, 'EmptyChar');
 
     const listPromise = waitForEvent(client, SHIP_LIST_BY_NPC_OWNER_RESPONSE_EVENT);
@@ -121,7 +145,12 @@ test('Option3 npc-ship-list negative: non-npc-pirate ownerType is rejected', asy
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'NpcListBadTypePilot', 'npc-list-bad@example.com', 'secret');
+    const login = await registerAndLogin(
+      client,
+      'NpcListBadTypePilot',
+      'npc-list-bad@example.com',
+      'secret'
+    );
     await addCharacter(client, 'NpcListBadTypePilot', login.sessionKey, 'BadTypeChar');
 
     const listPromise = waitForEvent(client, SHIP_LIST_BY_NPC_OWNER_RESPONSE_EVENT);

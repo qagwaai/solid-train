@@ -62,7 +62,6 @@ class ShipTransferMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-transfer-request', payload);
 
-
     const shipId = this.context.toNonEmptyString(payload?.shipId);
     if (!shipId) {
       const response = {
@@ -89,7 +88,10 @@ class ShipTransferMessageHandler {
     }
 
     const normalizedExistingShip = this.context.normalizeShip(entry.ship);
-    const currentOwnership = normalizeOwnership(this.context, normalizedExistingShip.ownership || {});
+    const currentOwnership = normalizeOwnership(
+      this.context,
+      normalizedExistingShip.ownership || {}
+    );
     if (currentOwnership.error) {
       const response = {
         success: false,
@@ -192,7 +194,9 @@ class ShipTransferMessageHandler {
     const toOwner = toOwnershipSnapshot(nextOwnership);
     const ownershipHistoryEntry = {
       at: new Date().toISOString(),
-      reason: isClaimFlow ? 'claim' : this.context.toNonEmptyString(payload?.transferReason) || 'transfer',
+      reason: isClaimFlow
+        ? 'claim'
+        : this.context.toNonEmptyString(payload?.transferReason) || 'transfer',
       fromOwner,
       toOwner,
       actor: {
@@ -202,7 +206,9 @@ class ShipTransferMessageHandler {
       },
     };
 
-    const existingHistory = Array.isArray(entry.ship?.ownershipHistory) ? entry.ship.ownershipHistory : [];
+    const existingHistory = Array.isArray(entry.ship?.ownershipHistory)
+      ? entry.ship.ownershipHistory
+      : [];
     const updatedShip = {
       ...entry.ship,
       ownership: { ...toOwner },
@@ -222,20 +228,27 @@ class ShipTransferMessageHandler {
       ) {
         // Find destination player and add ship to their character
         let found = false;
-        for (const [normalizedPlayerName, characters] of this.context.charactersByPlayer.entries()) {
+        for (const [
+          normalizedPlayerName,
+          characters,
+        ] of this.context.charactersByPlayer.entries()) {
           if (!Array.isArray(characters) || found) {
             continue;
           }
 
           const player = this.context.getPlayer(normalizedPlayerName);
           let playerMatchesDestination = false;
-          
+
           // Match by playerId if available, or fallback to normalized player name
           if (player) {
             const playerPlayerId = this.context.toNonEmptyString(player.playerId);
             if (playerPlayerId && playerPlayerId === destinationPlayerId) {
               playerMatchesDestination = true;
-            } else if (!playerPlayerId && normalizedPlayerName === this.context.toNonEmptyString(destinationPlayerId).toLowerCase()) {
+            } else if (
+              !playerPlayerId &&
+              normalizedPlayerName ===
+                this.context.toNonEmptyString(destinationPlayerId).toLowerCase()
+            ) {
               // Fallback: match if playerName normalized matches destinationPlayerId
               playerMatchesDestination = true;
             }

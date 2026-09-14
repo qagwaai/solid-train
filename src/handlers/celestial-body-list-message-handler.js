@@ -198,7 +198,6 @@ class CelestialBodyListMessageHandler {
       level: 'debug',
     });
 
-
     this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);

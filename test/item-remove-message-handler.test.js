@@ -130,4 +130,3 @@ test('ItemRemoveMessageHandler removes inventory reference and marks item destro
   const character = context.findCharacter('PilotOne', 'character-1');
   assert.equal(character.ships[0].inventory.length, 0);
 });
-

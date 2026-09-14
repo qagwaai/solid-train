@@ -5,9 +5,7 @@ const assert = require('node:assert/strict');
 const {
   TractorBeamActivateMessageHandler,
 } = require('../src/handlers/tractor-beam-activate-message-handler');
-const {
-  TRACTOR_BEAM_ACTIVATE_RESPONSE_EVENT,
-} = require('../src/model/tractor-beam-activate');
+const { TRACTOR_BEAM_ACTIVATE_RESPONSE_EVENT } = require('../src/model/tractor-beam-activate');
 
 const {
   createMockSocket,
@@ -110,4 +108,3 @@ test('TractorBeamActivateMessageHandler activates when ship has tractor beam equ
   assert.equal(response.activated, true);
   assert.equal(socket.events[0].eventName, TRACTOR_BEAM_ACTIVATE_RESPONSE_EVENT);
 });
-

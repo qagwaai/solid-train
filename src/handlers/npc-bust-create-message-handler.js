@@ -17,9 +17,17 @@ class NpcBustCreateMessageHandler {
 
   async handle(socket, payload) {
     this.context.logHandlerMessage('npc-bust-create', payload);
-    const correlationId = resolveCorrelationId(payload, this.context.toNonEmptyString.bind(this.context));
-    const requestIdentity = makeBustRequestIdentity('npc-bust-create', 'npc-bust', [payload?.npcId, '-'], payload?.requestIdentity, this.context.toNonEmptyString.bind(this.context));
-
+    const correlationId = resolveCorrelationId(
+      payload,
+      this.context.toNonEmptyString.bind(this.context)
+    );
+    const requestIdentity = makeBustRequestIdentity(
+      'npc-bust-create',
+      'npc-bust',
+      [payload?.npcId, '-'],
+      payload?.requestIdentity,
+      this.context.toNonEmptyString.bind(this.context)
+    );
 
     const npcId = this.context.toNonEmptyString(payload?.npcId);
     const baseResponse = {

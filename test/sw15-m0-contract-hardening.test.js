@@ -22,7 +22,12 @@ const {
 
 const ROOT = path.resolve(__dirname, '..');
 const OPENAPI_PATH = path.join(ROOT, 'api', 'openapi.yaml');
-const BUST_DESCRIPTOR_SCHEMA_PATH = path.join(ROOT, 'api', 'schemas', 'bust-descriptor.schema.json');
+const BUST_DESCRIPTOR_SCHEMA_PATH = path.join(
+  ROOT,
+  'api',
+  'schemas',
+  'bust-descriptor.schema.json'
+);
 const BUST_VALIDATION_ERROR_SCHEMA_PATH = path.join(
   ROOT,
   'api',
@@ -58,7 +63,10 @@ function validateDescriptor(schema, descriptor) {
 
   for (const field of required) {
     if (!(field in descriptor)) {
-      return { valid: false, errors: [{ field, reason: 'required field missing', rejectedValue: undefined }] };
+      return {
+        valid: false,
+        errors: [{ field, reason: 'required field missing', rejectedValue: undefined }],
+      };
     }
   }
 
@@ -89,10 +97,7 @@ test('SW-15 bust-descriptor schema enums remain aligned with runtime taxonomy', 
     sortValues(schema.properties.faceShape.enum),
     sortValues(BUST_FACE_SHAPE_VALUES)
   );
-  assert.deepEqual(
-    sortValues(schema.properties.skinTone.enum),
-    sortValues(BUST_SKIN_TONE_VALUES)
-  );
+  assert.deepEqual(sortValues(schema.properties.skinTone.enum), sortValues(BUST_SKIN_TONE_VALUES));
   assert.deepEqual(
     sortValues(schema.properties.hairStyle.enum),
     sortValues(BUST_HAIR_STYLE_VALUES)
@@ -101,14 +106,8 @@ test('SW-15 bust-descriptor schema enums remain aligned with runtime taxonomy', 
     sortValues(schema.properties.hairColor.enum),
     sortValues(BUST_HAIR_COLOR_VALUES)
   );
-  assert.deepEqual(
-    sortValues(schema.properties.eyeStyle.enum),
-    sortValues(BUST_EYE_STYLE_VALUES)
-  );
-  assert.deepEqual(
-    sortValues(schema.properties.eyeColor.enum),
-    sortValues(BUST_EYE_COLOR_VALUES)
-  );
+  assert.deepEqual(sortValues(schema.properties.eyeStyle.enum), sortValues(BUST_EYE_STYLE_VALUES));
+  assert.deepEqual(sortValues(schema.properties.eyeColor.enum), sortValues(BUST_EYE_COLOR_VALUES));
   assert.deepEqual(
     sortValues(schema.properties.expressionPreset.enum),
     sortValues(BUST_EXPRESSION_PRESET_VALUES)
@@ -121,14 +120,8 @@ test('SW-15 bust-descriptor schema enums remain aligned with runtime taxonomy', 
     sortValues(schema.properties.facialHair.enum),
     sortValues(BUST_FACIAL_HAIR_VALUES)
   );
-  assert.deepEqual(
-    sortValues(schema.properties.scar.enum),
-    sortValues(BUST_SCAR_VALUES)
-  );
-  assert.deepEqual(
-    sortValues(schema.properties.tattoo.enum),
-    sortValues(BUST_TATTOO_VALUES)
-  );
+  assert.deepEqual(sortValues(schema.properties.scar.enum), sortValues(BUST_SCAR_VALUES));
+  assert.deepEqual(sortValues(schema.properties.tattoo.enum), sortValues(BUST_TATTOO_VALUES));
 
   assert.equal(schema.additionalProperties, false);
 });
@@ -181,11 +174,7 @@ test('SW-15 mismatch character bust fixture hard-fails schema validation', () =>
   const fixture = loadFixture('character-bust-mismatch-fail.json');
 
   const result = validateDescriptor(schema, fixture);
-  assert.equal(
-    result.valid,
-    false,
-    'Expected mismatch fixture to fail validation but it passed'
-  );
+  assert.equal(result.valid, false, 'Expected mismatch fixture to fail validation but it passed');
   assert.ok(result.errors.length > 0, 'Expected at least one validation error');
 
   const faceShapeError = result.errors.find((e) => e.field === 'faceShape');
@@ -293,7 +282,10 @@ test('SW-15 bust-validation-error-response schema has validationErrors array wit
   const itemRequired = errorsSchema.items.required;
   assert.ok(itemRequired.includes('field'), 'validationErrors item must require field');
   assert.ok(itemRequired.includes('reason'), 'validationErrors item must require reason');
-  assert.ok(itemRequired.includes('rejectedValue'), 'validationErrors item must require rejectedValue');
+  assert.ok(
+    itemRequired.includes('rejectedValue'),
+    'validationErrors item must require rejectedValue'
+  );
 });
 
 test('SW-15 bust-blocked-save-response schema has success enum false and blockedSave.reason enum', () => {
@@ -385,7 +377,10 @@ test('SW-15 create/update bust response schemas include blocked-save response va
 
   for (const responseSchemaPath of responseSchemaPaths) {
     const schema = readJson(responseSchemaPath);
-    assert.ok(Array.isArray(schema.oneOf), `${path.basename(responseSchemaPath)} must define oneOf`);
+    assert.ok(
+      Array.isArray(schema.oneOf),
+      `${path.basename(responseSchemaPath)} must define oneOf`
+    );
     const schemaText = JSON.stringify(schema);
     assert.ok(
       schemaText.includes('bust-blocked-save-response.schema.json'),

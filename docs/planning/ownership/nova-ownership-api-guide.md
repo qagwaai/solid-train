@@ -34,16 +34,15 @@ Ships now always carry `ownership` in every response. Legacy `owningPlayerId` / 
 
 ```typescript
 // Filter ships by player/character using owningCharacterId
-const myShips = ships.filter(s => s.owningCharacterId === characterId);
+const myShips = ships.filter((s) => s.owningCharacterId === characterId);
 ```
 
 ### Now (preferred pattern)
 
 ```typescript
 // Use canonical ownership for filtering
-const myShips = ships.filter(s =>
-  s.ownership?.ownerType === 'player-character' &&
-  s.ownership?.characterId === characterId
+const myShips = ships.filter(
+  (s) => s.ownership?.ownerType === 'player-character' && s.ownership?.characterId === characterId
 );
 ```
 
@@ -56,10 +55,14 @@ socket.emit('ship-list-by-owner-request', {
   playerName,
   sessionKey,
   correlationId: uuidv4(),
-  requestIdentity: { operation: 'ship-list-by-owner', entityType: 'ship', containerId: characterId },
+  requestIdentity: {
+    operation: 'ship-list-by-owner',
+    entityType: 'ship',
+    containerId: characterId,
+  },
   owner: {
     ownerType: 'player-character',
-    characterId,   // playerId is inferred from session if omitted
+    characterId, // playerId is inferred from session if omitted
   },
 });
 
@@ -92,8 +95,10 @@ socket.on('ship-list-by-npc-owner-response', (response) => {
 Every ship now carries `ownershipHistory[]` — an audit trail of all transfers:
 
 ```typescript
-ship.ownershipHistory.forEach(entry => {
-  console.log(`${entry.reason} at ${entry.at}: ${entry.fromOwner.ownerType} → ${entry.toOwner.ownerType}`);
+ship.ownershipHistory.forEach((entry) => {
+  console.log(
+    `${entry.reason} at ${entry.at}: ${entry.fromOwner.ownerType} → ${entry.toOwner.ownerType}`
+  );
   // reason values: 'transfer' | 'claim' | 'salvage' | 'piracy' | 'trade-completion'
 });
 ```
@@ -110,7 +115,7 @@ Items now carry an `ownership` field (backfilled from `owningPlayerId`/`owningCh
 
 ```typescript
 // After container fetch, filter by owning character
-const myItems = containerItems.filter(i => i.owningCharacterId === characterId);
+const myItems = containerItems.filter((i) => i.owningCharacterId === characterId);
 ```
 
 ### Now (preferred pattern — server-side filter)
@@ -147,9 +152,10 @@ socket.emit('item-upsert-request', {
   item: {
     itemType: 'conduit-seals',
     displayName: 'Conduit Seals',
-    owningPlayerId: playerId,       // legacy field — still required
+    owningPlayerId: playerId, // legacy field — still required
     owningCharacterId: characterId, // legacy field — still required
-    ownership: {                    // canonical field — validated strictly
+    ownership: {
+      // canonical field — validated strictly
       ownerType: 'player-character',
       playerId,
       characterId,
@@ -159,6 +165,7 @@ socket.emit('item-upsert-request', {
 ```
 
 **Failure reasons to handle:**
+
 - `OWNERSHIP_VALIDATION_FAILED` — invalid ownerType or missing fields
 - `OWNERSHIP_ITEM_FORBIDDEN` — actor's playerId does not match ownership.playerId
 
@@ -238,7 +245,8 @@ socket.emit('market-offer-accept-request', {
     playerId,
     characterId,
   },
-  offerorOwner: {       // optional — for trade history record
+  offerorOwner: {
+    // optional — for trade history record
     ownerType: 'player-character',
     playerId: offerorPlayerId,
     characterId: offerorCharacterId,
@@ -304,18 +312,18 @@ socket.on('ship-piracy-seize-response', (response) => {
 
 ## 6. Error Reason Reference
 
-| Reason | Surface | Meaning |
-|---|---|---|
-| `OWNERSHIP_VALIDATION_FAILED` | All | Invalid ownerType, missing required fields, or npcId/characterId on wrong type |
-| `OWNERSHIP_LISTING_FORBIDDEN` | Market listing | Actor playerId ≠ owner playerId |
-| `OWNERSHIP_OFFER_FORBIDDEN` | Market offer | Actor playerId ≠ offeror playerId |
-| `OWNERSHIP_ACCEPT_FORBIDDEN` | Market offer accept | Actor is not the listing owner |
-| `OWNERSHIP_ITEM_FORBIDDEN` | Item upsert | Actor playerId ≠ ownership.playerId |
-| `ITEM_LIST_OWNER_FORBIDDEN` | Item list | Actor playerId ≠ owner.playerId |
-| `SHIP_LIST_OWNER_FORBIDDEN` | Ship list | Actor playerId ≠ owner.playerId |
-| `SALVAGE_CLAIM_FORBIDDEN` | Salvage | Cross-player claim attempt |
-| `SALVAGE_ALREADY_OWNED` | Salvage | Target ship is not unknown |
-| `PIRACY_SEIZE_INVALID_TARGET` | Piracy | Target ship is not player-character owned |
+| Reason                        | Surface             | Meaning                                                                        |
+| ----------------------------- | ------------------- | ------------------------------------------------------------------------------ |
+| `OWNERSHIP_VALIDATION_FAILED` | All                 | Invalid ownerType, missing required fields, or npcId/characterId on wrong type |
+| `OWNERSHIP_LISTING_FORBIDDEN` | Market listing      | Actor playerId ≠ owner playerId                                                |
+| `OWNERSHIP_OFFER_FORBIDDEN`   | Market offer        | Actor playerId ≠ offeror playerId                                              |
+| `OWNERSHIP_ACCEPT_FORBIDDEN`  | Market offer accept | Actor is not the listing owner                                                 |
+| `OWNERSHIP_ITEM_FORBIDDEN`    | Item upsert         | Actor playerId ≠ ownership.playerId                                            |
+| `ITEM_LIST_OWNER_FORBIDDEN`   | Item list           | Actor playerId ≠ owner.playerId                                                |
+| `SHIP_LIST_OWNER_FORBIDDEN`   | Ship list           | Actor playerId ≠ owner.playerId                                                |
+| `SALVAGE_CLAIM_FORBIDDEN`     | Salvage             | Cross-player claim attempt                                                     |
+| `SALVAGE_ALREADY_OWNED`       | Salvage             | Target ship is not unknown                                                     |
+| `PIRACY_SEIZE_INVALID_TARGET` | Piracy              | Target ship is not player-character owned                                      |
 
 ---
 

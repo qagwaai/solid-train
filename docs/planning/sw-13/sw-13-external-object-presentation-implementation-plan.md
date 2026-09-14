@@ -37,18 +37,23 @@ Out of scope:
 ## 3. Contract-First Delivery Sequence
 
 1. Update producer contract first
+
 - Canonicalize descriptor domains (`debris`, `ship`, `jump_gate`, `station`, `asteroid`) and asteroid styles (`rocky`, `hero_cinematic`).
 
 2. Update producer emitters second
+
 - Ensure all external-object producers emit canonical descriptor values only.
 
 3. Update validation gates third
+
 - Enforce hard-fail on drift or invalid descriptor values in PR path.
 
 4. Cross-repo alignment fourth
+
 - Confirm Nova consumer inventory matches producer descriptor contract.
 
 5. Canary rollout fifth
+
 - Validate runtime readability correctness before full release.
 
 ## 4. Workstreams
@@ -105,21 +110,26 @@ Architecture and testing best-practice requirements:
 Recommended SW-13 test matrix:
 
 1. Unit tests
+
 - Descriptor normalization and canonical domain enforcement.
 - Asteroid style policy decisions (`rocky` vs `hero_cinematic`).
 
 2. Integration tests
+
 - External-object response generation with canonical descriptor payloads.
 - Failure semantics for invalid descriptor injection.
 
 3. Contract tests
+
 - Canonical pass fixtures.
 - Drift hard-fail fixtures: enum/domain mismatch, unsupported value, and payload shape mismatch.
 
 4. Cross-repo compatibility tests
+
 - Nova consumer inventory alignment against Forge contract artifact.
 
 5. Regression safeguards
+
 - Legacy fallback reintroduction checks.
 - Deterministic artifact generation and parity checks.
 
@@ -196,15 +206,19 @@ M6: Release decision
 ## 6. Risks and Mitigations
 
 1. Risk: descriptor contract drift across repos.
+
 - Mitigation: strict dual-gate contract checks and drift fixtures.
 
 2. Risk: visual ambiguity persists despite descriptor updates.
+
 - Mitigation: canonical descriptor domains plus readability-focused acceptance criteria in canary.
 
 3. Risk: scope creeps into renderer rewrite.
+
 - Mitigation: enforce producer-contract-only boundary in Forge scope.
 
 4. Risk: maintainability degradation through contract duplication.
+
 - Mitigation: centralize schema constants, enforce layering rules, and require migration notes for contract changes.
 
 ## 7. Architecture Governance

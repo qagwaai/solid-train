@@ -52,7 +52,12 @@ test('Option3 DB: offer acceptance transfers ship ownership', async () => {
     tier: 1,
     createdAt: new Date().toISOString(),
     inventory: [],
-    spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 },
+    spatial: {
+      solarSystemId: 'sol',
+      frame: 'barycentric',
+      positionKm: { x: 0, y: 0, z: 0 },
+      epochMs: 0,
+    },
     launchable: true,
     damageProfile: null,
     ownership: listingOwner,

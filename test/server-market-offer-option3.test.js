@@ -11,8 +11,14 @@ const {
   registerAndLogin,
 } = require('../test-support/socket-test-helpers');
 
-const { MARKET_OFFER_CREATE_REQUEST_EVENT, MARKET_OFFER_CREATE_RESPONSE_EVENT } = require('../src/model/market-offer-create');
-const { CHARACTER_ADD_REQUEST_EVENT, CHARACTER_ADD_RESPONSE_EVENT } = require('../src/model/character-add');
+const {
+  MARKET_OFFER_CREATE_REQUEST_EVENT,
+  MARKET_OFFER_CREATE_RESPONSE_EVENT,
+} = require('../src/model/market-offer-create');
+const {
+  CHARACTER_ADD_REQUEST_EVENT,
+  CHARACTER_ADD_RESPONSE_EVENT,
+} = require('../src/model/character-add');
 
 function withTimeout(promise, ms, label = 'operation') {
   return Promise.race([

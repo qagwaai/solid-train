@@ -3,13 +3,7 @@
   "title": "npc-bust-read-request",
   "description": "Request to read the current stored bust descriptor for an NPC.",
   "type": "object",
-  "required": [
-    "playerName",
-    "sessionKey",
-    "correlationId",
-    "requestIdentity",
-    "npcId"
-  ],
+  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "npcId"],
   "additionalProperties": false,
   "properties": {
     "playerName": { "type": "string" },

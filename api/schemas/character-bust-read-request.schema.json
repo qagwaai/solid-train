@@ -3,13 +3,7 @@
   "title": "character-bust-read-request",
   "description": "Request to read the current bust descriptor for a playable character.",
   "type": "object",
-  "required": [
-    "playerName",
-    "sessionKey",
-    "correlationId",
-    "requestIdentity",
-    "characterId"
-  ],
+  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "characterId"],
   "additionalProperties": false,
   "properties": {
     "playerName": { "type": "string" },

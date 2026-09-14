@@ -1,9 +1,7 @@
 'use strict';
 
 const { getItemByType } = require('../../model/canonical-items');
-const {
-  assertCanonicalRuntimeItemType,
-} = require('../../model/canonical-item-type-registry');
+const { assertCanonicalRuntimeItemType } = require('../../model/canonical-item-type-registry');
 
 const ALWAYS_LAUNCHABLE_ITEM_TYPES = new Set(['expendable-dart-drone']);
 
@@ -351,7 +349,9 @@ function normalizeMarketShipListingEntry(ctx, entry) {
 
   const starterInventory = Array.isArray(source.starterInventory)
     ? source.starterInventory
-        .map((inventoryEntry) => normalizeMarketShipListingStarterInventoryEntry(ctx, inventoryEntry))
+        .map((inventoryEntry) =>
+          normalizeMarketShipListingStarterInventoryEntry(ctx, inventoryEntry)
+        )
         .filter((inventoryEntry) => Boolean(inventoryEntry))
     : [];
 
@@ -775,7 +775,10 @@ function normalizeCelestialBody(ctx, celestialBody) {
             factionCue: toNonEmptyString(ctx, source.externalObjectDescriptor.factionCue),
             fallbackTier: toNonEmptyString(ctx, source.externalObjectDescriptor.fallbackTier),
             displayLabel: toNonEmptyString(ctx, source.externalObjectDescriptor.displayLabel),
-            silhouetteProfile: toNonEmptyString(ctx, source.externalObjectDescriptor.silhouetteProfile),
+            silhouetteProfile: toNonEmptyString(
+              ctx,
+              source.externalObjectDescriptor.silhouetteProfile
+            ),
             materialProfile: toNonEmptyString(ctx, source.externalObjectDescriptor.materialProfile),
             emissiveProfile: toNonEmptyString(ctx, source.externalObjectDescriptor.emissiveProfile),
           },
@@ -795,16 +798,28 @@ function normalizeCelestialBody(ctx, celestialBody) {
             ? {
                 externalObjectDescriptor: {
                   descriptorId: toNonEmptyString(ctx, entry.externalObjectDescriptor.descriptorId),
-                  schemaVersion: toNonEmptyString(ctx, entry.externalObjectDescriptor.schemaVersion),
+                  schemaVersion: toNonEmptyString(
+                    ctx,
+                    entry.externalObjectDescriptor.schemaVersion
+                  ),
                   domain: toNonEmptyString(ctx, entry.externalObjectDescriptor.domain),
                   objectFamily: toNonEmptyString(ctx, entry.externalObjectDescriptor.objectFamily),
                   roleCue: toNonEmptyString(ctx, entry.externalObjectDescriptor.roleCue),
                   factionCue: toNonEmptyString(ctx, entry.externalObjectDescriptor.factionCue),
                   fallbackTier: toNonEmptyString(ctx, entry.externalObjectDescriptor.fallbackTier),
                   displayLabel: toNonEmptyString(ctx, entry.externalObjectDescriptor.displayLabel),
-                  silhouetteProfile: toNonEmptyString(ctx, entry.externalObjectDescriptor.silhouetteProfile),
-                  materialProfile: toNonEmptyString(ctx, entry.externalObjectDescriptor.materialProfile),
-                  emissiveProfile: toNonEmptyString(ctx, entry.externalObjectDescriptor.emissiveProfile),
+                  silhouetteProfile: toNonEmptyString(
+                    ctx,
+                    entry.externalObjectDescriptor.silhouetteProfile
+                  ),
+                  materialProfile: toNonEmptyString(
+                    ctx,
+                    entry.externalObjectDescriptor.materialProfile
+                  ),
+                  emissiveProfile: toNonEmptyString(
+                    ctx,
+                    entry.externalObjectDescriptor.emissiveProfile
+                  ),
                 },
               }
             : {}),

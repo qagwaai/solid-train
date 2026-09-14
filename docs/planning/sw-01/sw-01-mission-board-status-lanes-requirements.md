@@ -60,50 +60,64 @@ Forbidden producer behavior:
 ## 5. Functional Requirements
 
 1. Mission status emission
+
 - All mission list producers emit only available, active, or completed.
 
 2. Deterministic lane semantics
+
 - Status values must map one-to-one with Nova lane model.
 
 3. Validation-first behavior
+
 - Invalid status values are rejected before outbound emission.
 
 4. Consistent filtering support
+
 - Producer filtering/query semantics align with lane categories.
 
 5. Observability
+
 - Invalid status attempt logs include operation name, entity key, and correlation metadata.
 
 ## 6. Non-Functional Requirements
 
 1. Determinism
+
 - Contract artifacts and mission status ordering are deterministic across runs.
 
 2. Reliability
+
 - Contract checks run in CI and local parity commands.
 
 3. Latency safety
+
 - Validation logic does not regress mission list latency beyond agreed threshold.
 
 4. Operability
+
 - Gate failures provide actionable producer location and remediation path.
 
 ## 7. Gate and Verification Requirements
 
 1. Producer contract gate
+
 - Hard-fail PR checks when mission status enum drifts from canonical set.
 
 2. Consumer compatibility gate
+
 - Hard-fail when Nova consumer inventory disagrees with producer status schema.
 
 3. Dual gate enforcement
+
 - Forge producer gate and Nova preflight gate must both be active and blocking in PR workflow.
 - Local parity commands must match CI pass/fail behavior.
 
 4. Negative fixture coverage
+
 - Intentional invalid status fixture must fail reliably in CI.
 
 5. Canary validation
+
 - SW-01 release promotion blocked if canary sees non-canonical status emissions.
 
 ## 8. Acceptance Criteria

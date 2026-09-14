@@ -54,8 +54,12 @@ test('runtime mission status registry is canonical-only', () => {
 test('mission schemas constrain status enums to canonical-only values', () => {
   const missionListRequest = readJson(path.join(SCHEMAS_DIR, 'mission-list-request.schema.json'));
   const missionListResponse = readJson(path.join(SCHEMAS_DIR, 'mission-list-response.schema.json'));
-  const missionUpsertRequest = readJson(path.join(SCHEMAS_DIR, 'mission-upsert-request.schema.json'));
-  const missionUpsertResponse = readJson(path.join(SCHEMAS_DIR, 'mission-upsert-response.schema.json'));
+  const missionUpsertRequest = readJson(
+    path.join(SCHEMAS_DIR, 'mission-upsert-request.schema.json')
+  );
+  const missionUpsertResponse = readJson(
+    path.join(SCHEMAS_DIR, 'mission-upsert-response.schema.json')
+  );
 
   assert.deepEqual(
     sortValues(missionListRequest.properties.statuses.items.enum),
@@ -76,8 +80,12 @@ test('mission schemas constrain status enums to canonical-only values', () => {
 });
 
 test('mission schemas remove legacy lifecycle/status detail fields from SW-01 contract', () => {
-  const missionUpsertRequest = readJson(path.join(SCHEMAS_DIR, 'mission-upsert-request.schema.json'));
-  const missionUpsertResponse = readJson(path.join(SCHEMAS_DIR, 'mission-upsert-response.schema.json'));
+  const missionUpsertRequest = readJson(
+    path.join(SCHEMAS_DIR, 'mission-upsert-request.schema.json')
+  );
+  const missionUpsertResponse = readJson(
+    path.join(SCHEMAS_DIR, 'mission-upsert-response.schema.json')
+  );
 
   const legacyRequestFields = ['statusDetail'];
   const legacyResponseFields = [
@@ -99,7 +107,10 @@ test('mission schemas remove legacy lifecycle/status detail fields from SW-01 co
 
   for (const field of legacyResponseFields) {
     assert.equal(
-      Object.prototype.hasOwnProperty.call(missionUpsertResponse.properties.mission.properties, field),
+      Object.prototype.hasOwnProperty.call(
+        missionUpsertResponse.properties.mission.properties,
+        field
+      ),
       false,
       `mission-upsert-response mission schema must not expose legacy field: ${field}`
     );
@@ -114,10 +125,22 @@ test('openapi mission sections avoid legacy statuses and show canonical status e
   assert.ok(missionListSection.length > 0, 'mission-list section must exist in openapi.yaml');
   assert.ok(missionUpsertSection.length > 0, 'mission-upsert section must exist in openapi.yaml');
 
-  assert.equal(/status:\s*(started|in-progress|failed|locked|abandoned|paused|turned-in)/i.test(missionListSection), false);
-  assert.equal(/status:\s*(started|in-progress|failed|locked|abandoned|paused|turned-in)/i.test(missionUpsertSection), false);
+  assert.equal(
+    /status:\s*(started|in-progress|failed|locked|abandoned|paused|turned-in)/i.test(
+      missionListSection
+    ),
+    false
+  );
+  assert.equal(
+    /status:\s*(started|in-progress|failed|locked|abandoned|paused|turned-in)/i.test(
+      missionUpsertSection
+    ),
+    false
+  );
 
-  assert.ok(/status:\s*active/i.test(missionListSection) || /status:\s*completed/i.test(missionListSection));
+  assert.ok(
+    /status:\s*active/i.test(missionListSection) || /status:\s*completed/i.test(missionListSection)
+  );
   assert.ok(/status:\s*active/i.test(missionUpsertSection));
   assert.ok(/status must be one of: available, active, completed/i.test(missionUpsertSection));
 });

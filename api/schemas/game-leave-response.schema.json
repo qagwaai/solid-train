@@ -2,7 +2,14 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game-leave-response",
   "type": "object",
-  "required": ["success", "message", "playerName", "sessionKey", "correlationId", "requestIdentity"],
+  "required": [
+    "success",
+    "message",
+    "playerName",
+    "sessionKey",
+    "correlationId",
+    "requestIdentity"
+  ],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },

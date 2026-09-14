@@ -619,27 +619,27 @@ async function applyMarketShipListingAvailabilityAsync(
   const nextMarket = ctx.normalizeMarket({ ...market });
   const normalizedItemId = ctx.toNonEmptyString(itemId).toLowerCase();
   let listingFound = false;
-  nextMarket.shipListings = (Array.isArray(nextMarket.shipListings) ? nextMarket.shipListings : []).map(
-    (listing) => {
-      if (ctx.toNonEmptyString(listing?.itemId).toLowerCase() !== normalizedItemId) {
-        return listing;
-      }
-
-      listingFound = true;
-      const normalizedQuantity =
-        Number.isInteger(quantityAvailable) && quantityAvailable >= 0 ? quantityAvailable : 0;
-      const normalizedStatus =
-        ctx.toNonEmptyString(status).toLowerCase() === 'available' && normalizedQuantity > 0
-          ? 'available'
-          : 'sold';
-
-      return {
-        ...listing,
-        quantityAvailable: normalizedQuantity,
-        status: normalizedStatus,
-      };
+  nextMarket.shipListings = (
+    Array.isArray(nextMarket.shipListings) ? nextMarket.shipListings : []
+  ).map((listing) => {
+    if (ctx.toNonEmptyString(listing?.itemId).toLowerCase() !== normalizedItemId) {
+      return listing;
     }
-  );
+
+    listingFound = true;
+    const normalizedQuantity =
+      Number.isInteger(quantityAvailable) && quantityAvailable >= 0 ? quantityAvailable : 0;
+    const normalizedStatus =
+      ctx.toNonEmptyString(status).toLowerCase() === 'available' && normalizedQuantity > 0
+        ? 'available'
+        : 'sold';
+
+    return {
+      ...listing,
+      quantityAvailable: normalizedQuantity,
+      status: normalizedStatus,
+    };
+  });
 
   if (!listingFound) {
     return false;
@@ -658,7 +658,8 @@ async function addPurchasedShipToCharacterAsync(
   transactionId
 ) {
   const now = ctx.getCurrentTimestamp();
-  const owningPlayerId = ctx.toNonEmptyString(player.playerId) || ctx.toNonEmptyString(player.playerName);
+  const owningPlayerId =
+    ctx.toNonEmptyString(player.playerId) || ctx.toNonEmptyString(player.playerName);
   const generatedShipId = `${character.id}-ship-${ctx.createId()}`;
   const starterInventory = Array.isArray(shipCatalogEntry?.starterInventory)
     ? shipCatalogEntry.starterInventory
@@ -728,7 +729,9 @@ async function addPurchasedShipToCharacterAsync(
     },
   };
 
-  const nextShips = Array.isArray(character.ships) ? [...character.ships, createdShip] : [createdShip];
+  const nextShips = Array.isArray(character.ships)
+    ? [...character.ships, createdShip]
+    : [createdShip];
   try {
     await ctx.updateCharacterAsync(player.playerName, character.id, { ships: nextShips });
   } catch (error) {

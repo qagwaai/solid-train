@@ -13,50 +13,50 @@ Contract source of truth: openapi.yaml
 
 All endpoints are new additions. No existing endpoints were modified.
 
-| Path | operationId | Tag |
-|---|---|---|
+| Path                            | operationId                 | Tag  |
+| ------------------------------- | --------------------------- | ---- |
 | `/socket/character-bust-create` | `socketCharacterBustCreate` | Bust |
-| `/socket/character-bust-read` | `socketCharacterBustRead` | Bust |
+| `/socket/character-bust-read`   | `socketCharacterBustRead`   | Bust |
 | `/socket/character-bust-update` | `socketCharacterBustUpdate` | Bust |
-| `/socket/npc-bust-create` | `socketNpcBustCreate` | Bust |
-| `/socket/npc-bust-read` | `socketNpcBustRead` | Bust |
-| `/socket/npc-bust-update` | `socketNpcBustUpdate` | Bust |
+| `/socket/npc-bust-create`       | `socketNpcBustCreate`       | Bust |
+| `/socket/npc-bust-read`         | `socketNpcBustRead`         | Bust |
+| `/socket/npc-bust-update`       | `socketNpcBustUpdate`       | Bust |
 
 ## 2. Schema Component Names
 
 All schema components are new additions under `components/schemas`.
 
-| Component Name | Schema File |
-|---|---|
-| `BustDescriptor` | `schemas/bust-descriptor.schema.json` |
+| Component Name                | Schema File                                          |
+| ----------------------------- | ---------------------------------------------------- |
+| `BustDescriptor`              | `schemas/bust-descriptor.schema.json`                |
 | `BustValidationErrorResponse` | `schemas/bust-validation-error-response.schema.json` |
-| `CharacterBustCreateRequest` | `schemas/character-bust-create-request.schema.json` |
+| `CharacterBustCreateRequest`  | `schemas/character-bust-create-request.schema.json`  |
 | `CharacterBustCreateResponse` | `schemas/character-bust-create-response.schema.json` |
-| `CharacterBustReadRequest` | `schemas/character-bust-read-request.schema.json` |
-| `CharacterBustReadResponse` | `schemas/character-bust-read-response.schema.json` |
-| `CharacterBustUpdateRequest` | `schemas/character-bust-update-request.schema.json` |
+| `CharacterBustReadRequest`    | `schemas/character-bust-read-request.schema.json`    |
+| `CharacterBustReadResponse`   | `schemas/character-bust-read-response.schema.json`   |
+| `CharacterBustUpdateRequest`  | `schemas/character-bust-update-request.schema.json`  |
 | `CharacterBustUpdateResponse` | `schemas/character-bust-update-response.schema.json` |
-| `NpcBustCreateRequest` | `schemas/npc-bust-create-request.schema.json` |
-| `NpcBustCreateResponse` | `schemas/npc-bust-create-response.schema.json` |
-| `NpcBustReadRequest` | `schemas/npc-bust-read-request.schema.json` |
-| `NpcBustReadResponse` | `schemas/npc-bust-read-response.schema.json` |
-| `NpcBustUpdateRequest` | `schemas/npc-bust-update-request.schema.json` |
-| `NpcBustUpdateResponse` | `schemas/npc-bust-update-response.schema.json` |
+| `NpcBustCreateRequest`        | `schemas/npc-bust-create-request.schema.json`        |
+| `NpcBustCreateResponse`       | `schemas/npc-bust-create-response.schema.json`       |
+| `NpcBustReadRequest`          | `schemas/npc-bust-read-request.schema.json`          |
+| `NpcBustReadResponse`         | `schemas/npc-bust-read-response.schema.json`         |
+| `NpcBustUpdateRequest`        | `schemas/npc-bust-update-request.schema.json`        |
+| `NpcBustUpdateResponse`       | `schemas/npc-bust-update-response.schema.json`       |
 
 ## 3. Descriptor Domains and Enum Values
 
 The `BustDescriptor` schema (`bust-descriptor.schema.json`) defines these constrained enum domains:
 
-| Field | Enum Values |
-|---|---|
-| `faceShape` | `oval`, `round`, `square`, `angular`, `narrow` |
-| `skinTone` | `pale`, `light`, `medium`, `tan`, `dark`, `deep` |
-| `hairStyle` | `short-crop`, `mid-fade`, `long-loose`, `braided`, `shaved`, `slicked` |
-| `hairColor` | `black`, `brown`, `auburn`, `blonde`, `silver`, `white`, `red` |
-| `eyeStyle` | `narrow`, `wide`, `almond`, `hooded`, `round` |
-| `eyeColor` | `brown`, `hazel`, `green`, `blue`, `grey`, `amber`, `violet` |
-| `expressionPreset` | `neutral`, `focused`, `smirk`, `stern`, `warm`, `weary` |
-| `apparelAccent` | `none`, `collar`, `hood`, `visor`, `goggles`, `headband` |
+| Field              | Enum Values                                                            |
+| ------------------ | ---------------------------------------------------------------------- |
+| `faceShape`        | `oval`, `round`, `square`, `angular`, `narrow`                         |
+| `skinTone`         | `pale`, `light`, `medium`, `tan`, `dark`, `deep`                       |
+| `hairStyle`        | `short-crop`, `mid-fade`, `long-loose`, `braided`, `shaved`, `slicked` |
+| `hairColor`        | `black`, `brown`, `auburn`, `blonde`, `silver`, `white`, `red`         |
+| `eyeStyle`         | `narrow`, `wide`, `almond`, `hooded`, `round`                          |
+| `eyeColor`         | `brown`, `hazel`, `green`, `blue`, `grey`, `amber`, `violet`           |
+| `expressionPreset` | `neutral`, `focused`, `smirk`, `stern`, `warm`, `weary`                |
+| `apparelAccent`    | `none`, `collar`, `hood`, `visor`, `goggles`, `headband`               |
 
 Runtime taxonomy is declared in `src/model/bust-descriptor.js`.
 

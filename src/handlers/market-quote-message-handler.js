@@ -121,7 +121,6 @@ class MarketQuoteMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('market-quote-request', payload);
 
-
     this.context.refreshCharacterPresence(payload);
 
     const response = await this.buildResponse(payload);

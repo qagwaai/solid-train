@@ -34,8 +34,20 @@ function trimTrailingBlankLines(blockLines) {
 }
 
 const openapiLine = lines[findIndex((line) => line.startsWith('openapi:'))] || 'openapi: 3.0.3';
-const versionLine = lines[findIndex((line) => line.trim().startsWith('version:'), findIndex((line) => line.startsWith('info:')))] || '  version: 0.0.0';
-const serverUrlLine = lines[findIndex((line) => line.trim().startsWith('- url:'), findIndex((line) => line.startsWith('servers:')))] || '  - url: http://localhost:3000';
+const versionLine =
+  lines[
+    findIndex(
+      (line) => line.trim().startsWith('version:'),
+      findIndex((line) => line.startsWith('info:'))
+    )
+  ] || '  version: 0.0.0';
+const serverUrlLine =
+  lines[
+    findIndex(
+      (line) => line.trim().startsWith('- url:'),
+      findIndex((line) => line.startsWith('servers:'))
+    )
+  ] || '  - url: http://localhost:3000';
 
 const tagsStart = findIndex((line) => line.startsWith('tags:'));
 if (tagsStart === -1) {
@@ -234,6 +246,6 @@ tags.forEach((tagName) => {
 console.log('Populated modular OpenAPI files:\n');
 summary.forEach((entry) => {
   console.log(
-    `- ${entry.tagName.padEnd(11)} paths=${String(entry.pathCount).padEnd(2)} schemas=${String(entry.schemaCount).padEnd(3)} -> ${path.relative(ROOT, entry.outPath)}`,
+    `- ${entry.tagName.padEnd(11)} paths=${String(entry.pathCount).padEnd(2)} schemas=${String(entry.schemaCount).padEnd(3)} -> ${path.relative(ROOT, entry.outPath)}`
   );
 });

@@ -22,7 +22,6 @@ class ItemListByContainerMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('item-list-by-container-request', payload);
 
-
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const player = this.context.getPlayer(playerName);
 

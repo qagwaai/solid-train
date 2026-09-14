@@ -191,11 +191,7 @@ test('MissionUpsertMessageHandler rejects unknown character', async () => {
 });
 
 test('MissionUpsertMessageHandler handles all canonical status values', async () => {
-  const canonicalStatuses = [
-    'available',
-    'active',
-    'completed',
-  ];
+  const canonicalStatuses = ['available', 'active', 'completed'];
 
   for (const status of canonicalStatuses) {
     const context = createTestContext();

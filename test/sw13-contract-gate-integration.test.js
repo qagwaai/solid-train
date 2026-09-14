@@ -15,10 +15,14 @@ function reportPath(name) {
 }
 
 function runGate(args) {
-  const result = spawnSync('node', [path.join('scripts', 'sw13', 'run-cross-repo-gate.js'), ...args], {
-    cwd: path.join(__dirname, '..'),
-    encoding: 'utf8',
-  });
+  const result = spawnSync(
+    'node',
+    [path.join('scripts', 'sw13', 'run-cross-repo-gate.js'), ...args],
+    {
+      cwd: path.join(__dirname, '..'),
+      encoding: 'utf8',
+    }
+  );
 
   if (result.error) {
     throw result.error;

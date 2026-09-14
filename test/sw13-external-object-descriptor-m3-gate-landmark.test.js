@@ -13,7 +13,12 @@ const {
   createGateLandmarkDescriptorPayload,
 } = require('../src/model/external-object-descriptor-payloads');
 
-const FIXTURE_PATH = path.join(__dirname, 'fixtures', 'sw13', 'external-object-gate-landmark-m3.json');
+const FIXTURE_PATH = path.join(
+  __dirname,
+  'fixtures',
+  'sw13',
+  'external-object-gate-landmark-m3.json'
+);
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -71,7 +76,9 @@ test('SW-13 M3 approach metadata is complete and bounded', () => {
     assert.ok(metadata.recommendedStandOffKm <= metadata.approachWindowKm.max);
   }
 
-  const mediumHazard = payload.gates.filter((entry) => entry.approachMetadata.hazardCue === 'medium');
+  const mediumHazard = payload.gates.filter(
+    (entry) => entry.approachMetadata.hazardCue === 'medium'
+  );
   assert.ok(mediumHazard.length > 0, 'expected medium hazard coverage in M3 baseline');
   assert.ok(
     mediumHazard.every((entry) => entry.approachMetadata.warningEscalation === 'required'),

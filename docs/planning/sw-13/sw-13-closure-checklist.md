@@ -55,12 +55,12 @@ Repo: solid-train
 
 ## 7. Sign-Off
 
-| Role | Name | Date | Decision | Notes |
-| --- | --- | --- | --- | --- |
-| Forge lead | TBD | YYYY-MM-DD | Pending | |
-| Nova lead | TBD | YYYY-MM-DD | Pending | |
-| QA lead | TBD | YYYY-MM-DD | Pending | |
-| Orion | TBD | YYYY-MM-DD | Pending | |
+| Role       | Name | Date       | Decision | Notes |
+| ---------- | ---- | ---------- | -------- | ----- |
+| Forge lead | TBD  | YYYY-MM-DD | Pending  |       |
+| Nova lead  | TBD  | YYYY-MM-DD | Pending  |       |
+| QA lead    | TBD  | YYYY-MM-DD | Pending  |       |
+| Orion      | TBD  | YYYY-MM-DD | Pending  |       |
 
 ## 8. Final Exit Criteria
 

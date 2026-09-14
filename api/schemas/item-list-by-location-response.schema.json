@@ -2,7 +2,15 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "item-list-by-location-response",
   "type": "object",
-  "required": ["success", "message", "playerName", "solarSystemId", "items", "correlationId", "requestIdentity"],
+  "required": [
+    "success",
+    "message",
+    "playerName",
+    "solarSystemId",
+    "items",
+    "correlationId",
+    "requestIdentity"
+  ],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },

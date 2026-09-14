@@ -102,15 +102,7 @@
     },
     "routeFeedEncounterShip": {
       "type": "object",
-      "required": [
-        "shipId",
-        "shipName",
-        "model",
-        "tier",
-        "ownership",
-        "spatial",
-        "descriptor"
-      ],
+      "required": ["shipId", "shipName", "model", "tier", "ownership", "spatial", "descriptor"],
       "properties": {
         "shipId": { "type": "string" },
         "shipName": { "type": "string" },

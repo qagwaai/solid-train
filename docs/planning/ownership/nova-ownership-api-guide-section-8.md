@@ -4,14 +4,14 @@
 
 This guide focuses on ownership APIs. For the complete contract, refer to the OpenAPI documentation organized by **semantic tag**:
 
-| Tag | Relevant Sections | Reference |
-|-----|-------------------|-----------|
-| **Ship** | Ship list, ship ownership, ship transfer, salvage, piracy | `api/openapi/ship/openapi.yaml` |
-| **Items** | Item ownership, item list by owner | `api/openapi/items/openapi.yaml` |
-| **Market** | Market listings, offers, ownership validation | `api/openapi/market/openapi.yaml` |
-| **Character** | Character management, ownership context | `api/openapi/character/openapi.yaml` |
-| **Auth** | Session establishment for ownership-scoped queries | `api/openapi/auth/openapi.yaml` |
-| **Bust** | NPC ownership model, NPC customization | `api/openapi/bust/openapi.yaml` |
+| Tag           | Relevant Sections                                         | Reference                            |
+| ------------- | --------------------------------------------------------- | ------------------------------------ |
+| **Ship**      | Ship list, ship ownership, ship transfer, salvage, piracy | `api/openapi/ship/openapi.yaml`      |
+| **Items**     | Item ownership, item list by owner                        | `api/openapi/items/openapi.yaml`     |
+| **Market**    | Market listings, offers, ownership validation             | `api/openapi/market/openapi.yaml`    |
+| **Character** | Character management, ownership context                   | `api/openapi/character/openapi.yaml` |
+| **Auth**      | Session establishment for ownership-scoped queries        | `api/openapi/auth/openapi.yaml`      |
+| **Bust**      | NPC ownership model, NPC customization                    | `api/openapi/bust/openapi.yaml`      |
 
 ### Complete API Reference
 
@@ -23,6 +23,7 @@ This guide focuses on ownership APIs. For the complete contract, refer to the Op
 ### Testing Ownership APIs
 
 When implementing ownership features in Nova, reference:
+
 1. The migration checklist (section 7) for implementation order
 2. The appropriate tag module (section 8 above) for endpoint definitions
 3. `test/server-*.test.js` in the backend for example payloads and error cases

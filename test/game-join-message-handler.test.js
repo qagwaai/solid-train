@@ -65,4 +65,3 @@ test('GameJoinMessageHandler handles character missing from player list', async 
   assert.equal(socket.events[0].eventName, GAME_JOIN_RESPONSE_EVENT);
   assert.equal(context.getCharacters('edgepilot')[0].inGame, undefined);
 });
-

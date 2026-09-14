@@ -9,8 +9,6 @@ class SolarSystemGetMessageHandler {
     this.context = context;
   }
 
-
-
   deriveAsteroidPhysicalCatalog(body) {
     const physicalCatalog =
       body?.physicalCatalog && typeof body.physicalCatalog === 'object' ? body.physicalCatalog : {};
@@ -143,7 +141,6 @@ class SolarSystemGetMessageHandler {
     this.context.logHandlerMessage('solar-system-get-request', payload, {
       level: 'debug',
     });
-
 
     this.context.refreshCharacterPresence(payload);
 

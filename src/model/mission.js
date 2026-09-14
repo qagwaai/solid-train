@@ -1,10 +1,6 @@
 'use strict';
 
-const MISSION_STATUS_VALUES = [
-  'available',
-  'active',
-  'completed',
-];
+const MISSION_STATUS_VALUES = ['available', 'active', 'completed'];
 
 const MISSION_STATUS_SET = new Set(MISSION_STATUS_VALUES);
 

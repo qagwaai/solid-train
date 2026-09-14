@@ -15,10 +15,7 @@ const { DEFAULT_STARTER_MISSION_ID } = require('../../model/mission');
 const COLD_BOOT_STARTER_SUBSYSTEM_ITEM_TYPES = new Set(
   COLD_BOOT_STARTER_SUBSYSTEMS.map((subsystem) => subsystem.itemType)
 );
-const STARTER_DRONE_REQUIRED_MISSION_STATUSES = new Set([
-  'available',
-  'active',
-]);
+const STARTER_DRONE_REQUIRED_MISSION_STATUSES = new Set(['available', 'active']);
 
 function isProjectedShipInventoryItem(shipId, item) {
   if (!shipId || !item) {
@@ -52,11 +49,16 @@ async function shouldRecoverStarterDroneForMission(ctx, ship, options = {}) {
 
   const missions = await ctx.getMissionsAsync(playerName, characterId);
   const starterMission = Array.isArray(missions)
-    ? missions.find((mission) => ctx.toNonEmptyString(mission?.missionId) === DEFAULT_STARTER_MISSION_ID)
+    ? missions.find(
+        (mission) => ctx.toNonEmptyString(mission?.missionId) === DEFAULT_STARTER_MISSION_ID
+      )
     : null;
   const starterMissionStatus = ctx.toNonEmptyString(starterMission?.status);
 
-  return Boolean(starterMissionStatus) && STARTER_DRONE_REQUIRED_MISSION_STATUSES.has(starterMissionStatus);
+  return (
+    Boolean(starterMissionStatus) &&
+    STARTER_DRONE_REQUIRED_MISSION_STATUSES.has(starterMissionStatus)
+  );
 }
 
 async function hydrateShipAsync(ctx, ship, options = {}) {

@@ -70,14 +70,23 @@ class ShipListMessageHandler {
       : [];
 
     this.context.log(
-      `[ship-list-publish] correlationId=${correlationId} player=${player.playerName} characterId=${characterId} shipCount=${ships.length} shipIds=${ships.map((ship) => this.context.toNonEmptyString(ship?.id)).filter((value) => Boolean(value)).join(',') || '-'} projectedInventoryItemIds=${ships.map((ship) => {
-        const ids = Array.isArray(ship?.inventory)
-          ? ship.inventory
-              .map((item) => this.context.toNonEmptyString(item?.id))
-              .filter((value) => Boolean(value))
-          : [];
-        return `${this.context.toNonEmptyString(ship?.id) || '-'}:[${ids.join('|') || '-'}]`;
-      }).join(',') || '-'}`
+      `[ship-list-publish] correlationId=${correlationId} player=${player.playerName} characterId=${characterId} shipCount=${ships.length} shipIds=${
+        ships
+          .map((ship) => this.context.toNonEmptyString(ship?.id))
+          .filter((value) => Boolean(value))
+          .join(',') || '-'
+      } projectedInventoryItemIds=${
+        ships
+          .map((ship) => {
+            const ids = Array.isArray(ship?.inventory)
+              ? ship.inventory
+                  .map((item) => this.context.toNonEmptyString(item?.id))
+                  .filter((value) => Boolean(value))
+              : [];
+            return `${this.context.toNonEmptyString(ship?.id) || '-'}:[${ids.join('|') || '-'}]`;
+          })
+          .join(',') || '-'
+      }`
     );
 
     return {
@@ -97,7 +106,6 @@ class ShipListMessageHandler {
    */
   async handle(socket, payload) {
     this.context.logHandlerMessage('ship-list-request', payload);
-
 
     this.context.refreshCharacterPresence(payload);
 

@@ -429,7 +429,8 @@ test('Option3 server positive: ship-transfer success and persistence (list-by-ow
     const transferredShip = newOwnerList.ships.find((s) => s.id === shipId);
     assert.ok(Array.isArray(transferredShip.ownershipHistory));
     assert.ok(transferredShip.ownershipHistory.length >= 1);
-    const lastTransfer = transferredShip.ownershipHistory[transferredShip.ownershipHistory.length - 1];
+    const lastTransfer =
+      transferredShip.ownershipHistory[transferredShip.ownershipHistory.length - 1];
     assert.equal(lastTransfer.reason, 'transfer');
     assert.deepEqual(lastTransfer.fromOwner, {
       ownerType: 'player-character',

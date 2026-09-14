@@ -11,9 +11,18 @@ const {
   registerAndLogin,
 } = require('../test-support/socket-test-helpers');
 
-const { SHIP_SALVAGE_CLAIM_REQUEST_EVENT, SHIP_SALVAGE_CLAIM_RESPONSE_EVENT } = require('../src/model/ship-salvage-claim');
-const { SHIP_UPSERT_REQUEST_EVENT, SHIP_UPSERT_RESPONSE_EVENT } = require('../src/model/ship-upsert');
-const { CHARACTER_ADD_REQUEST_EVENT, CHARACTER_ADD_RESPONSE_EVENT } = require('../src/model/character-add');
+const {
+  SHIP_SALVAGE_CLAIM_REQUEST_EVENT,
+  SHIP_SALVAGE_CLAIM_RESPONSE_EVENT,
+} = require('../src/model/ship-salvage-claim');
+const {
+  SHIP_UPSERT_REQUEST_EVENT,
+  SHIP_UPSERT_RESPONSE_EVENT,
+} = require('../src/model/ship-upsert');
+const {
+  CHARACTER_ADD_REQUEST_EVENT,
+  CHARACTER_ADD_RESPONSE_EVENT,
+} = require('../src/model/character-add');
 const { SHIP_LIST_RESPONSE_EVENT, SHIP_LIST_REQUEST_EVENT } = require('../src/model/ship-list');
 
 function withTimeout(promise, ms, label = 'operation') {
@@ -52,8 +61,19 @@ async function upsertUnownedShip(client, playerName, sessionKey, characterId) {
       shipName: 'Derelict Scout',
       model: 'Scout',
       tier: 1,
-      spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 100, y: 0, z: 0 }, epochMs: 0 },
-      ownership: { ownerType: 'unknown', playerId: null, characterId: null, npcId: null, factionId: null },
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 100, y: 0, z: 0 },
+        epochMs: 0,
+      },
+      ownership: {
+        ownerType: 'unknown',
+        playerId: null,
+        characterId: null,
+        npcId: null,
+        factionId: null,
+      },
     },
   });
   const result = await withTimeout(promise, 1200, 'ship-upsert');
@@ -70,13 +90,38 @@ test('Option3 salvage negative: cross-player claim is forbidden', async () => {
   await withTimeout(waitForEvent(claimantClient, 'connect'), 1200, 'claimant connect');
 
   try {
-    const shipOwnerLogin = await registerAndLogin(shipOwnerClient, 'SalvageShipOwner', 'salvage-owner@example.com', 'secret');
-    const shipOwnerChar = await addCharacter(shipOwnerClient, 'SalvageShipOwner', shipOwnerLogin.sessionKey, 'ShipOwnerChar');
+    const shipOwnerLogin = await registerAndLogin(
+      shipOwnerClient,
+      'SalvageShipOwner',
+      'salvage-owner@example.com',
+      'secret'
+    );
+    const shipOwnerChar = await addCharacter(
+      shipOwnerClient,
+      'SalvageShipOwner',
+      shipOwnerLogin.sessionKey,
+      'ShipOwnerChar'
+    );
 
-    const claimantLogin = await registerAndLogin(claimantClient, 'SalvageClaimant', 'salvage-claimant@example.com', 'secret');
-    const claimantChar = await addCharacter(claimantClient, 'SalvageClaimant', claimantLogin.sessionKey, 'ClaimantChar');
+    const claimantLogin = await registerAndLogin(
+      claimantClient,
+      'SalvageClaimant',
+      'salvage-claimant@example.com',
+      'secret'
+    );
+    const claimantChar = await addCharacter(
+      claimantClient,
+      'SalvageClaimant',
+      claimantLogin.sessionKey,
+      'ClaimantChar'
+    );
 
-    const { shipId } = await upsertUnownedShip(shipOwnerClient, 'SalvageShipOwner', shipOwnerLogin.sessionKey, shipOwnerChar.characterId);
+    const { shipId } = await upsertUnownedShip(
+      shipOwnerClient,
+      'SalvageShipOwner',
+      shipOwnerLogin.sessionKey,
+      shipOwnerChar.characterId
+    );
 
     // Claimant tries to claim using ship owner's playerId — cross-player block
     const claimPromise = waitForEvent(claimantClient, SHIP_SALVAGE_CLAIM_RESPONSE_EVENT);
@@ -110,10 +155,20 @@ test('Option3 salvage positive: player can claim unowned ship', async () => {
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'SalvagePilot', 'salvage-pilot@example.com', 'secret');
+    const login = await registerAndLogin(
+      client,
+      'SalvagePilot',
+      'salvage-pilot@example.com',
+      'secret'
+    );
     const character = await addCharacter(client, 'SalvagePilot', login.sessionKey, 'SalvageChar');
 
-    const { shipId } = await upsertUnownedShip(client, 'SalvagePilot', login.sessionKey, character.characterId);
+    const { shipId } = await upsertUnownedShip(
+      client,
+      'SalvagePilot',
+      login.sessionKey,
+      character.characterId
+    );
 
     const claimPromise = waitForEvent(client, SHIP_SALVAGE_CLAIM_RESPONSE_EVENT);
     client.emit(SHIP_SALVAGE_CLAIM_REQUEST_EVENT, {
@@ -149,11 +204,26 @@ test('Option3 salvage negative: cannot claim already-owned ship', async () => {
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'SalvageOwnedPilot', 'salvage-owned@example.com', 'secret');
-    const character = await addCharacter(client, 'SalvageOwnedPilot', login.sessionKey, 'OwnedChar');
+    const login = await registerAndLogin(
+      client,
+      'SalvageOwnedPilot',
+      'salvage-owned@example.com',
+      'secret'
+    );
+    const character = await addCharacter(
+      client,
+      'SalvageOwnedPilot',
+      login.sessionKey,
+      'OwnedChar'
+    );
 
     // The starter ship is already player-character owned
-    const shipId = await getShipId(client, 'SalvageOwnedPilot', login.sessionKey, character.characterId);
+    const shipId = await getShipId(
+      client,
+      'SalvageOwnedPilot',
+      login.sessionKey,
+      character.characterId
+    );
     assert.ok(shipId, 'Should have a starter ship');
 
     const claimPromise = waitForEvent(client, SHIP_SALVAGE_CLAIM_RESPONSE_EVENT);

@@ -11,8 +11,14 @@ const {
   registerAndLogin,
 } = require('../test-support/socket-test-helpers');
 
-const { SHIP_PIRACY_SEIZE_REQUEST_EVENT, SHIP_PIRACY_SEIZE_RESPONSE_EVENT } = require('../src/model/ship-piracy-seize');
-const { CHARACTER_ADD_REQUEST_EVENT, CHARACTER_ADD_RESPONSE_EVENT } = require('../src/model/character-add');
+const {
+  SHIP_PIRACY_SEIZE_REQUEST_EVENT,
+  SHIP_PIRACY_SEIZE_RESPONSE_EVENT,
+} = require('../src/model/ship-piracy-seize');
+const {
+  CHARACTER_ADD_REQUEST_EVENT,
+  CHARACTER_ADD_RESPONSE_EVENT,
+} = require('../src/model/character-add');
 const { SHIP_LIST_RESPONSE_EVENT, SHIP_LIST_REQUEST_EVENT } = require('../src/model/ship-list');
 
 function withTimeout(promise, ms, label = 'operation') {
@@ -45,7 +51,12 @@ test('Option3 piracy positive: npc-pirate can seize player-character ship', asyn
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'PiracyVictim', 'piracy-victim@example.com', 'secret');
+    const login = await registerAndLogin(
+      client,
+      'PiracyVictim',
+      'piracy-victim@example.com',
+      'secret'
+    );
     const character = await addCharacter(client, 'PiracyVictim', login.sessionKey, 'VictimChar');
     const shipId = await getShipId(client, 'PiracyVictim', login.sessionKey, character.characterId);
     assert.ok(shipId);
@@ -84,9 +95,24 @@ test('Option3 piracy negative: non-npc-pirate seizingOwner is rejected', async (
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'PiracyInvalidSeizer', 'piracy-invalid@example.com', 'secret');
-    const character = await addCharacter(client, 'PiracyInvalidSeizer', login.sessionKey, 'InvalidChar');
-    const shipId = await getShipId(client, 'PiracyInvalidSeizer', login.sessionKey, character.characterId);
+    const login = await registerAndLogin(
+      client,
+      'PiracyInvalidSeizer',
+      'piracy-invalid@example.com',
+      'secret'
+    );
+    const character = await addCharacter(
+      client,
+      'PiracyInvalidSeizer',
+      login.sessionKey,
+      'InvalidChar'
+    );
+    const shipId = await getShipId(
+      client,
+      'PiracyInvalidSeizer',
+      login.sessionKey,
+      character.characterId
+    );
 
     const seizePromise = waitForEvent(client, SHIP_PIRACY_SEIZE_RESPONSE_EVENT);
     client.emit(SHIP_PIRACY_SEIZE_REQUEST_EVENT, {
@@ -119,11 +145,24 @@ test('Option3 piracy negative: cannot seize unowned/unknown ship', async () => {
   await withTimeout(waitForEvent(client, 'connect'), 1200, 'connect');
 
   try {
-    const login = await registerAndLogin(client, 'PiracyUnownedTarget', 'piracy-unowned@example.com', 'secret');
-    const character = await addCharacter(client, 'PiracyUnownedTarget', login.sessionKey, 'UnownedChar');
+    const login = await registerAndLogin(
+      client,
+      'PiracyUnownedTarget',
+      'piracy-unowned@example.com',
+      'secret'
+    );
+    const character = await addCharacter(
+      client,
+      'PiracyUnownedTarget',
+      login.sessionKey,
+      'UnownedChar'
+    );
 
     // Add an unknown ship first using ship-upsert
-    const { SHIP_UPSERT_REQUEST_EVENT, SHIP_UPSERT_RESPONSE_EVENT } = require('../src/model/ship-upsert');
+    const {
+      SHIP_UPSERT_REQUEST_EVENT,
+      SHIP_UPSERT_RESPONSE_EVENT,
+    } = require('../src/model/ship-upsert');
     const unknownShipId = `unknown-ship-piracy-${Date.now()}`;
     const upsertPromise = waitForEvent(client, SHIP_UPSERT_RESPONSE_EVENT);
     client.emit(SHIP_UPSERT_REQUEST_EVENT, {
@@ -137,8 +176,19 @@ test('Option3 piracy negative: cannot seize unowned/unknown ship', async () => {
         shipName: 'Derelict',
         model: 'Scout',
         tier: 1,
-        spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 200, y: 0, z: 0 }, epochMs: 0 },
-        ownership: { ownerType: 'unknown', playerId: null, characterId: null, npcId: null, factionId: null },
+        spatial: {
+          solarSystemId: 'sol',
+          frame: 'barycentric',
+          positionKm: { x: 200, y: 0, z: 0 },
+          epochMs: 0,
+        },
+        ownership: {
+          ownerType: 'unknown',
+          playerId: null,
+          characterId: null,
+          npcId: null,
+          factionId: null,
+        },
       },
     });
     await withTimeout(upsertPromise, 1200, 'upsert unknown ship');

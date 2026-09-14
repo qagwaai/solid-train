@@ -18,6 +18,7 @@ Lock SW-13 descriptor contract baseline before implementation milestones begin.
 ## 3. Contract Lock Tasks
 
 1. Define canonical descriptor domains in producer contract:
+
 - `debris`
 - `ship`
 - `jump_gate`
@@ -25,6 +26,7 @@ Lock SW-13 descriptor contract baseline before implementation milestones begin.
 - `asteroid`
 
 2. Define canonical asteroid style domain:
+
 - `rocky`
 - `hero_cinematic`
 
@@ -56,9 +58,9 @@ Lock SW-13 descriptor contract baseline before implementation milestones begin.
 
 ## 7. Sign-Off
 
-| Role | Name | Date | Decision | Notes |
-| --- | --- | --- | --- | --- |
-| Forge lead | TBD | YYYY-MM-DD | Pending | |
-| Nova lead | TBD | YYYY-MM-DD | Pending | |
-| QA lead | TBD | YYYY-MM-DD | Pending | |
-| Orion | TBD | YYYY-MM-DD | Pending | |
+| Role       | Name | Date       | Decision | Notes |
+| ---------- | ---- | ---------- | -------- | ----- |
+| Forge lead | TBD  | YYYY-MM-DD | Pending  |       |
+| Nova lead  | TBD  | YYYY-MM-DD | Pending  |       |
+| QA lead    | TBD  | YYYY-MM-DD | Pending  |       |
+| Orion      | TBD  | YYYY-MM-DD | Pending  |       |

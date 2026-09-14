@@ -19,7 +19,7 @@ The Stellar API contract is organized into **16 semantic tags**, each representi
 13. **Game** — Game state and lifecycle
 14. **Realtime** — Realtime messaging
 15. **Bust** — Character customization/appearance
-16. **_shared** — Schemas used across multiple tags
+16. **\_shared** — Schemas used across multiple tags
 
 ## Directory Structure
 
@@ -40,6 +40,7 @@ api/
 ## Design Pattern
 
 ### Master File (`api/openapi.yaml`)
+
 - **Single source of truth** for the complete API contract
 - All paths and schemas defined inline
 - Version managed here (currently 3.1.0)
@@ -50,12 +51,14 @@ api/
   - Contract artifact generation
 
 ### Modular References (`api/openapi/{tag}/`)
+
 - **Documentation and organization** by semantic domain
 - Each file contains conceptual description of that tag's operations
 - Can be extended in future to support full decomposition with `$ref` imports
 - Acts as organizational guide for developers
 
 ### Shared Schemas (`api/openapi/_shared/schemas.yaml`)
+
 - Schemas used by 2+ tags (currently ErrorResponse + ExternalObject* schemas)
 - Extensible as contract grows
 
@@ -64,6 +67,7 @@ api/
 **Current State (3.1.0):** Master-only with modular documentation  
 **Future State:** Full decomposition with `$ref` imports in main file  
 **Benefits:**
+
 - Tests and tooling continue to work immediately
 - Organizational structure established
 - Foundation for gradual migration to fully modular contract
@@ -72,15 +76,18 @@ api/
 ## Usage
 
 ### For Developers
+
 - Consult `api/openapi/{tag}/openapi.yaml` to understand domain operations
 - Read `api/openapi.yaml` for complete contract details
 
 ### For Tooling
+
 - Swagger UI: `GET http://localhost:3000/docs` (reads main file)
 - Contract validation: `npm run contract:*` (reads main file)
 - Contract generation: `npm run contract:artifact` (reads main file)
 
 ### For Testing
+
 - All existing tests remain unchanged
 - Tests read from `api/openapi.yaml` directly
 - Version bump to 3.1.0 tracked for API evolution

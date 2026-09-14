@@ -34,9 +34,9 @@ Verify recent data exists for:
 
 ## Sign-Off
 
-- Backend Lead: _____________________  Date: __________
-- Frontend Lead: ____________________  Date: __________
-- QA Lead: __________________________  Date: __________
+- Backend Lead: _____________________ Date: __________
+- Frontend Lead: ____________________ Date: __________
+- QA Lead: __________________________ Date: __________
 
 ## Transition Decision
 

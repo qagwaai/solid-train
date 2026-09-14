@@ -64,7 +64,6 @@ test('SolarSystemGetMessageHandler validates required fields', async () => {
   assert.match(response.message, /required/);
 });
 
-
 test('SolarSystemGetMessageHandler returns canonical asteroid fields for mission-generated bodies', async () => {
   const context = createTestContext();
   seedPlayer(context, {

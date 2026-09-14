@@ -831,7 +831,9 @@ test('cold-boot launch-item succeeds for drone id emitted by ship-list-by-owner 
       },
     });
     const missionList = await missionListPromise;
-    const firstTargetMission = missionList.missions.find((mission) => mission.missionId === 'first-target');
+    const firstTargetMission = missionList.missions.find(
+      (mission) => mission.missionId === 'first-target'
+    );
 
     assert.ok(firstTargetMission);
     assert.equal(firstTargetMission.status, 'completed');
