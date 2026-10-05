@@ -35,6 +35,23 @@ class MarketListMessageHandler {
    * @returns {Promise<Object>}
    */
   async buildResponse(payload) {
+    try {
+      return await this.buildMarketResponse(payload);
+    } catch (error) {
+      if (error.code !== 'MARKET_ANCHOR_UNRESOLVED') {
+        throw error;
+      }
+      return {
+        success: false,
+        message: `MarketList: ${error.code}: ${error.message}`,
+        playerName: this.context.toNonEmptyString(payload?.playerName),
+        solarSystemId: this.context.toNonEmptyString(payload?.solarSystemId) || null,
+        markets: [],
+      };
+    }
+  }
+
+  async buildMarketResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
 

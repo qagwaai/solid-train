@@ -76,24 +76,7 @@
                   "quantity": { "type": "number" },
                   "state": { "type": "string", "enum": ["deployed"] },
                   "container": { "type": "null" },
-                  "spatial": {
-                    "type": "object",
-                    "properties": {
-                      "solarSystemId": { "type": "string" },
-                      "frame": { "type": "string", "enum": ["barycentric"] },
-                      "positionKm": {
-                        "type": "object",
-                        "properties": {
-                          "x": { "type": "number" },
-                          "y": { "type": "number" },
-                          "z": { "type": "number" }
-                        },
-                        "required": ["x", "y", "z"]
-                      },
-                      "epochMs": { "type": "number" }
-                    },
-                    "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
-                  },
+                  "spatial": { "$ref": "./spatial-state.schema.json" },
                   "motion": {
                     "type": "object",
                     "properties": {
@@ -115,8 +98,7 @@
           }
         },
         "targetCelestialBody": {
-          "type": "object",
-          "additionalProperties": true
+          "$ref": "./celestial-body-list-response.schema.json#/definitions/celestialBody"
         },
         "launchSeed": { "type": "integer", "minimum": 0 }
       }

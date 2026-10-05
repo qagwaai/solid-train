@@ -95,6 +95,8 @@ function createSeedItem(overrides = {}) {
 function createSeedTarget(overrides = {}) {
   return {
     id: 'cb-1',
+    bodyType: 'asteroid',
+    surfaceArchetype: 'asteroid',
     catalogId: 'CAT-001',
     sourceScanId: 'scan-1',
     createdByCharacterId: 'character-1',

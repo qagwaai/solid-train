@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SpatialState",
+  "description": "Canonical spatial snapshot in km with a Unix-millisecond snapshot epoch. The frame enum is currently barycentric, but this field does not identify the orientation, reference plane, or external inertial alignment of x/y/z, and some current producers do not place coordinates at a computed physical barycenter. The celestial orbital seeder uses a right-handed Cartesian transform (X cross Y = Z), with zero-inclination orbits in XY and positive inclination rotating +Y toward +Z. That mathematical convention does not prove all producer snapshots share the same physical basis; see docs/celestial-body-contract.md. Celestial reads preserve snapshots without propagation. Station market reads materialize exact-anchor host.positionKm plus the relative orbital vector in this implementation basis at host.epochMs; station epochMs equals host epochMs, not request time. They neither propagate the host nor add its parent, and do not persist read-time repairs. Unresolved station anchors fail explicitly.",
+  "type": "object",
+  "definitions": {
+    "vector3": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    }
+  },
+  "properties": {
+    "solarSystemId": { "type": "string", "pattern": "\\S" },
+    "frame": { "type": "string", "enum": ["barycentric"] },
+    "positionKm": { "$ref": "#/definitions/vector3" },
+    "epochMs": { "type": "number" }
+  },
+  "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
+}

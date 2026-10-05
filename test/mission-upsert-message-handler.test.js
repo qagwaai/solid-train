@@ -259,6 +259,21 @@ test('MissionUpsertMessageHandler seeds first-target asteroid field on mission s
   assert.ok(seededField.every((body) => body.missionId === 'first-target'));
   assert.ok(seededField.every((body) => body.sourceScanId));
   assert.ok(seededField.every((body) => body.bodyType === 'asteroid'));
+  for (const [index, body] of seededField.entries()) {
+    const angle = (Math.PI * 2 * index) / seededField.length;
+    const radiusKm = 250 + index * 40;
+    assert.deepEqual(body.spatial.positionKm, {
+      x: Math.round(Math.cos(angle) * radiusKm),
+      y: Math.round(Math.sin(angle) * radiusKm),
+      z: Math.round((index - 4.5) * 12),
+    });
+    assert.equal(body.spatial.frame, 'barycentric');
+    assert.deepEqual(body.localOffsetKm, {
+      x: body.spatial.positionKm.x - body.clusterCenterKm.x,
+      y: body.spatial.positionKm.y - body.clusterCenterKm.y,
+      z: body.spatial.positionKm.z - body.clusterCenterKm.z,
+    });
+  }
   assert.ok(seededField.every((body) => typeof body.clusterId === 'string' && body.clusterId));
   assert.ok(
     seededField.every(

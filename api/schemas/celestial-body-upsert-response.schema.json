@@ -22,9 +22,8 @@
     },
     "playerName": { "type": "string" },
     "celestialBody": {
-      "type": "object",
-      "description": "Present on successful celestial body upsert responses.",
-      "additionalProperties": true
+      "$ref": "./celestial-body-list-response.schema.json#/definitions/celestialBody",
+      "description": "Persisted canonical celestial body returned on successful upsert."
     }
   }
 }

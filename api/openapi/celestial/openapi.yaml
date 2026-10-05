@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Stellar API - Celestial
-  version: 3.1.0
+  version: 4.0.0
 servers:
   - url: http://localhost:3000
 tags:
@@ -12,6 +12,15 @@ paths:
       summary: celestial-body-list-request
       description: |
         Lists canonical celestial bodies in a solar system.
+        All bodies require non-null bodyType and a compatible surfaceArchetype;
+        planetType and textureKey are independent. Per-body stellar spectralClass
+        and luminositySolar are nullable source values, including companions.
+        Positions are stored seed-time snapshots, not recomputed on each read.
+        Orbital and physical fields use shared typed schemas. physicalCatalog
+        remains separate from physical estimates. spatial uses the shared
+        spatial-state schema; its barycentric label does not identify an
+        external axis orientation or imply that all producer coordinates were
+        transformed into one physical basis. See docs/celestial-body-contract.md.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).
@@ -108,6 +117,7 @@ paths:
                         createdAt: '2026-05-18T00:00:00.000Z'
                         updatedAt: '2026-05-18T00:00:00.000Z'
                         bodyType: asteroid
+                        surfaceArchetype: asteroid
                         displayName: Starter Rock
                         spatial:
                           solarSystemId: sol
@@ -160,6 +170,7 @@ paths:
                         createdAt: '2026-05-18T00:00:00.000Z'
                         updatedAt: '2026-05-18T00:00:00.000Z'
                         bodyType: asteroid
+                        surfaceArchetype: asteroid
                         displayName: Farther Rock
                         spatial:
                           solarSystemId: sol
@@ -203,6 +214,7 @@ paths:
                         createdAt: '2026-05-18T00:00:00.000Z'
                         updatedAt: '2026-05-18T00:00:00.000Z'
                         bodyType: planet
+                        surfaceArchetype: rocky
                         displayName: Mercury
                         spatial:
                           solarSystemId: sol
@@ -265,8 +277,23 @@ paths:
           also uses that composite identity for mission-generated bodies.
 
         Validation and behavior notes:
-        - `celestialBody.spatial` must use canonical barycentric coordinates.
+        - `celestialBody.spatial` must use canonical barycentric coordinates and its supplied `solarSystemId` is persisted.
+        - `celestialBody.surfaceArchetype` is required and identifies canonical appearance inputs; body `id` is durable appearance-generator identity.
+        - Optional catalog fields including `planetType`, `orbitalElements`, `physicalCatalog`, and `visualization` are persisted and returned.
         - `celestialBody.observability` is required.
+        - `celestialBody.bodyType` and `state` are explicit required values, never inferred.
+        - Body/archetype pairs follow the shared CelestialClassification schema.
+        - `orbitalElements` is null or complete typed elliptic elements; angular values
+          are degrees, axes km, signed period seconds, and epoch an ISO UTC timestamp.
+        - Signed catalog periods are preserved; propagation uses their magnitude and
+          inclination supplies orientation. Positions remain seed-time snapshots on reads.
+        - `spectralClass` and `luminositySolar` are per-body nullable source fields,
+          including companions; no generator fallback is presented as measured luminosity.
+        - physicalCatalog and physical are separate provenance objects. Scalar radius
+          uses positive finite meanRadiusKm, equatorialRadiusKm, radiusKm,
+          catalog estimatedDiameterM/2000, then physical estimatedDiameterM/2000.
+          Mass uses catalog massKg, catalog estimatedMassKg, then physical estimatedMassKg.
+          This is selection guidance, not measurement rewriting.
         - `celestialBody.composition` is required unless `celestialBody.state` is
           `unscanned`.
         - Legacy fields `location`, `kinematics`, and root `solarSystemId` are not
@@ -292,6 +319,8 @@ paths:
                     containerId: cb-1
                   celestialBody:
                     id: cb-1
+                    bodyType: asteroid
+                    surfaceArchetype: asteroid
                     catalogId: asteroid-scan-1
                     sourceScanId: scan-1
                     createdByCharacterId: character-1
@@ -325,6 +354,8 @@ paths:
                     entityType: celestial-body
                     containerId: first-target
                   celestialBody:
+                    bodyType: asteroid
+                    surfaceArchetype: asteroid
                     catalogId: asteroid-scan-2
                     sourceScanId: sample-a3
                     createdByCharacterId: character-1
@@ -365,10 +396,29 @@ paths:
                       containerId: cb-1
                     celestialBody:
                       id: cb-1
+                      bodyType: asteroid
+                      surfaceArchetype: asteroid
                       catalogId: asteroid-scan-1
                       sourceScanId: scan-1
                       createdByCharacterId: character-1
+                      missionId: first-target
+                      missionInstanceId: null
+                      createdAt: '2026-05-17T00:00:00.000Z'
+                      updatedAt: '2026-05-17T00:00:00.000Z'
+                      spatial:
+                        solarSystemId: sol
+                        frame: barycentric
+                        positionKm: { x: 1000, y: 2000, z: 3000 }
+                        epochMs: 1000000
+                      observability: { visibility: visible, scanState: scanned }
+                      composition: { rarity: Common, material: Iron, textureColor: '#8f99a7' }
+                      spectralClass: null
+                      luminositySolar: null
                       state: active
+                      destroyedAt: null
+                      destroyedReason: null
+                      debrisSeed: null
+                      debris: []
                 failedCelestialBodyUpsert:
                   summary: Validation failure omits the celestialBody payload
                   value:

@@ -1,6 +1,6 @@
 'use strict';
 
-const SOLAR_SYSTEM_MARKET_SEED_VERSION = '2026-05-sol-v1';
+const SOLAR_SYSTEM_MARKET_SEED_VERSION = '2026-10-station-snapshot-v2';
 const SOLAR_SYSTEM_MARKET_SEED_STATE_KEY = 'solar-system-market-seed-state';
 const DEFAULT_ORBIT_EPOCH = '2026-01-01T00:00:00.000Z';
 
@@ -41,7 +41,7 @@ const SOL_PLANETARY_MARKETS = [
   {
     marketId: 'sol-moon-orbit',
     marketName: 'Luna Nearside Bazaar',
-    anchorBodyId: 'sol-moon',
+    anchorBodyId: 'sol-luna',
     anchorBodyName: 'Earth Moon',
     semiMajorAxisKm: 1200,
     eccentricity: 0.02,
@@ -189,6 +189,11 @@ function buildSeedMarket({
   restockIntervalMinutes = 60,
   orbit,
 }) {
+  // Station element phase must not depend on when a service/read starts.
+  // The host snapshot, resolved by the context, supplies the snapshot epoch.
+  if (siteType === 'station') {
+    orbit = { ...orbit, epoch: DEFAULT_ORBIT_EPOCH };
+  }
   const positionKm = {
     x: orbit.semiMajorAxisKm,
     y: 0,
@@ -283,7 +288,7 @@ const ALPHA_CENTAURI_MARKETS = [
   {
     marketId: 'ac-proxima-station',
     marketName: 'Proxima Gateway Market',
-    anchorBodyId: 'ac-proxima',
+    anchorBodyId: 'alpha-centauri-star-tertiary',
     anchorBodyName: 'Proxima Centauri',
     semiMajorAxisKm: 3200,
     eccentricity: 0.02,
@@ -308,7 +313,7 @@ const BARNARDS_STAR_MARKETS = [
   {
     marketId: 'bs-main-station',
     marketName: 'Barnard Frontier Outpost',
-    anchorBodyId: 'bs-b1',
+    anchorBodyId: 'barnards-star-planet-1',
     anchorBodyName: "Barnard's Star B1",
     semiMajorAxisKm: 2800,
     eccentricity: 0.03,

@@ -13,28 +13,18 @@
       "required": ["x", "y", "z"]
     },
     "spatialState": {
-      "type": "object",
-      "properties": {
-        "solarSystemId": { "type": "string" },
-        "frame": { "type": "string", "enum": ["barycentric"] },
-        "positionKm": { "$ref": "#/definitions/vector3" },
-        "epochMs": { "type": "number" }
-      },
-      "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
+      "$ref": "./spatial-state.schema.json"
     },
     "motionState": {
       "type": ["object", "null"],
       "properties": {
         "velocityKmPerSec": { "$ref": "#/definitions/vector3" },
-        "angularVelocityRadPerSec": { "$ref": "#/definitions/vector3" }
-      }
+        "angularVelocityRadPerSec": { "anyOf": [{ "$ref": "#/definitions/vector3" }, { "type": "null" }] }
+      },
+      "required": ["velocityKmPerSec"]
     },
     "physicalState": {
-      "type": ["object", "null"],
-      "properties": {
-        "estimatedMassKg": { "type": ["number", "null"] },
-        "estimatedDiameterM": { "type": ["number", "null"] }
-      }
+      "$ref": "./celestial-physical-estimates.schema.json"
     },
     "observabilityState": {
       "type": "object",
@@ -48,25 +38,20 @@
       "type": ["object", "null"],
       "properties": {
         "rarity": { "type": "string", "enum": ["Common", "Uncommon", "Rare", "Exotic"] },
-        "material": { "type": "string" },
-        "textureColor": { "type": "string" }
+        "material": { "type": "string", "pattern": "\\S" },
+        "textureColor": { "type": "string", "pattern": "\\S" }
       },
       "required": ["rarity", "material", "textureColor"]
     },
     "physicalCatalog": {
-      "type": ["object", "null"],
-      "properties": {
-        "estimatedDiameterM": { "type": ["number", "null"] },
-        "estimatedMassKg": { "type": ["number", "null"] },
-        "radiusKm": { "type": ["number", "null"] }
-      }
+      "$ref": "./celestial-physical-catalog.schema.json"
     },
     "visualization": {
       "type": ["object", "null"],
       "properties": {
-        "colorHex": { "type": "string" },
-        "spectralClass": { "type": "string" },
-        "textureKey": { "type": "string" }
+        "colorHex": { "type": ["string", "null"] },
+        "spectralClass": { "type": ["string", "null"] },
+        "textureKey": { "type": ["string", "null"] }
       }
     },
     "debrisEntry": {
@@ -84,9 +69,11 @@
     },
     "celestialBody": {
       "type": "object",
+      "allOf": [{ "$ref": "./celestial-classification.schema.json" }],
       "description": "Canonical celestial body payload, with distanceKm added for radius queries.",
       "properties": {
-        "id": { "type": "string" },
+        "id": { "type": "string", "description": "Durable canonical identity and deterministic appearance-generator input." },
+        "surfaceArchetype": { "type": "string", "enum": ["rocky", "lava", "ocean", "gas-giant", "ice-giant", "star", "rocky-moon", "icy-moon", "asteroid"] },
         "catalogId": { "type": "string" },
         "sourceScanId": { "type": "string" },
         "createdByCharacterId": { "type": "string" },
@@ -110,10 +97,12 @@
           "type": "array",
           "items": { "$ref": "#/definitions/debrisEntry" }
         },
-        "bodyType": { "type": "string" },
-        "displayName": { "type": "string" },
+        "bodyType": { "type": "string", "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"] },
+        "spectralClass": { "type": ["string", "null"], "description": "Optional per-body source spectral class; omitted and null both mean unknown. Current normalized reads serialize unknown as null." },
+        "luminositySolar": { "type": ["number", "null"], "minimum": 0, "description": "Optional source luminosity in solar luminosities; omitted and null both mean unknown. Current normalized reads serialize unknown as null. Zero is valid and is not equivalent to unknown; this is never a generation fallback." },
+        "displayName": { "type": ["string", "null"] },
         "parentBodyId": { "type": ["string", "null"] },
-        "orbitalElements": { "type": ["object", "null"], "additionalProperties": true },
+        "orbitalElements": { "$ref": "./orbital-elements.schema.json" },
         "physicalCatalog": { "$ref": "#/definitions/physicalCatalog" },
         "atmosphere": { "type": ["object", "null"], "additionalProperties": true },
         "discovery": { "type": ["object", "null"], "additionalProperties": true },
@@ -130,6 +119,8 @@
       },
       "required": [
         "id",
+        "surfaceArchetype",
+        "bodyType",
         "catalogId",
         "sourceScanId",
         "createdByCharacterId",
@@ -139,7 +130,6 @@
         "updatedAt",
         "spatial",
         "observability",
-        "composition",
         "state",
         "destroyedAt",
         "destroyedReason",

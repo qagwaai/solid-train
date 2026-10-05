@@ -6,6 +6,7 @@ const {
   SolarSystemListMessageHandler,
 } = require('../src/handlers/solar-system-list-message-handler');
 const { SOLAR_SYSTEM_LIST_RESPONSE_EVENT } = require('../src/model/solar-system-list');
+const { buildSeededMarketsForSolarSystem } = require('../src/model/solar-system-market-seed');
 const {
   createCelestialBody,
   createMarket,
@@ -117,6 +118,7 @@ test('SolarSystemListMessageHandler populates count fields when celestial bodies
         spatial: { solarSystemId: 'sol' },
       }),
       bodyType: 'planet',
+      surfaceArchetype: 'rocky',
     },
     {
       ...createCelestialBody({
@@ -124,6 +126,7 @@ test('SolarSystemListMessageHandler populates count fields when celestial bodies
         spatial: { solarSystemId: 'sol' },
       }),
       bodyType: 'planet',
+      surfaceArchetype: 'rocky',
     },
     {
       ...createCelestialBody({
@@ -131,6 +134,7 @@ test('SolarSystemListMessageHandler populates count fields when celestial bodies
         spatial: { solarSystemId: 'sol' },
       }),
       bodyType: 'moon',
+      surfaceArchetype: 'rocky-moon',
     },
     {
       ...createCelestialBody({
@@ -142,13 +146,16 @@ test('SolarSystemListMessageHandler populates count fields when celestial bodies
   ]);
 
   // Seed markets in 'sol'
+  const trajectory = buildSeededMarketsForSolarSystem('sol')
+    .find((market) => market.marketId === 'sol-earth-orbit').trajectory;
+  trajectory.orbit.anchorBodyId = 'sol-planet-1';
   context.marketsByKey.set(
     'sol:market-1',
-    createMarket({ solarSystemId: 'sol', marketId: 'market-1' })
+    createMarket({ solarSystemId: 'sol', marketId: 'market-1', trajectory })
   );
   context.marketsByKey.set(
     'sol:market-2',
-    createMarket({ solarSystemId: 'sol', marketId: 'market-2' })
+    createMarket({ solarSystemId: 'sol', marketId: 'market-2', trajectory })
   );
 
   const handler = new SolarSystemListMessageHandler(context);
@@ -169,6 +176,10 @@ test('SolarSystemListMessageHandler populates count fields when celestial bodies
 test('SolarSystemListMessageHandler handles missing count data gracefully', async () => {
   const context = createTestContext();
   seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+  // Match startup order: bootstrap markets alone do not materialize strict hosts.
+  for (const solarSystemId of ['sol', 'alpha-centauri', 'barnards-star']) {
+    await context.seedSolarSystemCelestialBodiesAsync({ solarSystemId });
+  }
 
   const handler = new SolarSystemListMessageHandler(context);
   const response = await handler.handle(createMockSocket(), {

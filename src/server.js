@@ -209,9 +209,19 @@ function createServer(options = {}) {
   const openApiSpecPath = path.resolve(__dirname, '..', 'api', 'openapi.yaml');
   const openApiModulesDirPath = path.resolve(__dirname, '..', 'api', 'openapi');
   const schemaDirPath = path.resolve(__dirname, '..', 'api', 'schemas');
+  const celestialBodyContractPath = path.resolve(
+    __dirname,
+    '..',
+    'docs',
+    'celestial-body-contract.md'
+  );
 
   app.get('/openapi.yaml', (req, res) => {
     res.sendFile(openApiSpecPath);
+  });
+
+  app.get('/docs/celestial-body-contract.md', (req, res) => {
+    res.set('Content-Type', 'text/markdown; charset=utf-8').sendFile(celestialBodyContractPath);
   });
 
   // Expose modular OpenAPI files so root $ref pointers can resolve at runtime.
@@ -321,7 +331,7 @@ function createServer(options = {}) {
 
 /**
  * Start the production server and optional MongoDB connection lifecycle.
- * @param {{ port?: string, databaseService?: Object|null, logger?: Object, logLevel?: string }} [options]
+ * @param {{ port?: string, host?: string, databaseService?: Object|null, logger?: Object, logLevel?: string }} [options]
  * @returns {Promise<{ port: number, server: import('node:http').Server, io: import('socket.io').Server, shutdown: Function, mongoConnection: Object, databaseService: Object|null, messageHandlerContext: Object }>}
  */
 async function startServer(options = {}) {
@@ -389,6 +399,13 @@ async function startServer(options = {}) {
   );
 
   const marketSystems = ['sol', 'alpha-centauri', 'barnards-star'];
+  // Barnard's procedural host must exist before strict station materialization.
+  const barnardsStarSeedResult = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
+    solarSystemId: 'barnards-star',
+  });
+  logger.info(
+    `[server] Celestial body seeding ${barnardsStarSeedResult.success ? 'completed' : 'skipped'} for ${barnardsStarSeedResult.solarSystemId}: ${barnardsStarSeedResult.bodyCount}`
+  );
   for (const solarSystemId of marketSystems) {
     const marketSeedResult = await messageHandlerContext.seedSolarSystemMarketsAsync({
       solarSystemId,
@@ -405,10 +422,17 @@ async function startServer(options = {}) {
     `[server] NPC seeding ${npcSeedResult.success ? 'completed' : 'skipped'} for ${npcSeedResult.solarSystemId}: ${npcSeedResult.npcCount}`
   );
 
-  server.listen(port, () => {
+  const host = options.host || process.env.HOST;
+  const onListening = () => {
     logger.info(`Stellar Socket.IO server listening on port ${port}`);
     logger.info(`[server] Swagger UI available at http://localhost:${port}/docs/`);
-  });
+  };
+
+  if (host) {
+    server.listen(port, host, onListening);
+  } else {
+    server.listen(port, onListening);
+  }
 
   const shutdown = async () => {
     const fallbackTimer = setTimeout(() => {

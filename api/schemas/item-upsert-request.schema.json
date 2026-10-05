@@ -54,23 +54,11 @@
           "required": ["containerType", "containerId"]
         },
         "spatial": {
-          "type": ["object", "null"],
           "description": "Canonical spatial position. Provide null to clear spatial state. The legacy item.kinematics field is not accepted.",
-          "properties": {
-            "solarSystemId": { "type": "string" },
-            "frame": { "type": "string", "enum": ["barycentric"] },
-            "positionKm": {
-              "type": "object",
-              "properties": {
-                "x": { "type": "number" },
-                "y": { "type": "number" },
-                "z": { "type": "number" }
-              },
-              "required": ["x", "y", "z"]
-            },
-            "epochMs": { "type": "number" }
-          },
-          "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
+          "anyOf": [
+            { "$ref": "./spatial-state.schema.json" },
+            { "type": "null" }
+          ]
         },
         "motion": {
           "type": ["object", "null"],

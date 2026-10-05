@@ -130,6 +130,9 @@ paths:
         - When a mission reaches an unlock source status such as `completed`, the
           server may create newly unlocked missions with `status: available`.
         - Starting the `first-target` mission also seeds its starter asteroid field.
+        - The field is returned through celestial-body spatial state. Its current
+          snapshots are arranged in the XY plane with small Z offsets; localOffsetKm
+          is positionKm minus clusterCenterKm. No orbital reconstruction occurs on read.
         - When `requestId` is provided, it is echoed in the response.
       operationId: socketMissionUpsert
       tags: [Mission]

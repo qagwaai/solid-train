@@ -4,11 +4,16 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
 const { SOLAR_SYSTEM_MARKET_SEED_VERSION } = require('../src/model/solar-system-market-seed');
+const { buildSeededCelestialBodiesForSolarSystem } = require('../src/model/solar-system-celestial-seed');
 
 function createContextWithDb(db) {
   let nextId = 0;
   return new MessageHandlerContext({
     databaseService: db,
+    celestialBodiesById: new Map(
+      buildSeededCelestialBodiesForSolarSystem('sol', '2026-01-01T00:00:00.000Z')
+        .map((body) => [body.id, body])
+    ),
     log: () => {},
     createId: () => `id-${++nextId}`,
     getCurrentTimestamp: () => '2026-05-05T00:00:00.000Z',
@@ -127,9 +132,9 @@ test('seedSolarSystemMarketsAsync uses cached database markets when seed version
   const result = await context.seedSolarSystemMarketsAsync({ solarSystemId: 'sol' });
 
   assert.equal(result.success, true);
-  assert.equal(result.source, 'database-reseed');
+  assert.equal(result.source, 'database-cache');
   assert.equal(result.marketCount, 1);
-  assert.equal(upsertCalls, 1);
+  assert.equal(upsertCalls, 0);
 
   const fromCache = await context.getMarketsAsync({ solarSystemId: 'sol' });
   assert.equal(fromCache.length, 1);
@@ -137,8 +142,5 @@ test('seedSolarSystemMarketsAsync uses cached database markets when seed version
   assert.equal(fromCache[0].siteType, 'free-floating');
   assert.deepEqual(fromCache[0].spatial.positionKm, { x: 6100, y: 0, z: 0 });
   assert.ok(Array.isArray(fromCache[0].shipListings));
-  assert.equal(fromCache[0].shipListings.length, 1);
-  assert.equal(fromCache[0].shipListings[0].itemId, 'scavenger-pod');
-  assert.equal(fromCache[0].shipListings[0].quantityAvailable, 1);
-  assert.equal(fromCache[0].shipListings[0].status, 'available');
+  assert.deepEqual(fromCache[0].shipListings, []);
 });

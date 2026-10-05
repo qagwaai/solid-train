@@ -1,11 +1,12 @@
 'use strict';
 
 const { SOL_SYSTEM_CATALOG, J2000_EPOCH } = require('./sol-system-catalog');
+const { SURFACE_ARCHETYPE_VALUES } = require('./celestial-body-upsert');
 const { ALPHA_CENTAURI_CATALOG } = require('./alpha-centauri-system-catalog');
 const { generateSystemBodies } = require('./procedural-system-generator');
 const { getHygSystems } = require('./hyg-star-catalog');
 
-const SOLAR_SYSTEM_CELESTIAL_SEED_VERSION = '2026-05-multi-system-v1';
+const SOLAR_SYSTEM_CELESTIAL_SEED_VERSION = '2026-10-canonical-star-orbit-v3';
 const SOLAR_SYSTEM_CELESTIAL_SEED_STATE_KEY = 'solar-system-celestial-seed-state';
 
 const CATALOG_SOURCE_SCAN_ID = 'catalog';
@@ -49,7 +50,9 @@ function computeRelativePositionKm(orbit, asOfMs) {
     return { x: 0, y: 0, z: 0 };
   }
   const epochMs = Date.parse(orbit.epoch || J2000_EPOCH);
-  const periodSec = Math.max(1, Number(orbit.orbitalPeriodSec) || 1);
+  // Preserve catalog signs in storage; inclination already encodes retrograde
+  // orientation. Use duration here, rather than applying retrograde twice.
+  const periodSec = Math.max(1, Math.abs(Number(orbit.orbitalPeriodSec)) || 1);
   const dtSec = (asOfMs - (Number.isFinite(epochMs) ? epochMs : Date.parse(J2000_EPOCH))) / 1000;
   const meanMotion = (2 * Math.PI) / periodSec;
   const M0 = ((Number(orbit.meanAnomalyAtEpochDeg) || 0) * Math.PI) / 180;
@@ -124,6 +127,9 @@ function computeAbsolutePositionKm(catalogEntry, asOfMs, cache, catalogById = SO
  * required-by-schema field is satisfied for non-asteroid bodies.
  */
 function buildCelestialBodyDocument(catalogEntry, asOfMs, asOfTimestamp, cache, options = {}) {
+  if (!SURFACE_ARCHETYPE_VALUES.includes(catalogEntry.surfaceArchetype)) {
+    throw new Error(`Catalog body ${catalogEntry.id} has an invalid surfaceArchetype`);
+  }
   const solarSystemId = options.solarSystemId || 'sol';
   const catalogById = options.catalogById || SOL_CATALOG_BY_ID;
   const positionKm = computeAbsolutePositionKm(catalogEntry, asOfMs, cache, catalogById);
@@ -167,6 +173,9 @@ function buildCelestialBodyDocument(catalogEntry, asOfMs, asOfTimestamp, cache, 
     debris: [],
     // Catalog-only fields (passed through normalizers and persisted via schema extensions).
     bodyType: catalogEntry.bodyType,
+    spectralClass: catalogEntry.spectralClass ?? catalogEntry.visualization?.spectralClass ?? null,
+    luminositySolar: catalogEntry.luminositySolar ?? null,
+    surfaceArchetype: catalogEntry.surfaceArchetype,
     displayName: catalogEntry.displayName,
     parentBodyId: catalogEntry.parentBodyId || null,
     orbitalElements: (() => {

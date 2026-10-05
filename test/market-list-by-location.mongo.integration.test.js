@@ -10,6 +10,7 @@ const {
 } = require('../src/handlers/market-list-by-location-message-handler');
 const { createMockSocket, seedPlayer } = require('../test-support/message-handler-test-helpers');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
+const { buildSeededCelestialBodiesForSolarSystem } = require('../src/model/solar-system-celestial-seed');
 
 let mongoHarness = null;
 
@@ -38,6 +39,9 @@ test.after(async () => {
 
 test.beforeEach(async () => {
   await mongoHarness.clearDatabase();
+  for (const body of buildSeededCelestialBodiesForSolarSystem('sol', '2026-05-07T00:00:00.000Z')) {
+    await mongoHarness.databaseService.addOrUpdateCelestialBody(body);
+  }
 });
 
 test('Integration (Option 3): Mongo clear+seed path returns Sol station markets', async () => {

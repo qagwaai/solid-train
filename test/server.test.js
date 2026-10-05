@@ -140,9 +140,11 @@ test('createServer returns server and io instances', () => {
 
 test('startServer runs without MongoDB URI and shutdown exits cleanly', async () => {
   const originalMongoUri = process.env.MONGODB_URI;
+  const originalHost = process.env.HOST;
   const originalExit = process.exit;
 
   delete process.env.MONGODB_URI;
+  process.env.HOST = '127.0.0.1';
 
   let exitCode = null;
   let resolveExit;
@@ -159,6 +161,26 @@ test('startServer runs without MongoDB URI and shutdown exits cleanly', async ()
     const freePort = await getAvailablePort();
     const started = await startServer({ port: String(freePort) });
     assert.equal(typeof started.shutdown, 'function');
+    for (const [marketId, hostId] of [
+      ['ac-proxima-station', 'alpha-centauri-star-tertiary'],
+      ['bs-main-station', 'barnards-star-planet-1'],
+    ]) {
+      const ctx = started.messageHandlerContext;
+      const market = [...ctx.marketsByKey.values()].find((entry) => entry.marketId === marketId);
+      assert.ok(market, 'cold startup must seed station after its celestial host');
+      const host = ctx.celestialBodiesById.get(hostId);
+      assert.ok(host);
+      assert.equal(market.trajectory.orbit.anchorBodyId, hostId);
+      assert.equal(market.spatial.epochMs, host.spatial.epochMs);
+    }
+    await new Promise((resolve) => {
+      if (started.server.listening) {
+        resolve();
+      } else {
+        started.server.once('listening', resolve);
+      }
+    });
+    assert.equal(started.server.address().address, '127.0.0.1');
 
     await started.shutdown();
     await exitPromise;
@@ -171,6 +193,11 @@ test('startServer runs without MongoDB URI and shutdown exits cleanly', async ()
     } else {
       process.env.MONGODB_URI = originalMongoUri;
     }
+    if (originalHost === undefined) {
+      delete process.env.HOST;
+    } else {
+      process.env.HOST = originalHost;
+    }
   }
 });
 
@@ -182,6 +209,24 @@ test('server health endpoint responds with ok JSON payload', async () => {
     const response = await httpGetJson(`http://127.0.0.1:${port}/health`);
     assert.equal(response.statusCode, 200);
     assert.deepEqual(JSON.parse(response.body), { status: 'ok' });
+  } finally {
+    io.close();
+    server.close();
+  }
+});
+
+test('GET /docs/celestial-body-contract.md serves the specific Markdown contract', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  try {
+    const response = await httpGetJson(
+      `http://127.0.0.1:${port}/docs/celestial-body-contract.md`
+    );
+    assert.equal(response.statusCode, 200);
+    assert.match(response.headers['content-type'], /^text\/markdown; charset=utf-8$/);
+    assert.match(response.body, /^# Celestial bodies/m);
+    assert.doesNotMatch(response.body, /<!doctype html>/i);
   } finally {
     io.close();
     server.close();

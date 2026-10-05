@@ -227,7 +227,7 @@ test('DatabaseService celestial upsert requires id or composite key', async () =
   const service = new DatabaseService();
 
   await assert.rejects(
-    service.addOrUpdateCelestialBody({ missionId: 'm-1' }),
+    service.addOrUpdateCelestialBody({ missionId: 'm-1', surfaceArchetype: 'asteroid' }),
     /Celestial body upsert requires id or sourceScanId\+createdByCharacterId\+missionId/
   );
 });
@@ -251,11 +251,22 @@ test('DatabaseService celestial upsert uses id query and returns document', asyn
   try {
     const result = await service.addOrUpdateCelestialBody({
       id: 'cb-1',
-      solarSystemId: 'sol',
+      bodyType: 'planet',
+      surfaceArchetype: 'rocky',
+      catalogId: 'catalog-1',
+      sourceScanId: 'scan-1',
+      createdByCharacterId: 'character-1',
+      createdAt: '2026-10-04T00:00:00.000Z',
+      updatedAt: '2026-10-04T00:00:00.000Z',
+      state: 'active',
+      spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 },
+      observability: { visibility: 'visible', scanState: 'scanned' },
+      composition: { rarity: 'Common', material: 'silicate', textureColor: '#888888' },
     });
 
     assert.deepEqual(capturedQuery, { id: 'cb-1' });
     assert.equal(capturedOptions.upsert, true);
+    assert.equal(capturedOptions.runValidators, true);
     assert.equal(result.persisted, true);
   } finally {
     CelestialBody.findOneAndUpdate = originalFindOneAndUpdate;

@@ -3,8 +3,36 @@
 const CELESTIAL_BODY_UPSERT_REQUEST_EVENT = 'celestial-body-upsert-request';
 const CELESTIAL_BODY_UPSERT_RESPONSE_EVENT = 'celestial-body-upsert-response';
 const DEFAULT_SOLAR_SYSTEM_ID = 'sol';
+const SURFACE_ARCHETYPE_VALUES = [
+  'rocky',
+  'lava',
+  'ocean',
+  'gas-giant',
+  'ice-giant',
+  'star',
+  'rocky-moon',
+  'icy-moon',
+  'asteroid',
+];
 const ASTEROID_MATERIAL_RARITY_VALUES = ['Common', 'Uncommon', 'Rare', 'Exotic'];
 const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
+// Compatibility follows the curated catalogs and their explicit fallback mapping.
+// planetType and visualization.textureKey are independent of this classification.
+const BODY_TYPE_ARCHETYPES = {
+  star: ['star'],
+  planet: ['rocky', 'lava', 'ocean', 'gas-giant', 'ice-giant'],
+  'dwarf-planet': ['rocky', 'icy-moon'],
+  moon: ['rocky-moon', 'icy-moon', 'lava'],
+  asteroid: ['asteroid'],
+  tno: ['icy-moon'],
+  comet: ['asteroid'],
+};
+const BODY_TYPE_VALUES = Object.keys(BODY_TYPE_ARCHETYPES);
+
+function hasValidBodyClassification(body) {
+  return Object.hasOwn(BODY_TYPE_ARCHETYPES, body?.bodyType) &&
+    BODY_TYPE_ARCHETYPES[body.bodyType].includes(body.surfaceArchetype);
+}
 
 /**
  * @typedef {Object} Triple
@@ -71,6 +99,10 @@ const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
 /**
  * @typedef {Object} CelestialBodyUpsertEntity
  * @property {string} [id]
+ * @property {'star'|'planet'|'dwarf-planet'|'moon'|'asteroid'|'tno'|'comet'} bodyType
+ * @property {string|null} [spectralClass] Source class; unknown is null.
+ * @property {number|null} [luminositySolar] Source luminosity in solar units.
+ * @property {'rocky'|'lava'|'ocean'|'gas-giant'|'ice-giant'|'star'|'rocky-moon'|'icy-moon'|'asteroid'} surfaceArchetype
  * @property {string} catalogId
  * @property {string} sourceScanId
  * @property {string} createdByCharacterId
@@ -87,7 +119,7 @@ const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
  * @property {string} [clusterId]
  * @property {Triple} [clusterCenterKm]
  * @property {Triple} [localOffsetKm]
- * @property {'unscanned'|'active'|'destroyed'} [state]
+ * @property {'unscanned'|'active'|'destroyed'} state
  */
 
 /**
@@ -106,8 +138,12 @@ const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
  */
 
 module.exports = {
+  BODY_TYPE_ARCHETYPES,
+  BODY_TYPE_VALUES,
+  hasValidBodyClassification,
   ASTEROID_MATERIAL_RARITY_VALUES,
   CELESTIAL_BODY_STATE_VALUES,
+  SURFACE_ARCHETYPE_VALUES,
   CELESTIAL_BODY_UPSERT_REQUEST_EVENT,
   CELESTIAL_BODY_UPSERT_RESPONSE_EVENT,
   DEFAULT_SOLAR_SYSTEM_ID,

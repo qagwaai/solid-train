@@ -110,11 +110,12 @@ test('SolarSystemGetMessageHandler returns canonical asteroid fields for mission
   assert.equal(asteroid.bodyType, 'asteroid');
   assert.equal(asteroid.displayName, 'Starter Rock');
   assert.deepEqual(asteroid.spatial.positionKm, { x: 111, y: -22, z: 7 });
-  assert.deepEqual(asteroid.physicalCatalog, {
-    estimatedDiameterM: 120,
+  assert.equal(asteroid.physicalCatalog, undefined);
+  assert.deepEqual(asteroid.physical, {
     estimatedMassKg: 15000000000,
-    radiusKm: 0.06,
+    estimatedDiameterM: 120,
   });
+
   assert.deepEqual(asteroid.visualization, {
     colorHex: '#8f99a7',
     textureKey: 'asteroid-iron',
@@ -123,4 +124,33 @@ test('SolarSystemGetMessageHandler returns canonical asteroid fields for mission
   assert.deepEqual(asteroid.clusterCenterKm, { x: 0, y: 0, z: 0 });
   assert.deepEqual(asteroid.localOffsetKm, { x: 111, y: -22, z: 7 });
   assert.equal(asteroid.distanceFromClusterCenterKm, 113.376);
+});
+
+test('SolarSystemGetMessageHandler preserves catalog provenance and does not infer mission classification', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', characters: [{ id: 'char-1', characterName: 'Pilot' }] });
+  const physicalCatalog = {
+    massKg: 204000000000000000000,
+    meanRadiusKm: 256,
+    equatorialRadiusKm: 270,
+    compositionTags: ['silicate'],
+  };
+  const body = createCelestialBody({
+    id: 'mission-scanned-moon',
+    missionId: 'survey',
+    bodyType: 'moon',
+    surfaceArchetype: 'icy-moon',
+    physicalCatalog,
+    physical: { estimatedDiameterM: 100, estimatedMassKg: 15000000000 },
+  });
+  await context.addOrUpdateCelestialBodyAsync(body);
+  const response = await new SolarSystemGetMessageHandler(context).buildResponse({
+    playerName: 'PilotOne', solarSystemId: 'sol',
+  });
+  const moon = response.bodies.find((entry) => entry.id === body.id);
+  assert.equal(moon.bodyType, 'moon');
+  assert.equal(moon.surfaceArchetype, 'icy-moon');
+  assert.deepEqual(moon.physicalCatalog, physicalCatalog);
+  assert.deepEqual(moon.physical, body.physical);
+  assert.equal(moon.visualization, undefined);
 });

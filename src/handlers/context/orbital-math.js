@@ -5,7 +5,6 @@ const FALLBACK_ANCHOR_POSITION_KM = {
   'sol-mercury': { x: 57_909_227, y: 0, z: 0 },
   'sol-venus': { x: 108_209_475, y: 0, z: 0 },
   'sol-earth': { x: 149_597_870.7, y: 0, z: 0 },
-  'sol-moon': { x: 149_982_270.7, y: 0, z: 0 },
   'sol-mars': { x: 227_943_824, y: 0, z: 0 },
   'sol-asteroid-belt': { x: 414_012_000, y: 0, z: 0 },
   'sol-jupiter': { x: 778_340_821, y: 0, z: 0 },
@@ -106,6 +105,9 @@ function computeRelativeOrbitPositionKm(ctx, orbit, timestamp) {
 }
 
 async function resolveMarketPositionKmAsync(ctx, market, timestamp) {
+  if (ctx.inferMarketSiteType(market) === 'station') {
+    return (await materializeStationSnapshotAsync(ctx, market)).spatial.positionKm;
+  }
   const orbit = ctx.normalizeMarketOrbit(market?.orbit || market?.trajectory?.orbit);
   if (orbit && orbit.anchorBodyId) {
     const relative = computeRelativeOrbitPositionKm(
@@ -137,6 +139,63 @@ async function resolveMarketPositionKmAsync(ctx, market, timestamp) {
   return { x: 0, y: 0, z: 0 };
 }
 
+function stationAnchorError(market, anchorBodyId) {
+  const error = new Error(
+    `Market '${market?.marketId}' has unresolved station anchor '${anchorBodyId || '(missing)'}'`
+  );
+  error.code = 'MARKET_ANCHOR_UNRESOLVED';
+  return error;
+}
+
+async function materializeStationSnapshotAsync(ctx, market) {
+  if (ctx.inferMarketSiteType(market) !== 'station') {
+    return market;
+  }
+
+  const sourceOrbit = market?.trajectory?.orbit || market?.orbit;
+  const orbit = ctx.normalizeMarketOrbit(sourceOrbit);
+  const anchorBody = orbit?.anchorBodyId
+    ? await ctx.getCelestialBodyByIdAsync(orbit.anchorBodyId)
+    : null;
+  const host = anchorBody?.spatial;
+  const solarSystemId = ctx.toNonEmptyString(market?.solarSystemId).toLowerCase();
+  if (
+    !host ||
+    anchorBody.id !== orbit.anchorBodyId ||
+    host.solarSystemId !== solarSystemId ||
+    host.frame !== 'barycentric' ||
+    !ctx.isTriple(host.positionKm) ||
+    !Number.isFinite(host.epochMs) ||
+    !Number.isFinite(new Date(host.epochMs).getTime()) ||
+    !Number.isFinite(Date.parse(sourceOrbit?.epoch))
+  ) {
+    throw stationAnchorError(market, orbit?.anchorBodyId);
+  }
+
+  // host.positionKm is already system-origin/global-basis: never add its parent.
+  // Reuse the station orbit rotation/Kepler helper, evaluated at that host epoch.
+  const relative = computeRelativeOrbitPositionKm(
+    ctx, orbit, new Date(host.epochMs).toISOString()
+  );
+  const positionKm = {
+    x: host.positionKm.x + relative.x,
+    y: host.positionKm.y + relative.y,
+    z: host.positionKm.z + relative.z,
+  };
+  if (!ctx.isTriple(positionKm)) {
+    throw stationAnchorError(market, orbit?.anchorBodyId);
+  }
+  return {
+    ...market,
+    spatial: {
+      solarSystemId,
+      frame: host.frame,
+      positionKm,
+      epochMs: host.epochMs,
+    },
+  };
+}
+
 function getShipPositionKm(ctx, ship) {
   if (ctx.isTriple(ship?.spatial?.positionKm)) {
     return ship.spatial.positionKm;
@@ -153,5 +212,6 @@ module.exports = {
   rotatePerifocalVector,
   computeRelativeOrbitPositionKm,
   resolveMarketPositionKmAsync,
+  materializeStationSnapshotAsync,
   getShipPositionKm,
 };

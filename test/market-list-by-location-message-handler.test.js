@@ -9,9 +9,9 @@ const { MARKET_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../src/model/market-
 const {
   createMarket,
   createMockSocket,
-  createTestContext,
   seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
+const { createStationMarketTestContext: createTestContext } = require('../test-support/station-market-test-helpers');
 
 test('MarketListByLocationMessageHandler returns nearest-first markets with docking status', async () => {
   const context = createTestContext();

@@ -24,6 +24,8 @@
 const J2000_EPOCH = '2000-01-01T12:00:00.000Z';
 const SECONDS_PER_DAY = 86400;
 const AU_KM = 149_597_870.7;
+const { getHygStars } = require('./hyg-star-catalog');
+const SUN_HYG_SOURCE = getHygStars().find((star) => star.hygId === '0');
 
 function days(value) {
   return value * SECONDS_PER_DAY;
@@ -39,6 +41,9 @@ const SUN = {
   id: 'sol-sun',
   displayName: 'Sun',
   bodyType: 'star',
+  hygId: '0',
+  spectralClass: SUN_HYG_SOURCE?.spectralClass ?? null,
+  luminositySolar: SUN_HYG_SOURCE?.luminositySolar ?? null,
   parentBodyId: null,
   orbit: null,
   physical: {
@@ -1714,6 +1719,62 @@ const PLUTO_MOONS = [
   }),
 ];
 
+const SOL_SYSTEM_SURFACE_ARCHETYPES = {
+  'sol-mercury': 'rocky',
+  'sol-venus': 'rocky',
+  'sol-earth': 'ocean',
+  'sol-mars': 'rocky',
+  'sol-jupiter': 'gas-giant',
+  'sol-saturn': 'gas-giant',
+  'sol-uranus': 'ice-giant',
+  'sol-neptune': 'ice-giant',
+  'sol-ceres': 'rocky',
+  'sol-pluto': 'icy-moon',
+  'sol-eris': 'icy-moon',
+  'sol-haumea': 'icy-moon',
+  'sol-makemake': 'icy-moon',
+  'sol-io': 'lava',
+  'sol-europa': 'icy-moon',
+  'sol-ganymede': 'icy-moon',
+  'sol-callisto': 'icy-moon',
+  'sol-mimas': 'icy-moon',
+  'sol-enceladus': 'icy-moon',
+  'sol-tethys': 'icy-moon',
+  'sol-dione': 'icy-moon',
+  'sol-rhea': 'icy-moon',
+  'sol-titan': 'icy-moon',
+  'sol-iapetus': 'icy-moon',
+  'sol-phoebe': 'icy-moon',
+  'sol-miranda': 'icy-moon',
+  'sol-ariel': 'icy-moon',
+  'sol-umbriel': 'icy-moon',
+  'sol-titania': 'icy-moon',
+  'sol-oberon': 'icy-moon',
+  'sol-triton': 'icy-moon',
+  'sol-nereid': 'icy-moon',
+  'sol-charon': 'icy-moon',
+  'sol-styx': 'icy-moon',
+  'sol-nix': 'icy-moon',
+  'sol-kerberos': 'icy-moon',
+  'sol-hydra': 'icy-moon',
+};
+
+function surfaceArchetypeForCatalogBody(entry) {
+  if (entry.bodyType === 'star') return 'star';
+  if (entry.bodyType === 'planet') return SOL_SYSTEM_SURFACE_ARCHETYPES[entry.id];
+  if (entry.bodyType === 'moon') {
+    return SOL_SYSTEM_SURFACE_ARCHETYPES[entry.id] || 'rocky-moon';
+  }
+  if (entry.bodyType === 'asteroid' || entry.bodyType === 'comet') return 'asteroid';
+  if (entry.bodyType === 'dwarf-planet') {
+    return SOL_SYSTEM_SURFACE_ARCHETYPES[entry.id] || 'rocky';
+  }
+  if (entry.bodyType === 'tno') return 'icy-moon';
+  throw new Error(
+    'No surface archetype mapping for catalog body ' + entry.id + ' (' + entry.bodyType + ')'
+  );
+}
+
 const SOL_SYSTEM_CATALOG = [
   SUN,
   ...PLANETS,
@@ -1727,7 +1788,10 @@ const SOL_SYSTEM_CATALOG = [
   ...URANUS_MOONS,
   ...NEPTUNE_MOONS,
   ...PLUTO_MOONS,
-];
+].map((entry) => ({
+  ...entry,
+  surfaceArchetype: surfaceArchetypeForCatalogBody(entry),
+}));
 
 module.exports = {
   J2000_EPOCH,

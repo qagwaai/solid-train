@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Stellar API - Market
-  version: 3.1.1
+  version: 4.0.0
 servers:
   - url: http://localhost:3000
 tags:
@@ -342,6 +342,19 @@ paths:
       summary: market-list-request
       description: |
         Lists canonical market projections.
+        Stations resolve their exact trajectory.orbit.anchorBodyId and return
+        host.spatial.positionKm plus the existing right-handed Kepler/rotation
+        relative vector evaluated at host.spatial.epochMs. The returned spatial
+        epoch equals the host snapshot epoch, not request/asOf time. Orbit.epoch
+        remains the element reference epoch. No parentBodyId inference or legacy
+        alias is applied. sol-moon-orbit retains its ID and anchors to sol-luna.
+        ac-proxima-station anchors to alpha-centauri-star-tertiary;
+        bs-main-station anchors to generated barnards-star-planet-1 (approved host).
+        Legacy ac-proxima/bs-b1 are not aliases; persisted legacy records require
+        an explicitly approved repair. IDs and authored orbital parameters are unchanged.
+        Reads materialize station responses without persisting repairs; missing,
+        invalid or cross-system hosts return success:false with
+        MARKET_ANCHOR_UNRESOLVED in message and an empty markets array.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).
@@ -432,6 +445,19 @@ paths:
         - This endpoint is the authoritative Forge contract source for route entity feeds consumed by ship-external-view.
         - Route feed entities are returned under `markets[].route`.
         - Optional route feed arrays are `gates[]`, `stations[]`, and `encounterShips[]`.
+        - Their `spatial` values follow the shared spatial-state coordinate contract
+          and are returned directly; the route-feed schemas retain closed object
+          validation. See docs/celestial-body-contract.md for current producer basis
+          limitations. Station snapshots are host-translated in the same implementation
+          Cartesian basis and use the canonical host snapshot epoch (not request time).
+          Their relative vector uses the existing orbital helper; semiMajorAxisKm is
+          not instantaneous radius for an elliptical orbit. Nova must not add a host
+          or reconstruct positions. Invalid station anchors fail with success:false,
+          MARKET_ANCHOR_UNRESOLVED in message and markets:[]; no Earth/origin fallback.
+          Previously raw seeds stored (semiMajorAxisKm,0,0), while location reads
+          used host-or-hard-coded fallback plus a request-time relative vector.
+          Response-only materialization now reconciles list/location/route stations;
+          persisted seed revision changes require explicit approved repair.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).

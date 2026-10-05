@@ -6,6 +6,7 @@
   "scripts": {
     "test": "npx --yes @apidevtools/swagger-cli validate api/openapi.yaml && node scripts/lint-handler-patterns.js && node --test",
     "start": "cross-env MONGODB_URI=mongodb://localhost:27017/solid-train node src/server.js",
+    "start:host": "cross-env HOST=0.0.0.0 MONGODB_URI=mongodb://localhost:27017/solid-train node src/server.js",
     "start:dev": "cross-env LOG_LEVEL=debug MONGODB_URI=mongodb://localhost:27017/solid-train node src/server.js",
     "dev": "node --watch src/server.js",
     "lint": "eslint .",
@@ -72,6 +73,7 @@
   },
   "homepage": "https://github.com/qagwaai/solid-train#readme",
   "dependencies": {
+    "ajv": "^6.15.0",
     "cross-env": "^10.1.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -80,6 +82,7 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "^13.1.0",
     "eslint": "^10.4.1",
     "mongodb-memory-server": "^11.2.0",
     "prettier": "^3.9.6",

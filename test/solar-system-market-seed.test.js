@@ -24,7 +24,7 @@ test('buildSeededMarketsForSolarSystem builds Sol market set with required orbit
 
   const moon = seeded.find((market) => market.marketId === 'sol-moon-orbit');
   assert.ok(moon);
-  assert.equal(moon.trajectory.orbit.anchorBodyId, 'sol-moon');
+  assert.equal(moon.trajectory.orbit.anchorBodyId, 'sol-luna');
 
   const earth = seeded.find((market) => market.marketId === 'sol-earth-orbit');
   assert.ok(earth);

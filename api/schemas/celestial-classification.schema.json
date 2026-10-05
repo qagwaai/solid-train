@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CelestialClassification",
+  "type": "object",
+  "description": "Scientific bodyType is separate from appearance surfaceArchetype and optional planetType. Compatibility preserves current curated seed assignments and Sol catalog fallbacks. textureKey is never classification.",
+  "required": ["bodyType", "surfaceArchetype", "state"],
+  "properties": {
+    "bodyType": { "type": "string", "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"] },
+    "surfaceArchetype": { "type": "string", "enum": ["rocky", "lava", "ocean", "gas-giant", "ice-giant", "star", "rocky-moon", "icy-moon", "asteroid"] },
+    "state": { "type": "string", "enum": ["unscanned", "active", "destroyed"] }
+  },
+  "allOf": [
+    { "if": { "properties": { "bodyType": { "const": "star" } } }, "then": { "properties": { "surfaceArchetype": { "enum": ["star"] } } } },
+    { "if": { "properties": { "bodyType": { "const": "planet" } } }, "then": { "properties": { "surfaceArchetype": { "enum": ["rocky", "lava", "ocean", "gas-giant", "ice-giant"] } } } },
+    { "if": { "properties": { "bodyType": { "const": "dwarf-planet" } } }, "then": { "properties": { "surfaceArchetype": { "enum": ["rocky", "icy-moon"] } } } },
+    { "if": { "properties": { "bodyType": { "const": "moon" } } }, "then": { "properties": { "surfaceArchetype": { "enum": ["rocky-moon", "icy-moon", "lava"] } } } },
+    { "if": { "properties": { "bodyType": { "enum": ["asteroid", "comet"] } } }, "then": { "properties": { "surfaceArchetype": { "enum": ["asteroid"] } } } },
+    { "if": { "properties": { "bodyType": { "const": "tno" } } }, "then": { "properties": { "surfaceArchetype": { "enum": ["icy-moon"] } } } },
+    { "if": { "properties": { "state": { "enum": ["active", "destroyed"] } } }, "then": { "required": ["composition"], "properties": { "composition": { "type": "object" } } } }
+  ]
+}

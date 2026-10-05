@@ -5,11 +5,20 @@ const assert = require('node:assert/strict');
 const {
   SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
   buildSeededCelestialBodiesForSolarSystem,
+  computeAbsolutePositionKm,
   computeRelativePositionKm,
 } = require('../src/model/solar-system-celestial-seed');
 const { SOL_SYSTEM_CATALOG, AU_KM, J2000_EPOCH } = require('../src/model/sol-system-catalog');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
 const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
+const {
+  SolarSystemGetMessageHandler,
+} = require('../src/handlers/solar-system-get-message-handler');
+const {
+  CelestialBodyListMessageHandler,
+} = require('../src/handlers/celestial-body-list-message-handler');
+const { DatabaseService } = require('../src/db/service');
+const { seedPlayer } = require('../test-support/message-handler-test-helpers');
 
 const SEED_TIMESTAMP = '2026-05-08T00:00:00.000Z';
 
@@ -46,6 +55,7 @@ test('buildSeededCelestialBodiesForSolarSystem produces canonical-shape document
   assert.ok(seeded.every((body) => body.observability?.visibility === 'visible'));
   assert.ok(seeded.every((body) => body.composition?.rarity === 'Common'));
   assert.ok(seeded.every((body) => body.isCatalogBody === true));
+  assert.ok(seeded.every((body) => typeof body.surfaceArchetype === 'string'));
 
   const sun = seeded.find((body) => body.id === 'sol-sun');
   assert.deepEqual(sun.spatial.positionKm, { x: 0, y: 0, z: 0 });
@@ -140,6 +150,86 @@ test('computeRelativePositionKm returns origin for null orbit', () => {
   assert.deepEqual(computeRelativePositionKm(null, Date.parse(J2000_EPOCH)), { x: 0, y: 0, z: 0 });
 });
 
+test('orbital elements use right-handed XY axes and positive inclination toward +Z', () => {
+  const epochMs = Date.parse(J2000_EPOCH);
+  const circular = {
+    semiMajorAxisKm: 100,
+    eccentricity: 0,
+    inclinationDeg: 0,
+    longitudeOfAscendingNodeDeg: 0,
+    argumentOfPeriapsisDeg: 0,
+    meanAnomalyAtEpochDeg: 0,
+    orbitalPeriodSec: 3600,
+    epoch: J2000_EPOCH,
+  };
+  const closeTo = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9);
+
+  const atEpoch = computeRelativePositionKm(circular, epochMs);
+  closeTo(atEpoch.x, 100);
+  closeTo(atEpoch.y, 0);
+  closeTo(atEpoch.z, 0);
+
+  const quarterOrbit = computeRelativePositionKm(circular, epochMs + 900_000);
+  closeTo(quarterOrbit.x, 0);
+  closeTo(quarterOrbit.y, 100);
+  closeTo(quarterOrbit.z, 0);
+
+  const tiltedQuarterOrbit = computeRelativePositionKm(
+    { ...circular, inclinationDeg: 90 },
+    epochMs + 900_000
+  );
+  closeTo(tiltedQuarterOrbit.x, 0);
+  closeTo(tiltedQuarterOrbit.y, 0);
+  closeTo(tiltedQuarterOrbit.z, 100);
+
+  const rotatedAscendingNode = computeRelativePositionKm(
+    { ...circular, longitudeOfAscendingNodeDeg: 90 },
+    epochMs
+  );
+  closeTo(rotatedAscendingNode.x, 0);
+  closeTo(rotatedAscendingNode.y, 100);
+  closeTo(rotatedAscendingNode.z, 0);
+});
+
+test('materialized celestial snapshots equal orbit positions plus the parent snapshot', () => {
+  const seeded = buildSeededCelestialBodiesForSolarSystem('sol', SEED_TIMESTAMP);
+  const byId = new Map(seeded.map((body) => [body.id, body]));
+  const catalogById = new Map(SOL_SYSTEM_CATALOG.map((entry) => [entry.id, entry]));
+  const closeVector = (actual, expected) => {
+    for (const axis of ['x', 'y', 'z']) {
+      assert.ok(
+        Math.abs(actual[axis] - expected[axis]) < 1e-6,
+        `${axis}: expected ${expected[axis]}, got ${actual[axis]}`
+      );
+    }
+  };
+
+  for (const body of seeded.filter((entry) => entry.orbitalElements)) {
+    const relative = computeRelativePositionKm(
+      body.orbitalElements,
+      body.spatial.epochMs
+    );
+    const parent = byId.get(body.parentBodyId);
+    const expected = parent
+      ? {
+          x: parent.spatial.positionKm.x + relative.x,
+          y: parent.spatial.positionKm.y + relative.y,
+          z: parent.spatial.positionKm.z + relative.z,
+        }
+      : relative;
+    closeVector(body.spatial.positionKm, expected);
+    closeVector(
+      computeAbsolutePositionKm(
+        catalogById.get(body.id),
+        body.spatial.epochMs,
+        new Map(),
+        catalogById
+      ),
+      body.spatial.positionKm
+    );
+  }
+});
+
 let mongoHarness = null;
 
 test.before(async () => {
@@ -188,4 +278,54 @@ test('seedSolarSystemCelestialBodiesAsync persists Sol catalog and is idempotent
 
   const reloaded = await mongoHarness.databaseService.getCelestialBodies({ solarSystemId: 'sol' });
   assert.equal(reloaded.length, SOL_SYSTEM_CATALOG.length);
+});
+
+test('seeded appearance inputs round-trip through a fresh context and service', async () => {
+  const createContext = (databaseService) => {
+    const context = new MessageHandlerContext({
+      databaseService,
+      createId: () => 'unused-id',
+      log: () => {},
+    });
+    seedPlayer(context, { playerName: 'PilotOne', characters: [] });
+    return context;
+  };
+  const appearanceInputs = (body) => ({
+    id: body.id,
+    surfaceArchetype: body.surfaceArchetype,
+    planetType: body.planetType ?? null,
+    orbitalElements: body.orbitalElements ?? null,
+    physicalCatalog: body.physicalCatalog ?? null,
+    visualization: body.visualization ?? null,
+  });
+
+  const firstContext = createContext(mongoHarness.databaseService);
+  const firstResponse = await new SolarSystemGetMessageHandler(firstContext).buildResponse({
+    playerName: 'PilotOne',
+    solarSystemId: 'sol',
+    asOf: SEED_TIMESTAMP,
+  });
+  assert.equal(firstResponse.success, true);
+  const originalEarth = firstResponse.bodies.find((body) => body.id === 'sol-earth');
+  assert.ok(originalEarth);
+  const originalAppearanceInputs = appearanceInputs(originalEarth);
+
+  const freshContext = createContext(new DatabaseService());
+  const getResponse = await new SolarSystemGetMessageHandler(freshContext).buildResponse({
+    playerName: 'PilotOne',
+    solarSystemId: 'sol',
+  });
+  assert.equal(getResponse.success, true);
+  const earthFromGet = getResponse.bodies.find((body) => body.id === originalAppearanceInputs.id);
+  assert.deepEqual(appearanceInputs(earthFromGet), originalAppearanceInputs);
+
+  const listResponse = await new CelestialBodyListMessageHandler(freshContext).buildResponse({
+    playerName: 'PilotOne',
+    solarSystemId: 'sol',
+  });
+  assert.equal(listResponse.success, true);
+  const earthFromList = listResponse.celestialBodies.find(
+    (body) => body.id === originalAppearanceInputs.id
+  );
+  assert.deepEqual(appearanceInputs(earthFromList), originalAppearanceInputs);
 });

@@ -37,6 +37,10 @@ paths:
 
         Item ids are deterministic per ship: `<shipId>-starter-<itemType>`.
         Non-cold-boot ships are not injected.
+
+        `ships[].spatial` uses the shared spatial-state schema. The list handler
+        returns the persisted ship snapshot without converting its axes; the
+        `barycentric` label does not identify a physical reference plane.
       operationId: socketShipList
       tags: [Ship]
       requestBody:

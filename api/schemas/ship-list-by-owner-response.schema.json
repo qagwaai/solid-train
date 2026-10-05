@@ -43,24 +43,7 @@
         "properties": {
           "id": { "type": "string" },
           "model": { "type": "string" },
-          "spatial": {
-            "type": "object",
-            "required": ["solarSystemId", "frame", "positionKm", "epochMs"],
-            "properties": {
-              "solarSystemId": { "type": "string" },
-              "frame": { "type": "string", "enum": ["barycentric"] },
-              "positionKm": {
-                "type": "object",
-                "required": ["x", "y", "z"],
-                "properties": {
-                  "x": { "type": "number" },
-                  "y": { "type": "number" },
-                  "z": { "type": "number" }
-                }
-              },
-              "epochMs": { "type": "number" }
-            }
-          },
+          "spatial": { "$ref": "./spatial-state.schema.json" },
           "inventory": {
             "type": "array",
             "items": {

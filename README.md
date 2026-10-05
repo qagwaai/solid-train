@@ -44,6 +44,17 @@ The server listens on port `3000` by default. Set `PORT` to override.
 
 This works across bash, cmd, and PowerShell.
 
+To make the server reachable from other devices on this PC's local network, run:
+
+```bash
+npm run start:host
+```
+
+This binds the server to `0.0.0.0` on port `3000` (or the port set by `PORT`). Connect to
+`http://<this-PC's-LAN-IP>:3000` or `http://<this-PC's-LAN-IP>:<PORT>`. Your firewall must allow
+connections to that port. Binding to all network interfaces can expose the server beyond your own
+PC, so only use this on a trusted network.
+
 ## MongoDB configuration
 
 - Default (from `npm start`): `mongodb://localhost:27017/solid-train`
@@ -77,6 +88,7 @@ At the default `info` level, high-level operational messages (for example handle
 - `GET /health` - JSON health response
 - `GET /openapi.yaml` - OpenAPI source document
 - `GET /docs` - Swagger UI served by the same Node/Express process
+- `GET /docs/celestial-body-contract.md` - Celestial-body contract and data semantics
 
 ## Socket.IO events
 

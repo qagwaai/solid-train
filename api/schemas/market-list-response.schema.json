@@ -48,7 +48,7 @@
           "siteName": { "type": "string" },
           "isStarterMarket": { "type": "boolean" },
           "spatial": { "type": ["object", "null"], "additionalProperties": true },
-          "trajectory": { "type": ["object", "null"], "additionalProperties": true },
+          "trajectory": { "type": ["object", "null"], "additionalProperties": true, "description": "For stations, orbit.anchorBodyId is the exact canonical host ID (sol-luna for sol-moon-orbit), never an alias or parentBodyId inference. orbit.epoch is the element reference epoch, distinct from spatial.epochMs. The relative Kepler/rotation vector is evaluated at the host snapshot epoch and added once to its system-origin position." },
           "distanceAu": { "type": "number", "minimum": 0 },
           "priceMultiplier": { "type": "number" },
           "driftPercentPerHour": { "type": "number" },

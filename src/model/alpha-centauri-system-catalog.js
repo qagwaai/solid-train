@@ -23,7 +23,8 @@
  */
 
 const { AU_KM, J2000_EPOCH } = require('./sol-system-catalog');
-const { SOLAR_MASS_KG, SOLAR_RADIUS_KM } = require('./hyg-star-catalog');
+const { SOLAR_MASS_KG, SOLAR_RADIUS_KM, getHygStars } = require('./hyg-star-catalog');
+const HYG_BY_ID = new Map(getHygStars().map((star) => [star.hygId, star]));
 
 const SECONDS_PER_DAY = 86400;
 const SECONDS_PER_YEAR = 365.25 * SECONDS_PER_DAY;
@@ -43,9 +44,12 @@ function au(value) {
 const ALPHA_CEN_A = {
   id: 'alpha-centauri-star-primary',
   hygId: '71456',
+  spectralClass: HYG_BY_ID.get('71456')?.spectralClass ?? null,
+  luminositySolar: HYG_BY_ID.get('71456')?.luminositySolar ?? null,
   hipId: '71683',
   displayName: 'Alpha Centauri A',
   bodyType: 'star',
+  surfaceArchetype: 'star',
   parentBodyId: null,
   orbit: null,
   physical: {
@@ -79,9 +83,12 @@ const ALPHA_CEN_A = {
 const ALPHA_CEN_B = {
   id: 'alpha-centauri-star-secondary',
   hygId: '71460',
+  spectralClass: HYG_BY_ID.get('71460')?.spectralClass ?? null,
+  luminositySolar: HYG_BY_ID.get('71460')?.luminositySolar ?? null,
   hipId: '71681',
   displayName: 'Alpha Centauri B',
   bodyType: 'star',
+  surfaceArchetype: 'star',
   parentBodyId: 'alpha-centauri-star-primary',
   orbit: {
     semiMajorAxisKm: au(23.52),
@@ -116,9 +123,12 @@ const ALPHA_CEN_B = {
 const PROXIMA = {
   id: 'alpha-centauri-star-tertiary',
   hygId: '70890',
+  spectralClass: HYG_BY_ID.get('70890')?.spectralClass ?? null,
+  luminositySolar: HYG_BY_ID.get('70890')?.luminositySolar ?? null,
   hipId: '70890',
   displayName: 'Proxima Centauri',
   bodyType: 'star',
+  surfaceArchetype: 'star',
   parentBodyId: 'alpha-centauri-star-primary',
   orbit: {
     semiMajorAxisKm: au(8700),
@@ -168,6 +178,7 @@ const PROXIMA_B = {
   bodyType: 'planet',
   parentBodyId: 'alpha-centauri-star-tertiary',
   planetType: 'rocky',
+  surfaceArchetype: 'rocky',
   orbit: {
     semiMajorAxisKm: au(0.04856),
     eccentricity: 0.109,
@@ -204,6 +215,7 @@ const PROXIMA_C = {
   bodyType: 'planet',
   parentBodyId: 'alpha-centauri-star-tertiary',
   planetType: 'ice-giant',
+  surfaceArchetype: 'ice-giant',
   orbit: {
     semiMajorAxisKm: au(1.489),
     eccentricity: 0.04,
@@ -244,6 +256,7 @@ const PROXIMA_D = {
   bodyType: 'planet',
   parentBodyId: 'alpha-centauri-star-tertiary',
   planetType: 'rocky',
+  surfaceArchetype: 'lava',
   orbit: {
     semiMajorAxisKm: au(0.02885),
     eccentricity: 0.04,

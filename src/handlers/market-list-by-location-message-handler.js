@@ -379,6 +379,25 @@ class MarketListByLocationMessageHandler {
    * @returns {Promise<Object>}
    */
   async buildResponse(payload) {
+    try {
+      return await this.buildMarketResponse(payload);
+    } catch (error) {
+      if (error.code !== 'MARKET_ANCHOR_UNRESOLVED') {
+        throw error;
+      }
+      return {
+        success: false,
+        message: `MarketListByLocation: ${error.code}: ${error.message}`,
+        playerName: this.context.toNonEmptyString(payload?.playerName),
+        solarSystemId: this.context.toNonEmptyString(payload?.solarSystemId),
+        markets: [],
+        isDocked: false,
+        dockedMarketId: null,
+      };
+    }
+  }
+
+  async buildMarketResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId);
     const positionKm = this.isTriple(payload?.positionKm)

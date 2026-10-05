@@ -100,9 +100,9 @@ function colorHexFromBv(bv) {
  */
 function spectralClassLetter(spect) {
   const trimmed = toNonEmptyString(spect).toUpperCase();
-  if (!trimmed) return 'G';
+  if (!trimmed) return null;
   const letter = trimmed[0];
-  return SPECTRAL_CLASSES.includes(letter) ? letter : 'G';
+  return SPECTRAL_CLASSES.includes(letter) ? letter : null;
 }
 
 /**

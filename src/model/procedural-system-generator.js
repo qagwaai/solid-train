@@ -180,6 +180,9 @@ function generateSystemBodies(options) {
       hygId: star.hygId || null,
       catalogId: starId,
       bodyType: 'star',
+      spectralClass: star.spectralClass ?? null,
+      luminositySolar: star.luminositySolar ?? null,
+      surfaceArchetype: 'star',
       displayName:
         star.properName || `${primary.properName || solarSystemId} ${star.systemRole || ''}`.trim(),
       parentBodyId: index === 0 ? null : `${solarSystemId}-star-primary`,
@@ -257,6 +260,7 @@ function generateSystemBodies(options) {
       displayName: `${primary.properName || solarSystemId} ${romanNumeral(i + 1)}`,
       parentBodyId: starBodies[0].id,
       planetType,
+      surfaceArchetype: planetType,
       orbit: {
         semiMajorAxisKm: a * AU_KM,
         eccentricity,

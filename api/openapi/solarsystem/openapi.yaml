@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Stellar API - SolarSystem
-  version: 3.1.0
+  version: 4.0.0
 servers:
   - url: http://localhost:3000
 tags:
@@ -13,6 +13,15 @@ paths:
       description: |
         Resolves a solar system by id, seeds its canonical celestial bodies on demand,
         and returns both the system summary and its materialized bodies.
+        Positions are persisted seed-time barycentric snapshots at spatial.epochMs,
+        not recalculated on each read. Orbital elements retain their reference epoch.
+        Each body requires non-null bodyType and compatible surfaceArchetype.
+        Per-body spectralClass and luminositySolar include companion stars; unknown
+        source data is null. Visualization color is optional and independent.
+        physicalCatalog and physical are separate provenance objects; see the shared
+        physical schemas and docs/celestial-body-contract.md for units and precedence.
+        Reads do not synthesize asteroid catalogs from physical estimates, overwrite
+        source catalogs, coerce mission bodyType, or inject visualization defaults.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).
@@ -21,6 +30,8 @@ paths:
 
         Response notes:
         - `solarSystem`, `stars`, and `bodies` are present on success.
+        - Celestial body `id` values are durable canonical identity and may seed client-side appearance generation.
+        - Every body includes a required `surfaceArchetype`; this is separate from `planetType`.
         - Mission-generated asteroids are normalized into canonical asteroid viewer shape.
         - Failure responses omit `solarSystem`, `stars`, and `bodies`.
       operationId: socketSolarSystemGet
@@ -66,15 +77,175 @@ paths:
                     solarSystem:
                       id: alpha-centauri
                       displayName: Alpha Centauri
+                      hygSystemId: alpha-centauri
+                      source: curated
                       isMultiStar: true
+                      positionPc: { x: -0.494, y: -0.755, z: -0.949 }
+                      distanceParsec: 1.3401
+                      primaryStar:
+                        hygId: '71456'
+                        spectralClass: G
+                        spectralType: G2V
+                        colorHex: '#ffe6af'
+                        colorIndexBv: 0.71
+                        luminositySolar: 1.519
+                        massSolar: 0.9866666666666667
+                        radiusSolar: 1.1077777777777778
+                        absoluteMagnitude: 4.38
+                        properName: Alpha Centauri A
+                      starCount: 3
+                      generationSeed: 71456
                     stars:
-                      - id: alpha-centauri-a
+                      - &alphaPrimary
+                        id: alpha-centauri-star-primary
+                        catalogId: alpha-centauri-star-primary
+                        sourceScanId: catalog
+                        createdByCharacterId: system-catalog
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
                         bodyType: star
+                        surfaceArchetype: star
+                        displayName: Alpha Centauri A
+                        hygId: '71456'
+                        spectralClass: G
+                        luminositySolar: 1.519
+                        parentBodyId: null
+                        orbitalElements: null
+                        spatial:
+                          solarSystemId: alpha-centauri
+                          frame: barycentric
+                          positionKm: { x: 0, y: 0, z: 0 }
+                          epochMs: 1779062400000
+                        observability: { visibility: visible, scanState: scanned }
+                        composition: { rarity: Common, material: hydrogen, textureColor: '#ffd86b' }
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        visualization: { colorHex: '#fff2c0' }
+                      - &alphaSecondary
+                        id: alpha-centauri-star-secondary
+                        catalogId: alpha-centauri-star-secondary
+                        sourceScanId: catalog
+                        createdByCharacterId: system-catalog
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: star
+                        surfaceArchetype: star
+                        spatial:
+                          solarSystemId: alpha-centauri
+                          frame: barycentric
+                          positionKm: { x: -3736611670.705285, y: -2201948007.4635534, z: 2243580753.6270294 }
+                          epochMs: 1779062400000
+                        observability: { visibility: visible, scanState: scanned }
+                        composition: { rarity: Common, material: hydrogen, textureColor: '#ffd86b' }
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        displayName: Alpha Centauri B
+                        hygId: '71460'
+                        spectralClass: K
+                        luminositySolar: 0.5
+                        parentBodyId: alpha-centauri-star-primary
+                        orbitalElements:
+                          semiMajorAxisKm: 3518541918.864
+                          eccentricity: 0.5179
+                          inclinationDeg: 79.205
+                          longitudeOfAscendingNodeDeg: 204.85
+                          argumentOfPeriapsisDeg: 232
+                          meanAnomalyAtEpochDeg: 0
+                          orbitalPeriodSec: 2521767816
+                          epoch: '2000-01-01T12:00:00.000Z'
+                          anchorBodyId: null
+                        visualization: { colorHex: '#ffd07a' }
+                      - &alphaTertiary
+                        id: alpha-centauri-star-tertiary
+                        catalogId: alpha-centauri-star-tertiary
+                        sourceScanId: catalog
+                        createdByCharacterId: system-catalog
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        bodyType: star
+                        surfaceArchetype: star
+                        spatial:
+                          solarSystemId: alpha-centauri
+                          frame: barycentric
+                          positionKm: { x: 35792510409.571304, y: 269756201660.60123, z: 591123646756.8789 }
+                          epochMs: 1779062400000
+                        observability: { visibility: visible, scanState: scanned }
+                        composition: { rarity: Common, material: hydrogen, textureColor: '#ffd86b' }
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        displayName: Proxima Centauri
+                        hygId: '70890'
+                        spectralClass: M
+                        luminositySolar: 0.0017
+                        parentBodyId: alpha-centauri-star-primary
+                        orbitalElements:
+                          semiMajorAxisKm: 1301501475090
+                          eccentricity: 0.5
+                          inclinationDeg: 107.6
+                          longitudeOfAscendingNodeDeg: 126
+                          argumentOfPeriapsisDeg: 72.3
+                          meanAnomalyAtEpochDeg: 0
+                          orbitalPeriodSec: 17262007200000
+                          epoch: '2000-01-01T12:00:00.000Z'
+                          anchorBodyId: null
+                        visualization: { colorHex: '#ff7a55' }
                     bodies:
-                      - id: alpha-centauri-a
-                        bodyType: star
-                      - id: planet-1
+                      - *alphaPrimary
+                      - *alphaSecondary
+                      - *alphaTertiary
+                      - id: alpha-centauri-proxima-b
+                        catalogId: alpha-centauri-proxima-b
+                        sourceScanId: catalog
+                        createdByCharacterId: system-catalog
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-05-18T00:00:00.000Z'
+                        updatedAt: '2026-05-18T00:00:00.000Z'
+                        spatial:
+                          solarSystemId: alpha-centauri
+                          frame: barycentric
+                          positionKm: { x: 35799149307.85887, y: 269757912942.66312, z: 591123646756.8789 }
+                          epochMs: 1779062400000
+                        observability: { visibility: visible, scanState: scanned }
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        displayName: Proxima Centauri b
                         bodyType: planet
+                        surfaceArchetype: rocky
+                        spectralClass: null
+                        luminositySolar: null
+                        hygId: null
+                        parentBodyId: alpha-centauri-star-tertiary
+                        orbitalElements:
+                          semiMajorAxisKm: 7264472.601191999
+                          eccentricity: 0.109
+                          inclinationDeg: 0
+                          longitudeOfAscendingNodeDeg: 0
+                          argumentOfPeriapsisDeg: 310
+                          meanAnomalyAtEpochDeg: 0
+                          orbitalPeriodSec: 966539.52
+                          epoch: '2000-01-01T12:00:00.000Z'
+                          anchorBodyId: null
+                        composition: { rarity: Common, material: silicate, textureColor: '#8aa6c4' }
+                        visualization: null
                     requestId: req-1
                 failedSolarSystemGet:
                   summary: Unknown systems return a failure payload without body arrays
@@ -149,11 +320,25 @@ paths:
                     solarSystems:
                       - id: sol
                         displayName: Sol
+                        hygSystemId: sol
                         source: curated
-                        distanceParsec: 0
-                        planetCount: 2
-                        moonCount: 1
-                        asteroidCount: 1
+                        isMultiStar: false
+                        positionPc: { x: 0, y: 0, z: 0 }
+                        distanceParsec: 0.0000001
+                        primaryStar:
+                          hygId: '0'
+                          spectralClass: G
+                          spectralType: G2V
+                          colorHex: '#ffecbb'
+                          colorIndexBv: 0.656
+                          luminositySolar: 1
+                          massSolar: 0.9866666666666667
+                          radiusSolar: 1.1077777777777778
+                          absoluteMagnitude: 4.85
+                          properName: Sol
+                        starCount: 1
+                        generationSeed: null
+                        planetCount: 8
                         marketCount: 2
                 failedSolarSystemList:
                   summary: Invalid source values return failure with an empty system list

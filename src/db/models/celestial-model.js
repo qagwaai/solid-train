@@ -1,4 +1,5 @@
 'use strict';
+const { hasValidBodyClassification } = require('../../model/celestial-body-upsert');
 
 function createCelestialModelArtifacts({
   mongoose,
@@ -141,11 +142,15 @@ function createCelestialModelArtifacts({
     {
       semiMajorAxisKm: { type: Number, required: true, min: 0 },
       eccentricity: { type: Number, required: true, min: 0, max: 0.999 },
-      inclinationDeg: { type: Number, required: true, default: 0 },
-      longitudeOfAscendingNodeDeg: { type: Number, required: true, default: 0 },
-      argumentOfPeriapsisDeg: { type: Number, required: true, default: 0 },
-      meanAnomalyAtEpochDeg: { type: Number, required: true, default: 0 },
-      orbitalPeriodSec: { type: Number, required: true, min: 1 },
+      inclinationDeg: { type: Number, required: true },
+      longitudeOfAscendingNodeDeg: { type: Number, required: true },
+      argumentOfPeriapsisDeg: { type: Number, required: true },
+      meanAnomalyAtEpochDeg: { type: Number, required: true },
+      orbitalPeriodSec: {
+        type: Number,
+        required: true,
+        validate: (value) => Number.isFinite(value) && Math.abs(value) >= 1,
+      },
       epoch: { type: String, required: true },
       // Present on moons / sub-satellites only. Identifies the parent non-star
       // body whose position is the origin for semiMajorAxisKm. Absent for bodies
@@ -160,6 +165,9 @@ function createCelestialModelArtifacts({
       massKg: { type: Number, default: null },
       meanRadiusKm: { type: Number, default: null },
       equatorialRadiusKm: { type: Number, default: null },
+      estimatedDiameterM: { type: Number, default: null },
+      estimatedMassKg: { type: Number, default: null },
+      radiusKm: { type: Number, default: null },
       rotationPeriodSec: { type: Number, default: null },
       axialTiltDeg: { type: Number, default: null },
       surfaceGravityMps2: { type: Number, default: null },
@@ -254,7 +262,11 @@ function createCelestialModelArtifacts({
       },
       composition: {
         type: asteroidMaterialProfileSchema,
-        required: true,
+        required: function () {
+          const update = typeof this.getUpdate === 'function' ? this.getUpdate() : null;
+          const source = update ? (update.$set || update) : this;
+          return source.state !== 'unscanned';
+        },
       },
       externalObjectDescriptor: {
         type: new mongoose.Schema(
@@ -347,7 +359,6 @@ function createCelestialModelArtifacts({
         type: String,
         enum: ['unscanned', 'active', 'destroyed'],
         required: true,
-        default: 'active',
         index: true,
       },
       destroyedAt: {
@@ -366,16 +377,37 @@ function createCelestialModelArtifacts({
         type: [celestialBodyDebrisMaterialSchema],
         default: [],
       },
+      surfaceArchetype: {
+        type: String,
+        enum: [
+          'rocky',
+          'lava',
+          'ocean',
+          'gas-giant',
+          'ice-giant',
+          'star',
+          'rocky-moon',
+          'icy-moon',
+          'asteroid',
+        ],
+        required: true,
+        validate: function () {
+          const update = typeof this.getUpdate === 'function' ? this.getUpdate() : null;
+          return hasValidBodyClassification(update ? (update.$set || update) : this);
+        },
+      },
       bodyType: {
         type: String,
-        enum: ['star', 'planet', 'dwarf-planet', 'moon', 'asteroid', 'tno', 'comet', null],
-        default: null,
+        enum: ['star', 'planet', 'dwarf-planet', 'moon', 'asteroid', 'tno', 'comet'],
+        required: true,
         index: true,
       },
       displayName: {
         type: String,
         default: null,
       },
+      spectralClass: { type: String, default: null },
+      luminositySolar: { type: Number, min: 0, default: null },
       parentBodyId: {
         type: String,
         default: null,

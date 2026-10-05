@@ -4,9 +4,10 @@ const {
   ASTEROID_MATERIAL_RARITY_VALUES,
   CELESTIAL_BODY_STATE_VALUES,
   CELESTIAL_BODY_UPSERT_RESPONSE_EVENT,
-  DEFAULT_SOLAR_SYSTEM_ID,
+  SURFACE_ARCHETYPE_VALUES,
 } = require('../model/celestial-body-upsert');
 const { isFiniteNumber, isTriple } = require('./handler-utils');
+const { validateCelestialBody } = require('../model/celestial-body-validation');
 
 class CelestialBodyUpsertMessageHandler {
   /**
@@ -92,7 +93,7 @@ class CelestialBodyUpsertMessageHandler {
   normalizeState(state) {
     const normalizedState = this.context.toNonEmptyString(state).toLowerCase();
     if (!normalizedState) {
-      return 'active';
+      return '';
     }
 
     return CELESTIAL_BODY_STATE_VALUES.includes(normalizedState) ? normalizedState : '';
@@ -103,8 +104,8 @@ class CelestialBodyUpsertMessageHandler {
     const rawSpatial = celestialBody?.spatial;
     const spatial = rawSpatial
       ? {
-          solarSystemId: DEFAULT_SOLAR_SYSTEM_ID,
-          frame: 'barycentric',
+          solarSystemId: this.context.toNonEmptyString(rawSpatial.solarSystemId),
+          frame: rawSpatial.frame,
           positionKm: rawSpatial.positionKm ? { ...rawSpatial.positionKm } : null,
           epochMs: rawSpatial.epochMs,
         }
@@ -131,10 +132,11 @@ class CelestialBodyUpsertMessageHandler {
           visibility: rawObservability.visibility,
           scanState: rawObservability.scanState,
         }
-      : { visibility: 'visible', scanState: 'scanned' };
+      : null;
 
     return {
       id: normalizedId || this.createDeterministicCelestialBodyId(celestialBody),
+      surfaceArchetype: this.context.toNonEmptyString(celestialBody?.surfaceArchetype),
       catalogId: this.context.toNonEmptyString(celestialBody?.catalogId),
       sourceScanId: this.context.toNonEmptyString(celestialBody?.sourceScanId),
       createdByCharacterId: this.context.toNonEmptyString(celestialBody?.createdByCharacterId),
@@ -146,6 +148,39 @@ class CelestialBodyUpsertMessageHandler {
       motion,
       physical,
       observability,
+      destroyedAt: celestialBody?.destroyedAt ?? null,
+      destroyedReason: celestialBody?.destroyedReason ?? null,
+      debrisSeed: celestialBody?.debrisSeed ?? null,
+      debris: celestialBody?.debris ?? [],
+      spectralClass: celestialBody?.spectralClass ?? null,
+      luminositySolar: celestialBody?.luminositySolar ?? null,
+      ...(this.context.toNonEmptyString(celestialBody?.bodyType)
+        ? { bodyType: this.context.toNonEmptyString(celestialBody.bodyType) }
+        : {}),
+      ...(this.context.toNonEmptyString(celestialBody?.displayName)
+        ? { displayName: this.context.toNonEmptyString(celestialBody.displayName) }
+        : {}),
+      ...(celestialBody?.parentBodyId !== undefined
+        ? { parentBodyId: this.context.toNonEmptyString(celestialBody.parentBodyId) || null }
+        : {}),
+      ...(celestialBody?.orbitalElements !== undefined
+        ? { orbitalElements: celestialBody.orbitalElements }
+        : {}),
+      ...(celestialBody?.physicalCatalog !== undefined
+        ? { physicalCatalog: celestialBody.physicalCatalog }
+        : {}),
+      ...(celestialBody?.atmosphere !== undefined ? { atmosphere: celestialBody.atmosphere } : {}),
+      ...(celestialBody?.discovery !== undefined ? { discovery: celestialBody.discovery } : {}),
+      ...(celestialBody?.magnitudes !== undefined ? { magnitudes: celestialBody.magnitudes } : {}),
+      ...(celestialBody?.planetType !== undefined
+        ? { planetType: this.context.toNonEmptyString(celestialBody.planetType) || null }
+        : {}),
+      ...(celestialBody?.hygId !== undefined
+        ? { hygId: this.context.toNonEmptyString(celestialBody.hygId) || null }
+        : {}),
+      ...(celestialBody?.visualization !== undefined
+        ? { visualization: celestialBody.visualization }
+        : {}),
       composition: celestialBody?.composition
         ? {
             rarity: this.context.toNonEmptyString(celestialBody.composition.rarity),
@@ -248,12 +283,14 @@ class CelestialBodyUpsertMessageHandler {
 
     if (
       !playerName ||
+      !validateCelestialBody(sourceCelestialBody) ||
       !celestialBody.id ||
       !celestialBody.catalogId ||
       !celestialBody.sourceScanId ||
       !celestialBody.createdByCharacterId ||
       !celestialBody.createdAt ||
       !celestialBody.updatedAt ||
+      !SURFACE_ARCHETYPE_VALUES.includes(celestialBody.surfaceArchetype) ||
       !this.hasValidSpatial(celestialBody.spatial) ||
       !this.hasValidObservability(celestialBody.observability) ||
       !this.hasValidClusterMetadata(celestialBody) ||

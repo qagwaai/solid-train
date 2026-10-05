@@ -41,9 +41,9 @@ api/
 
 ### Master File (`api/openapi.yaml`)
 
-- **Single source of truth** for the complete API contract
-- All paths and schemas defined inline
-- Version managed here (currently 3.1.0)
+- **Entry point and version authority** for the complete API contract
+- References domain operation modules and JSON Schema files
+- Contract version is 4.0.0
 - Used by:
   - Swagger UI (`GET /docs`)
   - Contract hardening tests
@@ -52,26 +52,23 @@ api/
 
 ### Modular References (`api/openapi/{tag}/`)
 
-- **Documentation and organization** by semantic domain
-- Each file contains conceptual description of that tag's operations
-- Can be extended in future to support full decomposition with `$ref` imports
-- Acts as organizational guide for developers
+- **Canonical operation definitions** organized by semantic domain
+- The root contract references these modules and their JSON Schemas
 
 ### Shared Schemas (`api/openapi/_shared/schemas.yaml`)
 
 - Schemas used by 2+ tags (currently ErrorResponse + ExternalObject* schemas)
 - Extensible as contract grows
 
-## Migration Path
+## Contract ownership
 
-**Current State (3.1.0):** Master-only with modular documentation  
-**Future State:** Full decomposition with `$ref` imports in main file  
-**Benefits:**
+The root OpenAPI file is the entry point and version authority. Domain modules and JSON Schemas
+are canonical contract sources referenced by the root. Keep module versions aligned with the root
+when a contract release changes their behavior.
 
-- Tests and tooling continue to work immediately
-- Organizational structure established
-- Foundation for gradual migration to fully modular contract
-- Easier to onboard new developers to specific tag domains
+Celestial body IDs are durable canonical identities and are the deterministic appearance-generator
+input for clients. Every celestial-body response and upsert requires a non-null `surfaceArchetype`;
+this semantic field is independent of `planetType` and generated texture data.
 
 ## Usage
 
@@ -83,6 +80,7 @@ api/
 ### For Tooling
 
 - Swagger UI: `GET http://localhost:3000/docs` (reads main file)
+- Celestial-body contract guidance: `GET http://localhost:3000/docs/celestial-body-contract.md`
 - Contract validation: `npm run contract:*` (reads main file)
 - Contract generation: `npm run contract:artifact` (reads main file)
 
@@ -90,4 +88,4 @@ api/
 
 - All existing tests remain unchanged
 - Tests read from `api/openapi.yaml` directly
-- Version bump to 3.1.0 tracked for API evolution
+- Breaking contract changes use a major version bump; 4.0.0 requires canonical celestial-body `surfaceArchetype` values

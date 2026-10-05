@@ -6,9 +6,9 @@ const { MarketListMessageHandler } = require('../src/handlers/market-list-messag
 const { MARKET_LIST_RESPONSE_EVENT } = require('../src/model/market-list');
 const {
   createMockSocket,
-  createTestContext,
   seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
+const { createStationMarketTestContext: createTestContext } = require('../test-support/station-market-test-helpers');
 
 test('MarketListMessageHandler returns markets for a solar system', async () => {
   const context = createTestContext();
@@ -67,7 +67,7 @@ test('MarketListMessageHandler fails when market spatial is not canonical', asyn
   });
 
   assert.equal(response.success, false);
-  assert.ok(response.message.includes('invalid canonical spatial/trajectory fields'));
+  assert.ok(response.message.includes('MARKET_ANCHOR_UNRESOLVED'));
   assert.deepEqual(response.markets, []);
   assert.equal(socket.events[0].eventName, MARKET_LIST_RESPONSE_EVENT);
 });

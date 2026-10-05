@@ -35,7 +35,10 @@
         "radiusSolar": { "type": "number" },
         "radiusKm": { "type": "number" },
         "massKg": { "type": "number" },
-        "positionPc": { "$ref": "#/definitions/vector3Pc" },
+        "positionPc": {
+          "$ref": "#/definitions/vector3Pc",
+          "description": "HYG-fixture global star coordinate in parsecs; distinct from system-local spatial.positionKm. The application copies the fixture x/y/z values and does not rotate or convert them."
+        },
         "systemId": { "type": "string" },
         "systemRole": { "type": "string" }
       },

@@ -1,11 +1,24 @@
 openapi: 3.1.0
 info:
   title: Stellar API and Message Contract
-  version: 3.1.3
+  version: 4.0.0
   description: >
     Machine-readable contract for HTTP endpoints and Socket.IO message payloads.
     Socket operations are modeled as virtual POST operations under /socket/* so the
     contract can be consumed by tooling that expects OpenAPI.
+    Pre-release 4.0.0 celestial clarification: canonical bodies require bodyType,
+    surfaceArchetype, explicit state, spatial and observability. Stellar source
+    fields, shared orbital elements, and physical provenance/selection semantics
+    are documented in the Celestial and SolarSystem modules and
+    docs/celestial-body-contract.md. Catalog positions are seed-time snapshots.
+    Spatial payloads use api/schemas/spatial-state.schema.json; barycentric labels
+    do not identify a physical axis orientation or guarantee producer normalization.
+    Station snapshot fix: canonical anchor lookup (Luna is sol-luna; station identity
+    remains sol-moon-orbit), host-position translation and host snapshot epoch.
+    Approved station hosts: ac-proxima-station uses alpha-centauri-star-tertiary;
+    bs-main-station uses the generated barnards-star-planet-1.
+    Unresolved station anchors fail explicitly; existing worlds require approved
+    market seed repair, not automatic read-time persistence.
 
     Market contract explicit notes (3.1.2):
     - `/socket/market-buy` supports canonical cargo purchases and seeded ship listing purchases.
@@ -144,6 +157,8 @@ paths:
     $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-offer-accept'
 components:
   schemas:
+    SpatialState:
+      $ref: './schemas/spatial-state.schema.json'
     BustDescriptor:
       $ref: './openapi/bust/openapi.yaml#/components/schemas/BustDescriptor'
     BustBlockedSaveResponse:

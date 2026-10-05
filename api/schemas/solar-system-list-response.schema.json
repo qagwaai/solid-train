@@ -16,7 +16,7 @@
       "type": ["object", "null"],
       "properties": {
         "hygId": { "type": "string" },
-        "spectralClass": { "type": "string" },
+        "spectralClass": { "type": ["string", "null"], "description": "Source spectral class; null when unknown, never a generation fallback." },
         "spectralType": { "type": ["string", "null"] },
         "colorHex": { "type": "string" },
         "colorIndexBv": { "type": ["number", "null"] },
@@ -48,7 +48,10 @@
         "hygSystemId": { "type": "string" },
         "source": { "type": "string", "enum": ["curated", "procedural"] },
         "isMultiStar": { "type": "boolean" },
-        "positionPc": { "$ref": "#/definitions/vector3" },
+        "positionPc": {
+          "$ref": "#/definitions/vector3",
+          "description": "HYG-fixture system-wide coordinate in parsecs; not spatial.positionKm and not converted into the system-local celestial snapshots."
+        },
         "distanceParsec": { "type": ["number", "null"] },
         "primaryStar": { "$ref": "#/definitions/primaryStarSummary" },
         "starCount": { "type": "integer" },

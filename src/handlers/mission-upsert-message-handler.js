@@ -283,6 +283,7 @@ class MissionUpsertMessageHandler {
         id: `cb-${baseCharacterId}-${missionId}-a${sequence}`,
         catalogId: `FIRST-TARGET-A${sequence}`,
         bodyType: 'asteroid',
+        surfaceArchetype: 'asteroid',
         displayName: this.formatStarterAsteroidDisplayName(sequence),
         sourceScanId,
         createdByCharacterId: baseCharacterId,

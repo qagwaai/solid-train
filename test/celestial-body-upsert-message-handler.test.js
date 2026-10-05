@@ -5,10 +5,7 @@ const assert = require('node:assert/strict');
 const {
   CelestialBodyUpsertMessageHandler,
 } = require('../src/handlers/celestial-body-upsert-message-handler');
-const {
-  CELESTIAL_BODY_UPSERT_RESPONSE_EVENT,
-  DEFAULT_SOLAR_SYSTEM_ID,
-} = require('../src/model/celestial-body-upsert');
+const { CELESTIAL_BODY_UPSERT_RESPONSE_EVENT } = require('../src/model/celestial-body-upsert');
 const {
   createCelestialBody,
   createMockSocket,
@@ -30,15 +27,19 @@ test('CelestialBodyUpsertMessageHandler upserts a celestial body by id', async (
   const response = await handler.handle(socket, {
     playerName: 'scannerone',
     sessionKey: 'session-1',
-    celestialBody: createCelestialBody({ id: 'cb-1', createdByCharacterId: 'character-1' }),
+    celestialBody: createCelestialBody({
+      id: 'cb-1',
+      createdByCharacterId: 'character-1',
+      spatial: { solarSystemId: 'alpha-centauri' },
+    }),
   });
 
   assert.equal(response.success, true);
   assert.equal(response.message, 'Celestial body recorded successfully');
   assert.equal(response.playerName, 'ScannerOne');
   assert.equal(response.celestialBody.id, 'cb-1');
-  assert.equal(response.celestialBody.spatial.solarSystemId, DEFAULT_SOLAR_SYSTEM_ID);
-  assert.equal(context.getCelestialBody('cb-1').spatial.solarSystemId, DEFAULT_SOLAR_SYSTEM_ID);
+  assert.equal(response.celestialBody.spatial.solarSystemId, 'alpha-centauri');
+  assert.equal(context.getCelestialBody('cb-1').spatial.solarSystemId, 'alpha-centauri');
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
 });
 
@@ -212,4 +213,27 @@ test('CelestialBodyUpsertMessageHandler rejects root solarSystemId field', async
     "CelestialBodyUpsert: legacy field 'solarSystemId' is not supported. Use 'spatial.solarSystemId' instead."
   );
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_UPSERT_RESPONSE_EVENT);
+});
+
+test('CelestialBodyUpsertMessageHandler rejects missing surfaceArchetype', () => {
+  const handler = new CelestialBodyUpsertMessageHandler(createTestContext());
+  const celestialBody = createCelestialBody({ id: 'cb-no-archetype' });
+  delete celestialBody.surfaceArchetype;
+
+  const response = handler.buildResponse({ playerName: 'PilotOne', celestialBody });
+
+  assert.equal(response.success, false);
+});
+
+test('CelestialBodyUpsertMessageHandler rejects unknown surfaceArchetype', () => {
+  const handler = new CelestialBodyUpsertMessageHandler(createTestContext());
+  const response = handler.buildResponse({
+    playerName: 'PilotOne',
+    celestialBody: createCelestialBody({
+      id: 'cb-invalid-archetype',
+      surfaceArchetype: 'volcanic',
+    }),
+  });
+
+  assert.equal(response.success, false);
 });
