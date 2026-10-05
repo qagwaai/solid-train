@@ -130,12 +130,14 @@ test('normalizeCharacter preserves all ledger entry fields', () => {
   });
 
   assert.deepEqual(character.creditLedger[0], {
+    id: character.creditLedger[0].id,
     type: 'put',
     amount: 425,
     description: 'Starting credits',
     timestamp: '2026-05-05T00:00:00.000Z',
     referenceId: 'ref-abc',
   });
+  assert.ok(character.creditLedger[0].id);
 });
 
 test('normalizeCharacter sets referenceId to null when missing', () => {

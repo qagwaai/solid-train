@@ -3,6 +3,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
+const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
+const { Player } = require('../src/db/models');
+const { appendCharacterLedgerEntryAsync } = require('../src/handlers/context/market-service');
 
 let mongoHarness = null;
 
@@ -74,4 +77,71 @@ test('Players Mongo negative paths: empty playerName short-circuits', async () =
   assert.equal(await service.getPlayerByName(''), null);
   assert.equal(await service.updatePlayer('', { sessionKey: 'x' }), null);
   assert.deepEqual(await service.getCharacters(''), []);
+});
+
+test('Credit ledger Mongo round-trip preserves IDs for new, appended and legacy movements', async () => {
+  const service = mongoHarness.databaseService;
+  await service.registerPlayer({
+    playerId: 'ledger-player',
+    playerName: 'LedgerPilot',
+    email: 'ledger@example.com',
+    password: 'secret-1',
+  });
+  const context = new MessageHandlerContext({ databaseService: service });
+  const movement = {
+    type: 'put',
+    amount: 425,
+    description: 'Starting credits',
+    timestamp: '2026-05-05T00:00:00.000Z',
+    referenceId: null,
+  };
+  for (const id of ['ledger-character', 'legacy-character']) {
+    await context.addCharacterAsync('LedgerPilot', {
+      id,
+      characterName: id,
+      createdAt: '2026-05-05T00:00:00.000Z',
+      creditLedger: [movement],
+    });
+  }
+  const first = await service.getCharacters('LedgerPilot');
+  assert.ok(first[0].creditLedger[0].id);
+  assert.equal(
+    first[0].creditLedger[0].id,
+    context.getCharacters('ledgerpilot')[0].creditLedger[0].id
+  );
+
+  await Player.collection.updateOne(
+    { playerName: 'LedgerPilot' },
+    {
+      $unset: { 'characters.1.creditLedger.0.id': '' },
+    }
+  );
+  const coldContext = new MessageHandlerContext({ databaseService: service });
+  const hydrated = await coldContext.getCharactersAsync('LedgerPilot', { strict: true });
+  const legacyId = hydrated[1].creditLedger[0].id;
+  assert.equal(legacyId, first[1].creditLedger[0].id);
+  const secondColdContext = new MessageHandlerContext({ databaseService: service });
+  assert.equal(
+    (await secondColdContext.getCharactersAsync('LedgerPilot'))[1].creditLedger[0].id,
+    legacyId
+  );
+
+  // Saving a different character must not fail validation on the legacy character.
+  await service.updateCharacter('LedgerPilot', 'ledger-character', { characterName: 'Renamed' });
+  assert.equal((await service.getCharacters('LedgerPilot'))[1].creditLedger[0].id, legacyId);
+  await appendCharacterLedgerEntryAsync(coldContext, 'LedgerPilot', 'ledger-character', {
+    ...movement,
+    type: 'take',
+    amount: 25,
+    description: 'Purchase',
+  });
+  const persisted = await service.getCharacters('LedgerPilot');
+  assert.equal(persisted[0].creditLedger.length, 2);
+  assert.equal(persisted[0].creditLedger[0].id, first[0].creditLedger[0].id);
+  assert.notEqual(persisted[0].creditLedger[0].id, persisted[0].creditLedger[1].id);
+  assert.equal(
+    persisted[0].creditLedger[1].id,
+    coldContext.getCharacters('ledgerpilot')[0].creditLedger[1].id
+  );
+  assert.equal(coldContext.calculateCharacterCredits(persisted[0]), 400);
 });

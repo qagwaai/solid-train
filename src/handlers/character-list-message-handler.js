@@ -46,7 +46,7 @@ class CharacterListMessageHandler {
       success: true,
       message: 'Character list retrieved successfully',
       playerName: player.playerName,
-      characters: characters.map((character) => ({ ...character })),
+      characters: characters.map((character) => this.context.normalizeCharacter(character)),
     };
   }
 

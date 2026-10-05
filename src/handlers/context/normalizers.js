@@ -1,5 +1,10 @@
 'use strict';
 
+const { randomUUID } = require('node:crypto');
+const { legacyCreditLedgerEntryId } = require('../../model/credit-ledger-entry');
+const Ajv = require('ajv');
+const creditLedgerEntrySchema = require('../../../api/schemas/credit-ledger-entry.schema.json');
+const validateCreditLedgerEntry = new Ajv({ format: 'full' }).compile(creditLedgerEntrySchema);
 const { getItemByType } = require('../../model/canonical-items');
 const { assertCanonicalRuntimeItemType } = require('../../model/canonical-item-type-registry');
 const { SURFACE_ARCHETYPE_VALUES, hasValidBodyClassification, CELESTIAL_BODY_STATE_VALUES } = require('../../model/celestial-body-upsert');
@@ -669,13 +674,22 @@ function normalizeItem(ctx, item) {
 function normalizeCreditLedgerEntry(ctx, entry) {
   const source = toPlainObject(ctx, entry) || {};
 
-  return {
+  const normalized = {
+    id: toNonEmptyString(ctx, source.id) || randomUUID(),
     type: toNonEmptyString(ctx, source.type),
     amount: typeof source.amount === 'number' ? source.amount : 0,
     description: toNonEmptyString(ctx, source.description),
     timestamp: toNonEmptyString(ctx, source.timestamp),
     referenceId: toNonEmptyString(ctx, source.referenceId) || null,
   };
+  if (
+    !Number.isFinite(normalized.amount) ||
+    !Number.isFinite(Date.parse(normalized.timestamp)) ||
+    !validateCreditLedgerEntry(normalized)
+  ) {
+    throw new Error('Credit ledger entry has invalid movement fields');
+  }
+  return normalized;
 }
 
 function calculateCharacterCredits(ctx, character) {
@@ -711,7 +725,13 @@ function normalizeCharacter(ctx, character) {
     ? source.missions.map((mission) => normalizeMission(ctx, mission))
     : [];
   const creditLedger = Array.isArray(source.creditLedger)
-    ? source.creditLedger.map((entry) => normalizeCreditLedgerEntry(ctx, entry))
+    ? source.creditLedger.map((entry, index) => {
+        const plainEntry = toPlainObject(ctx, entry) || {};
+        const id =
+          toNonEmptyString(ctx, plainEntry.id) ||
+          legacyCreditLedgerEntryId(source.id, index, plainEntry);
+        return normalizeCreditLedgerEntry(ctx, { ...plainEntry, id });
+      })
     : [];
   const credits = creditLedger.reduce((total, entry) => {
     return entry.type === 'put' ? total + entry.amount : total - entry.amount;

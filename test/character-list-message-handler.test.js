@@ -28,7 +28,16 @@ test('CharacterListMessageHandler returns a defensive copy of characters', async
 
   assert.equal(response.success, true);
   assert.equal(response.playerName, 'CharacterPilot');
-  assert.deepEqual(response.characters, [{ id: 'character-1', characterName: 'RangerOne' }]);
+  assert.deepEqual(response.characters, [
+    {
+      id: 'character-1',
+      characterName: 'RangerOne',
+      ships: [],
+      missions: [],
+      credits: 0,
+      creditLedger: [],
+    },
+  ]);
 
   response.characters[0].characterName = 'Mutated';
   assert.equal(context.getCharacters('characterpilot')[0].characterName, 'RangerOne');

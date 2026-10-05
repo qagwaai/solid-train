@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Stellar API - Ledger
-  version: 3.1.0
+  version: 4.0.0
 servers:
   - url: http://localhost:3000
 tags:
@@ -9,14 +9,46 @@ tags:
 paths:
   /socket/credit-ledger-list:
     post:
-      summary: credit-ledger-list-request
+      summary: List credit ledger entries and authoritative balance
+      x-socket-request-event: credit-ledger-list-request
+      x-socket-response-event: credit-ledger-list-response
       description: |
-        Lists character credit ledger entries.
+        Virtual POST describing Socket.IO, not an HTTP POST endpoint.
+        Emit `credit-ledger-list-request`; receive `credit-ledger-list-response`.
 
-        Preconditions:
-        - Every request must include a client-generated `correlationId` (UUID v4).
-        - Every request must include `requestIdentity` with `operation`, `entityType`, and
-          `containerId`.
+        With `characterId`, only that owned character's ledger is returned.
+        Without it, the scope is the aggregate ledger of all this player's characters.
+        Character-scoped identity is `{operation: 'credit-ledger-list',
+        entityType: 'credit-ledger', containerId: <characterId>}`. Player-wide
+        containerId is `player-<trimmed lowercase playerName>`.
+        `requestIdentity` (including extra properties) and `correlationId` are
+        echoed exactly, on success and failure. Correlation IDs are opaque nonblank
+        strings; UUIDs are recommended but the socket runtime does not validate UUIDs.
+
+        `balance = sum(put.amount) - sum(take.amount)` over the entire selected
+        scope, BEFORE date filtering or paging. It is authoritative; any stored
+        credits snapshot loses to this calculation. Negative balances are allowed.
+        `startAt` and `endAt` filter `entry.timestamp` as ISO 8601 instants with
+        INCLUSIVE bounds; startAt must not be after endAt. Bounds affect `total`,
+        not `balance`. `total` counts all matching entries before paging.
+        Timestamps must be parseable instants with a timezone; leap seconds are unsupported.
+
+        Entries are sorted by timestamp descending then opaque id ascending
+        (ordinal string comparison). Default offset is 0 and default limit is 50.
+        Maximum effective limit is 200; larger positive safe integers are clamped.
+        Noninteger/negative offsets and noninteger/nonpositive limits, including
+        numeric strings, null and unsafe integers, fail with `invalid-request`.
+        Offset beyond total returns an empty page with unchanged total and balance.
+        Paging is stable for an unchanged ledger, not a snapshot across mutations.
+
+        Failures always contain entries: [], total: 0, balance: 0, plus reason.
+        Failure zeros are NOT an account balance. Invalid paging values are replaced
+        by offset 0 / limit 50 in failure envelopes; valid limits are clamped.
+        Unknown and unowned character IDs share `character-not-found` to avoid
+        disclosing another player's characters. Invalid sessions also emit the
+        existing `invalid-session` event, then the typed ledger failure.
+        Missing correlation metadata in malformed requests is echoed as null.
+        Session validation precedes request validation.
       operationId: socketCreditLedgerList
       tags: [Ledger]
       requestBody:
@@ -26,41 +58,270 @@ paths:
             schema:
               $ref: '#/components/schemas/CreditLedgerListRequest'
             examples:
-              listCredits:
-                summary: Retrieve credit ledger entries with correlation metadata
+              characterLedger:
+                summary: Character-scoped request
                 value:
                   playerName: PilotOne
                   sessionKey: session-123
-                  correlationId: 5d8024fd-2cf0-4afd-8c46-b2f3ce65db2e
+                  characterId: character-1
+                  correlationId: profile-ledger-1
+                  requestIdentity:
+                    operation: credit-ledger-list
+                    entityType: credit-ledger
+                    containerId: character-1
+              playerLedger:
+                summary: Aggregate all owned characters
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: player-ledger-1
                   requestIdentity:
                     operation: credit-ledger-list
                     entityType: credit-ledger
                     containerId: player-pilotone
+              filteredPage:
+                summary: Inclusive date bounds, clamped limit
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  characterId: character-1
+                  correlationId: profile-ledger-1
+                  requestIdentity:
+                    operation: credit-ledger-list
+                    entityType: credit-ledger
+                    containerId: character-1
+                  startAt: '2026-05-05T00:00:00.000Z'
+                  endAt: '2026-05-05T01:00:00.000Z'
+                  offset: 0
+                  limit: 250
+              invalidSession:
+                summary: Invalid session request
+                value:
+                  playerName: PilotOne
+                  sessionKey: expired-session
+                  characterId: character-1
+                  correlationId: profile-ledger-1
+                  requestIdentity:
+                    operation: credit-ledger-list
+                    entityType: credit-ledger
+                    containerId: character-1
+              unknownCharacter:
+                summary: Unknown character request
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  characterId: missing-character
+                  correlationId: profile-ledger-1
+                  requestIdentity:
+                    operation: credit-ledger-list
+                    entityType: credit-ledger
+                    containerId: missing-character
+              unownedCharacter:
+                summary: Character belonging to a different player
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  characterId: another-players-character
+                  correlationId: profile-ledger-1
+                  requestIdentity:
+                    operation: credit-ledger-list
+                    entityType: credit-ledger
+                    containerId: another-players-character
+      x-invalid-request-examples:
+        badLimit:
+          playerName: PilotOne
+          sessionKey: session-123
+          characterId: character-1
+          correlationId: profile-ledger-1
+          requestIdentity:
+            operation: credit-ledger-list
+            entityType: credit-ledger
+            containerId: character-1
+          limit: 0
+        badOffset:
+          playerName: PilotOne
+          sessionKey: session-123
+          characterId: character-1
+          correlationId: profile-ledger-1
+          requestIdentity:
+            operation: credit-ledger-list
+            entityType: credit-ledger
+            containerId: character-1
+          offset: -1
       responses:
         '200':
-          description: credit-ledger-list-response
+          description: Socket credit-ledger-list-response on success or failure (not HTTP status semantics)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreditLedgerListResponse'
               examples:
                 successfulCreditLedger:
-                  summary: Success echoes correlation metadata with paged ledger entries
+                  summary: Page containing movements and full-scope balance
                   value:
                     success: true
                     message: Credit ledger retrieved successfully
                     playerName: PilotOne
-                    correlationId: 5d8024fd-2cf0-4afd-8c46-b2f3ce65db2e
+                    correlationId: profile-ledger-1
                     requestIdentity:
                       operation: credit-ledger-list
                       entityType: credit-ledger
-                      containerId: player-pilotone
+                      containerId: character-1
+                    entries:
+                      - id: credit-2
+                        type: take
+                        amount: 100
+                        description: Market purchase
+                        timestamp: '2026-05-05T01:00:00.000Z'
+                        referenceId: order-1
+                      - id: credit-1
+                        type: put
+                        amount: 425
+                        description: Starting credits
+                        timestamp: '2026-05-05T00:00:00.000Z'
+                        referenceId: null
+                    total: 2
+                    balance: 325
+                    offset: 0
+                    limit: 50
+                emptyLedger:
+                  summary: Empty scope, zero balance
+                  value:
+                    success: true
+                    message: Credit ledger retrieved successfully
+                    playerName: PilotOne
+                    correlationId: profile-ledger-1
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: character-1
                     entries: []
                     total: 0
+                    balance: 0
+                    offset: 0
+                    limit: 50
+                emptyFilteredPage:
+                  summary: No date matches; balance still includes the full ledger
+                  value:
+                    success: true
+                    message: Credit ledger retrieved successfully
+                    playerName: PilotOne
+                    correlationId: profile-ledger-1
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: character-1
+                    entries: []
+                    total: 0
+                    balance: 325
+                    offset: 0
+                    limit: 50
+                invalidSession:
+                  summary: Invalid session, also emits invalid-session
+                  value:
+                    success: false
+                    message: Invalid session
+                    reason: invalid-session
+                    playerName: PilotOne
+                    correlationId: profile-ledger-1
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: character-1
+                    entries: []
+                    total: 0
+                    balance: 0
+                    offset: 0
+                    limit: 50
+                unknownCharacter:
+                  summary: Unknown character
+                  value:
+                    success: false
+                    reason: character-not-found
+                    message: Character was not found or is not owned by this player
+                    playerName: PilotOne
+                    correlationId: profile-ledger-1
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: missing-character
+                    entries: []
+                    total: 0
+                    balance: 0
+                    offset: 0
+                    limit: 50
+                unownedCharacter:
+                  summary: Same non-disclosing failure for an unowned character
+                  value:
+                    success: false
+                    reason: character-not-found
+                    message: Character was not found or is not owned by this player
+                    playerName: PilotOne
+                    correlationId: profile-ledger-1
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: another-players-character
+                    entries: []
+                    total: 0
+                    balance: 0
+                    offset: 0
+                    limit: 50
+                badLimit:
+                  summary: limit 0 rejected, failure limit defaults to 50
+                  value:
+                    success: false
+                    reason: invalid-request
+                    message: Invalid credit ledger request
+                    playerName: PilotOne
+                    correlationId: profile-ledger-1
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: character-1
+                    entries: []
+                    total: 0
+                    balance: 0
+                    offset: 0
+                    limit: 50
+                badOffset:
+                  summary: offset -1 rejected, failure offset defaults to 0
+                  value:
+                    success: false
+                    reason: invalid-request
+                    message: Invalid credit ledger request
+                    playerName: PilotOne
+                    correlationId: profile-ledger-1
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: character-1
+                    entries: []
+                    total: 0
+                    balance: 0
+                    offset: 0
+                    limit: 50
+                internalError:
+                  summary: Retrieval failure, no success-shaped fallback
+                  value:
+                    success: false
+                    reason: internal-error
+                    message: Credit ledger could not be retrieved
+                    playerName: PilotOne
+                    correlationId: profile-ledger-1
+                    requestIdentity:
+                      operation: credit-ledger-list
+                      entityType: credit-ledger
+                      containerId: character-1
+                    entries: []
+                    total: 0
+                    balance: 0
                     offset: 0
                     limit: 50
 components:
   schemas:
+    CreditLedgerEntry:
+      $ref: '../../schemas/credit-ledger-entry.schema.json'
     CreditLedgerListRequest:
       $ref: '../../schemas/credit-ledger-list-request.schema.json'
     CreditLedgerListResponse:

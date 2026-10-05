@@ -95,6 +95,7 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
   ]);
   assert.deepEqual(characters[0].creditLedger, [
     {
+      id: characters[0].creditLedger[0].id,
       type: 'put',
       amount: 425,
       description: 'Starting credits',
@@ -102,6 +103,7 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
       referenceId: null,
     },
   ]);
+  assert.ok(characters[0].creditLedger[0].id);
   assert.deepEqual(context.getItem('player-1-ship-1-item-1'), {
     id: 'player-1-ship-1-item-1',
     itemType: 'expendable-dart-drone',

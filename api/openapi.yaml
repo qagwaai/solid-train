@@ -24,6 +24,10 @@ info:
     - `/socket/market-buy` supports canonical cargo purchases and seeded ship listing purchases.
     - Seeded ship purchases require `quantity: 1` and return `transaction.purchasedShip` metadata.
     - Seeded ship purchases create a new owned ship with bundled starter inventory.
+
+    Credit ledger contract (4.0.0): typed movements with stable IDs, authoritative
+    full-scope balance, explicit scope/filter/paging rules and typed failures.
+    See the Ledger module for socket event names and examples.
 servers:
   - url: http://localhost:3000
 tags:

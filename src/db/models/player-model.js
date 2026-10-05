@@ -1,5 +1,6 @@
 'use strict';
 
+const { legacyCreditLedgerEntryId } = require('../../model/credit-ledger-entry');
 function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
   const characterBustSchema = new mongoose.Schema(
     {
@@ -65,6 +66,10 @@ function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
 
   const creditLedgerEntrySchema = new mongoose.Schema(
     {
+      id: {
+        type: String,
+        required: true,
+      },
       type: {
         type: String,
         enum: ['put', 'take'],
@@ -73,6 +78,7 @@ function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
       amount: {
         type: Number,
         required: true,
+        validate: (value) => Number.isFinite(value) && value > 0,
       },
       description: {
         type: String,
@@ -114,6 +120,14 @@ function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
     },
     { _id: false }
   );
+
+  characterSchema.pre('validate', function assignLegacyLedgerIds() {
+    this.creditLedger.forEach((entry, index) => {
+      if (!entry.id) {
+        entry.id = legacyCreditLedgerEntryId(this.id, index, entry);
+      }
+    });
+  });
 
   const playerSchema = new mongoose.Schema({
     playerId: {

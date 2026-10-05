@@ -80,8 +80,8 @@ async function getPlayerAsync(ctx, playerName) {
   return persistenceBridge.getPlayerAsync(ctx, playerName);
 }
 
-async function getCharactersAsync(ctx, playerName) {
-  return persistenceBridge.getCharactersAsync(ctx, playerName);
+async function getCharactersAsync(ctx, playerName, options = {}) {
+  return persistenceBridge.getCharactersAsync(ctx, playerName, options);
 }
 
 async function registerPlayerAsync(ctx, playerData) {

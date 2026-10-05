@@ -25,8 +25,9 @@ async function getPlayerAsync(ctx, playerName) {
  * @param {string} playerName
  * @returns {Promise<Object[]>}
  */
-async function getCharactersAsync(ctx, playerName) {
-  const characters = await ctx.withDbOrNull('fetching characters from DB', (databaseService) =>
+async function getCharactersAsync(ctx, playerName, options = {}) {
+  const read = options.strict ? ctx.withDb.bind(ctx) : ctx.withDbOrNull.bind(ctx);
+  const characters = await read('fetching characters from DB', (databaseService) =>
     databaseService.getCharacters(playerName)
   );
   if (Array.isArray(characters)) {
@@ -63,13 +64,14 @@ async function updatePlayerAsync(ctx, playerName, updates) {
 }
 
 async function addCharacterAsync(ctx, playerName, characterData) {
+  const character = ctx.normalizeCharacter(characterData);
   await ctx.withDb('adding character in DB', (databaseService) =>
-    databaseService.addCharacter(playerName, characterData)
+    databaseService.addCharacter(playerName, character)
   );
 
   const normalizedPlayerName = ctx.normalizePlayerName(playerName);
   const characters = ctx.getCharacters(normalizedPlayerName);
-  characters.push(ctx.normalizeCharacter(characterData));
+  characters.push(character);
   ctx.setCharacters(normalizedPlayerName, characters);
 }
 

@@ -63,6 +63,7 @@ const {
   MarketInventoryListMessageHandler,
 } = require('./handlers/market-inventory-list-message-handler');
 const { MarketLedgerListMessageHandler } = require('./handlers/market-ledger-list-message-handler');
+const { CreditLedgerListMessageHandler } = require('./handlers/credit-ledger-list-message-handler');
 const { MarketBuyMessageHandler } = require('./handlers/market-buy-message-handler');
 const { MarketSellMessageHandler } = require('./handlers/market-sell-message-handler');
 const {
@@ -182,6 +183,7 @@ function createServer(options = {}) {
     messageHandlerContext
   );
   const marketLedgerListMessageHandler = new MarketLedgerListMessageHandler(messageHandlerContext);
+  const creditLedgerListMessageHandler = new CreditLedgerListMessageHandler(messageHandlerContext);
   const marketBuyMessageHandler = new MarketBuyMessageHandler(messageHandlerContext);
   const marketSellMessageHandler = new MarketSellMessageHandler(messageHandlerContext);
   const marketListingCreateMessageHandler = new MarketListingCreateMessageHandler(
@@ -217,6 +219,7 @@ function createServer(options = {}) {
   );
 
   app.get('/openapi.yaml', (req, res) => {
+    res.set('Cache-Control', 'no-store');
     res.sendFile(openApiSpecPath);
   });
 
@@ -225,12 +228,15 @@ function createServer(options = {}) {
   });
 
   // Expose modular OpenAPI files so root $ref pointers can resolve at runtime.
-  app.use('/openapi', express.static(openApiModulesDirPath));
+  const contractStaticOptions = {
+    setHeaders: (res) => res.setHeader('Cache-Control', 'no-store'),
+  };
+  app.use('/openapi', express.static(openApiModulesDirPath, contractStaticOptions));
 
   // Expose schema files so external $ref values in openapi.yaml can resolve.
-  app.use('/schemas', express.static(schemaDirPath));
+  app.use('/schemas', express.static(schemaDirPath, contractStaticOptions));
   // Expose schemas under /openapi/schemas so relative refs inside /openapi/* modules resolve.
-  app.use('/openapi/schemas', express.static(schemaDirPath));
+  app.use('/openapi/schemas', express.static(schemaDirPath, contractStaticOptions));
 
   app.use(
     '/docs',
@@ -308,6 +314,7 @@ function createServer(options = {}) {
         marketQuoteMessageHandler,
         marketInventoryListMessageHandler,
         marketLedgerListMessageHandler,
+        creditLedgerListMessageHandler,
         marketBuyMessageHandler,
         marketSellMessageHandler,
         marketListingCreateMessageHandler,

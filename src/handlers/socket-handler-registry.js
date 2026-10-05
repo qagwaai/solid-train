@@ -32,6 +32,11 @@ const { MARKET_LIST_BY_LOCATION_REQUEST_EVENT } = require('../model/market-list-
 const { MARKET_QUOTE_REQUEST_EVENT } = require('../model/market-quote');
 const { MARKET_INVENTORY_LIST_REQUEST_EVENT } = require('../model/market-inventory-list');
 const { MARKET_LEDGER_LIST_REQUEST_EVENT } = require('../model/market-ledger-list');
+const {
+  CREDIT_LEDGER_LIST_REQUEST_EVENT,
+  CREDIT_LEDGER_LIST_RESPONSE_EVENT,
+  creditLedgerFailure,
+} = require('../model/credit-ledger-list');
 const { MARKET_BUY_REQUEST_EVENT } = require('../model/market-buy');
 const { MARKET_SELL_REQUEST_EVENT } = require('../model/market-sell');
 const { MARKET_LISTING_CREATE_REQUEST_EVENT } = require('../model/market-listing-create');
@@ -93,6 +98,7 @@ const RESPONSE_CHANNEL_BY_OPERATION = Object.freeze({
   'market-quote': 'market-quote-response',
   'market-inventory-list': 'market-inventory-list-response',
   'market-ledger-list': 'market-ledger-list-response',
+  'credit-ledger-list': CREDIT_LEDGER_LIST_RESPONSE_EVENT,
   'market-buy': 'market-buy-response',
   'market-sell': 'market-sell-response',
   'market-listing-create': 'market-listing-create-response',
@@ -163,6 +169,9 @@ function resolveCorrelationMetadata(entry, payload) {
 }
 
 function buildEchoPayload(entry, eventName, payload, correlationMetadata) {
+  if (entry.handlerOwnsCorrelation === true) {
+    return payload;
+  }
   if (eventName === 'invalid-session') {
     return payload;
   }
@@ -417,6 +426,15 @@ const SOCKET_HANDLER_REGISTRY = [
     errorLabel: 'Market inventory list',
   },
   {
+    event: CREDIT_LEDGER_LIST_REQUEST_EVENT,
+    handlerKey: 'creditLedgerListMessageHandler',
+    errorLabel: 'Credit ledger list',
+    canonicalOperation: 'credit-ledger-list',
+    handlerOwnsCorrelation: true,
+    failureResponseEvent: CREDIT_LEDGER_LIST_RESPONSE_EVENT,
+    failureResponse: creditLedgerFailure,
+  },
+  {
     event: MARKET_LEDGER_LIST_REQUEST_EVENT,
     handlerKey: 'marketLedgerListMessageHandler',
     errorLabel: 'Market ledger list',
@@ -504,19 +522,31 @@ function registerSocketHandlers(socket, handlersByKey, context) {
       const correlationMetadata = resolveCorrelationMetadata(entry, payload);
       const scopedSocket = createScopedSocket(entry, socket, correlationMetadata);
 
-      // Session guard: enforced centrally for all handlers except those that explicitly opt out.
-      if (entry.requiresSession !== false) {
-        if (!(await context.hasValidSessionAsync(payload))) {
-          const response = { message: INVALID_SESSION_MESSAGE };
-          scopedSocket.emit(INVALID_SESSION_EVENT, response);
-          return;
-        }
-      }
-
       try {
+        // Session guard: enforced centrally for all handlers except those that explicitly opt out.
+        if (entry.requiresSession !== false) {
+          if (!(await context.hasValidSessionAsync(payload))) {
+            const response = { message: INVALID_SESSION_MESSAGE };
+            scopedSocket.emit(INVALID_SESSION_EVENT, response);
+            if (entry.failureResponse) {
+              scopedSocket.emit(
+                entry.failureResponseEvent,
+                entry.failureResponse(payload, 'invalid-session', INVALID_SESSION_MESSAGE)
+              );
+            }
+            return;
+          }
+        }
+
         await handler.handle(scopedSocket, payload);
       } catch (error) {
         socketLogger.error(`[socket] ${entry.errorLabel} handler error: ${error.message}`);
+        if (entry.failureResponse) {
+          scopedSocket.emit(
+            entry.failureResponseEvent,
+            entry.failureResponse(payload, 'internal-error', 'Credit ledger could not be retrieved')
+          );
+        }
       }
     });
   }

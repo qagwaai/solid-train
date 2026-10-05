@@ -4,26 +4,51 @@
   "type": "object",
   "required": ["playerName", "sessionKey", "correlationId", "requestIdentity"],
   "properties": {
-    "playerName": { "type": "string" },
-    "sessionKey": { "type": "string" },
+    "playerName": { "type": "string", "minLength": 1 },
+    "sessionKey": { "type": "string", "minLength": 1 },
     "correlationId": {
       "type": "string",
-      "format": "uuid",
-      "description": "Client-generated UUID v4 used to correlate each request/response pair."
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Opaque nonblank client-generated string, echoed exactly. UUIDs are recommended, not validated, matching socket runtime behavior."
     },
     "requestIdentity": {
       "type": "object",
       "required": ["operation", "entityType", "containerId"],
       "properties": {
-        "operation": { "type": "string" },
-        "entityType": { "type": "string" },
-        "containerId": { "type": "string" }
+        "operation": { "type": "string", "const": "credit-ledger-list" },
+        "entityType": { "type": "string", "const": "credit-ledger" },
+        "containerId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exactly characterId when present; otherwise player-<trimmed lowercase playerName>. Additional identity properties are preserved."
+        }
       }
     },
-    "characterId": { "type": "string" },
-    "startAt": { "type": "string", "format": "date-time" },
-    "endAt": { "type": "string", "format": "date-time" },
-    "offset": { "type": "integer" },
-    "limit": { "type": "integer" }
+    "characterId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Owned character scope. If absent, aggregate all characters owned by this player."
+    },
+    "startAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "[Tt][0-9]{2}:[0-9]{2}:[0-5][0-9]",
+      "description": "Inclusive lower bound on entry.timestamp, compared as instants. Affects total, not balance. Must not be after endAt."
+    },
+    "endAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "[Tt][0-9]{2}:[0-9]{2}:[0-5][0-9]",
+      "description": "Inclusive upper bound on entry.timestamp. Affects total, not balance."
+    },
+    "offset": { "type": "integer", "minimum": 0, "maximum": 9007199254740991, "default": 0 },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991,
+      "default": 50,
+      "description": "Maximum effective limit is 200; larger positive safe integers are clamped to 200. Nonintegers, nonpositive values and unsafe integers fail with invalid-request."
+    }
   }
 }

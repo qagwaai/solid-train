@@ -32,15 +32,22 @@
       "type": "array",
       "items": {
         "type": "object",
-        "description": "Character summary snapshot. Only id and characterName are guaranteed; additional canonical fields may be present.",
-        "required": ["id", "characterName"],
+        "description": "Character summary snapshot. credits and creditLedger are always included. Use credit-ledger-list for filtered/paged ledgers and the authoritative full balance.",
+        "required": ["id", "characterName", "credits", "creditLedger"],
         "properties": {
           "id": { "type": "string" },
           "characterName": { "type": "string" },
           "level": { "type": "number" },
           "createdAt": { "type": "string", "format": "date-time" },
-          "credits": { "type": "number" },
-          "creditLedger": { "type": "array" },
+          "credits": {
+            "type": "number",
+            "description": "Snapshot derived from the entire creditLedger: sum(put.amount) - sum(take.amount); zero for an empty ledger."
+          },
+          "creditLedger": {
+            "type": "array",
+            "description": "Complete unfiltered ledger in append order, included even when empty. Entry IDs match credit-ledger-list.",
+            "items": { "$ref": "./credit-ledger-entry.schema.json" }
+          },
           "ships": { "type": "array" },
           "inGame": { "type": "boolean" },
           "gameJoinedAt": { "type": "string", "format": "date-time" },

@@ -206,6 +206,10 @@ paths:
       summary: character-list-request
       description: |
         Returns the current player's character summaries.
+        Each summary includes credits (derived from its complete ledger) and
+        creditLedger (typed entries in append order, including stable IDs).
+        Both are present even when the ledger is empty. Prefer credit-ledger-list
+        for filtered/paged entries and the authoritative full-scope balance.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).
@@ -258,6 +262,8 @@ paths:
                     characters:
                       - id: character-1
                         characterName: RangerOne
+                        credits: 0
+                        creditLedger: []
                 richCharacterSummary:
                   summary: Character list may include ships, credits, and joined-game activity fields
                   value:
@@ -273,6 +279,13 @@ paths:
                       - id: character-1
                         characterName: RangerOne
                         credits: 500
+                        creditLedger:
+                          - id: credit-start-1
+                            type: put
+                            amount: 500
+                            description: Starting credits
+                            timestamp: '2026-04-17T00:00:00.000Z'
+                            referenceId: null
                         inGame: true
                         gameJoinedAt: '2026-04-17T00:00:00.000Z'
                         gameLastMessageReceivedAt: '2026-04-17T00:15:00.000Z'

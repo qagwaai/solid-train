@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "credit-ledger-entry",
+  "type": "object",
+  "description": "An immutable credit movement. put adds credits; take subtracts credits. IDs are opaque, unique across the player's ledger and stable across reads and restarts.",
+  "required": ["id", "type", "amount", "description", "timestamp", "referenceId"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "enum": ["put", "take"] },
+    "amount": { "type": "number", "exclusiveMinimum": 0 },
+    "description": { "type": "string" },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "[Tt][0-9]{2}:[0-9]{2}:[0-5][0-9]",
+      "description": "ISO 8601 instant with timezone; leap seconds are unsupported."
+    },
+    "referenceId": { "type": ["string", "null"] }
+  }
+}
