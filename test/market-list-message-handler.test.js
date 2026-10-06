@@ -4,11 +4,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { MarketListMessageHandler } = require('../src/handlers/market-list-message-handler');
 const { MARKET_LIST_RESPONSE_EVENT } = require('../src/model/market-list');
+const { createMockSocket, seedPlayer } = require('../test-support/message-handler-test-helpers');
 const {
-  createMockSocket,
-  seedPlayer,
-} = require('../test-support/message-handler-test-helpers');
-const { createStationMarketTestContext: createTestContext } = require('../test-support/station-market-test-helpers');
+  createStationMarketTestContext: createTestContext,
+} = require('../test-support/station-market-test-helpers');
 
 test('MarketListMessageHandler returns markets for a solar system', async () => {
   const context = createTestContext();

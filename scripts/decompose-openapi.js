@@ -17,13 +17,13 @@ function parseYamlPaths(yaml) {
   const paths = {};
   let currentPath = null;
   let currentPathContent = [];
-  let indentLevel = 0;
+  const indentLevel = 0;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
     // Detect path declarations (start with "  /" at root of paths)
-    if (line.match(/^  \//) && !line.match(/^    /)) {
+    if (line.match(/^ {2}\//) && !line.match(/^ {4}/)) {
       // Save previous path if exists
       if (currentPath) {
         paths[currentPath] = currentPathContent.join('\n');

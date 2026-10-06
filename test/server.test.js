@@ -220,9 +220,7 @@ test('GET /docs/celestial-body-contract.md serves the specific Markdown contract
   const port = await listen(server);
 
   try {
-    const response = await httpGetJson(
-      `http://127.0.0.1:${port}/docs/celestial-body-contract.md`
-    );
+    const response = await httpGetJson(`http://127.0.0.1:${port}/docs/celestial-body-contract.md`);
     assert.equal(response.statusCode, 200);
     assert.match(response.headers['content-type'], /^text\/markdown; charset=utf-8$/);
     assert.match(response.body, /^# Celestial bodies/m);
@@ -2672,7 +2670,7 @@ test('celestial body upsert emits invalid session for wrong session key', async 
 });
 
 test('celestial body list returns sorted bodies filtered by spherical distance and limit', async () => {
-  const { server, io } = createServer();
+  const { server, io } = createServer({ initializeContext: false });
   const port = await listen(server);
 
   const client = connectClient(port);

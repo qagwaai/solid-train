@@ -14,8 +14,7 @@ function cacheMarket(ctx, market) {
   // General orbit normalization has a "now" default; station snapshots must
   // retain an absent/invalid reference epoch so materialization rejects it.
   if (normalized.siteType === 'station' && normalized.trajectory?.orbit) {
-    normalized.trajectory.orbit.epoch =
-      ctx.toNonEmptyString(market?.trajectory?.orbit?.epoch);
+    normalized.trajectory.orbit.epoch = ctx.toNonEmptyString(market?.trajectory?.orbit?.epoch);
   }
 
   ctx.marketsByKey.set(buildMarketKey(normalized.marketId, normalized.solarSystemId), normalized);

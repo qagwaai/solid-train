@@ -146,8 +146,9 @@ test('SolarSystemListMessageHandler populates count fields when celestial bodies
   ]);
 
   // Seed markets in 'sol'
-  const trajectory = buildSeededMarketsForSolarSystem('sol')
-    .find((market) => market.marketId === 'sol-earth-orbit').trajectory;
+  const trajectory = buildSeededMarketsForSolarSystem('sol').find(
+    (market) => market.marketId === 'sol-earth-orbit'
+  ).trajectory;
   trajectory.orbit.anchorBodyId = 'sol-planet-1';
   context.marketsByKey.set(
     'sol:market-1',

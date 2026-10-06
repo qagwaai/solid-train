@@ -220,7 +220,7 @@ class MarketListByLocationMessageHandler {
   }
 
   async listRouteGatesAsync(solarSystemId) {
-    let gateEntities = [];
+    let gateEntities;
 
     if (this.context.databaseService?.getJumpGatesAsync) {
       gateEntities = await this.context.databaseService.getJumpGatesAsync();

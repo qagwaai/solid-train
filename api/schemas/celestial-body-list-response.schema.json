@@ -19,7 +19,9 @@
       "type": ["object", "null"],
       "properties": {
         "velocityKmPerSec": { "$ref": "#/definitions/vector3" },
-        "angularVelocityRadPerSec": { "anyOf": [{ "$ref": "#/definitions/vector3" }, { "type": "null" }] }
+        "angularVelocityRadPerSec": {
+          "anyOf": [{ "$ref": "#/definitions/vector3" }, { "type": "null" }]
+        }
       },
       "required": ["velocityKmPerSec"]
     },
@@ -72,8 +74,24 @@
       "allOf": [{ "$ref": "./celestial-classification.schema.json" }],
       "description": "Canonical celestial body payload, with distanceKm added for radius queries.",
       "properties": {
-        "id": { "type": "string", "description": "Durable canonical identity and deterministic appearance-generator input." },
-        "surfaceArchetype": { "type": "string", "enum": ["rocky", "lava", "ocean", "gas-giant", "ice-giant", "star", "rocky-moon", "icy-moon", "asteroid"] },
+        "id": {
+          "type": "string",
+          "description": "Durable canonical identity and deterministic appearance-generator input."
+        },
+        "surfaceArchetype": {
+          "type": "string",
+          "enum": [
+            "rocky",
+            "lava",
+            "ocean",
+            "gas-giant",
+            "ice-giant",
+            "star",
+            "rocky-moon",
+            "icy-moon",
+            "asteroid"
+          ]
+        },
         "catalogId": { "type": "string" },
         "sourceScanId": { "type": "string" },
         "createdByCharacterId": { "type": "string" },
@@ -97,9 +115,19 @@
           "type": "array",
           "items": { "$ref": "#/definitions/debrisEntry" }
         },
-        "bodyType": { "type": "string", "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"] },
-        "spectralClass": { "type": ["string", "null"], "description": "Optional per-body source spectral class; omitted and null both mean unknown. Current normalized reads serialize unknown as null." },
-        "luminositySolar": { "type": ["number", "null"], "minimum": 0, "description": "Optional source luminosity in solar luminosities; omitted and null both mean unknown. Current normalized reads serialize unknown as null. Zero is valid and is not equivalent to unknown; this is never a generation fallback." },
+        "bodyType": {
+          "type": "string",
+          "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
+        },
+        "spectralClass": {
+          "type": ["string", "null"],
+          "description": "Optional per-body source spectral class; omitted and null both mean unknown. Current normalized reads serialize unknown as null."
+        },
+        "luminositySolar": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Optional source luminosity in solar luminosities; omitted and null both mean unknown. Current normalized reads serialize unknown as null. Zero is valid and is not equivalent to unknown; this is never a generation fallback."
+        },
         "displayName": { "type": ["string", "null"] },
         "parentBodyId": { "type": ["string", "null"] },
         "orbitalElements": { "$ref": "./orbital-elements.schema.json" },

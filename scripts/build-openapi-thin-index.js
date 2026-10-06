@@ -22,24 +22,24 @@ function parseOpenApiYamlText(yamlText) {
     }
 
     if (section === 'tags') {
-      const tagMatch = line.match(/^  - name:\s*(.+)\s*$/);
+      const tagMatch = line.match(/^ {2}- name:\s*(.+)\s*$/);
       if (tagMatch) tags.push(tagMatch[1].trim());
       continue;
     }
 
     if (section === 'paths') {
-      const pathMatch = line.match(/^  (\/[^:]+):\s*$/);
+      const pathMatch = line.match(/^ {2}(\/[^:]+):\s*$/);
       if (pathMatch) paths.push(pathMatch[1]);
       continue;
     }
 
     if (section === 'components') {
-      if (/^  schemas:\s*$/.test(line)) {
+      if (/^ {2}schemas:\s*$/.test(line)) {
         inSchemas = true;
         continue;
       }
       if (inSchemas) {
-        const schemaMatch = line.match(/^    ([A-Za-z0-9_]+):\s*$/);
+        const schemaMatch = line.match(/^ {4}([A-Za-z0-9_]+):\s*$/);
         if (schemaMatch) schemas.push(schemaMatch[1]);
       }
     }

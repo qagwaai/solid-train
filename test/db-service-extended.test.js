@@ -259,7 +259,12 @@ test('DatabaseService celestial upsert uses id query and returns document', asyn
       createdAt: '2026-10-04T00:00:00.000Z',
       updatedAt: '2026-10-04T00:00:00.000Z',
       state: 'active',
-      spatial: { solarSystemId: 'sol', frame: 'barycentric', positionKm: { x: 0, y: 0, z: 0 }, epochMs: 0 },
+      spatial: {
+        solarSystemId: 'sol',
+        frame: 'barycentric',
+        positionKm: { x: 0, y: 0, z: 0 },
+        epochMs: 0,
+      },
       observability: { visibility: 'visible', scanState: 'scanned' },
       composition: { rarity: 'Common', material: 'silicate', textureColor: '#888888' },
     });

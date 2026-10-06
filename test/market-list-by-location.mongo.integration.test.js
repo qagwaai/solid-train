@@ -10,7 +10,9 @@ const {
 } = require('../src/handlers/market-list-by-location-message-handler');
 const { createMockSocket, seedPlayer } = require('../test-support/message-handler-test-helpers');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
-const { buildSeededCelestialBodiesForSolarSystem } = require('../src/model/solar-system-celestial-seed');
+const {
+  buildSeededCelestialBodiesForSolarSystem,
+} = require('../src/model/solar-system-celestial-seed');
 
 let mongoHarness = null;
 

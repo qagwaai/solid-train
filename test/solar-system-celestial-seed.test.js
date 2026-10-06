@@ -205,10 +205,7 @@ test('materialized celestial snapshots equal orbit positions plus the parent sna
   };
 
   for (const body of seeded.filter((entry) => entry.orbitalElements)) {
-    const relative = computeRelativePositionKm(
-      body.orbitalElements,
-      body.spatial.epochMs
-    );
+    const relative = computeRelativePositionKm(body.orbitalElements, body.spatial.epochMs);
     const parent = byId.get(body.parentBodyId);
     const expected = parent
       ? {

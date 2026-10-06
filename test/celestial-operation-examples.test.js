@@ -25,19 +25,23 @@ for (const [moduleName, operationFilter, expectedCount] of [
         const payloads = [
           ['request', operation.requestBody],
           ...Object.entries(operation.responses || {}).map(([status, response]) => [
-            `response ${status}`, response,
+            `response ${status}`,
+            response,
           ]),
         ];
         for (const [kind, payload] of payloads) {
           for (const content of Object.values(payload?.content || {})) {
             const validate = ajv.compile(content.schema);
             const examples = Object.entries(content.examples || {});
-            if (content.example !== undefined) examples.push(['example', { value: content.example }]);
+            if (content.example !== undefined)
+              examples.push(['example', { value: content.example }]);
             for (const [name, example] of examples) {
               assert.ok(Object.hasOwn(example, 'value'), `Unresolved example ${name}`);
               count += 1;
               if (!validate(example.value)) {
-                failures.push(`${operationPath} ${kind} ${name}: ${ajv.errorsText(validate.errors, { separator: '; ' })}`);
+                failures.push(
+                  `${operationPath} ${kind} ${name}: ${ajv.errorsText(validate.errors, { separator: '; ' })}`
+                );
               }
             }
           }

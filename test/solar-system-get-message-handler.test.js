@@ -128,7 +128,10 @@ test('SolarSystemGetMessageHandler returns canonical asteroid fields for mission
 
 test('SolarSystemGetMessageHandler preserves catalog provenance and does not infer mission classification', async () => {
   const context = createTestContext();
-  seedPlayer(context, { playerName: 'PilotOne', characters: [{ id: 'char-1', characterName: 'Pilot' }] });
+  seedPlayer(context, {
+    playerName: 'PilotOne',
+    characters: [{ id: 'char-1', characterName: 'Pilot' }],
+  });
   const physicalCatalog = {
     massKg: 204000000000000000000,
     meanRadiusKm: 256,
@@ -145,7 +148,8 @@ test('SolarSystemGetMessageHandler preserves catalog provenance and does not inf
   });
   await context.addOrUpdateCelestialBodyAsync(body);
   const response = await new SolarSystemGetMessageHandler(context).buildResponse({
-    playerName: 'PilotOne', solarSystemId: 'sol',
+    playerName: 'PilotOne',
+    solarSystemId: 'sol',
   });
   const moon = response.bodies.find((entry) => entry.id === body.id);
   assert.equal(moon.bodyType, 'moon');

@@ -14,7 +14,8 @@ async function getMarkets(ctx, Market, query = {}) {
     // accidentally inserting a second set during revision reconciliation.
     const escapedSystemId = solarSystemId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const mongoQuery = solarSystemId
-      ? { solarSystemId: new RegExp(`^${escapedSystemId}$`, 'i') } : {};
+      ? { solarSystemId: new RegExp(`^${escapedSystemId}$`, 'i') }
+      : {};
     return await Market.find(mongoQuery).lean();
   } catch (error) {
     ctx.log(`[db-service] Error fetching markets: ${error.message}`);

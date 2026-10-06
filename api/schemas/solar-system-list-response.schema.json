@@ -16,7 +16,10 @@
       "type": ["object", "null"],
       "properties": {
         "hygId": { "type": "string" },
-        "spectralClass": { "type": ["string", "null"], "description": "Source spectral class; null when unknown, never a generation fallback." },
+        "spectralClass": {
+          "type": ["string", "null"],
+          "description": "Source spectral class; null when unknown, never a generation fallback."
+        },
         "spectralType": { "type": ["string", "null"] },
         "colorHex": { "type": "string" },
         "colorIndexBv": { "type": ["number", "null"] },

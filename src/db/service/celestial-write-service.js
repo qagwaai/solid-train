@@ -1,6 +1,10 @@
 'use strict';
 
-const { SURFACE_ARCHETYPE_VALUES, hasValidBodyClassification, CELESTIAL_BODY_STATE_VALUES } = require('../../model/celestial-body-upsert');
+const {
+  SURFACE_ARCHETYPE_VALUES,
+  hasValidBodyClassification,
+  CELESTIAL_BODY_STATE_VALUES,
+} = require('../../model/celestial-body-upsert');
 const { validateOrbitalElements } = require('../../model/celestial-orbital-elements');
 const { validateCelestialBody } = require('../../model/celestial-body-validation');
 
@@ -42,7 +46,9 @@ async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData) {
     }
 
     if (!hasValidBodyClassification(celestialBodyData)) {
-      throw new Error('Celestial body bodyType and surfaceArchetype must be a supported canonical pair');
+      throw new Error(
+        'Celestial body bodyType and surfaceArchetype must be a supported canonical pair'
+      );
     }
     if (!CELESTIAL_BODY_STATE_VALUES.includes(celestialBodyData.state)) {
       throw new Error('Celestial body state is required');
@@ -57,7 +63,9 @@ async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData) {
       throw new Error('Celestial body composition is required unless state is unscanned');
     }
     if (!validateCelestialBody(celestialBodyData)) {
-      throw new Error(`Invalid canonical celestial body: ${JSON.stringify(validateCelestialBody.errors)}`);
+      throw new Error(
+        `Invalid canonical celestial body: ${JSON.stringify(validateCelestialBody.errors)}`
+      );
     }
     const celestialBody = await CelestialBody.findOneAndUpdate(upsertQuery, celestialBodyData, {
       upsert: true,

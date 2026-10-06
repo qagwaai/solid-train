@@ -37,15 +37,15 @@ body classification is rejected rather than inferred from texture or old data.
 is a required non-null appearance input. These compatibility pairs preserve
 the seeded assignments and the explicit Sol catalog fallback mapping:
 
-| bodyType | Allowed surfaceArchetype |
-|---|---|
-| star | star |
-| planet | rocky, lava, ocean, gas-giant, ice-giant |
-| dwarf-planet | rocky, icy-moon |
-| moon | rocky-moon, icy-moon, lava |
-| asteroid | asteroid |
-| tno | icy-moon |
-| comet | asteroid |
+| bodyType     | Allowed surfaceArchetype                 |
+| ------------ | ---------------------------------------- |
+| star         | star                                     |
+| planet       | rocky, lava, ocean, gas-giant, ice-giant |
+| dwarf-planet | rocky, icy-moon                          |
+| moon         | rocky-moon, icy-moon, lava               |
+| asteroid     | asteroid                                 |
+| tno          | icy-moon                                 |
+| comet        | asteroid                                 |
 
 The nine archetype values are unchanged. `icy-moon` is also used by seeded
 dwarf planets/TNOs; its label does not change their bodyType. `lava` is used by
@@ -104,16 +104,16 @@ All affected requests/reads reference `api/schemas/orbital-elements.schema.json`
 The field may be absent/null; when present as an object, all eight elements are
 required and non-null:
 
-| Field | Units / requirement |
-|---|---|
-| semiMajorAxisKm | km, >= 0 |
-| eccentricity | dimensionless, 0 through 0.999; elliptic only |
-| inclinationDeg | degrees |
-| longitudeOfAscendingNodeDeg | degrees |
-| argumentOfPeriapsisDeg | degrees |
-| meanAnomalyAtEpochDeg | degrees |
-| orbitalPeriodSec | signed seconds; absolute duration >= 1 |
-| epoch | ISO 8601 date-time with timezone; reference element epoch |
+| Field                       | Units / requirement                                       |
+| --------------------------- | --------------------------------------------------------- |
+| semiMajorAxisKm             | km, >= 0                                                  |
+| eccentricity                | dimensionless, 0 through 0.999; elliptic only             |
+| inclinationDeg              | degrees                                                   |
+| longitudeOfAscendingNodeDeg | degrees                                                   |
+| argumentOfPeriapsisDeg      | degrees                                                   |
+| meanAnomalyAtEpochDeg       | degrees                                                   |
+| orbitalPeriodSec            | signed seconds; absolute duration >= 1                    |
+| epoch                       | ISO 8601 date-time with timezone; reference element epoch |
 
 `anchorBodyId` is optional/string/null. It identifies a non-star parent orbital
 origin, such as a moon's planet. Absent/null indicates the stellar/system origin;
@@ -163,17 +163,17 @@ is applied.
 
 The sources and current transformations are:
 
-| Producer / entity | Verified position source and operations | Basis limits |
-|---|---|---|
-| Sol curated celestial bodies | The orbital formula above. Root Sun is zero; children are recursively translated by their catalog parent's already-computed position. This includes moons, whose stored positions are system-origin snapshots rather than parent-relative offsets. | Sol's catalog documents J2000 ecliptic input elements for planets/dwarfs/asteroids/TNOs. Moon-source plane conventions are not declared/normalized by this code; no physical barycenter is calculated. |
-| Curated Alpha Centauri celestial bodies | Same formula and recursive parent summation. Alpha Cen A is zero; B, Proxima, and their planets use their stored curated elements and parent links. | Curated orbit values, including companion-star values, have no common physical basis identifier or normalization in the implementation. |
-| Procedural HYG-system celestial bodies | The primary star is zero. Additional stars use synthetic illustrative orbital elements; generated planets use generated elements. Both are passed through the same formula and parent sum. | HYG's `positionPc` is not used to position these local bodies. Procedural companions/planets are not transformed from HYG global coordinates. |
-| HYG stars and solar-system registry | `src/model/hyg-star-catalog.js` copies fixture `x/y/z` into `positionPc`; registry and star responses keep those values in parsecs. | Separate global catalog coordinates and units, not `spatial.positionKm`; this application does not rotate or convert them. The application does not establish their physical axis alignment. |
-| Moons and other parent-relative celestial orbits | Relative orbital vectors use the same Cartesian formula and are added to the parent's seeded system-origin vector inside the materializer. `anchorBodyId` only identifies a non-star orbit origin. | Consumers must not add the parent again. The source reference plane is not recorded per orbit. |
-| Ships | Ship normalizers accept a `spatial` object and retain its XYZ values; list responses return the normalized snapshot. No orbital calculation or display transform is applied. | The supplied source basis is not identified or checked beyond the `barycentric` enum and vector shape. |
-| Market stations | The catalog builder's `(semiMajorAxisKm, 0, 0)` is only an internal placeholder. Context seeding and list/location reads use `materializeStationSnapshotAsync` in `orbital-math.js`: resolve the exact canonical `trajectory.orbit.anchorBodyId`, evaluate the existing Kepler/rotation relative vector at the host's `spatial.epochMs`, add the host's already-system-origin position once, and copy its epoch. Route stations copy this materialized snapshot. | The relative vector is defined in the host's implementation Cartesian basis (right-handed, zero-inclination XY), not host-local/body-fixed axes. No additional parent translation or physical reference-plane normalization. Consumers use snapshots directly, never add a host. |
-| Starter mission asteroids | `mission-upsert-message-handler.js` places the ten positions on an XY ring using cosine/sine, adds small Z offsets, and sets `localOffsetKm = positionKm - clusterCenterKm`; the current cluster center is zero. | These are game-authored positions, not orbital elements or a sourced inertial frame. |
-| Gate route entities | `solar-system-gate-seed.js` stores game-authored XYZ values, which route responses copy. | No physical orientation or transform is specified. |
+| Producer / entity                                | Verified position source and operations                                                                                                                                                                                                                                                                                                                                                                                                                          | Basis limits                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sol curated celestial bodies                     | The orbital formula above. Root Sun is zero; children are recursively translated by their catalog parent's already-computed position. This includes moons, whose stored positions are system-origin snapshots rather than parent-relative offsets.                                                                                                                                                                                                               | Sol's catalog documents J2000 ecliptic input elements for planets/dwarfs/asteroids/TNOs. Moon-source plane conventions are not declared/normalized by this code; no physical barycenter is calculated.                                                                           |
+| Curated Alpha Centauri celestial bodies          | Same formula and recursive parent summation. Alpha Cen A is zero; B, Proxima, and their planets use their stored curated elements and parent links.                                                                                                                                                                                                                                                                                                              | Curated orbit values, including companion-star values, have no common physical basis identifier or normalization in the implementation.                                                                                                                                          |
+| Procedural HYG-system celestial bodies           | The primary star is zero. Additional stars use synthetic illustrative orbital elements; generated planets use generated elements. Both are passed through the same formula and parent sum.                                                                                                                                                                                                                                                                       | HYG's `positionPc` is not used to position these local bodies. Procedural companions/planets are not transformed from HYG global coordinates.                                                                                                                                    |
+| HYG stars and solar-system registry              | `src/model/hyg-star-catalog.js` copies fixture `x/y/z` into `positionPc`; registry and star responses keep those values in parsecs.                                                                                                                                                                                                                                                                                                                              | Separate global catalog coordinates and units, not `spatial.positionKm`; this application does not rotate or convert them. The application does not establish their physical axis alignment.                                                                                     |
+| Moons and other parent-relative celestial orbits | Relative orbital vectors use the same Cartesian formula and are added to the parent's seeded system-origin vector inside the materializer. `anchorBodyId` only identifies a non-star orbit origin.                                                                                                                                                                                                                                                               | Consumers must not add the parent again. The source reference plane is not recorded per orbit.                                                                                                                                                                                   |
+| Ships                                            | Ship normalizers accept a `spatial` object and retain its XYZ values; list responses return the normalized snapshot. No orbital calculation or display transform is applied.                                                                                                                                                                                                                                                                                     | The supplied source basis is not identified or checked beyond the `barycentric` enum and vector shape.                                                                                                                                                                           |
+| Market stations                                  | The catalog builder's `(semiMajorAxisKm, 0, 0)` is only an internal placeholder. Context seeding and list/location reads use `materializeStationSnapshotAsync` in `orbital-math.js`: resolve the exact canonical `trajectory.orbit.anchorBodyId`, evaluate the existing Kepler/rotation relative vector at the host's `spatial.epochMs`, add the host's already-system-origin position once, and copy its epoch. Route stations copy this materialized snapshot. | The relative vector is defined in the host's implementation Cartesian basis (right-handed, zero-inclination XY), not host-local/body-fixed axes. No additional parent translation or physical reference-plane normalization. Consumers use snapshots directly, never add a host. |
+| Starter mission asteroids                        | `mission-upsert-message-handler.js` places the ten positions on an XY ring using cosine/sine, adds small Z offsets, and sets `localOffsetKm = positionKm - clusterCenterKm`; the current cluster center is zero.                                                                                                                                                                                                                                                 | These are game-authored positions, not orbital elements or a sourced inertial frame.                                                                                                                                                                                             |
+| Gate route entities                              | `solar-system-gate-seed.js` stores game-authored XYZ values, which route responses copy.                                                                                                                                                                                                                                                                                                                                                                         | No physical orientation or transform is specified.                                                                                                                                                                                                                               |
 
 Thus the orbital seeder has a definite right-handed math convention and XY
 reference plane at zero inclination, but the current API does **not** guarantee
@@ -229,6 +229,10 @@ against the resolved host snapshot. They do not persist this correction or
 change orbital phase with request/asOf time. Fresh contexts hydrate persisted
 markets rather than serve bootstrap placeholders. Celestial cache freshness is
 unchanged: a context may retain a cached host until explicit refresh/reseed.
+Cold in-memory default initialization supplies missing canonical celestial bodies
+for Sol, Alpha Centauri, and Barnard's Star before caching their default markets.
+Existing supplied host snapshots are preserved. Database-backed initialization
+does not fabricate cached hosts; persisted celestial seeding remains explicit.
 Restocking remains separate existing economy behavior. No station upserts occur
 on reads or on a current-revision seed cache load; sold ship listings stay sold.
 Free-floating/belt markets retain their previous location policy; unrelated

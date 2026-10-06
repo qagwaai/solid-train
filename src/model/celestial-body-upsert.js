@@ -30,8 +30,10 @@ const BODY_TYPE_ARCHETYPES = {
 const BODY_TYPE_VALUES = Object.keys(BODY_TYPE_ARCHETYPES);
 
 function hasValidBodyClassification(body) {
-  return Object.hasOwn(BODY_TYPE_ARCHETYPES, body?.bodyType) &&
-    BODY_TYPE_ARCHETYPES[body.bodyType].includes(body.surfaceArchetype);
+  return (
+    Object.hasOwn(BODY_TYPE_ARCHETYPES, body?.bodyType) &&
+    BODY_TYPE_ARCHETYPES[body.bodyType].includes(body.surfaceArchetype)
+  );
 }
 
 /**

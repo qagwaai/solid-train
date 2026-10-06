@@ -264,7 +264,7 @@ function createCelestialModelArtifacts({
         type: asteroidMaterialProfileSchema,
         required: function () {
           const update = typeof this.getUpdate === 'function' ? this.getUpdate() : null;
-          const source = update ? (update.$set || update) : this;
+          const source = update ? update.$set || update : this;
           return source.state !== 'unscanned';
         },
       },
@@ -393,7 +393,7 @@ function createCelestialModelArtifacts({
         required: true,
         validate: function () {
           const update = typeof this.getUpdate === 'function' ? this.getUpdate() : null;
-          return hasValidBodyClassification(update ? (update.$set || update) : this);
+          return hasValidBodyClassification(update ? update.$set || update : this);
         },
       },
       bodyType: {

@@ -16,11 +16,18 @@
       "type": ["object", "null"],
       "properties": {
         "hygId": { "type": "string" },
-        "spectralClass": { "type": ["string", "null"], "description": "Optional source spectral class; omitted and null both mean unknown. Current normalized reads serialize unknown as null; no generation fallback is used." },
+        "spectralClass": {
+          "type": ["string", "null"],
+          "description": "Optional source spectral class; omitted and null both mean unknown. Current normalized reads serialize unknown as null; no generation fallback is used."
+        },
         "spectralType": { "type": ["string", "null"] },
         "colorHex": { "type": "string" },
         "colorIndexBv": { "type": ["number", "null"] },
-        "luminositySolar": { "type": ["number", "null"], "minimum": 0, "description": "Optional source luminosity in solar luminosities; omitted and null both mean unknown. Zero is valid and is not equivalent to unknown." },
+        "luminositySolar": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Optional source luminosity in solar luminosities; omitted and null both mean unknown. Zero is valid and is not equivalent to unknown."
+        },
         "massSolar": { "type": "number" },
         "radiusSolar": { "type": "number" },
         "absoluteMagnitude": { "type": ["number", "null"] },
@@ -80,7 +87,9 @@
       "type": ["object", "null"],
       "properties": {
         "velocityKmPerSec": { "$ref": "#/definitions/vector3" },
-        "angularVelocityRadPerSec": { "anyOf": [{ "$ref": "#/definitions/vector3" }, { "type": "null" }] }
+        "angularVelocityRadPerSec": {
+          "anyOf": [{ "$ref": "#/definitions/vector3" }, { "type": "null" }]
+        }
       },
       "required": ["velocityKmPerSec"]
     },
@@ -133,8 +142,24 @@
       "allOf": [{ "$ref": "./celestial-classification.schema.json" }],
       "description": "Canonical celestial body payload with optional catalog enrichments.",
       "properties": {
-        "id": { "type": "string", "description": "Durable canonical identity and deterministic appearance-generator input." },
-        "surfaceArchetype": { "type": "string", "enum": ["rocky", "lava", "ocean", "gas-giant", "ice-giant", "star", "rocky-moon", "icy-moon", "asteroid"] },
+        "id": {
+          "type": "string",
+          "description": "Durable canonical identity and deterministic appearance-generator input."
+        },
+        "surfaceArchetype": {
+          "type": "string",
+          "enum": [
+            "rocky",
+            "lava",
+            "ocean",
+            "gas-giant",
+            "ice-giant",
+            "star",
+            "rocky-moon",
+            "icy-moon",
+            "asteroid"
+          ]
+        },
         "catalogId": { "type": "string" },
         "sourceScanId": { "type": "string" },
         "createdByCharacterId": { "type": "string" },
@@ -158,9 +183,19 @@
           "type": "array",
           "items": { "$ref": "#/definitions/debrisEntry" }
         },
-        "bodyType": { "type": "string", "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"] },
-        "spectralClass": { "type": ["string", "null"], "description": "Optional per-body source spectral class, including companions; omitted and null both mean unknown. Current normalized reads serialize unknown as null." },
-        "luminositySolar": { "type": ["number", "null"], "minimum": 0, "description": "Optional per-body source luminosity in solar luminosities; omitted and null both mean unknown. Current normalized reads serialize unknown as null. Zero is valid." },
+        "bodyType": {
+          "type": "string",
+          "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
+        },
+        "spectralClass": {
+          "type": ["string", "null"],
+          "description": "Optional per-body source spectral class, including companions; omitted and null both mean unknown. Current normalized reads serialize unknown as null."
+        },
+        "luminositySolar": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Optional per-body source luminosity in solar luminosities; omitted and null both mean unknown. Current normalized reads serialize unknown as null. Zero is valid."
+        },
         "displayName": { "type": ["string", "null"] },
         "parentBodyId": { "type": ["string", "null"] },
         "orbitalElements": { "$ref": "./orbital-elements.schema.json" },

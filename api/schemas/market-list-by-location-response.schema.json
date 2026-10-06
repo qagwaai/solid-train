@@ -227,7 +227,11 @@
           "siteName": { "type": "string" },
           "isStarterMarket": { "type": "boolean" },
           "spatial": { "type": ["object", "null"], "additionalProperties": true },
-          "trajectory": { "type": ["object", "null"], "additionalProperties": true, "description": "For stations, orbit.anchorBodyId resolves the exact canonical host. orbit.epoch is the element reference epoch; spatial.epochMs equals the host snapshot epoch. Positions include host translation once using the existing right-handed orbital helper at that epoch, not request time. Route station feeds copy that snapshot. Missing/invalid hosts fail rather than use a fallback." },
+          "trajectory": {
+            "type": ["object", "null"],
+            "additionalProperties": true,
+            "description": "For stations, orbit.anchorBodyId resolves the exact canonical host. orbit.epoch is the element reference epoch; spatial.epochMs equals the host snapshot epoch. Positions include host translation once using the existing right-handed orbital helper at that epoch, not request time. Route station feeds copy that snapshot. Missing/invalid hosts fail rather than use a fallback."
+          },
           "distanceAu": { "type": "number", "minimum": 0 },
           "route": { "$ref": "#/definitions/marketRoute" },
           "isDocked": { "type": "boolean" },

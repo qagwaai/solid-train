@@ -458,7 +458,7 @@ async function getItemsNearPositionAsync(ctx, query) {
     return [];
   }
 
-  let results = [];
+  let results;
 
   const cacheResults = Array.from(ctx.itemsById.values())
     .map((item) => ctx.normalizeItem(item))

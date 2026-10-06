@@ -10,9 +10,22 @@
     "longitudeOfAscendingNodeDeg": { "type": "number" },
     "argumentOfPeriapsisDeg": { "type": "number" },
     "meanAnomalyAtEpochDeg": { "type": "number" },
-    "orbitalPeriodSec": { "type": "number", "anyOf": [{ "minimum": 1 }, { "maximum": -1 }], "description": "Signed catalog period in seconds; absolute duration must be at least one second." },
+    "orbitalPeriodSec": {
+      "type": "number",
+      "anyOf": [{ "minimum": 1 }, { "maximum": -1 }],
+      "description": "Signed catalog period in seconds; absolute duration must be at least one second."
+    },
     "epoch": { "type": "string", "format": "date-time" },
     "anchorBodyId": { "type": ["string", "null"], "minLength": 1 }
   },
-  "required": ["semiMajorAxisKm", "eccentricity", "inclinationDeg", "longitudeOfAscendingNodeDeg", "argumentOfPeriapsisDeg", "meanAnomalyAtEpochDeg", "orbitalPeriodSec", "epoch"]
+  "required": [
+    "semiMajorAxisKm",
+    "eccentricity",
+    "inclinationDeg",
+    "longitudeOfAscendingNodeDeg",
+    "argumentOfPeriapsisDeg",
+    "meanAnomalyAtEpochDeg",
+    "orbitalPeriodSec",
+    "epoch"
+  ]
 }

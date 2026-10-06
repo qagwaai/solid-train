@@ -29,7 +29,7 @@ function extractLaunchItemSection(openApiText) {
   }
 
   const afterStart = openApiText.slice(start);
-  const nextPathMatch = afterStart.match(/\n  \/socket\/[a-z0-9-]+:/i);
+  const nextPathMatch = afterStart.match(/\n {2}\/socket\/[a-z0-9-]+:/i);
   if (!nextPathMatch || typeof nextPathMatch.index !== 'number') {
     return afterStart;
   }

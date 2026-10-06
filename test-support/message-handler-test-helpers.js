@@ -23,7 +23,7 @@ function createTestContext(options = {}) {
     getCurrentTimestamp: () => '2026-04-17T00:00:00.000Z',
   });
 
-  void context.initializeAsync({ seedDefaults: true });
+  void context.initializeAsync({ seedDefaults: options.seedDefaults !== false });
   return context;
 }
 
@@ -119,11 +119,14 @@ function createCelestialBody(overrides = {}) {
       ? { physical: createPhysicalState(overrides.physical) }
       : {}),
     observability: createObservabilityState(overrides.observability || {}),
-    composition: overrides.composition !== undefined ? overrides.composition : {
-      rarity: 'Rare',
-      material: 'Iron',
-      textureColor: '#888888',
-    },
+    composition:
+      overrides.composition !== undefined
+        ? overrides.composition
+        : {
+            rarity: 'Rare',
+            material: 'Iron',
+            textureColor: '#888888',
+          },
     state: overrides.state || 'active',
     destroyedAt: overrides.destroyedAt || null,
     destroyedReason: overrides.destroyedReason || null,

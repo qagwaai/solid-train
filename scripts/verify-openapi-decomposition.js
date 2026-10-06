@@ -32,7 +32,7 @@ function parseOpenApiYamlText(yamlText) {
     }
 
     if (section === 'tags') {
-      const tagMatch = line.match(/^  - name:\s*(.+)\s*$/);
+      const tagMatch = line.match(/^ {2}- name:\s*(.+)\s*$/);
       if (tagMatch) {
         tags.push(tagMatch[1].trim());
       }
@@ -40,21 +40,21 @@ function parseOpenApiYamlText(yamlText) {
     }
 
     if (section === 'paths') {
-      const pathMatch = line.match(/^  (\/[^:]+):\s*$/);
+      const pathMatch = line.match(/^ {2}(\/[^:]+):\s*$/);
       if (pathMatch) {
         currentPath = pathMatch[1];
         currentMethod = null;
         continue;
       }
 
-      const methodMatch = line.match(/^    (get|post|put|patch|delete|options|head):\s*$/);
+      const methodMatch = line.match(/^ {4}(get|post|put|patch|delete|options|head):\s*$/);
       if (methodMatch && currentPath) {
         currentMethod = methodMatch[1].toUpperCase();
         pathMethods.add(`${currentMethod} ${currentPath}`);
         continue;
       }
 
-      const opIdMatch = line.match(/^      operationId:\s*(.+)\s*$/);
+      const opIdMatch = line.match(/^ {6}operationId:\s*(.+)\s*$/);
       if (opIdMatch && currentPath && currentMethod) {
         const key = `${currentMethod} ${currentPath}`;
         pathOps.set(key, opIdMatch[1].trim());
@@ -63,19 +63,19 @@ function parseOpenApiYamlText(yamlText) {
     }
 
     if (section === 'components') {
-      if (/^  schemas:\s*$/.test(line)) {
+      if (/^ {2}schemas:\s*$/.test(line)) {
         inSchemas = true;
         continue;
       }
       if (inSchemas) {
-        const schemaMatch = line.match(/^    ([A-Za-z0-9_]+):\s*$/);
+        const schemaMatch = line.match(/^ {4}([A-Za-z0-9_]+):\s*$/);
         if (schemaMatch) {
           schemas.add(schemaMatch[1]);
           continue;
         }
 
         // Exit schemas when another components child starts at same indent
-        if (/^  [A-Za-z0-9_-]+:\s*$/.test(line) && !/^  schemas:\s*$/.test(line)) {
+        if (/^ {2}[A-Za-z0-9_-]+:\s*$/.test(line) && !/^ {2}schemas:\s*$/.test(line)) {
           inSchemas = false;
         }
       }

@@ -65,22 +65,29 @@ async function seedSolarSystemMarketsAsync(ctx, request = {}) {
   let payloads;
   async function materializePayloads(existingMarkets = []) {
     const existingById = new Map(existingMarkets.map((market) => [market.marketId, market]));
-    return Promise.all(seeded.map((market) => {
-      const existing = existingById.get(market.marketId);
-      // Approved force repair changes seed-owned location fields, not user/economy data.
-      const payload = existing
-        ? { ...existing, trajectory: market.trajectory, spatial: market.spatial }
-        : ctx.createSeedMarketPayload(market, asOf);
-      return materializeStationSnapshotAsync(ctx, payload);
-    }));
+    return Promise.all(
+      seeded.map((market) => {
+        const existing = existingById.get(market.marketId);
+        // Approved force repair changes seed-owned location fields, not user/economy data.
+        const payload = existing
+          ? { ...existing, trajectory: market.trajectory, spatial: market.spatial }
+          : ctx.createSeedMarketPayload(market, asOf);
+        return materializeStationSnapshotAsync(ctx, payload);
+      })
+    );
   }
 
   if (!ctx.databaseService) {
     try {
       payloads = await materializePayloads();
     } catch (error) {
-      return { success: false, reason: error.code || 'MARKET_SEED_FAILED',
-        message: error.message, solarSystemId, marketCount: 0 };
+      return {
+        success: false,
+        reason: error.code || 'MARKET_SEED_FAILED',
+        message: error.message,
+        solarSystemId,
+        marketCount: 0,
+      };
     }
     for (const market of payloads) {
       ctx.cacheMarket(market);
@@ -104,9 +111,9 @@ async function seedSolarSystemMarketsAsync(ctx, request = {}) {
 
     if (!force && isCurrentVersion) {
       if (Array.isArray(persistedMarkets) && persistedMarkets.length > 0) {
-        await Promise.all(persistedMarkets.map((market) =>
-          materializeStationSnapshotAsync(ctx, market)
-        ));
+        await Promise.all(
+          persistedMarkets.map((market) => materializeStationSnapshotAsync(ctx, market))
+        );
         for (const market of persistedMarkets) {
           ctx.cacheMarket(market);
         }
@@ -126,8 +133,10 @@ async function seedSolarSystemMarketsAsync(ctx, request = {}) {
         ctx.cacheMarket(market);
       }
       return {
-        success: false, reason: 'MARKET_SEED_REPAIR_REQUIRED',
-        solarSystemId, marketCount: persistedMarkets.length,
+        success: false,
+        reason: 'MARKET_SEED_REPAIR_REQUIRED',
+        solarSystemId,
+        marketCount: persistedMarkets.length,
         seedVersion: SOLAR_SYSTEM_MARKET_SEED_VERSION,
       };
     }
@@ -282,8 +291,8 @@ async function getMarketsByLocationAsync(ctx, query = {}) {
     }
 
     const computedDistanceAu = parseFloat((computedDistanceKm / ASTRONOMICAL_UNIT_KM).toFixed(6));
-    const epochMs = normalizedLocationType === 'station'
-      ? market.spatial.epochMs : Date.parse(asOf);
+    const epochMs =
+      normalizedLocationType === 'station' ? market.spatial.epochMs : Date.parse(asOf);
     results.push({
       ...market,
       positionKm: marketPositionKm,
@@ -1059,7 +1068,7 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
   };
 
   let stockApplied = false;
-  let itemsApplied = false;
+  let itemsApplied;
   let characterLedgerApplied = false;
   let marketLedgerApplied = false;
 

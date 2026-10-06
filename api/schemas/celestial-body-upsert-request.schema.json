@@ -25,8 +25,24 @@
       "allOf": [{ "$ref": "./celestial-classification.schema.json" }],
       "description": "Complete canonical celestial body payload. When id is present, the server upserts by id. When id is omitted, the server derives a deterministic id from sourceScanId, createdByCharacterId, and missionId for mission-generated bodies. Body IDs are durable canonical identity and the client appearance generator input.",
       "properties": {
-        "id": { "type": "string", "description": "Durable canonical identity and deterministic appearance-generator input." },
-        "surfaceArchetype": { "type": "string", "enum": ["rocky", "lava", "ocean", "gas-giant", "ice-giant", "star", "rocky-moon", "icy-moon", "asteroid"] },
+        "id": {
+          "type": "string",
+          "description": "Durable canonical identity and deterministic appearance-generator input."
+        },
+        "surfaceArchetype": {
+          "type": "string",
+          "enum": [
+            "rocky",
+            "lava",
+            "ocean",
+            "gas-giant",
+            "ice-giant",
+            "star",
+            "rocky-moon",
+            "icy-moon",
+            "asteroid"
+          ]
+        },
         "catalogId": { "type": "string", "pattern": "\\S" },
         "sourceScanId": { "type": "string", "pattern": "\\S" },
         "createdByCharacterId": { "type": "string", "pattern": "\\S" },
@@ -107,9 +123,19 @@
           "enum": ["unscanned", "active", "destroyed"],
           "description": "Canonical celestial body state. Composition may be omitted only when state is unscanned."
         },
-        "bodyType": { "type": "string", "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"] },
-        "spectralClass": { "type": ["string", "null"], "description": "Optional per-body source spectral class, including companion stars. Omitted and null both mean unknown; normalized reads serialize unknown as null." },
-        "luminositySolar": { "type": ["number", "null"], "minimum": 0, "description": "Optional per-body source luminosity in solar luminosities. Omitted and null both mean unknown; normalized reads serialize unknown as null. Zero is a valid supplied value; procedural habitable-zone fallback is not a measurement." },
+        "bodyType": {
+          "type": "string",
+          "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
+        },
+        "spectralClass": {
+          "type": ["string", "null"],
+          "description": "Optional per-body source spectral class, including companion stars. Omitted and null both mean unknown; normalized reads serialize unknown as null."
+        },
+        "luminositySolar": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Optional per-body source luminosity in solar luminosities. Omitted and null both mean unknown; normalized reads serialize unknown as null. Zero is a valid supplied value; procedural habitable-zone fallback is not a measurement."
+        },
         "displayName": { "type": ["string", "null"] },
         "parentBodyId": { "type": ["string", "null"] },
         "orbitalElements": { "$ref": "./orbital-elements.schema.json" },
@@ -150,10 +176,24 @@
           }
         }
       },
-      "required": ["bodyType", "surfaceArchetype", "catalogId", "sourceScanId", "createdByCharacterId", "createdAt", "updatedAt", "spatial", "observability", "state"],
+      "required": [
+        "bodyType",
+        "surfaceArchetype",
+        "catalogId",
+        "sourceScanId",
+        "createdByCharacterId",
+        "createdAt",
+        "updatedAt",
+        "spatial",
+        "observability",
+        "state"
+      ],
       "anyOf": [
         { "required": ["id"], "properties": { "id": { "type": "string", "pattern": "\\S" } } },
-        { "required": ["missionId"], "properties": { "missionId": { "type": "string", "pattern": "\\S" } } }
+        {
+          "required": ["missionId"],
+          "properties": { "missionId": { "type": "string", "pattern": "\\S" } }
+        }
       ],
       "additionalProperties": true
     }

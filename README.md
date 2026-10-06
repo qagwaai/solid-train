@@ -115,6 +115,17 @@ At the default `info` level, high-level operational messages (for example handle
 npm test
 ```
 
+Run the remaining local validation checks with:
+
+```bash
+npm run typecheck
+npm run lint
+npm run format:check
+```
+
+ESLint uses `eslint.config.cjs` (flat configuration). Run `npm run format` to
+apply the repository's Prettier formatting.
+
 ## License and Commercial Use
 
 This repository is published as source-available for review only and is not

@@ -4,16 +4,43 @@
   "type": ["object", "null"],
   "description": "Source-preserving physical catalog, separate from physical gameplay estimates. Curated values are game-grade catalog approximations, HYG stellar mass/radius are spectral estimates, procedural planet values are generated, and mission values are estimates, not uniformly measured data. Scalar display-radius precedence: first positive finite meanRadiusKm, equatorialRadiusKm, radiusKm, estimatedDiameterM/2000, then physical.estimatedDiameterM/2000; otherwise unknown. Mass precedence: first positive finite massKg, estimatedMassKg, then physical.estimatedMassKg; otherwise unknown. This is consumer selection guidance, not a backend conversion or overwrite. Zero is not evidence of a measured zero size or mass. Never merge the two provenance objects.",
   "properties": {
-    "massKg": { "type": ["number", "null"], "description": "Catalog mass in kg; source may be an approximation." },
-    "meanRadiusKm": { "type": ["number", "null"], "description": "Mean radius in km; preferred scalar representation over equatorial radius." },
-    "equatorialRadiusKm": { "type": ["number", "null"], "description": "Equatorial radius in km; may differ from mean radius." },
-    "radiusKm": { "type": ["number", "null"], "description": "Generic source/estimated radius in km." },
-    "estimatedDiameterM": { "type": ["number", "null"], "description": "Estimated diameter in metres; divide by 2000 for radius in km." },
-    "estimatedMassKg": { "type": ["number", "null"], "description": "Estimated mass in kg, not a measured mass." },
-    "rotationPeriodSec": { "type": ["number", "null"], "description": "Rotation period in seconds; source sign conventions retained." },
+    "massKg": {
+      "type": ["number", "null"],
+      "description": "Catalog mass in kg; source may be an approximation."
+    },
+    "meanRadiusKm": {
+      "type": ["number", "null"],
+      "description": "Mean radius in km; preferred scalar representation over equatorial radius."
+    },
+    "equatorialRadiusKm": {
+      "type": ["number", "null"],
+      "description": "Equatorial radius in km; may differ from mean radius."
+    },
+    "radiusKm": {
+      "type": ["number", "null"],
+      "description": "Generic source/estimated radius in km."
+    },
+    "estimatedDiameterM": {
+      "type": ["number", "null"],
+      "description": "Estimated diameter in metres; divide by 2000 for radius in km."
+    },
+    "estimatedMassKg": {
+      "type": ["number", "null"],
+      "description": "Estimated mass in kg, not a measured mass."
+    },
+    "rotationPeriodSec": {
+      "type": ["number", "null"],
+      "description": "Rotation period in seconds; source sign conventions retained."
+    },
     "axialTiltDeg": { "type": ["number", "null"], "description": "Axial tilt in degrees." },
-    "surfaceGravityMps2": { "type": ["number", "null"], "description": "Surface gravity in metres per second squared." },
-    "meanTemperatureK": { "type": ["number", "null"], "description": "Mean temperature in kelvin." },
+    "surfaceGravityMps2": {
+      "type": ["number", "null"],
+      "description": "Surface gravity in metres per second squared."
+    },
+    "meanTemperatureK": {
+      "type": ["number", "null"],
+      "description": "Mean temperature in kelvin."
+    },
     "compositionTags": { "type": "array", "items": { "type": "string" } }
   }
 }

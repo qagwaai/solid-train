@@ -196,21 +196,20 @@ async function upsertCharacterBust(ctx, Player, playerName, characterId, descrip
       return null;
     }
 
-    const player = await Player.findOne(playerNameQuery);
-    if (!player) {
-      return null;
-    }
-
-    const characterIndex = player.characters.findIndex((character) => character.id === characterId);
-    if (characterIndex < 0) {
-      return null;
-    }
-
-    player.characters[characterIndex].bust = descriptor;
-    player.markModified(`characters.${characterIndex}.bust`);
-    player.updatedAt = new Date();
-    await player.save();
-    return player.toObject();
+    const player = await Player.findOneAndUpdate(
+      {
+        ...playerNameQuery,
+        'characters.id': characterId,
+      },
+      {
+        $set: {
+          'characters.$.bust': descriptor,
+          updatedAt: new Date(),
+        },
+      },
+      { returnDocument: 'after', runValidators: true }
+    );
+    return player ? player.toObject() : null;
   } catch (error) {
     ctx.log(`[db-service] Error upserting character bust: ${error.message}`);
     throw error;

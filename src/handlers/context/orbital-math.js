@@ -140,11 +140,12 @@ async function resolveMarketPositionKmAsync(ctx, market, timestamp) {
 }
 
 function stationAnchorError(market, anchorBodyId) {
-  const error = new Error(
-    `Market '${market?.marketId}' has unresolved station anchor '${anchorBodyId || '(missing)'}'`
+  return Object.assign(
+    new Error(
+      `Market '${market?.marketId}' has unresolved station anchor '${anchorBodyId || '(missing)'}'`
+    ),
+    { code: 'MARKET_ANCHOR_UNRESOLVED' }
   );
-  error.code = 'MARKET_ANCHOR_UNRESOLVED';
-  return error;
 }
 
 async function materializeStationSnapshotAsync(ctx, market) {
@@ -174,9 +175,7 @@ async function materializeStationSnapshotAsync(ctx, market) {
 
   // host.positionKm is already system-origin/global-basis: never add its parent.
   // Reuse the station orbit rotation/Kepler helper, evaluated at that host epoch.
-  const relative = computeRelativeOrbitPositionKm(
-    ctx, orbit, new Date(host.epochMs).toISOString()
-  );
+  const relative = computeRelativeOrbitPositionKm(ctx, orbit, new Date(host.epochMs).toISOString());
   const positionKm = {
     x: host.positionKm.x + relative.x,
     y: host.positionKm.y + relative.y,

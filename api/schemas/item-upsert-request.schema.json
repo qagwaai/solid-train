@@ -55,10 +55,7 @@
         },
         "spatial": {
           "description": "Canonical spatial position. Provide null to clear spatial state. The legacy item.kinematics field is not accepted.",
-          "anyOf": [
-            { "$ref": "./spatial-state.schema.json" },
-            { "type": "null" }
-          ]
+          "anyOf": [{ "$ref": "./spatial-state.schema.json" }, { "type": "null" }]
         },
         "motion": {
           "type": ["object", "null"],

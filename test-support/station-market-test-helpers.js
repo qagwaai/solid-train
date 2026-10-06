@@ -1,7 +1,9 @@
 'use strict';
 
 const { createTestContext } = require('./message-handler-test-helpers');
-const { buildSeededCelestialBodiesForSolarSystem } = require('../src/model/solar-system-celestial-seed');
+const {
+  buildSeededCelestialBodiesForSolarSystem,
+} = require('../src/model/solar-system-celestial-seed');
 
 function createStationMarketTestContext() {
   const context = createTestContext();
@@ -15,8 +17,10 @@ function createStationMarketTestContext() {
     context.celestialBodiesById.set(id, {
       id,
       spatial: {
-        solarSystemId: id, frame: 'barycentric',
-        positionKm: { x: 0, y: 0, z: 0 }, epochMs: Date.parse(timestamp),
+        solarSystemId: id,
+        frame: 'barycentric',
+        positionKm: { x: 0, y: 0, z: 0 },
+        epochMs: Date.parse(timestamp),
       },
     });
   }

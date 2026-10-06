@@ -140,7 +140,8 @@ paths:
                         spatial:
                           solarSystemId: alpha-centauri
                           frame: barycentric
-                          positionKm: { x: -3736611670.705285, y: -2201948007.4635534, z: 2243580753.6270294 }
+                          positionKm:
+                            { x: -3736611670.705285, y: -2201948007.4635534, z: 2243580753.6270294 }
                           epochMs: 1779062400000
                         observability: { visibility: visible, scanState: scanned }
                         composition: { rarity: Common, material: hydrogen, textureColor: '#ffd86b' }
@@ -179,7 +180,8 @@ paths:
                         spatial:
                           solarSystemId: alpha-centauri
                           frame: barycentric
-                          positionKm: { x: 35792510409.571304, y: 269756201660.60123, z: 591123646756.8789 }
+                          positionKm:
+                            { x: 35792510409.571304, y: 269756201660.60123, z: 591123646756.8789 }
                           epochMs: 1779062400000
                         observability: { visibility: visible, scanState: scanned }
                         composition: { rarity: Common, material: hydrogen, textureColor: '#ffd86b' }
@@ -219,7 +221,8 @@ paths:
                         spatial:
                           solarSystemId: alpha-centauri
                           frame: barycentric
-                          positionKm: { x: 35799149307.85887, y: 269757912942.66312, z: 591123646756.8789 }
+                          positionKm:
+                            { x: 35799149307.85887, y: 269757912942.66312, z: 591123646756.8789 }
                           epochMs: 1779062400000
                         observability: { visibility: visible, scanState: scanned }
                         state: active

@@ -4,15 +4,19 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
 const { SOLAR_SYSTEM_MARKET_SEED_VERSION } = require('../src/model/solar-system-market-seed');
-const { buildSeededCelestialBodiesForSolarSystem } = require('../src/model/solar-system-celestial-seed');
+const {
+  buildSeededCelestialBodiesForSolarSystem,
+} = require('../src/model/solar-system-celestial-seed');
 
 function createContextWithDb(db) {
   let nextId = 0;
   return new MessageHandlerContext({
     databaseService: db,
     celestialBodiesById: new Map(
-      buildSeededCelestialBodiesForSolarSystem('sol', '2026-01-01T00:00:00.000Z')
-        .map((body) => [body.id, body])
+      buildSeededCelestialBodiesForSolarSystem('sol', '2026-01-01T00:00:00.000Z').map((body) => [
+        body.id,
+        body,
+      ])
     ),
     log: () => {},
     createId: () => `id-${++nextId}`,

@@ -14,7 +14,7 @@ const {
 } = require('../test-support/message-handler-test-helpers');
 
 test('CelestialBodyListMessageHandler returns nearest-first celestial bodies with computed distance', async () => {
-  const context = createTestContext();
+  const context = createTestContext({ seedDefaults: false });
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
@@ -80,7 +80,7 @@ test('CelestialBodyListMessageHandler returns nearest-first celestial bodies wit
 });
 
 test('CelestialBodyListMessageHandler returns empty list when no bodies match', async () => {
-  const context = createTestContext();
+  const context = createTestContext({ seedDefaults: false });
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
@@ -117,7 +117,7 @@ test('CelestialBodyListMessageHandler returns empty list when no bodies match', 
 });
 
 test('CelestialBodyListMessageHandler validates required search inputs', async () => {
-  const context = createTestContext();
+  const context = createTestContext({ seedDefaults: false });
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
@@ -145,7 +145,7 @@ test('CelestialBodyListMessageHandler validates required search inputs', async (
 });
 
 test('CelestialBodyListMessageHandler merges cache results when DB query returns empty', async () => {
-  const context = createTestContext();
+  const context = createTestContext({ seedDefaults: false });
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
@@ -192,7 +192,7 @@ test('CelestialBodyListMessageHandler merges cache results when DB query returns
 });
 
 test('CelestialBodyListMessageHandler filters by states, createdByCharacterId, and missionId', async () => {
-  const context = createTestContext();
+  const context = createTestContext({ seedDefaults: false });
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',
@@ -263,7 +263,7 @@ test('CelestialBodyListMessageHandler filters by states, createdByCharacterId, a
 });
 
 test('CelestialBodyListMessageHandler returns whole-system bodies when positionKm and distanceKm omitted', async () => {
-  const context = createTestContext();
+  const context = createTestContext({ seedDefaults: false });
   seedPlayer(context, {
     playerName: 'ScannerOne',
     sessionKey: 'session-1',

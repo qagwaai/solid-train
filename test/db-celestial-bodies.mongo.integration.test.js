@@ -7,9 +7,15 @@ const { createCelestialBody, seedPlayer } = require('../test-support/message-han
 const { createMockSocket } = require('../test-support/message-handler-test-helpers');
 const { DatabaseService } = require('../src/db/service');
 const { MongoConnection } = require('../src/db/connection');
-const { SolarSystemGetMessageHandler } = require('../src/handlers/solar-system-get-message-handler');
-const { CelestialBodyListMessageHandler } = require('../src/handlers/celestial-body-list-message-handler');
-const { buildSeededCelestialBodiesForSolarSystem } = require('../src/model/solar-system-celestial-seed');
+const {
+  SolarSystemGetMessageHandler,
+} = require('../src/handlers/solar-system-get-message-handler');
+const {
+  CelestialBodyListMessageHandler,
+} = require('../src/handlers/celestial-body-list-message-handler');
+const {
+  buildSeededCelestialBodiesForSolarSystem,
+} = require('../src/model/solar-system-celestial-seed');
 const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
 const {
   CelestialBodyUpsertMessageHandler,
@@ -175,15 +181,22 @@ test('Celestial bodies Mongo negative paths: invalid upsert key and invalid dele
 
 test('stellar source fields, identity, archetype and orbitals survive Mongo reconnection and fresh-context get/list', async (t) => {
   const createContext = () => {
-    const context = new MessageHandlerContext({ databaseService: new DatabaseService(), log: () => {} });
-    seedPlayer(context, { playerName: 'Pilot', characters: [{ id: 'system-catalog', characterName: 'Catalog' }] });
+    const context = new MessageHandlerContext({
+      databaseService: new DatabaseService(),
+      log: () => {},
+    });
+    seedPlayer(context, {
+      playerName: 'Pilot',
+      characters: [{ id: 'system-catalog', characterName: 'Catalog' }],
+    });
     return context;
   };
   const initial = createContext();
   const snapshots = new Map();
   for (const solarSystemId of ['sol', 'alpha-centauri', 'sirius']) {
     const result = await initial.seedSolarSystemCelestialBodiesAsync({
-      solarSystemId, asOf: '2026-05-18T00:00:00.000Z',
+      solarSystemId,
+      asOf: '2026-05-18T00:00:00.000Z',
     });
     assert.equal(result.source, 'database-upsert');
     snapshots.set(solarSystemId, await initial.getCelestialBodiesAsync({ solarSystemId }));
@@ -200,11 +213,14 @@ test('stellar source fields, identity, archetype and orbitals survive Mongo reco
     assert.equal(fresh.celestialBodiesById.size, 0);
     for (const [solarSystemId, original] of snapshots) {
       const get = await new SolarSystemGetMessageHandler(fresh).buildResponse({
-        playerName: 'Pilot', solarSystemId, asOf: '2030-01-01T00:00:00.000Z',
+        playerName: 'Pilot',
+        solarSystemId,
+        asOf: '2030-01-01T00:00:00.000Z',
       });
       assert.equal(get.success, true);
       const list = await new CelestialBodyListMessageHandler(fresh).buildResponse({
-        playerName: 'Pilot', solarSystemId,
+        playerName: 'Pilot',
+        solarSystemId,
       });
       assert.equal(list.success, true);
       const identityAndSource = (body) => ({
@@ -220,11 +236,20 @@ test('stellar source fields, identity, archetype and orbitals survive Mongo reco
         visualization: body.visualization ?? null,
       });
       for (const body of original) {
-        assert.deepEqual(identityAndSource(get.bodies.find((entry) => entry.id === body.id)), identityAndSource(body));
-        assert.deepEqual(identityAndSource(list.celestialBodies.find((entry) => entry.id === body.id)), identityAndSource(body));
+        assert.deepEqual(
+          identityAndSource(get.bodies.find((entry) => entry.id === body.id)),
+          identityAndSource(body)
+        );
+        assert.deepEqual(
+          identityAndSource(list.celestialBodies.find((entry) => entry.id === body.id)),
+          identityAndSource(body)
+        );
         checked += 1;
       }
-      const seeded = buildSeededCelestialBodiesForSolarSystem(solarSystemId, '2026-05-18T00:00:00.000Z');
+      const seeded = buildSeededCelestialBodiesForSolarSystem(
+        solarSystemId,
+        '2026-05-18T00:00:00.000Z'
+      );
       for (const star of seeded.filter((entry) => entry.bodyType === 'star')) {
         const persistedStar = get.stars.find((entry) => entry.id === star.id);
         assert.ok(persistedStar, star.id);
@@ -236,12 +261,20 @@ test('stellar source fields, identity, archetype and orbitals survive Mongo reco
     await freshConnection.disconnect();
     await mongoHarness.mongoConnection.connect();
   }
-  t.diagnostic(`${checked} persisted bodies verified through reconnected get and list; companions included`);
+  t.diagnostic(
+    `${checked} persisted bodies verified through reconnected get and list; companions included`
+  );
 });
 
 test('canonical star upsert and unscanned composition persist without inferred fields', async () => {
-  const context = new MessageHandlerContext({ databaseService: new DatabaseService(), log: () => {} });
-  seedPlayer(context, { playerName: 'Pilot', characters: [{ id: 'char-1', characterName: 'Pilot' }] });
+  const context = new MessageHandlerContext({
+    databaseService: new DatabaseService(),
+    log: () => {},
+  });
+  seedPlayer(context, {
+    playerName: 'Pilot',
+    characters: [{ id: 'char-1', characterName: 'Pilot' }],
+  });
   const star = createCelestialBody({
     id: 'cb-source-star',
     bodyType: 'star',
@@ -252,7 +285,8 @@ test('canonical star upsert and unscanned composition persist without inferred f
     spatial: { solarSystemId: 'alpha-centauri', positionKm: { x: 10, y: 20, z: 30 } },
   });
   const response = await new CelestialBodyUpsertMessageHandler(context).handle(createMockSocket(), {
-    playerName: 'Pilot', celestialBody: star,
+    playerName: 'Pilot',
+    celestialBody: star,
   });
   assert.equal(response.success, true);
   await mongoHarness.mongoConnection.disconnect();
@@ -265,7 +299,11 @@ test('canonical star upsert and unscanned composition persist without inferred f
   assert.equal(persisted.visualization.colorHex, '#ffd07a');
   assert.deepEqual(persisted.spatial, star.spatial);
 
-  const unscanned = createCelestialBody({ id: 'cb-unscanned', state: 'unscanned', composition: null });
+  const unscanned = createCelestialBody({
+    id: 'cb-unscanned',
+    state: 'unscanned',
+    composition: null,
+  });
   assert.equal((await new DatabaseService().addOrUpdateCelestialBody(unscanned)).composition, null);
   for (const field of ['bodyType', 'spatial', 'observability', 'state']) {
     const invalid = createCelestialBody({ id: `cb-invalid-${field}` });

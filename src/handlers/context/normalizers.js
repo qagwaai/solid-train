@@ -7,7 +7,11 @@ const creditLedgerEntrySchema = require('../../../api/schemas/credit-ledger-entr
 const validateCreditLedgerEntry = new Ajv({ format: 'full' }).compile(creditLedgerEntrySchema);
 const { getItemByType } = require('../../model/canonical-items');
 const { assertCanonicalRuntimeItemType } = require('../../model/canonical-item-type-registry');
-const { SURFACE_ARCHETYPE_VALUES, hasValidBodyClassification, CELESTIAL_BODY_STATE_VALUES } = require('../../model/celestial-body-upsert');
+const {
+  SURFACE_ARCHETYPE_VALUES,
+  hasValidBodyClassification,
+  CELESTIAL_BODY_STATE_VALUES,
+} = require('../../model/celestial-body-upsert');
 const { validateOrbitalElements } = require('../../model/celestial-orbital-elements');
 
 const ALWAYS_LAUNCHABLE_ITEM_TYPES = new Set(['expendable-dart-drone']);
@@ -758,7 +762,9 @@ function normalizeCelestialBody(ctx, celestialBody) {
     );
   }
   if (!hasValidBodyClassification(source)) {
-    throw new Error('CelestialBody: bodyType and surfaceArchetype must be a supported canonical pair');
+    throw new Error(
+      'CelestialBody: bodyType and surfaceArchetype must be a supported canonical pair'
+    );
   }
   if (!validateOrbitalElements(source.orbitalElements ?? null)) {
     throw new Error('CelestialBody: orbitalElements must be complete typed elliptic elements');
@@ -766,25 +772,34 @@ function normalizeCelestialBody(ctx, celestialBody) {
   if (!CELESTIAL_BODY_STATE_VALUES.includes(source.state)) {
     throw new Error('CelestialBody: explicit canonical state is required');
   }
-  if (!source.spatial || source.spatial.frame !== 'barycentric' ||
-    !Number.isFinite(source.spatial.epochMs)) {
+  if (
+    !source.spatial ||
+    source.spatial.frame !== 'barycentric' ||
+    !Number.isFinite(source.spatial.epochMs)
+  ) {
     throw new Error('CelestialBody: explicit canonical spatial frame and epochMs are required');
   }
-  if (!source.observability ||
+  if (
+    !source.observability ||
     !['visible', 'not-visible', 'cloaked'].includes(source.observability.visibility) ||
-    !['unscanned', 'scanned'].includes(source.observability.scanState)) {
+    !['unscanned', 'scanned'].includes(source.observability.scanState)
+  ) {
     throw new Error('CelestialBody: explicit canonical observability is required');
   }
-  if ((source.state !== 'unscanned' && !source.composition) ||
-    (source.composition && (
-      !['Common', 'Uncommon', 'Rare', 'Exotic'].includes(source.composition.rarity) ||
-      !toNonEmptyString(ctx, source.composition.material) ||
-      !toNonEmptyString(ctx, source.composition.textureColor)))) {
+  if (
+    (source.state !== 'unscanned' && !source.composition) ||
+    (source.composition &&
+      (!['Common', 'Uncommon', 'Rare', 'Exotic'].includes(source.composition.rarity) ||
+        !toNonEmptyString(ctx, source.composition.material) ||
+        !toNonEmptyString(ctx, source.composition.textureColor)))
+  ) {
     throw new Error('CelestialBody: valid composition is required unless unscanned');
   }
-  if ((source.spectralClass != null && typeof source.spectralClass !== 'string') ||
+  if (
+    (source.spectralClass != null && typeof source.spectralClass !== 'string') ||
     (source.luminositySolar != null &&
-      (!Number.isFinite(source.luminositySolar) || source.luminositySolar < 0))) {
+      (!Number.isFinite(source.luminositySolar) || source.luminositySolar < 0))
+  ) {
     throw new Error('CelestialBody: invalid source spectralClass or luminositySolar');
   }
 

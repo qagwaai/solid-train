@@ -69,10 +69,7 @@
     },
     "spatial": {
       "description": "Canonical spatial snapshot; null means the item has no spatial state.",
-      "anyOf": [
-        { "$ref": "./spatial-state.schema.json" },
-        { "type": "null" }
-      ]
+      "anyOf": [{ "$ref": "./spatial-state.schema.json" }, { "type": "null" }]
     },
     "motion": {
       "type": ["object", "null"],

@@ -287,7 +287,7 @@ async function getCelestialBodiesNearPositionAsync(ctx, query) {
     return [];
   }
 
-  let results = [];
+  let results;
 
   const cacheResults = Array.from(ctx.celestialBodiesById.values())
     .map((celestialBody) => ctx.normalizeCelestialBody(celestialBody))

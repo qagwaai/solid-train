@@ -4,6 +4,9 @@ const { MARKET_CATALOG } = require('../../model/market-catalog');
 const { buildDefaultShipListings } = require('../../model/ship-market-catalog');
 const { buildSeededNpcsForSolarSystem } = require('../../model/solar-system-npc-seed');
 const { buildSeededMarketsForSolarSystem } = require('../../model/solar-system-market-seed');
+const {
+  buildSeededCelestialBodiesForSolarSystem,
+} = require('../../model/solar-system-celestial-seed');
 const npcService = require('./npc-service');
 const normalizers = require('./normalizers');
 
@@ -42,6 +45,14 @@ function seedDefaultMarkets(ctx) {
   const systemIds = ['sol', 'alpha-centauri', 'barnards-star'];
 
   for (const systemId of systemIds) {
+    if (!ctx.databaseService) {
+      for (const body of buildSeededCelestialBodiesForSolarSystem(systemId, now)) {
+        if (!ctx.celestialBodiesById.has(body.id)) {
+          const normalized = ctx.normalizeCelestialBody(body);
+          ctx.celestialBodiesById.set(normalized.id, normalized);
+        }
+      }
+    }
     const defaults = buildSeededMarketsForSolarSystem(systemId, now);
     for (const market of defaults) {
       ctx.cacheMarket(createSeedMarketPayload(ctx, market, now));
