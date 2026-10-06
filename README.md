@@ -64,6 +64,11 @@ PC, so only use this on a trusted network.
 npx cross-env MONGODB_URI=mongodb://localhost:27017/my-db node src/server.js
 ```
 
+The server loads `.env` from the working directory using dotenv. Existing process
+environment values take precedence, including empty strings. A missing `.env`
+file is allowed; `PORT` defaults to `3000` when unset. The dotenv 18 fast parser
+is opt-in and is not enabled by the server.
+
 ## Logging levels
 
 The server supports level-based logging via `LOG_LEVEL`:
