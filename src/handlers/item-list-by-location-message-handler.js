@@ -1,7 +1,6 @@
 'use strict';
 
 const { ITEM_LIST_BY_LOCATION_RESPONSE_EVENT } = require('../model/item-list-by-location');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { isFiniteNumber, isTriple } = require('./handler-utils');
 
 class ItemListByLocationMessageHandler {

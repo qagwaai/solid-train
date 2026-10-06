@@ -1,7 +1,6 @@
 'use strict';
 
 const { SHIP_LIST_BY_OWNER_RESPONSE_EVENT } = require('../model/ship-list-by-owner');
-const { INVALID_SESSION_MESSAGE } = require('../model/session');
 const { normalizeOwnership, matchesOwner } = require('./context/ship-ownership');
 
 class ShipListByOwnerMessageHandler {

@@ -8,7 +8,6 @@ const {
   buildBackfilledSubsystemItems,
   buildBackfilledStarterDroneItems,
   isStarterPodShip,
-  isColdBootStarterShip,
 } = require('./starter-subsystem-items');
 const { DEFAULT_STARTER_MISSION_ID } = require('../../model/mission');
 

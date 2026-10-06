@@ -1,7 +1,6 @@
 'use strict';
 
 const { GAME_JOIN_RESPONSE_EVENT } = require('../model/game-join');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class GameJoinMessageHandler {
   /**

@@ -80,7 +80,7 @@ class NpcBustCreateMessageHandler {
       };
       socket.emit(NPC_BUST_CREATE_RESPONSE_EVENT, response);
       return response;
-    } catch (error) {
+    } catch {
       const response = buildBlockedSaveResponse(
         'Failed to create NPC bust descriptor: database error',
         BUST_BLOCKED_SAVE_REASONS.DATABASE_ERROR,

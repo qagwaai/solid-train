@@ -1,7 +1,6 @@
 'use strict';
 
 const { CHARACTER_LIST_RESPONSE_EVENT } = require('../model/character-list');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CharacterListMessageHandler {
   /**

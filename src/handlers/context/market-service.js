@@ -13,10 +13,7 @@ const {
   SOLAR_SYSTEM_MARKET_SEED_VERSION,
   buildSeededMarketsForSolarSystem,
 } = require('../../model/solar-system-market-seed');
-const {
-  SHIP_MARKET_CATALOG_BY_ID,
-  buildDefaultShipListings,
-} = require('../../model/ship-market-catalog');
+const { SHIP_MARKET_CATALOG_BY_ID } = require('../../model/ship-market-catalog');
 
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
 const ASTRONOMICAL_UNIT_KM = 149_597_870.7;

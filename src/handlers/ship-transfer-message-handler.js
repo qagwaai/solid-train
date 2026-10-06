@@ -1,7 +1,6 @@
 'use strict';
 
 const { SHIP_TRANSFER_RESPONSE_EVENT } = require('../model/ship-transfer');
-const { INVALID_SESSION_MESSAGE } = require('../model/session');
 const { normalizeOwnership } = require('./context/ship-ownership');
 
 function toOwnershipSnapshot(ownership) {

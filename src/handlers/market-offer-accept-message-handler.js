@@ -12,7 +12,6 @@ class MarketOfferAcceptMessageHandler {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const offerId = this.context.toNonEmptyString(payload?.offerId);
     const listingId = this.context.toNonEmptyString(payload?.listingId);
-    const shipId = this.context.toNonEmptyString(payload?.shipId);
 
     if (!playerName) {
       return {

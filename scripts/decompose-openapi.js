@@ -17,7 +17,6 @@ function parseYamlPaths(yaml) {
   const paths = {};
   let currentPath = null;
   let currentPathContent = [];
-  const indentLevel = 0;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];

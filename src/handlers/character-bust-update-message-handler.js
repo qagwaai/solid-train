@@ -92,7 +92,7 @@ class CharacterBustUpdateMessageHandler {
       };
       socket.emit(CHARACTER_BUST_UPDATE_RESPONSE_EVENT, response);
       return response;
-    } catch (error) {
+    } catch {
       const response = buildBlockedSaveResponse(
         'Failed to update character bust descriptor: database error',
         BUST_BLOCKED_SAVE_REASONS.DATABASE_ERROR,

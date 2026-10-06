@@ -665,7 +665,7 @@ test('SW-15 M2-A blocked-save responses emit typed reason and retryable semantic
       'secure-pass-1'
     );
     const { sessionKey } = loginResponse;
-    const characterId = await addCharacter(client, playerName, sessionKey, 'BlockedTarget');
+    await addCharacter(client, playerName, sessionKey, 'BlockedTarget');
 
     const missingCharacterResponsePromise = waitForEvent(
       client,

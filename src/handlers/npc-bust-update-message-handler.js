@@ -91,7 +91,7 @@ class NpcBustUpdateMessageHandler {
       };
       socket.emit(NPC_BUST_UPDATE_RESPONSE_EVENT, response);
       return response;
-    } catch (error) {
+    } catch {
       const response = buildBlockedSaveResponse(
         'Failed to update NPC bust descriptor: database error',
         BUST_BLOCKED_SAVE_REASONS.DATABASE_ERROR,

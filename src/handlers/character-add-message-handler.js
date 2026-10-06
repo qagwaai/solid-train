@@ -1,7 +1,6 @@
 'use strict';
 
 const { CHARACTER_ADD_RESPONSE_EVENT } = require('../model/character-add');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 const { DEFAULT_MISSION_STATUS, DEFAULT_STARTER_MISSION_ID } = require('../model/mission');
 const { ITEM_STATE, ITEM_DAMAGE_STATUS, ITEM_CONTAINER_TYPE } = require('../model/canonical-items');
 

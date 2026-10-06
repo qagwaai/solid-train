@@ -10,7 +10,6 @@ const {
 const {
   createMockSocket,
   createTestContext,
-  seedPlayer,
   seedTraderCharacter,
 } = require('../test-support/message-handler-test-helpers');
 

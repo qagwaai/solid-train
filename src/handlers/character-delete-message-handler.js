@@ -1,7 +1,6 @@
 'use strict';
 
 const { CHARACTER_DELETE_RESPONSE_EVENT } = require('../model/character-delete');
-const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('../model/session');
 
 class CharacterDeleteMessageHandler {
   /**

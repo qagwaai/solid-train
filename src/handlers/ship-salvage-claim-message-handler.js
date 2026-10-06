@@ -77,7 +77,6 @@ class ShipSalvageClaimMessageHandler {
 
     // Find the ship across all characters
     let targetShip = null;
-    let targetCharacterShips = null;
     for (const characters of this.context.charactersByPlayer.values()) {
       if (!Array.isArray(characters)) continue;
       for (const char of characters) {
@@ -85,7 +84,6 @@ class ShipSalvageClaimMessageHandler {
         const found = ships.find((s) => this.context.toNonEmptyString(s?.id) === shipId);
         if (found) {
           targetShip = found;
-          targetCharacterShips = ships;
           break;
         }
       }

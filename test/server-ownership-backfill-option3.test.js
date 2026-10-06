@@ -20,10 +20,6 @@ const {
   ITEM_UPSERT_REQUEST_EVENT,
   ITEM_UPSERT_RESPONSE_EVENT,
 } = require('../src/model/item-upsert');
-const {
-  ITEM_LIST_BY_OWNER_REQUEST_EVENT,
-  ITEM_LIST_BY_OWNER_RESPONSE_EVENT,
-} = require('../src/model/item-list-by-owner');
 
 function withTimeout(promise, ms, label = 'operation') {
   return Promise.race([

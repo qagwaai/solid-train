@@ -107,7 +107,7 @@ class CharacterBustCreateMessageHandler {
       };
       socket.emit(CHARACTER_BUST_CREATE_RESPONSE_EVENT, response);
       return response;
-    } catch (error) {
+    } catch {
       const response = buildBlockedSaveResponse(
         'Failed to create character bust descriptor: database error',
         BUST_BLOCKED_SAVE_REASONS.DATABASE_ERROR,
