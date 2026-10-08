@@ -78,6 +78,7 @@
           "type": "string",
           "description": "Durable canonical identity and deterministic appearance-generator input."
         },
+        "catalogIdentity": { "$ref": "./catalog-identity.schema.json" },
         "surfaceArchetype": {
           "type": "string",
           "enum": [

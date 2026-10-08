@@ -1,5 +1,6 @@
 'use strict';
 const { hasValidBodyClassification } = require('../../model/celestial-body-upsert');
+const { assertCatalogIdentity } = require('../../model/catalog-identity');
 
 function createCelestialModelArtifacts({
   mongoose,
@@ -216,6 +217,16 @@ function createCelestialModelArtifacts({
         type: String,
         required: true,
         index: true,
+      },
+      catalogIdentity: {
+        // Preserve raw tokens rather than letting Mongoose coerce identity strings.
+        type: mongoose.Schema.Types.Mixed,
+        default: undefined,
+        validate: function () {
+          const update = typeof this.getUpdate === 'function' ? this.getUpdate() : null;
+          assertCatalogIdentity(update ? update.$set || update : this);
+          return true;
+        },
       },
       sourceScanId: {
         type: String,
@@ -509,6 +520,17 @@ function createCelestialModelArtifacts({
   });
 
   const CelestialBody = mongoose.model('CelestialBody', celestialBodySchema);
+  const assignmentSchema = new mongoose.Schema(
+    {
+      solarSystemId: { type: String, required: true },
+      namespace: { type: String, required: true },
+      key: { type: String, required: true },
+      catalogId: { type: String, required: true },
+    },
+    { collection: 'catalog_identity_assignments' }
+  );
+  assignmentSchema.index({ solarSystemId: 1, namespace: 1, key: 1 }, { unique: true });
+  mongoose.model('CatalogIdentityAssignment', assignmentSchema);
 
   return {
     CelestialBody,

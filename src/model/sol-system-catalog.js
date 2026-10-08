@@ -26,6 +26,13 @@ const SECONDS_PER_DAY = 86400;
 const AU_KM = 149_597_870.7;
 const { getHygStars } = require('./hyg-star-catalog');
 const SUN_HYG_SOURCE = getHygStars().find((star) => star.hygId === '0');
+const { SOL_CATALOG_IDENTITIES } = require('./catalog-identity');
+const CATALOG_IDENTITY_BY_SOURCE = new Map(
+  SOL_CATALOG_IDENTITIES.map(({ catalogId, namespace, key }) => [
+    catalogId,
+    Object.freeze({ namespace, key }),
+  ])
+);
 
 function days(value) {
   return value * SECONDS_PER_DAY;
@@ -1790,6 +1797,9 @@ const SOL_SYSTEM_CATALOG = [
   ...PLUTO_MOONS,
 ].map((entry) => ({
   ...entry,
+  ...(CATALOG_IDENTITY_BY_SOURCE.has(entry.id)
+    ? { catalogIdentity: CATALOG_IDENTITY_BY_SOURCE.get(entry.id) }
+    : {}),
   surfaceArchetype: surfaceArchetypeForCatalogBody(entry),
 }));
 

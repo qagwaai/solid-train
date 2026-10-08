@@ -142,6 +142,7 @@
       "allOf": [{ "$ref": "./celestial-classification.schema.json" }],
       "description": "Canonical celestial body payload with optional catalog enrichments.",
       "properties": {
+        "catalogIdentity": { "$ref": "./catalog-identity.schema.json" },
         "id": {
           "type": "string",
           "description": "Durable canonical identity and deterministic appearance-generator input."

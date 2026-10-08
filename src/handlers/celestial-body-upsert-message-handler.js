@@ -8,6 +8,7 @@ const {
 } = require('../model/celestial-body-upsert');
 const { isFiniteNumber, isTriple } = require('./handler-utils');
 const { validateCelestialBody } = require('../model/celestial-body-validation');
+const { assertCatalogIdentity, CatalogIdentityError } = require('../model/catalog-identity');
 
 class CelestialBodyUpsertMessageHandler {
   /**
@@ -138,6 +139,9 @@ class CelestialBodyUpsertMessageHandler {
       id: normalizedId || this.createDeterministicCelestialBodyId(celestialBody),
       surfaceArchetype: this.context.toNonEmptyString(celestialBody?.surfaceArchetype),
       catalogId: this.context.toNonEmptyString(celestialBody?.catalogId),
+      ...(celestialBody?.catalogIdentity !== undefined
+        ? { catalogIdentity: celestialBody.catalogIdentity }
+        : {}),
       sourceScanId: this.context.toNonEmptyString(celestialBody?.sourceScanId),
       createdByCharacterId: this.context.toNonEmptyString(celestialBody?.createdByCharacterId),
       missionId: this.context.toNonEmptyString(celestialBody?.missionId) || null,
@@ -251,6 +255,11 @@ class CelestialBodyUpsertMessageHandler {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const celestialBody = this.normalizeCelestialBody(payload?.celestialBody);
     const sourceCelestialBody = payload?.celestialBody || {};
+    try {
+      assertCatalogIdentity(sourceCelestialBody);
+    } catch (error) {
+      return { success: false, message: `CelestialBodyUpsert: ${error.message}`, playerName };
+    }
     const requiresComposition = celestialBody.state !== 'unscanned';
     const hasValidState = Boolean(celestialBody.state);
 
@@ -346,13 +355,18 @@ class CelestialBodyUpsertMessageHandler {
 
     if (response.success) {
       try {
-        await this.context.addOrUpdateCelestialBodyAsync(response.celestialBody);
+        response.celestialBody = await this.context.addOrUpdateCelestialBodyAsync(
+          response.celestialBody
+        );
       } catch (error) {
         this.context.log(
           `[celestial-body-upsert-handler] Failed to upsert celestial body: ${error.message}`
         );
         response.success = false;
-        response.message = 'Failed to record celestial body: database error';
+        response.message =
+          error instanceof CatalogIdentityError
+            ? `Failed to record celestial body: ${error.message}`
+            : 'Failed to record celestial body: database error';
         delete response.celestialBody;
       }
     }

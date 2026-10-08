@@ -5,6 +5,7 @@ const { SURFACE_ARCHETYPE_VALUES } = require('./celestial-body-upsert');
 const { ALPHA_CENTAURI_CATALOG } = require('./alpha-centauri-system-catalog');
 const { generateSystemBodies } = require('./procedural-system-generator');
 const { getHygSystems } = require('./hyg-star-catalog');
+const { assertCatalogIdentityAssignments } = require('./catalog-identity');
 
 const SOLAR_SYSTEM_CELESTIAL_SEED_VERSION = '2026-10-canonical-star-orbit-v3';
 const SOLAR_SYSTEM_CELESTIAL_SEED_STATE_KEY = 'solar-system-celestial-seed-state';
@@ -138,6 +139,9 @@ function buildCelestialBodyDocument(catalogEntry, asOfMs, asOfTimestamp, cache, 
   return {
     id: catalogEntry.id,
     catalogId: catalogEntry.id,
+    ...(catalogEntry.catalogIdentity !== undefined
+      ? { catalogIdentity: catalogEntry.catalogIdentity }
+      : {}),
     sourceScanId: CATALOG_SOURCE_SCAN_ID,
     createdByCharacterId: CATALOG_CHARACTER_ID,
     missionId: null,
@@ -248,12 +252,14 @@ function buildSeededCelestialBodiesForSolarSystem(solarSystemId, asOfTimestamp) 
   const curated = CURATED_CATALOGS[normalizedSystemId];
   if (curated) {
     const positionCache = new Map();
-    return curated.entries.map((entry) =>
+    const bodies = curated.entries.map((entry) =>
       buildCelestialBodyDocument(entry, safeAsOfMs, timestamp, positionCache, {
         solarSystemId: normalizedSystemId,
         catalogById: curated.byId,
       })
     );
+    assertCatalogIdentityAssignments(bodies);
+    return bodies;
   }
 
   // Procedural fallback for HYG-known systems.

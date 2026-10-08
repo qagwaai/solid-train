@@ -106,6 +106,7 @@ function hasValidBodyClassification(body) {
  * @property {number|null} [luminositySolar] Source luminosity in solar units.
  * @property {'rocky'|'lava'|'ocean'|'gas-giant'|'ice-giant'|'star'|'rocky-moon'|'icy-moon'|'asteroid'} surfaceArchetype
  * @property {string} catalogId
+ * @property {{namespace: string, key: string}|null} [catalogIdentity] Stable astronomical identity.
  * @property {string} sourceScanId
  * @property {string} createdByCharacterId
  * @property {string} [missionId]

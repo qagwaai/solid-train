@@ -13,6 +13,7 @@ const {
   CELESTIAL_BODY_STATE_VALUES,
 } = require('../../model/celestial-body-upsert');
 const { validateOrbitalElements } = require('../../model/celestial-orbital-elements');
+const { assertCatalogIdentity } = require('../../model/catalog-identity');
 
 const ALWAYS_LAUNCHABLE_ITEM_TYPES = new Set(['expendable-dart-drone']);
 
@@ -755,6 +756,7 @@ function normalizeCharacter(ctx, character) {
 
 function normalizeCelestialBody(ctx, celestialBody) {
   const source = toPlainObject(ctx, celestialBody) || {};
+  assertCatalogIdentity(source);
   const surfaceArchetype = toNonEmptyString(ctx, source.surfaceArchetype);
   if (!SURFACE_ARCHETYPE_VALUES.includes(surfaceArchetype)) {
     throw new Error(
@@ -821,6 +823,9 @@ function normalizeCelestialBody(ctx, celestialBody) {
     id: toNonEmptyString(ctx, source.id),
     surfaceArchetype,
     catalogId: toNonEmptyString(ctx, source.catalogId),
+    ...(source.catalogIdentity !== undefined
+      ? { catalogIdentity: source.catalogIdentity === null ? null : { ...source.catalogIdentity } }
+      : {}),
     sourceScanId: toNonEmptyString(ctx, source.sourceScanId),
     createdByCharacterId: toNonEmptyString(ctx, source.createdByCharacterId),
     missionId: toNonEmptyString(ctx, source.missionId) || null,

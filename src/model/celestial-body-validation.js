@@ -11,6 +11,7 @@ for (const name of [
   'celestial-physical-catalog',
   'celestial-physical-estimates',
   'external-object-descriptor',
+  'catalog-identity',
 ]) {
   ajv.addSchema(require(`../../api/schemas/${name}.schema.json`), `${name}.schema.json`);
 }

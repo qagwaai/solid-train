@@ -46,6 +46,145 @@ tags:
   - name: Game
   - name: Realtime
   - name: Bust
+x-catalog-identity:
+  schema:
+    $ref: './schemas/catalog-identity.schema.json'
+  rules: |
+    catalogIdentity is an optional {namespace, key} astronomical identity, separate
+    from id (game entity), catalogId (curated source record), spatial.solarSystemId,
+    parentBodyId, orbitalElements.anchorBodyId, bodyType and surfaceArchetype.
+    Omitted and explicit null mean no catalog identity; reads preserve that distinction.
+    On an existing complete upsert, omission preserves the stored identity for legacy
+    writers; explicit null clears it. New procedural bodies omit it, even when named Earth.
+    Supplied objects require exactly both string fields. Each is 1-64 ASCII characters
+    matching ^[a-z][a-z0-9]*(-[a-z0-9]+)*$. No whitespace, case folding, alias
+    conversion, extra fields, URLs or version suffix semantics. sol is the permanent
+    real Solar System namespace, not an inferred game system or entity-id prefix.
+    Keys are permanent, never reused for another astronomical body. Display names,
+    localization, reseeding, database recreation, deployment and texture changes
+    must not change the pair. moon and earth-moon are NOT aliases for luna; unknown
+    syntactically valid pairs are accepted but clients must leave unsupported pairs
+    procedural. Registry growth is additive, not a closed enum.
+    Only explicit curated source assignments establish known identities. Registered
+    pairs require the listed catalogId, bodyType, sourceScanId: catalog and
+    createdByCharacterId: system-catalog. A generated entity cannot claim Earth
+    from its name, id, surfaceArchetype or textureKey. Malformed, conflicting and
+    duplicate distinct-source assignments fail explicitly through canonical validation,
+    socket success:false/message or logged/rethrown database errors.
+    Uniqueness of an astronomical body is global within its namespace. Assignment
+    consistency is enforced per game spatial.solarSystemId within a database/world:
+    a pair belongs to one curated catalogId; multiple distinct game ids representing
+    that same curated source may share the pair, including across systems/worlds.
+    Mongo catalog_identity_assignments reserves each system/namespace/key atomically;
+    reservations remain after entity deletion or clearing identity, preventing reuse
+    for a different body. In-memory worlds validate their live assignments.
+    Identity indicates the body represented, NOT availability or approval of imagery.
+    visualization.textureKey remains an optional legacy producer appearance hint;
+    it has no astronomical identity, alias or catalog lookup semantics and is neither
+    removed nor rewritten. Frontends lookup only catalogIdentity namespace + key,
+    falling back procedurally when absent/null/unsupported or imagery is unavailable.
+    Forge does not supply texture URLs, resolutions, asset versions, licenses or
+    attribution. Those are entirely frontend-owned. No splash behavior changes.
+  registryNotes: |
+    Every row below is already seeded in the current Sol curated source. Registry
+    support does not promise imagery or create entities. Other existing Sol bodies
+    (including stars, gas/ice giants and unlisted moons/dwarfs) remain unchanged
+    without catalogIdentity. Future support requires a reviewed explicit source
+    assignment and an additive registry row; no runtime name or prefix inference.
+    Registry bodyType is scientific classification, not inferred from texture.
+    Luna is Earth's Moon; neither translated names nor the display label Moon
+    change key luna. Charon remains a moon and Pluto a dwarf-planet.
+  namespace: sol
+  registry:
+    - { key: earth, catalogId: sol-earth, bodyType: planet, seeded: true, pilot: true }
+    - { key: luna, catalogId: sol-luna, bodyType: moon, seeded: true, pilot: true }
+    - { key: mars, catalogId: sol-mars, bodyType: planet, seeded: true, pilot: true }
+    - { key: mercury, catalogId: sol-mercury, bodyType: planet, seeded: true, pilot: true }
+    - { key: venus, catalogId: sol-venus, bodyType: planet, seeded: true }
+    - { key: io, catalogId: sol-io, bodyType: moon, seeded: true }
+    - { key: europa, catalogId: sol-europa, bodyType: moon, seeded: true }
+    - { key: ganymede, catalogId: sol-ganymede, bodyType: moon, seeded: true }
+    - { key: callisto, catalogId: sol-callisto, bodyType: moon, seeded: true }
+    - { key: titan, catalogId: sol-titan, bodyType: moon, seeded: true }
+    - { key: enceladus, catalogId: sol-enceladus, bodyType: moon, seeded: true }
+    - { key: tethys, catalogId: sol-tethys, bodyType: moon, seeded: true }
+    - { key: mimas, catalogId: sol-mimas, bodyType: moon, seeded: true }
+    - { key: dione, catalogId: sol-dione, bodyType: moon, seeded: true }
+    - { key: rhea, catalogId: sol-rhea, bodyType: moon, seeded: true }
+    - { key: iapetus, catalogId: sol-iapetus, bodyType: moon, seeded: true }
+    - { key: triton, catalogId: sol-triton, bodyType: moon, seeded: true }
+    - { key: pluto, catalogId: sol-pluto, bodyType: dwarf-planet, seeded: true }
+    - { key: charon, catalogId: sol-charon, bodyType: moon, seeded: true }
+    - { key: miranda, catalogId: sol-miranda, bodyType: moon, seeded: true }
+    - { key: ariel, catalogId: sol-ariel, bodyType: moon, seeded: true }
+    - { key: umbriel, catalogId: sol-umbriel, bodyType: moon, seeded: true }
+    - { key: titania, catalogId: sol-titania, bodyType: moon, seeded: true }
+    - { key: oberon, catalogId: sol-oberon, bodyType: moon, seeded: true }
+  dataDelivery: |
+    Deployment uses a full approved database drop and recreation, not migration or
+    backfill. No migration script is required or provided. Stop the server/writers,
+    recreate the target world database (including catalog_identity_assignments and
+    celestial seed state), then restart and use normal curated seed creation.
+    Fresh seeds include explicit assignments. No gameplay entities are added solely
+    for registry support. The celestial seed version is deliberately unchanged:
+    upgrading alone must NOT trigger identity persistence or repair during reads.
+    Without recreation old omitted/null identities remain procedural. Legacy readers
+    may ignore this additive optional property. In-memory fresh worlds seed identities;
+    existing cached bodies are not silently repaired. Explicit world recreation loads
+    new curated source data. No hidden response-serialization writes are introduced.
+  responseProjections:
+    description: Actual seeded fields projected from solar-system-get-response.bodies; spatial.solarSystemId is the game system id.
+    examples:
+      - {
+          id: sol-earth,
+          spatial: { solarSystemId: sol },
+          catalogIdentity: { namespace: sol, key: earth },
+          bodyType: planet,
+          surfaceArchetype: ocean,
+          parentBodyId: sol-sun,
+        }
+      - {
+          id: sol-luna,
+          spatial: { solarSystemId: sol },
+          catalogIdentity: { namespace: sol, key: luna },
+          bodyType: moon,
+          surfaceArchetype: rocky-moon,
+          parentBodyId: sol-earth,
+          orbitalElements: { anchorBodyId: sol-earth },
+        }
+      - {
+          id: sol-mars,
+          spatial: { solarSystemId: sol },
+          catalogIdentity: { namespace: sol, key: mars },
+          bodyType: planet,
+          surfaceArchetype: rocky,
+          parentBodyId: sol-sun,
+        }
+      - {
+          id: sol-mercury,
+          spatial: { solarSystemId: sol },
+          catalogIdentity: { namespace: sol, key: mercury },
+          bodyType: planet,
+          surfaceArchetype: rocky,
+          parentBodyId: sol-sun,
+        }
+      - {
+          id: sol-pluto,
+          spatial: { solarSystemId: sol },
+          catalogIdentity: { namespace: sol, key: pluto },
+          bodyType: dwarf-planet,
+          surfaceArchetype: icy-moon,
+          parentBodyId: sol-sun,
+        }
+      - {
+          id: sol-charon,
+          spatial: { solarSystemId: sol },
+          catalogIdentity: { namespace: sol, key: charon },
+          bodyType: moon,
+          surfaceArchetype: icy-moon,
+          parentBodyId: sol-pluto,
+          orbitalElements: { anchorBodyId: sol-pluto },
+        }
 paths:
   /health:
     $ref: './openapi/utility/openapi.yaml#/paths/~1health'
@@ -161,6 +300,8 @@ paths:
     $ref: './openapi/market/openapi.yaml#/paths/~1socket~1market-offer-accept'
 components:
   schemas:
+    CatalogIdentity:
+      $ref: './schemas/catalog-identity.schema.json'
     SpatialState:
       $ref: './schemas/spatial-state.schema.json'
     BustDescriptor:

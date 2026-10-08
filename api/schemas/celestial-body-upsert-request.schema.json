@@ -44,6 +44,7 @@
           ]
         },
         "catalogId": { "type": "string", "pattern": "\\S" },
+        "catalogIdentity": { "$ref": "./catalog-identity.schema.json" },
         "sourceScanId": { "type": "string", "pattern": "\\S" },
         "createdByCharacterId": { "type": "string", "pattern": "\\S" },
         "missionId": { "type": ["string", "null"] },

@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CatalogIdentity",
+  "description": "Optional astronomical identity, independent of game entity id, catalogId, names, classification and textureKey. Omitted or null means no identity. Exact lowercase namespace/key tokens; no aliases, trimming or case conversion. sol is the curated Solar System namespace. Unknown syntactically valid pairs are permitted and clients must fall back to procedural rendering when unsupported. Identity does not promise imagery; assets remain frontend-owned.",
+  "type": ["object", "null"],
+  "required": ["namespace", "key"],
+  "additionalProperties": false,
+  "properties": {
+    "namespace": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "maxLength": 64,
+      "description": "Stable catalog authority token. sol identifies astronomical bodies of the real Solar System, independent of the game solarSystemId."
+    },
+    "key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "maxLength": 64,
+      "description": "Permanent canonical body token within the namespace. luna, not moon or earth-moon, identifies Earth's Moon. Registry keys are not a closed enum."
+    }
+  }
+}

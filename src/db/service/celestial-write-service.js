@@ -7,6 +7,32 @@ const {
 } = require('../../model/celestial-body-upsert');
 const { validateOrbitalElements } = require('../../model/celestial-orbital-elements');
 const { validateCelestialBody } = require('../../model/celestial-body-validation');
+const { assertCatalogIdentity, CatalogIdentityError } = require('../../model/catalog-identity');
+
+async function reserveCatalogIdentity(CelestialBody, body) {
+  assertCatalogIdentity(body);
+  if (!body.catalogIdentity) return;
+  const { namespace, key } = body.catalogIdentity;
+  const scope = { solarSystemId: body.spatial.solarSystemId, namespace, key };
+  const Assignment = CelestialBody.db.model('CatalogIdentityAssignment');
+  await Assignment.init();
+  let assignment;
+  try {
+    assignment = await Assignment.findOneAndUpdate(
+      scope,
+      { $setOnInsert: { catalogId: body.catalogId } },
+      { upsert: true, returnDocument: 'after', runValidators: true }
+    ).lean();
+  } catch (error) {
+    if (error.code !== 11000) throw error;
+    assignment = await Assignment.findOne(scope).lean();
+  }
+  if (!assignment || assignment.catalogId !== body.catalogId) {
+    throw new CatalogIdentityError(
+      `Duplicate catalogIdentity ${namespace}/${key} for distinct curated sources in ${scope.solarSystemId}`
+    );
+  }
+}
 
 /**
  * Upsert celestial body by id, or by scan+creator+mission identity for mission-generated bodies.
@@ -67,6 +93,13 @@ async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData) {
         `Invalid canonical celestial body: ${JSON.stringify(validateCelestialBody.errors)}`
       );
     }
+    if (celestialBodyData.catalogIdentity === undefined) {
+      const previous = await CelestialBody.findOne(upsertQuery).lean();
+      if (previous?.catalogIdentity !== undefined) {
+        celestialBodyData = { ...celestialBodyData, catalogIdentity: previous.catalogIdentity };
+      }
+    }
+    await reserveCatalogIdentity(CelestialBody, celestialBodyData);
     const celestialBody = await CelestialBody.findOneAndUpdate(upsertQuery, celestialBodyData, {
       upsert: true,
       returnDocument: 'after',
@@ -104,4 +137,5 @@ async function deleteCelestialBodyById(ctx, CelestialBody, celestialBodyId) {
 module.exports = {
   addOrUpdateCelestialBody,
   deleteCelestialBodyById,
+  reserveCatalogIdentity,
 };

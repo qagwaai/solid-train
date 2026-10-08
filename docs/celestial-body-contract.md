@@ -53,6 +53,26 @@ seeded moons. Comet compatibility follows the existing explicit catalog mapping,
 not a newly invented texture policy. `planetType` remains independent and
 optional. `visualization.textureKey` is never a classification field.
 
+## Stable astronomical catalog identity
+
+Optional `catalogIdentity: { namespace, key }` is independent of entity `id`,
+curated source `catalogId`, game system, hierarchy, classification and appearance.
+The complete registry and rules live in authoritative
+[`api/openapi.yaml`](../api/openapi.yaml) under `x-catalog-identity`, with the
+shared [`CatalogIdentity` schema](../api/schemas/catalog-identity.schema.json).
+Omission/null mean no identity; omission on an existing upsert preserves identity
+for legacy writers, whereas explicit null clears it. No aliases/case conversion
+or name/id-prefix guessing is allowed. Unsupported valid pairs remain procedural.
+Texture URLs, asset versions and licensing remain frontend-owned; `textureKey`
+stays a legacy appearance hint, not an astronomical lookup key.
+
+Fresh curated seeds carry explicit source assignments. Deployment uses a full
+approved database drop/recreation, not a migration/backfill. Stop writers, recreate
+the world database including celestial seed state and `catalog_identity_assignments`,
+then restart and use normal curated seed creation. No migration scripts or hidden
+read-time identity persistence are provided. Old data not recreated stays procedural
+when identity is omitted/null; registry support does not create missing bodies.
+
 ## Per-body stellar source fields
 
 Every stellar body, including secondary/tertiary companions, can carry top-level

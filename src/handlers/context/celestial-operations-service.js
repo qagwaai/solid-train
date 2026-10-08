@@ -4,6 +4,10 @@ const {
   SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
   buildSeededCelestialBodiesForSolarSystem,
 } = require('../../model/solar-system-celestial-seed');
+const {
+  assertCatalogIdentityAssignments,
+  CatalogIdentityError,
+} = require('../../model/catalog-identity');
 
 async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
   const solarSystemId = ctx.toNonEmptyString(request?.solarSystemId).toLowerCase() || 'sol';
@@ -22,6 +26,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
 
   if (!ctx.databaseService) {
     for (const body of bodies) {
+      if (!force && ctx.celestialBodiesById.has(body.id)) continue;
       const normalized = ctx.normalizeCelestialBody(body);
       ctx.celestialBodiesById.set(normalized.id, normalized);
     }
@@ -98,6 +103,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
     };
   } catch (error) {
     ctx.log(`[context] Error seeding solar system celestial bodies: ${error.message}`);
+    if (error instanceof CatalogIdentityError) throw error;
 
     // Clear any stale entries for this system before caching fresh data
     for (const [key, value] of ctx.celestialBodiesById.entries()) {
@@ -255,14 +261,25 @@ async function deleteCelestialBodyByIdAsync(ctx, celestialBodyId) {
 }
 
 async function addOrUpdateCelestialBodyAsync(ctx, celestialBody) {
+  const previous = ctx.celestialBodiesById.get(celestialBody.id);
+  if (celestialBody.catalogIdentity === undefined && previous?.catalogIdentity !== undefined) {
+    celestialBody = { ...celestialBody, catalogIdentity: previous.catalogIdentity };
+  }
   const normalizedCelestialBody = ctx.normalizeCelestialBody(celestialBody);
+  assertCatalogIdentityAssignments([
+    ...Array.from(ctx.celestialBodiesById.values()).filter(
+      (body) => body.id !== normalizedCelestialBody.id
+    ),
+    normalizedCelestialBody,
+  ]);
 
-  await ctx.withDb('adding/updating celestial body in DB', (databaseService) =>
+  const persisted = await ctx.withDb('adding/updating celestial body in DB', (databaseService) =>
     databaseService.addOrUpdateCelestialBody(normalizedCelestialBody)
   );
 
-  ctx.celestialBodiesById.set(normalizedCelestialBody.id, normalizedCelestialBody);
-  return normalizedCelestialBody;
+  const result = persisted ? ctx.normalizeCelestialBody(persisted) : normalizedCelestialBody;
+  ctx.celestialBodiesById.set(result.id, result);
+  return result;
 }
 
 async function getCelestialBodiesNearPositionAsync(ctx, query) {

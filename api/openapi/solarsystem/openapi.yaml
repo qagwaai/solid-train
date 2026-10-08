@@ -22,6 +22,10 @@ paths:
         physical schemas and docs/celestial-body-contract.md for units and precedence.
         Reads do not synthesize asteroid catalogs from physical estimates, overwrite
         source catalogs, coerce mission bodyType, or inject visualization defaults.
+        Bodies preserve optional catalogIdentity; see the authoritative root
+        x-catalog-identity registry, validation, data recreation and fallback rules.
+        id remains game identity; only catalogIdentity identifies a real astronomical
+        body for a frontend-owned texture catalog. textureKey is not that identity.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).

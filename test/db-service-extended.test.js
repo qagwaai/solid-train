@@ -235,9 +235,15 @@ test('DatabaseService celestial upsert requires id or composite key', async () =
 test('DatabaseService celestial upsert uses id query and returns document', async () => {
   const service = new DatabaseService();
   const originalFindOneAndUpdate = CelestialBody.findOneAndUpdate;
+  const originalFindOne = CelestialBody.findOne;
 
   let capturedQuery;
+  let capturedReadQuery;
   let capturedOptions;
+  CelestialBody.findOne = (query) => {
+    capturedReadQuery = query;
+    return { lean: async () => null };
+  };
   CelestialBody.findOneAndUpdate = async (query, data, options) => {
     capturedQuery = query;
     capturedOptions = options;
@@ -270,11 +276,13 @@ test('DatabaseService celestial upsert uses id query and returns document', asyn
     });
 
     assert.deepEqual(capturedQuery, { id: 'cb-1' });
+    assert.deepEqual(capturedReadQuery, { id: 'cb-1' });
     assert.equal(capturedOptions.upsert, true);
     assert.equal(capturedOptions.runValidators, true);
     assert.equal(result.persisted, true);
   } finally {
     CelestialBody.findOneAndUpdate = originalFindOneAndUpdate;
+    CelestialBody.findOne = originalFindOne;
   }
 });
 

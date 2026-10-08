@@ -425,6 +425,19 @@ Defined in src/db/models.js and stored in the `items` collection.
 
 ## CelestialBody Root Schema
 
+Celestial bodies in `cb` may carry optional `catalogIdentity: { namespace, key }`
+(or null). Omission/null means no astronomical identity; names and game IDs do not
+establish it. See the authoritative registry in
+[`api/openapi.yaml`](api/openapi.yaml) and shared
+[`CatalogIdentity` schema](api/schemas/catalog-identity.schema.json).
+
+`catalog_identity_assignments` stores `solarSystemId`, `namespace`, `key` and
+`catalogId`. Its unique compound index on `(solarSystemId, namespace, key)`
+atomically reserves a pair for one curated source while allowing multiple game
+entity instances of that source. Reservations are not deleted when a body is
+deleted or its identity cleared. Full world database recreation must include
+this collection and celestial seed state. No migration/backfill is provided.
+
 Defined in src/db/models.js and stored in the `cb` collection.
 
 ### Fields
