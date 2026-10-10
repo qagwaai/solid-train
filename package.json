@@ -78,7 +78,7 @@
     "dotenv": "^18.0.5",
     "express": "^5.2.1",
     "mongoose": "^9.10.2",
-    "socket.io": "^4.8.3",
+    "socket.io": "^4.8.4",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
