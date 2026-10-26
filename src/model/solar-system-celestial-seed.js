@@ -3,6 +3,7 @@
 const { SOL_SYSTEM_CATALOG, J2000_EPOCH } = require('./sol-system-catalog');
 const { SURFACE_ARCHETYPE_VALUES } = require('./celestial-body-upsert');
 const { ALPHA_CENTAURI_CATALOG } = require('./alpha-centauri-system-catalog');
+const { CYGNUS_X1_CATALOG } = require('./cygnus-x1-system-catalog');
 const { generateSystemBodies } = require('./procedural-system-generator');
 const { getHygSystems } = require('./hyg-star-catalog');
 const { assertCatalogIdentityAssignments } = require('./catalog-identity');
@@ -17,6 +18,7 @@ const SOL_CATALOG_BY_ID = new Map(SOL_SYSTEM_CATALOG.map((entry) => [entry.id, e
 const ALPHA_CENTAURI_CATALOG_BY_ID = new Map(
   ALPHA_CENTAURI_CATALOG.map((entry) => [entry.id, entry])
 );
+const CYGNUS_X1_CATALOG_BY_ID = new Map(CYGNUS_X1_CATALOG.map((entry) => [entry.id, entry]));
 
 /**
  * Curated catalogs are looked up by canonical solar system id.
@@ -24,6 +26,7 @@ const ALPHA_CENTAURI_CATALOG_BY_ID = new Map(
 const CURATED_CATALOGS = {
   sol: { entries: SOL_SYSTEM_CATALOG, byId: SOL_CATALOG_BY_ID },
   'alpha-centauri': { entries: ALPHA_CENTAURI_CATALOG, byId: ALPHA_CENTAURI_CATALOG_BY_ID },
+  'cygnus-x1': { entries: CYGNUS_X1_CATALOG, byId: CYGNUS_X1_CATALOG_BY_ID },
 };
 
 /**
@@ -197,12 +200,15 @@ function buildCelestialBodyDocument(catalogEntry, asOfMs, asOfTimestamp, cache, 
       return orb;
     })(),
     physicalCatalog: catalogEntry.physical || null,
+    blackHoleProperties: catalogEntry.blackHoleProperties || null,
     atmosphere: catalogEntry.atmosphere || null,
     discovery: catalogEntry.discovery || null,
     magnitudes: catalogEntry.magnitudes || null,
     visualization: catalogEntry.visualization || null,
     planetType: catalogEntry.planetType || null,
     hygId: catalogEntry.hygId || null,
+    hipId: catalogEntry.hipId || null,
+    hdId: catalogEntry.hdId || null,
     isCatalogBody: true,
   };
 }
@@ -215,7 +221,9 @@ function inferCatalogComposition(catalogEntry) {
   const tags = catalogEntry?.physical?.compositionTags || [];
   const primary = tags[0] || 'unknown';
   const textureColor =
-    catalogEntry.bodyType === 'star'
+    catalogEntry.bodyType === 'black-hole'
+      ? '#111827'
+      : catalogEntry.bodyType === 'star'
       ? '#ffd86b'
       : catalogEntry.bodyType === 'planet'
         ? '#8aa6c4'

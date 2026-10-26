@@ -40,7 +40,8 @@
             "star",
             "rocky-moon",
             "icy-moon",
-            "asteroid"
+            "asteroid",
+            "black-hole"
           ]
         },
         "catalogId": { "type": "string", "pattern": "\\S" },
@@ -126,7 +127,7 @@
         },
         "bodyType": {
           "type": "string",
-          "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
+          "enum": ["star", "black-hole", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
         },
         "spectralClass": {
           "type": ["string", "null"],
@@ -168,6 +169,9 @@
         },
         "planetType": { "type": ["string", "null"] },
         "hygId": { "type": ["string", "null"] },
+        "hipId": { "type": ["string", "null"] },
+        "hdId": { "type": ["string", "null"] },
+        "blackHoleProperties": { "$ref": "./black-hole-properties.schema.json" },
         "visualization": {
           "type": ["object", "null"],
           "properties": {

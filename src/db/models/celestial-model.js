@@ -174,6 +174,9 @@ function createCelestialModelArtifacts({
       surfaceGravityMps2: { type: Number, default: null },
       meanTemperatureK: { type: Number, default: null },
       compositionTags: { type: [String], default: [] },
+      massSolar: { type: Number, default: null },
+      massUncertaintySolar: { type: Number, default: null },
+      sourceReferences: { type: [String], default: [] },
     },
     { _id: false }
   );
@@ -400,6 +403,7 @@ function createCelestialModelArtifacts({
           'rocky-moon',
           'icy-moon',
           'asteroid',
+          'black-hole',
         ],
         required: true,
         validate: function () {
@@ -409,7 +413,7 @@ function createCelestialModelArtifacts({
       },
       bodyType: {
         type: String,
-        enum: ['star', 'planet', 'dwarf-planet', 'moon', 'asteroid', 'tno', 'comet'],
+        enum: ['star', 'black-hole', 'planet', 'dwarf-planet', 'moon', 'asteroid', 'tno', 'comet'],
         required: true,
         index: true,
       },
@@ -430,6 +434,26 @@ function createCelestialModelArtifacts({
       },
       physicalCatalog: {
         type: catalogPhysicalSchema,
+        default: null,
+      },
+      blackHoleProperties: {
+        type: new mongoose.Schema(
+          {
+            massSolar: { type: Number, required: true, min: 0 },
+            massUncertaintySolar: { type: Number, default: null, min: 0 },
+            distanceParsec: { type: Number, default: null, min: 0 },
+            distanceUncertaintyParsec: { type: Number, default: null, min: 0 },
+            orbitalPeriodDays: { type: Number, default: null, min: 0 },
+            relativeBinarySemimajorAxisAU: { type: Number, default: null, min: 0 },
+            eccentricity: { type: Number, default: null, min: 0, max: 1 },
+            inclinationDeg: { type: Number, default: null, min: 0, max: 180 },
+            schwarzschildReferenceRadiusKm: { type: Number, required: true, min: 0 },
+            eventHorizonRadiusKm: { type: Number, default: null, min: 0 },
+            visualAccretionDiskOuterRadiusKm: { type: Number, default: null, min: 0 },
+            sourceReferences: { type: [String], default: [] },
+          },
+          { _id: false }
+        ),
         default: null,
       },
       atmosphere: {
@@ -458,6 +482,8 @@ function createCelestialModelArtifacts({
         default: null,
         index: true,
       },
+      hipId: { type: String, default: null },
+      hdId: { type: String, default: null },
       visualization: {
         type: new mongoose.Schema(
           {

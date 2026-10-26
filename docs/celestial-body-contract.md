@@ -46,12 +46,228 @@ the seeded assignments and the explicit Sol catalog fallback mapping:
 | asteroid     | asteroid                                 |
 | tno          | icy-moon                                 |
 | comet        | asteroid                                 |
+| black-hole   | black-hole                               |
 
-The nine archetype values are unchanged. `icy-moon` is also used by seeded
+`black-hole` is an additive scientific body type and renderer archetype; it is
+not classified as a star and is never inferred from `textureKey`. The ten
+archetype values include this explicit black-hole appearance. `icy-moon` is also used by seeded
 dwarf planets/TNOs; its label does not change their bodyType. `lava` is used by
 seeded moons. Comet compatibility follows the existing explicit catalog mapping,
 not a newly invented texture policy. `planetType` remains independent and
 optional. `visualization.textureKey` is never a classification field.
+
+## Cygnus X-1 curated bodies
+
+The curated system id is `cygnus-x1`, and it seeds two distinct canonical bodies:
+
+| Entity id | Catalog identity | bodyType | Notes |
+| --- | --- | --- | --- |
+| `cygnus-x1-black-hole` | `{namespace: cygnus-x1, key: black-hole}` | `black-hole` | Accreting stellar-mass black hole |
+| `cygnus-x1-hd226868` | `{namespace: cygnus-x1, key: hd226868}` | `star` | Visible companion and system anchor |
+
+HYG 97987, HIP 98298 and HD 226868 refer to the visible companion/system
+anchor. They are not an HYG black-hole catalog entry. The black hole does not
+inherit the companion's stellar classification or identifiers. The registry
+currently has no verified global HYG `positionPc` in the checked-in fixture; its
+position and distance fields are null rather than invented.
+
+The seeded black-hole parameters use the source-backed estimates
+`21.2 ± 2.2 M☉`, distance `2220 ± 180 pc`, binary period `5.599829 d`,
+relative binary semimajor axis `0.244 AU`, eccentricity `0.0189`, and inclination
+`27.51°`. The semimajor axis is for the relative binary separation, not the
+black hole's barycentric semimajor axis (approximately `0.160 AU`). The companion
+catalog carries `40.6 ± 7.7 M☉`, radius `22.3 R☉` (stored in km), and temperature
+`31,138 K`. Values are estimates with the
+citations held in `blackHoleProperties.sourceReferences` (Miller-Jones et al.
+2021, DOI `10.1126/science.abb3363`; Orosz et al. 2011, DOI
+`10.1088/0004-637X/742/2/84`; arXiv `2411.12507` for wind-fed accretion
+context), not new measurements. The computed
+`schwarzschildReferenceRadiusKm: 62.6` is the nonrotating reference `2GM/c²`.
+It is not a direct event-horizon measurement; spin is not supplied, so
+`eventHorizonRadiusKm` remains null. `visualAccretionDiskOuterRadiusKm` is also
+null: a renderer's disk extent is not the black hole's event horizon or
+Schwarzschild radius. Cygnus X-1 is rotating, so a Schwarzschild-based
+front-end renderer is an explicitly approximate visualization, not a claim
+that the system is nonrotating.
+
+The companion has `parentBodyId: cygnus-x1-black-hole` to express the catalog
+hierarchy; this is not a position offset. Neither body has orbital elements.
+The reported inclination is preserved as binary source metadata; it does not
+establish ascending node, argument of periapsis, phase, or an in-plane orientation,
+so the seed does not fabricate any of them.
+
+Both authored seed placements are the system-local origin `{x: 0, y: 0, z: 0}`
+in `spatial.positionKm` (km), with `frame: barycentric` and `epochMs` set to
+the seed snapshot instant in Unix milliseconds (J2000 only when the seed caller
+does not supply a timestamp). Axes follow the backend's documented right-handed
+Cartesian convention (`X × Y = Z`), but the zero placement makes no claim about
+observed relative coordinates or axis alignment. The HYG/global system
+coordinate is a separate parsec-valued field; it is not added to these local
+snapshots. These authored positions are deliberate co-location placeholders,
+not measured orbital positions. No route or gate data is added.
+
+Whole-system celestial listing retains the existing caller-provided `limit`
+semantics. With the Cygnus catalog's two-body result, `limit: 2` returns both
+canonical bodies; no global limit is raised. A smaller caller limit continues
+to return only that many records.
+
+### Source fields and radius semantics
+
+The optional nullable [`BlackHoleProperties` schema](../api/schemas/black-hole-properties.schema.json)
+is referenced by body writes and system/body reads. It is persisted separately
+from `physicalCatalog` and the gameplay `physical` estimates:
+
+| Field on `blackHoleProperties` | Cygnus seed value | Meaning |
+| --- | --- | --- |
+| `massSolar` / `massUncertaintySolar` | `21.2` / `2.2` | Black-hole mass and uncertainty in solar masses |
+| `distanceParsec` / `distanceUncertaintyParsec` | `2220` / `180` | Source distance estimate and uncertainty in pc; not a global position |
+| `orbitalPeriodDays` | `5.599829` | Binary period in days |
+| `relativeBinarySemimajorAxisAU` | `0.244` | Relative orbit semimajor axis in AU, approximately 36.5 million km; not instantaneous separation |
+| `eccentricity` | `0.0189` | Dimensionless relative orbit eccentricity |
+| `inclinationDeg` | `27.51` | Source inclination in degrees; insufficient to orient or phase the binary |
+| `schwarzschildReferenceRadiusKm` | `62.6` | Nonrotating `2GM/c²` reference in km |
+| `eventHorizonRadiusKm` | `null` | No canonical spin-dependent horizon radius asserted |
+| `visualAccretionDiskOuterRadiusKm` | `null` | No canonical physical disk boundary asserted |
+| `sourceReferences` | Citation strings | Literature provenance, including wind-fed accretion context |
+
+The companion's `physicalCatalog` carries `massKg`, `massSolar: 40.6`,
+`massUncertaintySolar: 7.7`, `meanRadiusKm: 15514110`, and
+`meanTemperatureK: 31138`, with its own `sourceReferences`. Radius conversion
+uses `1 R☉ = 695700 km`. Unknown companion luminosity remains null.
+
+No generic black-hole body radius is supplied in `physicalCatalog`. The shared
+seed builder's gameplay `physical.estimatedDiameterM` is `0` when no catalog
+radius is known; that sentinel is not a measured diameter and must not be
+used as a horizon or disk size. Keep a cinematic disk size in the viewer's
+visual configuration, not in source physical metadata.
+
+Scientific references:
+
+- [Miller-Jones et al. (2021)](https://arxiv.org/abs/2102.09091):
+  revised mass and distance estimates.
+- [Orosz et al. (2011)](https://doi.org/10.1088/0004-637X/742/2/84):
+  binary parameter context.
+- [Wind-fed accretion context](https://arxiv.org/abs/2411.12507).
+
+### Availability, startup, and request sequence
+
+`cygnus-x1` is included in the supported system registry and can be found with
+`solar-system-list-request` using `search: "cygnus-x1"`. The registry reports
+`starCount: 1` and `isMultiStar: false`: the system contains two bodies, but only
+one is a star. `primaryStar`, `positionPc`, and the registry's `distanceParsec`
+are null. This does not erase the separate source distance estimate above.
+Consumers must tolerate unknown global positions rather than inventing a map
+coordinate or interpreting null as zero.
+
+Restarting the server loads the updated registry, schemas, and catalog code.
+Cygnus is **not** part of the startup celestial seeding list. A successful
+`solar-system-get-request` seeds it on demand, then returns both canonical
+bodies in `bodies`; only the companion appears in `stars`. Listing celestial
+bodies alone does not seed an unmaterialized system.
+
+For an already registered/authenticated Socket.IO client, use the existing
+session values and a fresh correlation UUID for each request:
+
+```js
+socket.emit('solar-system-get-request', {
+  playerName,
+  sessionKey,
+  correlationId: crypto.randomUUID(),
+  requestIdentity: {
+    operation: 'solar-system-get',
+    entityType: 'solar-system',
+    containerId: 'cygnus-x1',
+  },
+  solarSystemId: 'cygnus-x1',
+});
+```
+
+Wait for a successful `solar-system-get-response` before requesting the bounded
+whole-system body list:
+
+```js
+socket.emit('celestial-body-list-request', {
+  playerName,
+  sessionKey,
+  correlationId: crypto.randomUUID(),
+  requestIdentity: {
+    operation: 'celestial-body-list',
+    entityType: 'celestial-body',
+    containerId: 'cygnus-x1',
+  },
+  solarSystemId: 'cygnus-x1',
+  limit: 2,
+});
+```
+
+The successful `celestial-body-list-response.celestialBodies` contains the two
+curated records when no other bodies or filters affect the result. The limit is
+not a priority guarantee or an override of state/mission/creator filters. Do not
+depend on collection order; resolve each body by its exact `catalogIdentity`.
+Omit both `positionKm` and `distanceKm` for this whole-system query.
+The Socket.IO event names above are distinct from the `/socket/...` documentation
+paths in OpenAPI; those paths are not HTTP endpoints.
+
+For a system never seeded before, the first system GET persists its catalog in
+MongoDB. Existing current-version seed records are reused, not automatically
+repaired or overwritten on restart. The seed version is unchanged. The existing
+full-world recreation policy below applies if a deployment needs to replace
+old catalog data; no database reset or migration is performed by this feature.
+
+### Nova integration checklist
+
+- Match `{namespace: "cygnus-x1", key: "black-hole"}` exactly to select the
+  Cygnus black-hole profile through the reusable renderer core.
+- Match `{namespace: "cygnus-x1", key: "hd226868"}` independently for the
+  companion. Entity IDs, names, texture keys, and HYG/HIP/HD aliases are not
+  renderer-selection substitutes.
+- Include `cygnus-x1` in any frontend curated/limited selector and request both
+  canonical bodies. Registry availability does not automatically update a
+  frontend allowlist.
+- Keep API snapshots separate from an authored viewer layout. Any staged
+  separation, orbital animation, orientation, or phase must be labeled as
+  visual/authored rather than observed or backend-computed.
+- Handle nullable system coordinates and unknown horizon/disk sizes explicitly.
+  Do not infer offsets from `parentBodyId` or classify the black hole as a star.
+- Do not add routes or gates. Catalog availability is not travel connectivity.
+
+### Validation and handoff evidence
+
+Executable coverage is in
+[`cygnus-x1-system.test.js`](../test/cygnus-x1-system.test.js), including the two
+identities, required canonical state and spatial fields, classification
+compatibility, Mongoose metadata retention, system availability, bounded body
+listing, and OpenAPI identity examples.
+[`celestial-operation-examples.test.js`](../test/celestial-operation-examples.test.js)
+validates the operation examples.
+
+```powershell
+node --test test\cygnus-x1-system.test.js test\celestial-operation-examples.test.js
+npm test
+```
+
+Session-close validation (2026-10-25):
+
+| Command | Result |
+| --- | --- |
+| `npm test` | Passed OpenAPI validation and all 627 tests before the final persistence regression was added |
+| `node --test test\cygnus-x1-system.test.js test\celestial-operation-examples.test.js` | Passed all 9 tests after adding persistence coverage and the three missing Mongoose binary metadata fields |
+| `npx eslint src\db\models\celestial-model.js test\cygnus-x1-system.test.js` | Passed |
+| `git diff --check` | Passed |
+
+The final persistence correction adds `relativeBinarySemimajorAxisAU`,
+`eccentricity`, and `inclinationDeg` to the Mongoose subdocument so these source
+fields are retained rather than discarded. Restart the server again after
+deploying this correction. Already persisted current-version bodies are not
+automatically backfilled; use the existing approved recreation policy if old
+records need replacement. The persistence regression validates Mongoose
+serialization without connecting to MongoDB.
+
+At handoff, the restarted local server's `GET /openapi.yaml` returned HTTP 200
+with the Cygnus namespace and both entity IDs. This confirms contract serving,
+not an authenticated system read or MongoDB round trip. Authenticated live
+system/body verification and frontend visual validation remain consumer
+integration checks; no measured orbit or live rendering is claimed by unit tests.
 
 ## Stable astronomical catalog identity
 

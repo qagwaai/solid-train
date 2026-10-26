@@ -182,6 +182,15 @@ class CelestialBodyUpsertMessageHandler {
       ...(celestialBody?.hygId !== undefined
         ? { hygId: this.context.toNonEmptyString(celestialBody.hygId) || null }
         : {}),
+      ...(celestialBody?.hipId !== undefined
+        ? { hipId: this.context.toNonEmptyString(celestialBody.hipId) || null }
+        : {}),
+      ...(celestialBody?.hdId !== undefined
+        ? { hdId: this.context.toNonEmptyString(celestialBody.hdId) || null }
+        : {}),
+      ...(celestialBody?.blackHoleProperties !== undefined
+        ? { blackHoleProperties: celestialBody.blackHoleProperties }
+        : {}),
       ...(celestialBody?.visualization !== undefined
         ? { visualization: celestialBody.visualization }
         : {}),

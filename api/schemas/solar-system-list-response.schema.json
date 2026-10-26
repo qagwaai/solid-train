@@ -52,8 +52,11 @@
         "source": { "type": "string", "enum": ["curated", "procedural"] },
         "isMultiStar": { "type": "boolean" },
         "positionPc": {
-          "$ref": "#/definitions/vector3",
-          "description": "HYG-fixture system-wide coordinate in parsecs; not spatial.positionKm and not converted into the system-local celestial snapshots."
+          "anyOf": [
+            { "$ref": "#/definitions/vector3" },
+            { "type": "null" }
+          ],
+          "description": "HYG-fixture system-wide coordinate in parsecs; not spatial.positionKm and not converted into the system-local celestial snapshots. Null means the global coordinate is unavailable."
         },
         "distanceParsec": { "type": ["number", "null"] },
         "primaryStar": { "$ref": "#/definitions/primaryStarSummary" },

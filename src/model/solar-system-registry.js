@@ -22,7 +22,7 @@
 
 const { getHygSystems } = require('./hyg-star-catalog');
 
-const CURATED_SYSTEMS = new Set(['sol', 'alpha-centauri']);
+const CURATED_SYSTEMS = new Set(['sol', 'alpha-centauri', 'cygnus-x1']);
 
 const SOL_REGISTRY_OVERRIDES = {
   id: 'sol',
@@ -39,6 +39,21 @@ const ALPHA_CENTAURI_REGISTRY_OVERRIDES = {
   source: 'curated',
   isMultiStar: true,
 };
+
+// The Cygnus system anchor is the HYG/Hipparcos/HD companion record, not the
+// black hole. Global HYG position is intentionally unknown in this fixture.
+const CYGNUS_X1_REGISTRY_ENTRY = Object.freeze({
+  id: 'cygnus-x1',
+  displayName: 'Cygnus X-1',
+  hygSystemId: 'cygnus-x1',
+  source: 'curated',
+  isMultiStar: false,
+  positionPc: null,
+  distanceParsec: null,
+  primaryStar: null,
+  starCount: 1,
+  generationSeed: null,
+});
 
 function buildPrimaryStarSummary(stars) {
   const primary = stars && stars[0];
@@ -87,6 +102,7 @@ function getSolarSystemRegistry() {
         system.stars[0] && system.stars[0].hygId ? Number(system.stars[0].hygId) || null : null,
     });
   }
+  records.push(CYGNUS_X1_REGISTRY_ENTRY);
   cachedRegistry = records;
   return cachedRegistry;
 }
@@ -105,6 +121,7 @@ function clearRegistryCache() {
 
 module.exports = {
   CURATED_SYSTEMS,
+  CYGNUS_X1_REGISTRY_ENTRY,
   getSolarSystemRegistry,
   getSolarSystemById,
   clearRegistryCache,

@@ -95,6 +95,21 @@ At the default `info` level, high-level operational messages (for example handle
 - `GET /docs` - Swagger UI served by the same Node/Express process
 - `GET /docs/celestial-body-contract.md` - Celestial-body contract and data semantics
 
+### Cygnus X-1 catalog support
+
+The curated `cygnus-x1` system exposes a separate black hole and HD 226868
+companion through the existing Socket.IO system/body contracts. The black hole
+uses the additive `black-hole` body type and surface archetype. Renderer selection
+uses exact `catalogIdentity` pairs, not names or entity IDs.
+
+After restarting with the updated code, request the system to seed its bodies
+on demand; it is not seeded at startup. Existing caller-specified body limits
+are preserved. See the
+[Cygnus X-1 contract, request examples, and Nova checklist](docs/celestial-body-contract.md#cygnus-x-1-curated-bodies)
+for availability, scientific values, authored placement, unknown global
+coordinates, and the distinction between horizon/reference radii and cinematic
+disk sizing. No travel routes or gates are added.
+
 ## Socket.IO events
 
 - `welcome` (server -> client): sent on connection
