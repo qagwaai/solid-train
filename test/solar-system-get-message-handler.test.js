@@ -6,6 +6,9 @@ const {
   SolarSystemGetMessageHandler,
 } = require('../src/handlers/solar-system-get-message-handler');
 const { SOLAR_SYSTEM_GET_RESPONSE_EVENT } = require('../src/model/solar-system-get');
+const { SOL_SYSTEM_CATALOG } = require('../src/model/sol-system-catalog');
+const MPC_COMET_SNAPSHOT = require('../data/sol-comets.json');
+const JPL_SATELLITE_SNAPSHOT = require('../data/sol-satellites.json');
 const {
   createMockSocket,
   createCelestialBody,
@@ -32,6 +35,44 @@ test('SolarSystemGetMessageHandler seeds Alpha Centauri and returns curated bodi
   assert.ok(response.bodies.length >= 6);
   assert.ok(response.stars.length === 3);
   assert.ok(response.stars.every((s) => s.bodyType === 'star'));
+  assert.equal(socket.events[0].eventName, SOLAR_SYSTEM_GET_RESPONSE_EVENT);
+});
+
+test('SolarSystemGetMessageHandler returns the full expanded Sol catalog', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+  const socket = createMockSocket();
+  const handler = new SolarSystemGetMessageHandler(context);
+
+  const response = await handler.handle(socket, {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    solarSystemId: 'sol',
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.bodies.length, SOL_SYSTEM_CATALOG.length);
+  assert.equal(
+    response.bodies.length,
+    1 + 8 + 5 + 4 + JPL_SATELLITE_SNAPSHOT.records.length + MPC_COMET_SNAPSHOT.records.length
+  );
+  assert.equal(
+    response.bodies.filter((body) => body.bodyType === 'comet').length,
+    MPC_COMET_SNAPSHOT.records.length
+  );
+  assert.equal(
+    response.bodies.filter((body) => body.bodyType === 'moon').length,
+    JPL_SATELLITE_SNAPSHOT.records.length
+  );
+  assert.equal(
+    response.bodies.some((body) => body.bodyType === 'asteroid'),
+    false
+  );
+
+  const candidate = response.bodies.find((body) => body.id === 'sol-2026-ed138');
+  assert.ok(candidate);
+  assert.equal(candidate.bodyType, 'tno');
+  assert.match(candidate.discovery.discoveryNotes, /dwarf-planet candidate/i);
   assert.equal(socket.events[0].eventName, SOLAR_SYSTEM_GET_RESPONSE_EVENT);
 });
 

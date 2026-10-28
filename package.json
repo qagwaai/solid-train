@@ -13,6 +13,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "catalog:sol:refresh": "node scripts/import-sol-catalog-data.js",
     "typecheck": "tsc --noEmit -p tsconfig.checkjs.json",
     "contract:artifact": "node scripts/sw08/generate-contract-artifact.js --out api/artifacts/contracts/contract-artifact.json",
     "contract:lint:item-types": "node --test test/launch-item-contract-hardening.test.js",

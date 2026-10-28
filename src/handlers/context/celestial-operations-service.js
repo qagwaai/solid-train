@@ -9,6 +9,8 @@ const {
   CatalogIdentityError,
 } = require('../../model/catalog-identity');
 
+const CATALOG_PERSISTENCE_BATCH_SIZE = 50;
+
 async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
   const solarSystemId = ctx.toNonEmptyString(request?.solarSystemId).toLowerCase() || 'sol';
   const asOf = ctx.toNonEmptyString(request?.asOf) || ctx.getCurrentTimestamp();
@@ -69,8 +71,13 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
       }
     }
 
-    for (const body of bodies) {
-      await ctx.databaseService.addOrUpdateCelestialBody(body);
+    for (let offset = 0; offset < bodies.length; offset += CATALOG_PERSISTENCE_BATCH_SIZE) {
+      const batch = bodies.slice(offset, offset + CATALOG_PERSISTENCE_BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map((body) => ctx.databaseService.addOrUpdateCelestialBody(body))
+      );
+      const failed = results.find((result) => result.status === 'rejected');
+      if (failed) throw failed.reason;
     }
 
     await ctx.databaseService.setSolarSystemCelestialSeedState(

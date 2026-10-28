@@ -95,6 +95,9 @@ At the default `info` level, high-level operational messages (for example handle
 - `GET /docs` - Swagger UI served by the same Node/Express process
 - `GET /docs/celestial-body-contract.md` - Celestial-body contract and data semantics
 
+The expanded non-asteroid Sol performance-test catalog, its public data sources,
+and refresh process are documented in [docs/sol-catalog-data.md](docs/sol-catalog-data.md).
+
 ### Cygnus X-1 catalog support
 
 The curated `cygnus-x1` system exposes a separate black hole and HD 226868

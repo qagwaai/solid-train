@@ -9,6 +9,9 @@ const {
   computeRelativePositionKm,
 } = require('../src/model/solar-system-celestial-seed');
 const { SOL_SYSTEM_CATALOG, AU_KM, J2000_EPOCH } = require('../src/model/sol-system-catalog');
+const MPC_COMET_SNAPSHOT = require('../data/sol-comets.json');
+const JPL_SATELLITE_SNAPSHOT = require('../data/sol-satellites.json');
+const { isInterstellarCometDesignation } = require('../scripts/import-sol-catalog-data');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
 const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
 const {
@@ -22,7 +25,12 @@ const { seedPlayer } = require('../test-support/message-handler-test-helpers');
 
 const SEED_TIMESTAMP = '2026-05-08T00:00:00.000Z';
 
-test('SOL_SYSTEM_CATALOG covers Sun + 8 planets + 5 dwarfs + asteroids + TNOs + moons', () => {
+test('SOL_SYSTEM_CATALOG covers the non-asteroid Sol catalog from JPL and MPC snapshots', () => {
+  assert.equal(isInterstellarCometDesignation('1I/2017 U1'), true);
+  assert.equal(isInterstellarCometDesignation('3I/ATLAS'), true);
+  assert.equal(isInterstellarCometDesignation('0001I/2017 U1'), true);
+  assert.equal(isInterstellarCometDesignation('C/2025 N1'), false);
+
   const byType = SOL_SYSTEM_CATALOG.reduce((acc, entry) => {
     acc[entry.bodyType] = (acc[entry.bodyType] || 0) + 1;
     return acc;
@@ -31,10 +39,15 @@ test('SOL_SYSTEM_CATALOG covers Sun + 8 planets + 5 dwarfs + asteroids + TNOs + 
   assert.equal(byType.star, 1);
   assert.equal(byType.planet, 8);
   assert.equal(byType['dwarf-planet'], 5);
-  assert.equal(byType.asteroid, 3);
-  assert.equal(byType.tno, 3);
-  assert.ok(byType.moon >= 80, `expected at least 80 moons, got ${byType.moon}`);
-  assert.ok(SOL_SYSTEM_CATALOG.length >= 100);
+  assert.equal(byType.asteroid || 0, 0);
+  assert.equal(byType.tno, 4);
+  assert.equal(byType.moon, JPL_SATELLITE_SNAPSHOT.records.length);
+  assert.equal(byType.comet, MPC_COMET_SNAPSHOT.records.length);
+  assert.equal(
+    SOL_SYSTEM_CATALOG.length,
+    1 + byType.planet + byType['dwarf-planet'] + byType.tno + byType.moon + byType.comet
+  );
+  assert.ok(SOL_SYSTEM_CATALOG.length >= 5100);
 
   const earth = SOL_SYSTEM_CATALOG.find((entry) => entry.id === 'sol-earth');
   assert.ok(earth);
@@ -42,6 +55,20 @@ test('SOL_SYSTEM_CATALOG covers Sun + 8 planets + 5 dwarfs + asteroids + TNOs + 
   const luna = SOL_SYSTEM_CATALOG.find((entry) => entry.id === 'sol-luna');
   assert.ok(luna);
   assert.equal(luna.parentBodyId, 'sol-earth');
+
+  const ed138 = SOL_SYSTEM_CATALOG.find((entry) => entry.id === 'sol-2026-ed138');
+  assert.ok(ed138);
+  assert.equal(ed138.bodyType, 'tno');
+  assert.match(ed138.discovery.discoveryNotes, /600-1,500 km/);
+
+  const halley = SOL_SYSTEM_CATALOG.find((entry) => entry.displayName === '1P/Halley');
+  assert.ok(halley);
+  assert.equal(halley.bodyType, 'comet');
+  assert.ok(halley.orbit);
+  assert.ok(
+    MPC_COMET_SNAPSHOT.records.every((comet) => !isInterstellarCometDesignation(comet.designation)),
+    'interstellar visitors must not be included as Sol-system comets'
+  );
 });
 
 test('buildSeededCelestialBodiesForSolarSystem produces canonical-shape documents for Sol', () => {
@@ -56,6 +83,11 @@ test('buildSeededCelestialBodiesForSolarSystem produces canonical-shape document
   assert.ok(seeded.every((body) => body.composition?.rarity === 'Common'));
   assert.ok(seeded.every((body) => body.isCatalogBody === true));
   assert.ok(seeded.every((body) => typeof body.surfaceArchetype === 'string'));
+  assert.ok(
+    seeded.every((body) =>
+      Object.values(body.spatial.positionKm).every((coordinate) => Number.isFinite(coordinate))
+    )
+  );
 
   const sun = seeded.find((body) => body.id === 'sol-sun');
   assert.deepEqual(sun.spatial.positionKm, { x: 0, y: 0, z: 0 });
@@ -77,9 +109,10 @@ test('buildSeededCelestialBodiesForSolarSystem produces canonical-shape document
   const dy = luna.spatial.positionKm.y - earth.spatial.positionKm.y;
   const dz = luna.spatial.positionKm.z - earth.spatial.positionKm.z;
   const lunarDistanceKm = Math.sqrt(dx * dx + dy * dy + dz * dz);
-  // Luna's mean distance from Earth ~384,400 km (within 1%).
+  // JPL's mean semimajor axis is ~384,400 km; the instantaneous distance
+  // varies with the Moon's eccentricity.
   assert.ok(
-    Math.abs(lunarDistanceKm - 384400) / 384400 < 0.01,
+    Math.abs(lunarDistanceKm - 384400) / 384400 < 0.06,
     `Luna offset from Earth off: ${lunarDistanceKm} km`
   );
 

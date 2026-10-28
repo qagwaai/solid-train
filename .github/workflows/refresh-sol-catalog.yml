@@ -1,0 +1,106 @@
+name: Refresh Sol catalog
+
+on:
+  schedule:
+    - cron: '0 9 1 1,4,7,10 *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Refresh catalog snapshots
+        run: npm run catalog:sol:refresh
+
+      - name: Run catalog and API tests
+        run: node --test test/solar-system-celestial-seed.test.js test/solar-system-get-message-handler.test.js
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Lint catalog implementation and tests
+        run: >-
+          npx eslint scripts/import-sol-catalog-data.js
+          src/model/sol-system-catalog.js
+          src/model/solar-system-celestial-seed.js
+          src/handlers/context/celestial-operations-service.js
+          test/solar-system-celestial-seed.test.js
+          test/solar-system-get-message-handler.test.js
+
+      - name: Check formatting
+        run: >-
+          npx prettier --check
+          scripts/import-sol-catalog-data.js
+          src/model/sol-system-catalog.js
+          src/model/solar-system-celestial-seed.js
+          src/handlers/context/celestial-operations-service.js
+          test/solar-system-celestial-seed.test.js
+          test/solar-system-get-message-handler.test.js
+
+      - name: Open pull request for changed snapshots
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          if git diff --quiet -- data/sol-comets.json data/sol-satellites.json; then
+            echo "Catalog snapshots are unchanged."
+            exit 0
+          fi
+
+          snapshot_date="$(date -u +%F)"
+          branch="automation/sol-catalog-refresh-${snapshot_date}-${RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add data/sol-comets.json data/sol-satellites.json
+          git commit -m "Refresh Sol catalog snapshots (${snapshot_date})"
+          git push --set-upstream origin "$branch"
+
+          body="$(cat <<EOF | sed 's/^  //'
+            ## Summary
+
+            - Refresh the checked-in MPC comet and JPL satellite catalog snapshots.
+            - The seed version hashes snapshot content so merged updates are applied to existing databases.
+
+            ## SW-08 Producer Checklist
+
+            - [x] SW-08 contract-impacting change acknowledged
+            - [x] SW-08 consumer surfaces reviewed
+            - [x] SW-08 migration note linked or marked not-required
+
+            Migration note: not-required
+
+            ## Testing
+
+            - \`npm run catalog:sol:refresh\` — passed
+            - \`node --test test/solar-system-celestial-seed.test.js test/solar-system-get-message-handler.test.js\` — passed
+            - \`npm run typecheck\` — passed
+            - \`npx eslint scripts/import-sol-catalog-data.js src/model/sol-system-catalog.js src/model/solar-system-celestial-seed.js src/handlers/context/celestial-operations-service.js test/solar-system-celestial-seed.test.js test/solar-system-get-message-handler.test.js\` — passed
+            - \`npx prettier --check scripts/import-sol-catalog-data.js src/model/sol-system-catalog.js src/model/solar-system-celestial-seed.js src/handlers/context/celestial-operations-service.js test/solar-system-celestial-seed.test.js test/solar-system-get-message-handler.test.js\` — passed
+          EOF
+          )"
+          gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$branch" \
+            --title "Refresh Sol catalog snapshots (${snapshot_date})" \
+            --body "$body"

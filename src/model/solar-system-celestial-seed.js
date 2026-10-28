@@ -1,5 +1,6 @@
 'use strict';
 
+const { createHash } = require('node:crypto');
 const { SOL_SYSTEM_CATALOG, J2000_EPOCH } = require('./sol-system-catalog');
 const { SURFACE_ARCHETYPE_VALUES } = require('./celestial-body-upsert');
 const { ALPHA_CENTAURI_CATALOG } = require('./alpha-centauri-system-catalog');
@@ -8,7 +9,13 @@ const { generateSystemBodies } = require('./procedural-system-generator');
 const { getHygSystems } = require('./hyg-star-catalog');
 const { assertCatalogIdentityAssignments } = require('./catalog-identity');
 
-const SOLAR_SYSTEM_CELESTIAL_SEED_VERSION = '2026-10-canonical-star-orbit-v3';
+const MPC_COMET_SNAPSHOT = require('../../data/sol-comets.json');
+const JPL_SATELLITE_SNAPSHOT = require('../../data/sol-satellites.json');
+const catalogSnapshotHash = createHash('sha256')
+  .update(JSON.stringify([MPC_COMET_SNAPSHOT, JPL_SATELLITE_SNAPSHOT]))
+  .digest('hex')
+  .slice(0, 12);
+const SOLAR_SYSTEM_CELESTIAL_SEED_VERSION = `2026-10-sol-catalog-expansion-v4-${catalogSnapshotHash}`;
 const SOLAR_SYSTEM_CELESTIAL_SEED_STATE_KEY = 'solar-system-celestial-seed-state';
 
 const CATALOG_SOURCE_SCAN_ID = 'catalog';
@@ -107,11 +114,21 @@ function computeAbsolutePositionKm(catalogEntry, asOfMs, cache, catalogById = SO
   }
 
   const parent = catalogEntry.parentBodyId ? catalogById.get(catalogEntry.parentBodyId) : null;
-  // Sun and similar root bodies sit at the system barycenter (origin).
-  if (!parent || !catalogEntry.orbit) {
-    const origin = { x: 0, y: 0, z: 0 };
-    cache.set(catalogEntry.id, origin);
-    return origin;
+  if (!catalogEntry.orbit) {
+    const parentPosition = parent
+      ? computeAbsolutePositionKm(parent, asOfMs, cache, catalogById)
+      : { x: 0, y: 0, z: 0 };
+    const relativePosition =
+      typeof catalogEntry.positionKmAtTimestamp === 'function'
+        ? catalogEntry.positionKmAtTimestamp(asOfMs)
+        : { x: 0, y: 0, z: 0 };
+    const position = {
+      x: parentPosition.x + relativePosition.x,
+      y: parentPosition.y + relativePosition.y,
+      z: parentPosition.z + relativePosition.z,
+    };
+    cache.set(catalogEntry.id, position);
+    return position;
   }
 
   const parentPos = computeAbsolutePositionKm(parent, asOfMs, cache, catalogById);
@@ -224,12 +241,12 @@ function inferCatalogComposition(catalogEntry) {
     catalogEntry.bodyType === 'black-hole'
       ? '#111827'
       : catalogEntry.bodyType === 'star'
-      ? '#ffd86b'
-      : catalogEntry.bodyType === 'planet'
-        ? '#8aa6c4'
-        : catalogEntry.bodyType === 'moon'
-          ? '#c8c8c8'
-          : '#9a9a9a';
+        ? '#ffd86b'
+        : catalogEntry.bodyType === 'planet'
+          ? '#8aa6c4'
+          : catalogEntry.bodyType === 'moon'
+            ? '#c8c8c8'
+            : '#9a9a9a';
   return {
     rarity: 'Common',
     material: typeof primary === 'string' ? primary : 'unknown',
