@@ -2,7 +2,6 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const prettier = require('prettier');
 
 const CATEGORY = {
   REMOVED_REQUIRED: 'removed required fields',
@@ -53,6 +52,7 @@ function stableStringify(value) {
 }
 
 async function formatJson(value, filePath) {
+  const prettier = require('prettier');
   const config = (await prettier.resolveConfig(filePath)) || {};
   return prettier.format(stableStringify(value), { ...config, parser: 'json' });
 }
@@ -71,6 +71,48 @@ function normalizeType(type) {
   }
 
   return [type];
+}
+
+function getSchemaTypes(schema) {
+  if (schema?.type) {
+    return normalizeType(schema.type);
+  }
+
+  const branches = [...(schema?.anyOf || []), ...(schema?.oneOf || [])];
+  return [...new Set(branches.flatMap((branch) => getSchemaTypes(branch)))].sort();
+}
+
+function selectComparableNode(oldNode, newNode) {
+  const branches = newNode?.anyOf || newNode?.oneOf;
+  if (
+    !Array.isArray(branches) ||
+    branches.length === 0 ||
+    Object.keys(newNode.properties || {}).length > 0
+  ) {
+    return newNode;
+  }
+
+  const oldTypes = getSchemaTypes(oldNode);
+  const oldProperties = Object.keys(oldNode?.properties || {});
+  const candidates = branches
+    .map((branch) => {
+      const branchTypes = getSchemaTypes(branch);
+      const matchingTypes = oldTypes.filter((type) => branchTypes.includes(type)).length;
+      const matchingProperties = oldProperties.filter((property) =>
+        Object.hasOwn(branch?.properties || {}, property)
+      ).length;
+      return { branch, matchingTypes, matchingProperties };
+    })
+    .filter(
+      (candidate) => candidate.matchingTypes > 0 || getSchemaTypes(candidate.branch).length === 0
+    )
+    .sort(
+      (left, right) =>
+        right.matchingTypes - left.matchingTypes ||
+        right.matchingProperties - left.matchingProperties
+    );
+
+  return candidates[0]?.branch || newNode;
 }
 
 function arraysEqual(a, b) {
@@ -249,8 +291,8 @@ function compareSchemaNode(oldNode, newNode, pointer, issues) {
     return;
   }
 
-  const oldTypes = normalizeType(oldNode.type);
-  const newTypes = normalizeType(newNode.type);
+  const oldTypes = getSchemaTypes(oldNode);
+  const newTypes = getSchemaTypes(newNode);
   if (oldTypes.length > 0 && newTypes.length > 0 && !arraysEqual(oldTypes, newTypes)) {
     issues.push(
       createIssue({
@@ -263,9 +305,11 @@ function compareSchemaNode(oldNode, newNode, pointer, issues) {
     );
   }
 
-  if (Array.isArray(oldNode.enum) && Array.isArray(newNode.enum)) {
+  const comparableNewNode = selectComparableNode(oldNode, newNode);
+
+  if (Array.isArray(oldNode.enum) && Array.isArray(comparableNewNode.enum)) {
     const oldEnum = [...new Set(oldNode.enum.map(String))].sort();
-    const newEnum = [...new Set(newNode.enum.map(String))].sort();
+    const newEnum = [...new Set(comparableNewNode.enum.map(String))].sort();
     const removed = oldEnum.filter((value) => !newEnum.includes(value));
 
     if (removed.length > 0) {
@@ -281,7 +325,9 @@ function compareSchemaNode(oldNode, newNode, pointer, issues) {
   }
 
   const oldRequired = new Set(Array.isArray(oldNode.required) ? oldNode.required : []);
-  const newRequired = new Set(Array.isArray(newNode.required) ? newNode.required : []);
+  const newRequired = new Set(
+    Array.isArray(comparableNewNode.required) ? comparableNewNode.required : []
+  );
   for (const requiredField of [...oldRequired].sort()) {
     if (!newRequired.has(requiredField)) {
       issues.push(
@@ -298,7 +344,9 @@ function compareSchemaNode(oldNode, newNode, pointer, issues) {
   const oldProperties =
     oldNode.properties && typeof oldNode.properties === 'object' ? oldNode.properties : {};
   const newProperties =
-    newNode.properties && typeof newNode.properties === 'object' ? newNode.properties : {};
+    comparableNewNode.properties && typeof comparableNewNode.properties === 'object'
+      ? comparableNewNode.properties
+      : {};
 
   for (const propertyName of Object.keys(oldProperties).sort()) {
     const oldProperty = oldProperties[propertyName];
@@ -322,18 +370,18 @@ function compareSchemaNode(oldNode, newNode, pointer, issues) {
     compareSchemaNode(oldProperty, newProperty, propertyPointer, issues);
   }
 
-  if (oldNode.items && newNode.items) {
-    compareSchemaNode(oldNode.items, newNode.items, `${pointer}.items`, issues);
+  if (oldNode.items && comparableNewNode.items) {
+    compareSchemaNode(oldNode.items, comparableNewNode.items, `${pointer}.items`, issues);
   }
 
   const combinators = ['oneOf', 'anyOf', 'allOf'];
   for (const key of combinators) {
-    if (Array.isArray(oldNode[key]) && Array.isArray(newNode[key])) {
-      const pairs = Math.min(oldNode[key].length, newNode[key].length);
+    if (Array.isArray(oldNode[key]) && Array.isArray(comparableNewNode[key])) {
+      const pairs = Math.min(oldNode[key].length, comparableNewNode[key].length);
       for (let index = 0; index < pairs; index += 1) {
         compareSchemaNode(
           oldNode[key][index],
-          newNode[key][index],
+          comparableNewNode[key][index],
           `${pointer}.${key}[${index}]`,
           issues
         );
@@ -344,8 +392,10 @@ function compareSchemaNode(oldNode, newNode, pointer, issues) {
 
 function detectSchemaDrift(oldArtifact, newArtifact) {
   const issues = [];
-  const oldSchemas = oldArtifact?.components?.schemas || {};
-  const newSchemas = newArtifact?.components?.schemas || {};
+  const oldSchemas =
+    oldArtifact?.components?.resolvedSchemas || oldArtifact?.components?.schemas || {};
+  const newSchemas =
+    newArtifact?.components?.resolvedSchemas || newArtifact?.components?.schemas || {};
 
   for (const schemaName of Object.keys(oldSchemas).sort()) {
     if (!newSchemas[schemaName]) {
