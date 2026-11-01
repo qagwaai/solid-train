@@ -168,6 +168,9 @@ on patched versions as well; both are covered by the same audit gate.
 All Node-based CI workflows use `.nvmrc`. Keep its pinned Node 24 LTS version,
 the `package.json` engine requirement, and these setup instructions aligned.
 
+Dependabot groups CodeQL action updates so `init`, `autobuild`, and `analyze`
+always move together. Mixed CodeQL action versions are not supported.
+
 ## License and Commercial Use
 
 This repository is published as source-available for review only and is not
