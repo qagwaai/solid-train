@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('../src/model/schema-validator');
 const Parser = require('@apidevtools/swagger-parser');
 
 for (const [moduleName, operationFilter, expectedCount] of [
@@ -15,7 +15,7 @@ for (const [moduleName, operationFilter, expectedCount] of [
     const contract = await Parser.dereference(
       path.resolve(__dirname, `../api/openapi/${moduleName}/openapi.yaml`)
     );
-    const ajv = new Ajv({ allErrors: true, schemaId: 'auto', strictKeywords: true });
+    const ajv = createSchemaValidator({ allErrors: true });
     let count = 0;
     const failures = [];
     for (const [operationPath, item] of Object.entries(contract.paths)) {

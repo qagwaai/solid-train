@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('../src/model/schema-validator');
 const Parser = require('@apidevtools/swagger-parser');
 const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
 const { MarketListMessageHandler } = require('../src/handlers/market-list-message-handler');
@@ -254,7 +254,7 @@ test('every affected market operation example validates against resolved schemas
   const contract = await Parser.dereference(
     path.resolve(__dirname, '../api/openapi/market/openapi.yaml')
   );
-  const ajv = new Ajv({ allErrors: true, schemaId: 'auto', strictKeywords: true });
+  const ajv = createSchemaValidator({ allErrors: true });
   let count = 0;
   for (const operationPath of ['/socket/market-list', '/socket/market-list-by-location']) {
     const operation = contract.paths[operationPath].post;

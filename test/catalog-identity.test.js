@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const yaml = require('js-yaml');
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('../src/model/schema-validator');
 const Parser = require('@apidevtools/swagger-parser');
 const {
   SOL_CATALOG_IDENTITIES,
@@ -163,7 +163,7 @@ test('all canonical response schemas share optional strict identity; legacy clie
   for (const schema of schemas) {
     assert.deepEqual(schema.properties.catalogIdentity, schemas[0].properties.catalogIdentity);
     assert.ok(!schema.required.includes('catalogIdentity'));
-    const validate = new Ajv({ allErrors: true }).compile(schema);
+    const validate = createSchemaValidator({ allErrors: true }).compile(schema);
     for (const catalogIdentity of [
       undefined,
       null,
@@ -179,7 +179,10 @@ test('all canonical response schemas share optional strict identity; legacy clie
     // The former response schema permits additive properties for legacy readers.
     const legacy = structuredClone(schema);
     delete legacy.properties.catalogIdentity;
-    assert.equal(new Ajv().compile(legacy)(sol().find((body) => body.id === 'sol-earth')), true);
+    assert.equal(
+      createSchemaValidator().compile(legacy)(sol().find((body) => body.id === 'sol-earth')),
+      true
+    );
   }
 });
 

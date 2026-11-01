@@ -171,6 +171,11 @@ the `package.json` engine requirement, and these setup instructions aligned.
 Dependabot groups CodeQL action updates so `init`, `autobuild`, and `analyze`
 always move together. Mixed CodeQL action versions are not supported.
 
+Runtime JSON Schema validators use AJV 8 with full date-time and UUID format
+validation through the shared schema-validator factory. The intentional
+calendar-date tightening and a copy/paste Nova compatibility prompt are in
+[the AJV 8 migration handoff](docs/ajv8-migration-nova-handoff.md).
+
 ## License and Commercial Use
 
 This repository is published as source-available for review only and is not

@@ -1,8 +1,9 @@
 'use strict';
 
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('./schema-validator');
 const schema = require('../../api/schemas/catalog-identity.schema.json');
-const validateIdentity = new Ajv({ allErrors: true }).compile(schema);
+/** @type {import('ajv').ValidateFunction<NonNullable<import('./celestial-body-upsert').CelestialBodyUpsertEntity['catalogIdentity']> | null>} */
+const validateIdentity = createSchemaValidator({ allErrors: true }).compile(schema);
 
 // Explicit curated source bindings, not an entity-id prefix or display-name heuristic.
 const SOL_CATALOG_IDENTITIES = [
@@ -41,7 +42,9 @@ const CYGNUS_X1_CATALOG_IDENTITIES = [
   Object.freeze({ catalogId, bodyType, namespace: 'cygnus-x1', key })
 );
 const CATALOG_IDENTITIES = [...SOL_CATALOG_IDENTITIES, ...CYGNUS_X1_CATALOG_IDENTITIES];
-const byKey = new Map(CATALOG_IDENTITIES.map((entry) => [`${entry.namespace}/${entry.key}`, entry]));
+const byKey = new Map(
+  CATALOG_IDENTITIES.map((entry) => [`${entry.namespace}/${entry.key}`, entry])
+);
 const byCatalogId = new Map(CATALOG_IDENTITIES.map((entry) => [entry.catalogId, entry]));
 
 class CatalogIdentityError extends Error {}
@@ -54,9 +57,7 @@ function assertCatalogIdentity(body) {
       `Invalid catalogIdentity: ${JSON.stringify(validateIdentity.errors)}`
     );
   }
-  const registered = identity
-    ? byKey.get(`${identity.namespace}/${identity.key}`)
-    : null;
+  const registered = identity ? byKey.get(`${identity.namespace}/${identity.key}`) : null;
   if (
     registered &&
     (body.catalogId !== registered.catalogId ||

@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('../src/model/schema-validator');
 const yaml = require('js-yaml');
 const {
   buildSeededCelestialBodiesForSolarSystem,
@@ -101,7 +101,7 @@ test('black-hole bodyType only accepts black-hole surfaceArchetype', () => {
   const classificationSchema = JSON.parse(
     fs.readFileSync(path.join(ROOT, 'api/schemas/celestial-classification.schema.json'), 'utf8')
   );
-  const validate = new Ajv().compile(classificationSchema);
+  const validate = createSchemaValidator().compile(classificationSchema);
   assert.equal(
     validate({
       bodyType: 'black-hole',
@@ -141,7 +141,10 @@ test('Cygnus X-1 registry and limited canonical-body list expose both curated bo
     systemResponse.bodies.map((body) => body.id),
     ['cygnus-x1-black-hole', 'cygnus-x1-hd226868']
   );
-  assert.deepEqual(systemResponse.stars.map((body) => body.id), ['cygnus-x1-hd226868']);
+  assert.deepEqual(
+    systemResponse.stars.map((body) => body.id),
+    ['cygnus-x1-hd226868']
+  );
 
   const systemListResponse = await new SolarSystemListMessageHandler(context).buildResponse({
     playerName: 'PilotOne',
@@ -149,7 +152,10 @@ test('Cygnus X-1 registry and limited canonical-body list expose both curated bo
     limit: 1,
   });
   assert.equal(systemListResponse.success, true);
-  assert.deepEqual(systemListResponse.solarSystems.map((system) => system.id), ['cygnus-x1']);
+  assert.deepEqual(
+    systemListResponse.solarSystems.map((system) => system.id),
+    ['cygnus-x1']
+  );
 
   const limitedResponse = await new CelestialBodyListMessageHandler(context).buildResponse({
     playerName: 'PilotOne',

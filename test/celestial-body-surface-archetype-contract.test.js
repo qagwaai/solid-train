@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('../src/model/schema-validator');
 const fs = require('node:fs');
 const path = require('node:path');
 const { SURFACE_ARCHETYPE_VALUES } = require('../src/model/celestial-body-upsert');
@@ -31,7 +31,7 @@ test('celestial-body schemas require the canonical non-nullable surface archetyp
 test('surfaceArchetype JSON Schema rejects missing and unsupported values', () => {
   const requestSchema = readSchema('celestial-body-upsert-request.schema.json');
   const archetypeSchema = requestSchema.properties.celestialBody.properties.surfaceArchetype;
-  const validate = new Ajv().compile({
+  const validate = createSchemaValidator().compile({
     type: 'object',
     properties: { surfaceArchetype: archetypeSchema },
     required: ['surfaceArchetype'],

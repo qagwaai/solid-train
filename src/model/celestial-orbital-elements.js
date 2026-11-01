@@ -1,9 +1,12 @@
 'use strict';
 
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('./schema-validator');
 const schema = require('../../api/schemas/orbital-elements.schema.json');
 
 // One validator for socket writes, direct persistence, and canonical reads.
-const validateOrbitalElements = new Ajv({ allErrors: true, strictNumbers: true }).compile(schema);
+const validateOrbitalElements = createSchemaValidator({
+  allErrors: true,
+  strictNumbers: true,
+}).compile(schema);
 
 module.exports = { validateOrbitalElements };
