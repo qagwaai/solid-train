@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const fs = require('node:fs');
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('../src/model/schema-validator');
 const Parser = require('@apidevtools/swagger-parser');
 const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
 const {
@@ -15,7 +15,7 @@ const { createServer } = require('../src/server');
 const { seedPlayer } = require('../test-support/message-handler-test-helpers');
 const { listen, connectClient, waitForEvent } = require('../test-support/socket-test-helpers');
 
-const ajv = new Ajv({ allErrors: true, format: 'full' });
+const ajv = createSchemaValidator({ allErrors: true });
 for (const name of [
   'credit-ledger-entry',
   'credit-ledger-list-request',
@@ -338,7 +338,7 @@ test('all ledger and character-list OpenAPI examples validate against resolved s
       operation.requestBody.content['application/json'],
       operation.responses['200'].content['application/json'],
     ]) {
-      const validate = new Ajv({ allErrors: true, format: 'full' }).compile(content.schema);
+      const validate = createSchemaValidator({ allErrors: true }).compile(content.schema);
       for (const [name, example] of Object.entries(content.examples)) {
         assert.equal(validate(example.value), true, `${name}: ${ajv.errorsText(validate.errors)}`);
       }

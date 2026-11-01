@@ -5,6 +5,19 @@ const CREDIT_LEDGER_LIST_RESPONSE_EVENT = 'credit-ledger-list-response';
 const DEFAULT_CREDIT_LEDGER_LIMIT = 50;
 const MAX_CREDIT_LEDGER_LIMIT = 200;
 
+/**
+ * @typedef {Object} CreditLedgerListRequest
+ * @property {string} playerName
+ * @property {string} sessionKey
+ * @property {string} correlationId
+ * @property {{operation: 'credit-ledger-list', entityType: 'credit-ledger', containerId: string, [key: string]: unknown}} requestIdentity
+ * @property {string} [characterId]
+ * @property {string} [startAt]
+ * @property {string} [endAt]
+ * @property {number} [offset]
+ * @property {number} [limit]
+ */
+
 function creditLedgerFailure(payload, reason, message) {
   return {
     success: false,
