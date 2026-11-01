@@ -1,6 +1,6 @@
 'use strict';
 
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('../model/schema-validator');
 const requestSchema = require('../../api/schemas/credit-ledger-list-request.schema.json');
 const {
   CREDIT_LEDGER_LIST_REQUEST_EVENT,
@@ -10,7 +10,8 @@ const {
   creditLedgerFailure,
 } = require('../model/credit-ledger-list');
 
-const validateRequest = new Ajv({ allErrors: true, format: 'full' }).compile(requestSchema);
+/** @type {import('ajv').ValidateFunction<import('../model/credit-ledger-list').CreditLedgerListRequest>} */
+const validateRequest = createSchemaValidator({ allErrors: true }).compile(requestSchema);
 
 class CreditLedgerListMessageHandler {
   constructor(context) {

@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const fs = require('node:fs');
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('../src/model/schema-validator');
 const Parser = require('@apidevtools/swagger-parser');
 const {
   CelestialBodyUpsertMessageHandler,
@@ -49,7 +49,7 @@ async function bodySchemas() {
 
 test('all 63 bodyType/archetype combinations agree across runtime, request and canonical reads', async (t) => {
   const validators = (await bodySchemas()).map((schema) =>
-    new Ajv({ allErrors: true }).compile(schema)
+    createSchemaValidator({ allErrors: true }).compile(schema)
   );
   const { context, handler } = createHandler();
   let count = 0;
@@ -80,7 +80,7 @@ test('all 63 bodyType/archetype combinations agree across runtime, request and c
 });
 
 test('canonical rejection mutations agree between upsert handler and fully resolved request schema', async (t) => {
-  const validate = new Ajv({ allErrors: true, strictNumbers: true }).compile(
+  const validate = createSchemaValidator({ allErrors: true, strictNumbers: true }).compile(
     (await bodySchemas())[0]
   );
   const { handler } = createHandler();
@@ -309,7 +309,7 @@ test('canonical rejection mutations agree between upsert handler and fully resol
 
 test('every current seeded producer validates canonical request and read schemas, with source stellar values', async (t) => {
   const validators = (await bodySchemas()).map((schema) =>
-    new Ajv({ allErrors: true }).compile(schema)
+    createSchemaValidator({ allErrors: true }).compile(schema)
   );
   const { context } = createHandler();
   let count = 0;

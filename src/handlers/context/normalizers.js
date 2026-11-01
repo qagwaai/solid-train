@@ -2,9 +2,9 @@
 
 const { randomUUID } = require('node:crypto');
 const { legacyCreditLedgerEntryId } = require('../../model/credit-ledger-entry');
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('../../model/schema-validator');
 const creditLedgerEntrySchema = require('../../../api/schemas/credit-ledger-entry.schema.json');
-const validateCreditLedgerEntry = new Ajv({ format: 'full' }).compile(creditLedgerEntrySchema);
+const validateCreditLedgerEntry = createSchemaValidator().compile(creditLedgerEntrySchema);
 const { getItemByType } = require('../../model/canonical-items');
 const { assertCanonicalRuntimeItemType } = require('../../model/canonical-item-type-registry');
 const {
@@ -913,9 +913,7 @@ function normalizeCelestialBody(ctx, celestialBody) {
       : {}),
     ...(source.orbitalElements ? { orbitalElements: source.orbitalElements } : {}),
     ...(source.physicalCatalog ? { physicalCatalog: source.physicalCatalog } : {}),
-    ...(source.blackHoleProperties
-      ? { blackHoleProperties: source.blackHoleProperties }
-      : {}),
+    ...(source.blackHoleProperties ? { blackHoleProperties: source.blackHoleProperties } : {}),
     ...(source.atmosphere ? { atmosphere: source.atmosphere } : {}),
     ...(source.discovery ? { discovery: source.discovery } : {}),
     ...(source.magnitudes ? { magnitudes: source.magnitudes } : {}),

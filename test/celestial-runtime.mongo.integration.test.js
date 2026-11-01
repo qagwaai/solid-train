@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const path = require('node:path');
-const Ajv = require('ajv');
+const { createSchemaValidator } = require('../src/model/schema-validator');
 const Parser = require('@apidevtools/swagger-parser');
 const { createServer } = require('../src/server');
 const { DatabaseService } = require('../src/db/service');
@@ -80,7 +80,7 @@ async function closeRuntime(runtime) {
 }
 
 function compileRuntimeResponseValidators(contract) {
-  const ajv = new Ajv({ allErrors: true, schemaId: 'auto' });
+  const ajv = createSchemaValidator({ allErrors: true });
   const operations = [
     ['/socket/solar-system-get', SOLAR_SYSTEM_GET_RESPONSE_EVENT],
     ['/socket/celestial-body-list', CELESTIAL_BODY_LIST_RESPONSE_EVENT],
