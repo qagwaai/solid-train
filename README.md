@@ -172,6 +172,12 @@ When updating these pins, preserve body-parser's supported qs range and refresh
 `package-lock.json`. Keep Undici and the transitive `follow-redirects` dependency
 on patched versions as well; both are covered by the same audit gate.
 
+ESLint's direct and `@eslint/config-array` dependency paths override `minimatch`
+to patched version 11.0.3 for GHSA-g3hv-75wg-m249. This crosses a major version
+because the upstream ESLint ranges still select vulnerable 10.x releases.
+When updating or removing the override, verify linting and file/ignore selection
+on Windows as well as the dependency audit.
+
 All Node-based CI workflows use `.nvmrc`. Keep its pinned Node 24 LTS version,
 the `package.json` engine requirement, and these setup instructions aligned.
 

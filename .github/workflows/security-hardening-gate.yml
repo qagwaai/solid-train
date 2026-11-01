@@ -41,6 +41,9 @@ jobs:
       - name: Run dependency vulnerability gate (high/critical)
         run: npm run security:audit
 
+      - name: Validate ESLint dependency compatibility
+        run: npm run lint
+
       - name: Catalog decoding and documentation rate-limit regressions
         run: node --test test/import-sol-catalog-data.test.js test/server.test.js
 
