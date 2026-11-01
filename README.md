@@ -44,6 +44,11 @@ The server listens on port `3000` by default. Set `PORT` to override.
 
 This works across bash, cmd, and PowerShell.
 
+Every server startup builds a fresh contract artifact and checks it against the approved
+baseline before initializing the database or listening. Startup is blocked if the baseline is
+missing or contract variance is found. To inspect drift locally, run `npm run contract:artifact`
+followed by `npm run contract:gate:hard`.
+
 To make the server reachable from other devices on this PC's local network, run:
 
 ```bash
