@@ -93,17 +93,17 @@
     "typescript": "^7.0.2"
   },
   "overrides": {
-    "body-parser": "2.3.0",
+    "body-parser": "2.4.0",
     "brace-expansion": "5.0.12",
     "engine.io": "6.6.10",
     "engine.io-client": "6.6.6",
-    "qs": "6.16.0",
+    "qs": "6.16.1",
     "socket.io-adapter": "2.5.8",
     "socket.io-parser": "4.2.7",
     "ws": "8.21.3"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "packageManager": "npm@10.8.2",
   "allowScripts": {
