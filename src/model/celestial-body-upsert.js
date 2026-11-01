@@ -13,6 +13,7 @@ const SURFACE_ARCHETYPE_VALUES = [
   'rocky-moon',
   'icy-moon',
   'asteroid',
+  'black-hole',
 ];
 const ASTEROID_MATERIAL_RARITY_VALUES = ['Common', 'Uncommon', 'Rare', 'Exotic'];
 const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
@@ -20,6 +21,7 @@ const CELESTIAL_BODY_STATE_VALUES = ['unscanned', 'active', 'destroyed'];
 // planetType and visualization.textureKey are independent of this classification.
 const BODY_TYPE_ARCHETYPES = {
   star: ['star'],
+  'black-hole': ['black-hole'],
   planet: ['rocky', 'lava', 'ocean', 'gas-giant', 'ice-giant'],
   'dwarf-planet': ['rocky', 'icy-moon'],
   moon: ['rocky-moon', 'icy-moon', 'lava'],
@@ -101,10 +103,10 @@ function hasValidBodyClassification(body) {
 /**
  * @typedef {Object} CelestialBodyUpsertEntity
  * @property {string} [id]
- * @property {'star'|'planet'|'dwarf-planet'|'moon'|'asteroid'|'tno'|'comet'} bodyType
+ * @property {'star'|'black-hole'|'planet'|'dwarf-planet'|'moon'|'asteroid'|'tno'|'comet'} bodyType
  * @property {string|null} [spectralClass] Source class; unknown is null.
  * @property {number|null} [luminositySolar] Source luminosity in solar units.
- * @property {'rocky'|'lava'|'ocean'|'gas-giant'|'ice-giant'|'star'|'rocky-moon'|'icy-moon'|'asteroid'} surfaceArchetype
+ * @property {'rocky'|'lava'|'ocean'|'gas-giant'|'ice-giant'|'star'|'rocky-moon'|'icy-moon'|'asteroid'|'black-hole'} surfaceArchetype
  * @property {string} catalogId
  * @property {{namespace: string, key: string}|null} [catalogIdentity] Stable astronomical identity.
  * @property {string} sourceScanId

@@ -41,6 +41,9 @@
       "type": ["number", "null"],
       "description": "Mean temperature in kelvin."
     },
-    "compositionTags": { "type": "array", "items": { "type": "string" } }
+    "compositionTags": { "type": "array", "items": { "type": "string" } },
+    "massSolar": { "type": ["number", "null"], "minimum": 0 },
+    "massUncertaintySolar": { "type": ["number", "null"], "minimum": 0 },
+    "sourceReferences": { "type": "array", "items": { "type": "string" } }
   }
 }

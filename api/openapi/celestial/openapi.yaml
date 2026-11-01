@@ -432,6 +432,8 @@ paths:
                       containerId: first-target
 components:
   schemas:
+    BlackHoleProperties:
+      $ref: '../../schemas/black-hole-properties.schema.json'
     CelestialBodyListRequest:
       $ref: '../../schemas/celestial-body-list-request.schema.json'
     CelestialBodyListResponse:

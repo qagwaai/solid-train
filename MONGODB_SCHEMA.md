@@ -438,6 +438,46 @@ entity instances of that source. Reservations are not deleted when a body is
 deleted or its identity cleared. Full world database recreation must include
 this collection and celestial seed state. No migration/backfill is provided.
 
+### Cygnus X-1 catalog extension
+
+The curated `cygnus-x1` system persists two independent `cb` documents:
+`cygnus-x1-black-hole` with identity `{namespace: "cygnus-x1", key: "black-hole"}`,
+and `cygnus-x1-hd226868` with identity
+`{namespace: "cygnus-x1", key: "hd226868"}`. HYG 97987, HIP 98298, and HD 226868
+belong to the companion, not the black hole.
+
+Both bodies use canonical `spatial.solarSystemId`, `spatial.positionKm`,
+`spatial.epochMs`, `observability`, and `state`. Legacy root `solarSystemId`,
+`location`, and `kinematics` descriptions below are not the current celestial
+wire contract; see the
+[canonical body contract](docs/celestial-body-contract.md#canonical-writes-and-reads).
+
+The optional nullable `blackHoleProperties` embedded document is defined in
+[`celestial-model.js`](src/db/models/celestial-model.js) without its own `_id`:
+
+- Required when the document is present: `massSolar` and
+  `schwarzschildReferenceRadiusKm`.
+- Nullable numeric fields: `massUncertaintySolar`, `distanceParsec`,
+  `distanceUncertaintyParsec`, `orbitalPeriodDays`,
+  `relativeBinarySemimajorAxisAU`, `eccentricity`, `inclinationDeg`,
+  `eventHorizonRadiusKm`, and `visualAccretionDiskOuterRadiusKm`.
+- `sourceReferences`: citation-string array.
+- Units and semantics follow the
+  [shared BlackHoleProperties schema](api/schemas/black-hole-properties.schema.json);
+  orbital metadata does not supply a complete oriented/phased orbit.
+
+`physicalCatalog` separately preserves mass in kg and solar masses, uncertainty
+in solar masses, companion radius in km and temperature in K, composition tags,
+and source references. It must not be merged with gameplay physical estimates.
+The black hole has no generic physical catalog radius; the 62.6 km
+Schwarzschild reference is neither an asserted Kerr horizon radius nor a disk size.
+
+Fresh Cygnus bodies are materialized by system GET on demand, not during startup.
+Existing current-version seed state is reused; a restart does not backfill
+existing catalog records. No migration or database reset is run automatically.
+See the [Cygnus availability and handoff guide](docs/celestial-body-contract.md#availability-startup-and-request-sequence)
+for request sequencing and validation scope.
+
 Defined in src/db/models.js and stored in the `cb` collection.
 
 ### Fields
