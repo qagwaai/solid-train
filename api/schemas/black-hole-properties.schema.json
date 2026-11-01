@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BlackHoleProperties",
+  "description": "Source-preserving black-hole parameters. Schwarzschild radius is the nonrotating reference radius 2GM/c^2; it is not interchangeable with a spin-dependent Kerr event-horizon radius or a variable visual/accretion-disk extent.",
+  "type": ["object", "null"],
+  "properties": {
+    "massSolar": { "type": "number", "minimum": 0 },
+    "massUncertaintySolar": { "type": ["number", "null"], "minimum": 0 },
+    "distanceParsec": { "type": ["number", "null"], "minimum": 0 },
+    "distanceUncertaintyParsec": { "type": ["number", "null"], "minimum": 0 },
+    "orbitalPeriodDays": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+    "relativeBinarySemimajorAxisAU": {
+      "type": ["number", "null"],
+      "exclusiveMinimum": 0,
+      "description": "Relative semimajor axis of the two-body binary in AU; not either component's barycentric semimajor axis."
+    },
+    "eccentricity": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "exclusiveMaximum": 1,
+      "description": "Dimensionless eccentricity of the relative binary orbit."
+    },
+    "inclinationDeg": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 180,
+      "description": "Source-reported binary inclination in degrees; does not specify an in-plane orientation or orbital phase."
+    },
+    "schwarzschildReferenceRadiusKm": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Nonrotating reference radius calculated from mass; not a separately measured horizon size."
+    },
+    "eventHorizonRadiusKm": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Spin-dependent horizon radius; null when spin is not sourced."
+    },
+    "visualAccretionDiskOuterRadiusKm": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Variable/renderer-specific visible disk extent; null means no canonical physical boundary is asserted."
+    },
+    "sourceReferences": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["massSolar", "schwarzschildReferenceRadiusKm"]
+}

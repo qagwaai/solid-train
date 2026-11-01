@@ -2,12 +2,12 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CelestialClassification",
   "type": "object",
-  "description": "Scientific bodyType is separate from appearance surfaceArchetype and optional planetType. Compatibility preserves current curated seed assignments and Sol catalog fallbacks. textureKey is never classification.",
+  "description": "Scientific bodyType is separate from appearance surfaceArchetype and optional planetType. Compatibility preserves curated assignments and explicit catalog fallbacks. A black hole is not a star; textureKey is never classification.",
   "required": ["bodyType", "surfaceArchetype", "state"],
   "properties": {
     "bodyType": {
       "type": "string",
-      "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
+      "enum": ["star", "black-hole", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
     },
     "surfaceArchetype": {
       "type": "string",
@@ -20,12 +20,17 @@
         "star",
         "rocky-moon",
         "icy-moon",
-        "asteroid"
+        "asteroid",
+        "black-hole"
       ]
     },
     "state": { "type": "string", "enum": ["unscanned", "active", "destroyed"] }
   },
   "allOf": [
+    {
+      "if": { "properties": { "bodyType": { "const": "black-hole" } } },
+      "then": { "properties": { "surfaceArchetype": { "enum": ["black-hole"] } } }
+    },
     {
       "if": { "properties": { "bodyType": { "const": "star" } } },
       "then": { "properties": { "surfaceArchetype": { "enum": ["star"] } } }

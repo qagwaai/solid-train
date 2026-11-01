@@ -13,6 +13,10 @@ paths:
       description: |
         Resolves a solar system by id, seeds its canonical celestial bodies on demand,
         and returns both the system summary and its materialized bodies.
+        Cygnus X-1 contains separate cygnus-x1-black-hole and cygnus-x1-hd226868
+        bodies; HYG 97987 / HIP 98298 / HD 226868 identifies the companion anchor.
+        Cygnus positions are authored system-origin seed placements, not measured
+        coordinates. No orbital orientation or phase is asserted.
         Positions are persisted seed-time barycentric snapshots at spatial.epochMs,
         not recalculated on each read. Orbital elements retain their reference epoch.
         Each body requires non-null bodyType and compatible surfaceArchetype.
@@ -213,6 +217,107 @@ paths:
                     bodies:
                       - *alphaPrimary
                       - *alphaSecondary
+                cygnusX1CanonicalBodies:
+                  summary: Curated black hole and separate HD 226868 companion bodies
+                  value:
+                    success: true
+                    message: Solar system retrieved successfully
+                    playerName: PilotOne
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: solar-system-get
+                      entityType: solar-system
+                      containerId: cygnus-x1
+                    solarSystemId: cygnus-x1
+                    solarSystem:
+                      id: cygnus-x1
+                      displayName: Cygnus X-1
+                      hygSystemId: cygnus-x1
+                      source: curated
+                      isMultiStar: false
+                      positionPc: null
+                      distanceParsec: null
+                      primaryStar: null
+                      starCount: 1
+                      generationSeed: null
+                    stars:
+                      - &cygnusCompanionBody
+                        id: cygnus-x1-hd226868
+                        catalogId: cygnus-x1-hd226868
+                        catalogIdentity: { namespace: cygnus-x1, key: hd226868 }
+                        sourceScanId: catalog
+                        createdByCharacterId: system-catalog
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-10-25T00:00:00.000Z'
+                        updatedAt: '2026-10-25T00:00:00.000Z'
+                        bodyType: star
+                        surfaceArchetype: star
+                        hygId: '97987'
+                        hipId: '98298'
+                        hdId: '226868'
+                        displayName: HD 226868
+                        parentBodyId: cygnus-x1-black-hole
+                        orbitalElements: null
+                        spatial:
+                          solarSystemId: cygnus-x1
+                          frame: barycentric
+                          positionKm: { x: 0, y: 0, z: 0 }
+                          epochMs: 946728000000
+                        observability: { visibility: visible, scanState: scanned }
+                        composition: { rarity: Common, material: hydrogen, textureColor: '#ffd86b' }
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        physicalCatalog: { massSolar: 40.6, massUncertaintySolar: 7.7 }
+                        blackHoleProperties: null
+                        luminositySolar: null
+                        visualization: { colorHex: '#9ab7ff', spectralClass: O, textureKey: star }
+                    bodies:
+                      - id: cygnus-x1-black-hole
+                        catalogId: cygnus-x1-black-hole
+                        catalogIdentity: { namespace: cygnus-x1, key: black-hole }
+                        sourceScanId: catalog
+                        createdByCharacterId: system-catalog
+                        missionId: null
+                        missionInstanceId: null
+                        createdAt: '2026-10-25T00:00:00.000Z'
+                        updatedAt: '2026-10-25T00:00:00.000Z'
+                        displayName: Cygnus X-1
+                        parentBodyId: null
+                        orbitalElements: null
+                        bodyType: black-hole
+                        surfaceArchetype: black-hole
+                        spatial:
+                          solarSystemId: cygnus-x1
+                          frame: barycentric
+                          positionKm: { x: 0, y: 0, z: 0 }
+                          epochMs: 946728000000
+                        observability: { visibility: visible, scanState: scanned }
+                        composition: { rarity: Common, material: black-hole, textureColor: '#111827' }
+                        state: active
+                        destroyedAt: null
+                        destroyedReason: null
+                        debrisSeed: null
+                        debris: []
+                        physicalCatalog: { massSolar: 21.2, massUncertaintySolar: 2.2 }
+                        blackHoleProperties:
+                          massSolar: 21.2
+                          massUncertaintySolar: 2.2
+                          distanceParsec: 2220
+                          distanceUncertaintyParsec: 180
+                          orbitalPeriodDays: 5.599829
+                          schwarzschildReferenceRadiusKm: 62.6
+                          eventHorizonRadiusKm: null
+                          visualAccretionDiskOuterRadiusKm: null
+                        hygId: null
+                        hipId: null
+                        hdId: null
+                        luminositySolar: null
+                        visualization: { colorHex: '#111827', textureKey: black-hole }
+                      - *cygnusCompanionBody
                       - *alphaTertiary
                       - id: alpha-centauri-proxima-b
                         catalogId: alpha-centauri-proxima-b
@@ -361,6 +466,8 @@ paths:
                     solarSystems: []
 components:
   schemas:
+    BlackHoleProperties:
+      $ref: '../../schemas/black-hole-properties.schema.json'
     SolarSystemGetRequest:
       $ref: '../../schemas/solar-system-get-request.schema.json'
     SolarSystemGetResponse:

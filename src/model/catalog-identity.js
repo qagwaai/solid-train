@@ -34,8 +34,15 @@ const SOL_CATALOG_IDENTITIES = [
   Object.freeze({ catalogId, bodyType, namespace: 'sol', key })
 );
 
-const byKey = new Map(SOL_CATALOG_IDENTITIES.map((entry) => [entry.key, entry]));
-const byCatalogId = new Map(SOL_CATALOG_IDENTITIES.map((entry) => [entry.catalogId, entry]));
+const CYGNUS_X1_CATALOG_IDENTITIES = [
+  ['cygnus-x1-black-hole', 'black-hole', 'black-hole'],
+  ['cygnus-x1-hd226868', 'hd226868', 'star'],
+].map(([catalogId, key, bodyType]) =>
+  Object.freeze({ catalogId, bodyType, namespace: 'cygnus-x1', key })
+);
+const CATALOG_IDENTITIES = [...SOL_CATALOG_IDENTITIES, ...CYGNUS_X1_CATALOG_IDENTITIES];
+const byKey = new Map(CATALOG_IDENTITIES.map((entry) => [`${entry.namespace}/${entry.key}`, entry]));
+const byCatalogId = new Map(CATALOG_IDENTITIES.map((entry) => [entry.catalogId, entry]));
 
 class CatalogIdentityError extends Error {}
 
@@ -47,7 +54,9 @@ function assertCatalogIdentity(body) {
       `Invalid catalogIdentity: ${JSON.stringify(validateIdentity.errors)}`
     );
   }
-  const registered = identity?.namespace === 'sol' ? byKey.get(identity.key) : null;
+  const registered = identity
+    ? byKey.get(`${identity.namespace}/${identity.key}`)
+    : null;
   if (
     registered &&
     (body.catalogId !== registered.catalogId ||
@@ -56,7 +65,7 @@ function assertCatalogIdentity(body) {
       body.createdByCharacterId !== 'system-catalog')
   ) {
     throw new CatalogIdentityError(
-      `catalogIdentity sol/${identity.key} requires curated source ${registered.catalogId} (${registered.bodyType})`
+      `catalogIdentity ${identity.namespace}/${identity.key} requires curated source ${registered.catalogId} (${registered.bodyType})`
     );
   }
   const source = byCatalogId.get(body.catalogId);
@@ -92,6 +101,8 @@ function assertCatalogIdentityAssignments(bodies) {
 
 module.exports = {
   SOL_CATALOG_IDENTITIES,
+  CYGNUS_X1_CATALOG_IDENTITIES,
+  CATALOG_IDENTITIES,
   CatalogIdentityError,
   assertCatalogIdentity,
   assertCatalogIdentityAssignments,

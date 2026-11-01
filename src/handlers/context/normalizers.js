@@ -913,11 +913,16 @@ function normalizeCelestialBody(ctx, celestialBody) {
       : {}),
     ...(source.orbitalElements ? { orbitalElements: source.orbitalElements } : {}),
     ...(source.physicalCatalog ? { physicalCatalog: source.physicalCatalog } : {}),
+    ...(source.blackHoleProperties
+      ? { blackHoleProperties: source.blackHoleProperties }
+      : {}),
     ...(source.atmosphere ? { atmosphere: source.atmosphere } : {}),
     ...(source.discovery ? { discovery: source.discovery } : {}),
     ...(source.magnitudes ? { magnitudes: source.magnitudes } : {}),
     ...(source.planetType ? { planetType: toNonEmptyString(ctx, source.planetType) } : {}),
     ...(source.hygId ? { hygId: toNonEmptyString(ctx, source.hygId) } : {}),
+    ...(source.hipId ? { hipId: toNonEmptyString(ctx, source.hipId) } : {}),
+    ...(source.hdId ? { hdId: toNonEmptyString(ctx, source.hdId) } : {}),
     ...(source.visualization
       ? {
           visualization: {

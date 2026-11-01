@@ -3,7 +3,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const prettier = require('prettier');
 
 function parseArgs(argv) {
   const result = {};
@@ -47,6 +46,7 @@ function stableStringify(value) {
 }
 
 async function formatJson(value, filePath) {
+  const prettier = require('prettier');
   const config = (await prettier.resolveConfig(filePath)) || {};
   return prettier.format(stableStringify(value), { ...config, parser: 'json' });
 }
@@ -78,7 +78,7 @@ function extractOpenApiPaths(openApiText) {
   return [...found].sort();
 }
 
-function extractSchemaRefMap(openApiText) {
+function extractSchemaRefMap(openApiText, rootDir = process.cwd()) {
   const refs = {};
 
   const rootComponentRefRegex = /^\s{4}([A-Za-z0-9_-]+):\s*\n\s{6}\$ref:\s*'([^']+)'\s*$/gm;
@@ -116,7 +116,7 @@ function extractSchemaRefMap(openApiText) {
       'openapi',
       `${moduleMatch[1]}.yaml`
     );
-    const moduleAbsolutePath = path.resolve(process.cwd(), moduleFilePath);
+    const moduleAbsolutePath = path.resolve(rootDir, moduleFilePath);
     if (!fs.existsSync(moduleAbsolutePath)) {
       return null;
     }
@@ -137,10 +137,7 @@ function extractSchemaRefMap(openApiText) {
     }
 
     const fallbackFile = `${toKebabCase(schemaName)}.schema.json`;
-    const fallbackAbsolutePath = path.resolve(
-      process.cwd(),
-      path.join('api', 'schemas', fallbackFile)
-    );
+    const fallbackAbsolutePath = path.resolve(rootDir, path.join('api', 'schemas', fallbackFile));
     return fs.existsSync(fallbackAbsolutePath) ? fallbackFile : null;
   }
 
@@ -158,10 +155,7 @@ function extractSchemaRefMap(openApiText) {
     }
 
     const fallbackFile = `${toKebabCase(schemaName)}.schema.json`;
-    const fallbackAbsolutePath = path.resolve(
-      process.cwd(),
-      path.join('api', 'schemas', fallbackFile)
-    );
+    const fallbackAbsolutePath = path.resolve(rootDir, path.join('api', 'schemas', fallbackFile));
     if (fs.existsSync(fallbackAbsolutePath)) {
       refs[schemaName] = fallbackFile;
     }
@@ -181,6 +175,83 @@ function loadSchemas(rootDir, schemaRefMap) {
   return loaded;
 }
 
+function resolveSchemaReferences(
+  rootDir,
+  schemaPath,
+  schema,
+  referenceStack = [],
+  schemaCache = new Map()
+) {
+  if (Array.isArray(schema)) {
+    return schema.map((item) =>
+      resolveSchemaReferences(rootDir, schemaPath, item, referenceStack, schemaCache)
+    );
+  }
+
+  if (!schema || typeof schema !== 'object') {
+    return schema;
+  }
+
+  if (typeof schema.$ref === 'string') {
+    const [referencePath, fragment = ''] = schema.$ref.split('#', 2);
+    const targetPath = referencePath
+      ? path.resolve(path.dirname(schemaPath), referencePath)
+      : schemaPath;
+    const schemasRoot = path.resolve(rootDir, 'api', 'schemas');
+    const relativeTarget = path.relative(schemasRoot, targetPath);
+    if (relativeTarget.startsWith('..') || path.isAbsolute(relativeTarget)) {
+      throw new Error(`Schema reference escapes api/schemas: ${schema.$ref}`);
+    }
+
+    const referenceKey = `${targetPath}#${fragment}`;
+    if (referenceStack.includes(referenceKey)) {
+      throw new Error(`Cyclic schema reference detected: ${referenceKey}`);
+    }
+
+    let targetSchema = schemaCache.get(targetPath);
+    if (!targetSchema) {
+      targetSchema = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
+      schemaCache.set(targetPath, targetSchema);
+    }
+
+    for (const token of fragment
+      .split('/')
+      .filter(Boolean)
+      .map((part) => part.replace(/~1/g, '/').replace(/~0/g, '~'))) {
+      if (!targetSchema || typeof targetSchema !== 'object' || !(token in targetSchema)) {
+        throw new Error(`Schema reference target not found: ${schema.$ref}`);
+      }
+      targetSchema = targetSchema[token];
+    }
+
+    const resolvedTarget = resolveSchemaReferences(
+      rootDir,
+      targetPath,
+      targetSchema,
+      [...referenceStack, referenceKey],
+      schemaCache
+    );
+    const siblings = Object.fromEntries(
+      Object.entries(schema)
+        .filter(([key]) => key !== '$ref')
+        .map(([key, value]) => [
+          key,
+          resolveSchemaReferences(rootDir, schemaPath, value, referenceStack, schemaCache),
+        ])
+    );
+    return resolvedTarget && typeof resolvedTarget === 'object' && !Array.isArray(resolvedTarget)
+      ? { ...resolvedTarget, ...siblings }
+      : resolvedTarget;
+  }
+
+  return Object.fromEntries(
+    Object.entries(schema).map(([key, value]) => [
+      key,
+      resolveSchemaReferences(rootDir, schemaPath, value, referenceStack, schemaCache),
+    ])
+  );
+}
+
 function buildArtifact(rootDir) {
   const openApiPath = path.join(rootDir, 'api', 'openapi.yaml');
   const openApiText = readText(openApiPath);
@@ -189,10 +260,22 @@ function buildArtifact(rootDir) {
   const socketEndpoints = allPaths.filter((entry) => entry.startsWith('/socket/'));
   const socketEvents = socketEndpoints.map((entry) => entry.slice('/socket/'.length)).sort();
 
-  const schemaRefMap = extractSchemaRefMap(openApiText);
+  const schemaRefMap = extractSchemaRefMap(openApiText, rootDir);
   const schemas = loadSchemas(rootDir, schemaRefMap);
+  const resolvedSchemas = Object.fromEntries(
+    Object.keys(schemaRefMap)
+      .sort()
+      .map((schemaName) => [
+        schemaName,
+        resolveSchemaReferences(
+          rootDir,
+          path.join(rootDir, 'api', 'schemas', schemaRefMap[schemaName]),
+          schemas[schemaName]
+        ),
+      ])
+  );
 
-  const schemaBundle = stableStringify(schemas);
+  const schemaBundle = stableStringify(resolvedSchemas);
   const openApiNormalized = openApiText.replace(/\r\n/g, '\n');
 
   return {
@@ -209,6 +292,7 @@ function buildArtifact(rootDir) {
     components: {
       schemaRefMap,
       schemas,
+      resolvedSchemas,
     },
     checksums: {
       openApiSha256: sha256(openApiNormalized),
