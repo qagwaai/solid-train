@@ -514,8 +514,10 @@ messages, and the contract artifacts and SW-08 gate pass.
 - [ ] **EX-7.3** Write a Nova handoff prompt covering the new fields, data
       attribution, and expected breakage, following the existing handoff docs.
       Generate the attribution section from the
-      [attribution register](#attribution-register): global credits panel,
-      per-planet references, license links, and approximate-value disclosure.
+      [attribution register](#attribution-register) as an addendum to
+      [nova-sol-catalog-attribution-prompt.md](./nova-sol-catalog-attribution-prompt.md):
+      global credits panel, per-planet references, license links, and
+      approximate-value disclosure.
 - [ ] **EX-7.4** Summarize the findings and draft paging requirements for the
       phase-2 plan, including cursor or page size and spatial or
       distance-ordered queries.
