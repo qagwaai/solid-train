@@ -50,6 +50,11 @@ preserves that range in discovery notes rather than inventing a precise size.
 
 ## Refreshing snapshots
 
+JPL HTML is parsed with Cheerio, and catalog fields are extracted as text with
+one pass of entity decoding. Nested encoded entities are not decoded again.
+These values are plain text, not sanitized HTML; consumers must use text
+rendering or context-appropriate escaping rather than insert them as HTML.
+
 Run `npm run catalog:sol:refresh` to download and regenerate the MPC and JPL
 snapshots. Runtime seeding reads only the checked-in files and does not make
 network requests. The seed version includes a SHA-256 digest of both snapshot

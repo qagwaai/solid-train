@@ -231,6 +231,28 @@ test('GET /docs/celestial-body-contract.md serves the specific Markdown contract
   }
 });
 
+test('documentation file routes are rate limited per client', async () => {
+  const { server, io } = createServer();
+  const port = await listen(server);
+
+  try {
+    let response;
+    for (let request = 0; request < 100; request += 1) {
+      response = await httpGetJson(`http://127.0.0.1:${port}/docs/celestial-body-contract.md`);
+      assert.equal(response.statusCode, 200);
+    }
+
+    response = await httpGetJson(`http://127.0.0.1:${port}/docs/celestial-body-contract.md`);
+    assert.equal(response.statusCode, 429);
+
+    response = await httpGetJson(`http://127.0.0.1:${port}/openapi.yaml`);
+    assert.equal(response.statusCode, 429);
+  } finally {
+    io.close();
+    server.close();
+  }
+});
+
 test('GET /items includes canonical conduit-seals catalog item', async () => {
   const { server, io } = createServer();
   const port = await listen(server);

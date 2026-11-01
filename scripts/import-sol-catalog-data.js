@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const cheerio = require('cheerio');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const MPC_COMETS_URL = 'https://www.minorplanetcenter.net/iau/MPCORB/AllCometEls.txt';
@@ -75,21 +76,27 @@ function isInterstellarCometDesignation(designation) {
 }
 
 function decodeHtml(value) {
-  return value
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&omega;/gi, 'ω')
-    .replace(/&#(\d+);/g, (match, code) => String.fromCodePoint(Number(code)))
+  return cheerio
+    .load(value)
+    .text()
+    .replace(/\u00a0/g, ' ')
     .trim();
 }
 
 function parseJplSatellites(html) {
-  const rows = [...html.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]
-    .map((rowMatch) =>
-      [...rowMatch[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((cellMatch) =>
-        decodeHtml(cellMatch[1])
-      )
+  const $ = cheerio.load(html);
+  const rows = $('tr')
+    .toArray()
+    .map((row) =>
+      $(row)
+        .find('th, td')
+        .map((_, cell) =>
+          $(cell)
+            .text()
+            .replace(/\u00a0/g, ' ')
+            .trim()
+        )
+        .get()
     )
     .filter((row) => row.length >= 20 && /^\d+$/.test(row[0]));
 
@@ -232,6 +239,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  decodeHtml,
   isInterstellarCometDesignation,
   parseJplSatellites,
   parseMpcComets,

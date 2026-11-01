@@ -41,6 +41,9 @@ jobs:
       - name: Run dependency vulnerability gate (high/critical)
         run: npm run security:audit
 
+      - name: Catalog decoding and documentation rate-limit regressions
+        run: node --test test/import-sol-catalog-data.test.js test/server.test.js
+
       - name: Contract security assertions (Stage 3)
         run: node --test test/sw08-contract-stage3.test.js
 

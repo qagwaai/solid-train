@@ -100,6 +100,13 @@ At the default `info` level, high-level operational messages (for example handle
 - `GET /docs` - Swagger UI served by the same Node/Express process
 - `GET /docs/celestial-body-contract.md` - Celestial-body contract and data semantics
 
+The OpenAPI source and celestial-body Markdown routes share a limit of 100
+requests per client IP per 15 minutes. Excess requests return HTTP 429 with a
+`Retry-After` header. The counter is in memory and local to each server process;
+multi-instance deployments need a shared limiter store or gateway enforcement.
+The server does not trust forwarded client-IP headers, so clients behind a
+reverse proxy share the proxy's limit unless trusted-proxy handling is configured.
+
 The expanded non-asteroid Sol performance-test catalog, its public data sources,
 and refresh process are documented in [docs/sol-catalog-data.md](docs/sol-catalog-data.md).
 

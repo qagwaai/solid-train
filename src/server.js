@@ -5,6 +5,7 @@ require('dotenv').config();
 const http = require('node:http');
 const path = require('node:path');
 const express = require('express');
+const { rateLimit } = require('express-rate-limit');
 const { randomUUID } = require('node:crypto');
 const { Server } = require('socket.io');
 const swaggerUi = require('swagger-ui-express');
@@ -209,6 +210,12 @@ function createServer(options = {}) {
 
   // Express app for REST endpoints
   const app = express();
+  const documentationRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+  });
   const openApiSpecPath = path.resolve(__dirname, '..', 'api', 'openapi.yaml');
   const openApiModulesDirPath = path.resolve(__dirname, '..', 'api', 'openapi');
   const schemaDirPath = path.resolve(__dirname, '..', 'api', 'schemas');
@@ -219,12 +226,12 @@ function createServer(options = {}) {
     'celestial-body-contract.md'
   );
 
-  app.get('/openapi.yaml', (req, res) => {
+  app.get('/openapi.yaml', documentationRateLimit, (req, res) => {
     res.set('Cache-Control', 'no-store');
     res.sendFile(openApiSpecPath);
   });
 
-  app.get('/docs/celestial-body-contract.md', (req, res) => {
+  app.get('/docs/celestial-body-contract.md', documentationRateLimit, (req, res) => {
     res.set('Content-Type', 'text/markdown; charset=utf-8').sendFile(celestialBodyContractPath);
   });
 
