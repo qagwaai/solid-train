@@ -10,7 +10,7 @@ Simple Socket.IO server with Node.js.
 
 ## Requirements
 
-- Node.js 20+
+- Node.js 24+ (CI and `.nvmrc` pin 24.22.2)
 - MongoDB (local default: `mongodb://localhost:27017`)
 
 ## Setup
@@ -153,6 +153,20 @@ npm run format:check
 
 ESLint uses `eslint.config.cjs` (flat configuration). Run `npm run format` to
 apply the repository's Prettier formatting.
+
+### Dependency security gate
+
+Run `npm run security:audit` to check the locked dependency tree. High or critical
+advisories fail this gate; moderate advisories are reported but do not block it.
+CI also verifies reproducible installation with `npm ci --ignore-scripts`.
+
+The `body-parser` and `qs` overrides in `package.json` pin patched versions.
+When updating these pins, preserve body-parser's supported qs range and refresh
+`package-lock.json`. Keep Undici and the transitive `follow-redirects` dependency
+on patched versions as well; both are covered by the same audit gate.
+
+All Node-based CI workflows use `.nvmrc`. Keep its pinned Node 24 LTS version,
+the `package.json` engine requirement, and these setup instructions aligned.
 
 ## License and Commercial Use
 
