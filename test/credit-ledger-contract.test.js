@@ -377,6 +377,8 @@ test(
         requestIdentity: { ...request().requestIdentity, containerId: 'missing-character' },
       },
       { sessionKey: 'invalid-session' },
+      { requestIdentity: null },
+      { requestIdentity: undefined },
     ]) {
       const payload = request(overrides);
       const pending = waitForEvent(client, 'credit-ledger-list-response');
@@ -385,10 +387,16 @@ test(
       const response = await pending;
       valid(validateResponse, response);
       assert.equal(response.correlationId, payload.correlationId);
-      assert.deepEqual(response.requestIdentity, payload.requestIdentity);
+      assert.deepEqual(response.requestIdentity, payload.requestIdentity ?? null);
       if (invalidSession) {
         assert.deepEqual(await invalidSession, { message: 'Invalid session' });
         assert.equal(response.reason, 'invalid-session');
+      } else if (
+        Object.prototype.hasOwnProperty.call(overrides, 'requestIdentity') &&
+        (overrides.requestIdentity === null || overrides.requestIdentity === undefined)
+      ) {
+        assert.equal(response.success, false);
+        assert.equal(response.reason, 'invalid-request');
       } else {
         assert.equal(response.success, Object.keys(overrides).length === 0);
       }

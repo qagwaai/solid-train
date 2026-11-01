@@ -12,6 +12,7 @@ for (const name of [
   'celestial-physical-estimates',
   'external-object-descriptor',
   'catalog-identity',
+  'black-hole-properties',
 ]) {
   ajv.addSchema(require(`../../api/schemas/${name}.schema.json`), `${name}.schema.json`);
 }
