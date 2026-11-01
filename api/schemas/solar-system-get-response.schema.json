@@ -55,8 +55,11 @@
         "source": { "type": "string", "enum": ["curated", "procedural"] },
         "isMultiStar": { "type": "boolean" },
         "positionPc": {
-          "$ref": "#/definitions/vector3",
-          "description": "HYG-fixture system-wide coordinate in parsecs; it is not spatial.positionKm and is not converted or added to the system-local celestial snapshots."
+          "anyOf": [
+            { "$ref": "#/definitions/vector3" },
+            { "type": "null" }
+          ],
+          "description": "HYG-fixture system-wide coordinate in parsecs; it is not spatial.positionKm and is not converted or added to the system-local celestial snapshots. Null means the global coordinate is unavailable."
         },
         "distanceParsec": { "type": ["number", "null"] },
         "primaryStar": { "$ref": "#/definitions/primaryStarSummary" },
@@ -158,7 +161,8 @@
             "star",
             "rocky-moon",
             "icy-moon",
-            "asteroid"
+            "asteroid",
+            "black-hole"
           ]
         },
         "catalogId": { "type": "string" },
@@ -186,7 +190,7 @@
         },
         "bodyType": {
           "type": "string",
-          "enum": ["star", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
+          "enum": ["star", "black-hole", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
         },
         "spectralClass": {
           "type": ["string", "null"],
@@ -201,11 +205,14 @@
         "parentBodyId": { "type": ["string", "null"] },
         "orbitalElements": { "$ref": "./orbital-elements.schema.json" },
         "physicalCatalog": { "$ref": "#/definitions/physicalCatalog" },
+        "blackHoleProperties": { "$ref": "./black-hole-properties.schema.json" },
         "atmosphere": { "type": ["object", "null"], "additionalProperties": true },
         "discovery": { "type": ["object", "null"], "additionalProperties": true },
         "magnitudes": { "type": ["object", "null"], "additionalProperties": true },
         "planetType": { "type": ["string", "null"] },
         "hygId": { "type": ["string", "null"] },
+        "hipId": { "type": ["string", "null"] },
+        "hdId": { "type": ["string", "null"] },
         "visualization": { "$ref": "#/definitions/visualization" },
         "clusterId": { "type": "string" },
         "clusterCenterKm": { "$ref": "#/definitions/vector3" },

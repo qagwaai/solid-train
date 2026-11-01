@@ -87,6 +87,7 @@ const { StarListMessageHandler } = require('./handlers/star-list-message-handler
 const { StarGetMessageHandler } = require('./handlers/star-get-message-handler');
 const { registerSocketHandlers } = require('./handlers/socket-handler-registry');
 const { createLogger } = require('./logging/logger');
+const { runContractSafetyPreflight } = require('../scripts/sw08/startup-preflight');
 
 /**
  * Parse and validate a TCP port value.
@@ -345,6 +346,10 @@ async function startServer(options = {}) {
   const logger =
     options.logger ||
     createLogger({ minLevel: options.logLevel || process.env.LOG_LEVEL || 'info' });
+  const contractReport = runContractSafetyPreflight();
+  logger.info(
+    `[contract-preflight] Approved baseline verified; varianceCount=${contractReport.summary.totalIssues}`
+  );
   const mongoConnection = new MongoConnection({
     mongoUri: process.env.MONGODB_URI,
     logger,

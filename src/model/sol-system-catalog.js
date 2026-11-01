@@ -27,12 +27,156 @@ const AU_KM = 149_597_870.7;
 const { getHygStars } = require('./hyg-star-catalog');
 const SUN_HYG_SOURCE = getHygStars().find((star) => star.hygId === '0');
 const { SOL_CATALOG_IDENTITIES } = require('./catalog-identity');
+const MPC_COMET_SNAPSHOT = require('../../data/sol-comets.json');
+const JPL_SATELLITE_SNAPSHOT = require('../../data/sol-satellites.json');
 const CATALOG_IDENTITY_BY_SOURCE = new Map(
   SOL_CATALOG_IDENTITIES.map(({ catalogId, namespace, key }) => [
     catalogId,
     Object.freeze({ namespace, key }),
   ])
 );
+const SOLAR_MU_KM3_PER_SEC2 = 1.32712440018e11;
+const J2000_JULIAN_DAY = 2451545;
+
+const PLANET_ID_BY_JPL_NAME = {
+  Earth: 'sol-earth',
+  Mars: 'sol-mars',
+  Jupiter: 'sol-jupiter',
+  Saturn: 'sol-saturn',
+  Uranus: 'sol-uranus',
+  Neptune: 'sol-neptune',
+  Pluto: 'sol-pluto',
+};
+
+function julianDayFromCalendarDate(year, month, day) {
+  const adjustedYear = year + (month <= 2 ? -1 : 0);
+  const era = Math.floor(adjustedYear / 400);
+  const yearOfEra = adjustedYear - era * 400;
+  const adjustedMonth = month + (month > 2 ? -3 : 9);
+  const dayOfYear = Math.floor((153 * adjustedMonth + 2) / 5) + day - 1;
+  const dayOfEra =
+    yearOfEra * 365 + Math.floor(yearOfEra / 4) - Math.floor(yearOfEra / 100) + dayOfYear;
+  return era * 146097 + dayOfEra - 719468 + 2440587.5;
+}
+
+function julianDayFromUnixMs(timestampMs) {
+  return timestampMs / 86400000 + 2440587.5;
+}
+
+function jplEpochToIso(epoch) {
+  const match = String(epoch).match(/^(\d{4}-\d{2}-\d{2})(?:\.(\d+))?$/);
+  if (!match) {
+    throw new Error(`Invalid JPL satellite epoch: ${epoch}`);
+  }
+  const midnightMs = Date.parse(`${match[1]}T00:00:00.000Z`);
+  const fraction = Number(match[2] ? `0.${match[2]}` : 0);
+  return new Date(midnightMs + fraction * 86400000).toISOString();
+}
+
+function normalizeAngleRadians(value) {
+  const fullTurn = Math.PI * 2;
+  return ((value % fullTurn) + fullTurn) % fullTurn;
+}
+
+function rotatePerihelionCoordinates(x, y, inclinationDeg, nodeDeg, perihelionDeg) {
+  const inclination = (inclinationDeg * Math.PI) / 180;
+  const node = (nodeDeg * Math.PI) / 180;
+  const perihelion = (perihelionDeg * Math.PI) / 180;
+  const cosNode = Math.cos(node);
+  const sinNode = Math.sin(node);
+  const cosInclination = Math.cos(inclination);
+  const sinInclination = Math.sin(inclination);
+  const cosPerihelion = Math.cos(perihelion);
+  const sinPerihelion = Math.sin(perihelion);
+
+  return {
+    x:
+      (cosNode * cosPerihelion - sinNode * sinPerihelion * cosInclination) * x +
+      (-cosNode * sinPerihelion - sinNode * cosPerihelion * cosInclination) * y,
+    y:
+      (sinNode * cosPerihelion + cosNode * sinPerihelion * cosInclination) * x +
+      (-sinNode * sinPerihelion + cosNode * cosPerihelion * cosInclination) * y,
+    z: sinPerihelion * sinInclination * x + cosPerihelion * sinInclination * y,
+  };
+}
+
+function solveParabolicAnomaly(parameter) {
+  let anomaly = Math.cbrt(3 * parameter);
+  for (let iteration = 0; iteration < 40; iteration += 1) {
+    const residual = anomaly + (anomaly * anomaly * anomaly) / 3 - parameter;
+    const step = residual / (1 + anomaly * anomaly);
+    anomaly -= step;
+    if (Math.abs(step) < 1e-12) break;
+  }
+  return anomaly;
+}
+
+function solveHyperbolicAnomaly(meanAnomaly, eccentricity) {
+  let anomaly = Math.asinh(meanAnomaly / eccentricity);
+  for (let iteration = 0; iteration < 40; iteration += 1) {
+    const residual = eccentricity * Math.sinh(anomaly) - anomaly - meanAnomaly;
+    const step = residual / (eccentricity * Math.cosh(anomaly) - 1);
+    anomaly -= step;
+    if (Math.abs(step) < 1e-12) break;
+  }
+  return anomaly;
+}
+
+function solveHighEccentricityEllipticAnomaly(meanAnomaly, eccentricity) {
+  let low = 0;
+  let high = Math.PI * 2;
+  for (let iteration = 0; iteration < 80; iteration += 1) {
+    const middle = (low + high) / 2;
+    if (middle - eccentricity * Math.sin(middle) < meanAnomaly) {
+      low = middle;
+    } else {
+      high = middle;
+    }
+  }
+  return (low + high) / 2;
+}
+
+function positionKmForComet(comet, timestampMs) {
+  const perihelionJulianDay = julianDayFromCalendarDate(
+    comet.perihelionYear,
+    comet.perihelionMonth,
+    comet.perihelionDay
+  );
+  const elapsedSec = (julianDayFromUnixMs(timestampMs) - perihelionJulianDay) * 86400;
+  const perihelionDistanceKm = au(comet.perihelionDistanceAu);
+  const eccentricity = comet.eccentricity;
+  let x;
+  let y;
+
+  if (eccentricity < 1) {
+    const semiMajorAxisKm = perihelionDistanceKm / (1 - eccentricity);
+    const meanMotion = Math.sqrt(SOLAR_MU_KM3_PER_SEC2 / semiMajorAxisKm ** 3);
+    const meanAnomaly = normalizeAngleRadians(meanMotion * elapsedSec);
+    const anomaly = solveHighEccentricityEllipticAnomaly(meanAnomaly, eccentricity);
+    x = semiMajorAxisKm * (Math.cos(anomaly) - eccentricity);
+    y = semiMajorAxisKm * Math.sqrt(1 - eccentricity * eccentricity) * Math.sin(anomaly);
+  } else if (eccentricity === 1) {
+    const semiLatusRectum = 2 * perihelionDistanceKm;
+    const parameter = (2 * elapsedSec) / Math.sqrt(semiLatusRectum ** 3 / SOLAR_MU_KM3_PER_SEC2);
+    const anomaly = solveParabolicAnomaly(parameter);
+    x = perihelionDistanceKm * (1 - anomaly * anomaly);
+    y = 2 * perihelionDistanceKm * anomaly;
+  } else {
+    const semiMajorAxisAbsKm = perihelionDistanceKm / (eccentricity - 1);
+    const meanMotion = Math.sqrt(SOLAR_MU_KM3_PER_SEC2 / semiMajorAxisAbsKm ** 3);
+    const anomaly = solveHyperbolicAnomaly(meanMotion * elapsedSec, eccentricity);
+    x = semiMajorAxisAbsKm * (eccentricity - Math.cosh(anomaly));
+    y = semiMajorAxisAbsKm * Math.sqrt(eccentricity * eccentricity - 1) * Math.sinh(anomaly);
+  }
+
+  return rotatePerihelionCoordinates(
+    x,
+    y,
+    comet.inclinationDeg,
+    comet.longitudeOfAscendingNodeDeg,
+    comet.argumentOfPerihelionDeg
+  );
+}
 
 function days(value) {
   return value * SECONDS_PER_DAY;
@@ -564,99 +708,6 @@ const DWARF_PLANETS = [
   },
 ];
 
-// ---------- Notable asteroids ----------
-
-const ASTEROIDS = [
-  {
-    id: 'sol-vesta',
-    displayName: '4 Vesta',
-    bodyType: 'asteroid',
-    parentBodyId: 'sol-sun',
-    orbit: {
-      semiMajorAxisKm: au(2.3617),
-      eccentricity: 0.0887,
-      inclinationDeg: 7.155,
-      longitudeOfAscendingNodeDeg: 103.851,
-      argumentOfPeriapsisDeg: 151.198,
-      meanAnomalyAtEpochDeg: 20.864,
-      orbitalPeriodSec: days(1325.75),
-      epoch: J2000_EPOCH,
-    },
-    physical: {
-      massKg: 2.59076e20,
-      meanRadiusKm: 262.7,
-      rotationPeriodSec: 19130,
-      axialTiltDeg: 27,
-      surfaceGravityMps2: 0.25,
-      meanTemperatureK: 250,
-      compositionTags: ['basalt', 'iron-nickel'],
-    },
-    atmosphere: null,
-    discovery: { discoveredBy: 'Heinrich Olbers', discoveredYear: 1807, discoveryNotes: null },
-    magnitudes: { absoluteMagnitudeH: 3.2, apparentMagnitudeMin: 5.1, apparentMagnitudeMax: 8.48 },
-  },
-  {
-    id: 'sol-pallas',
-    displayName: '2 Pallas',
-    bodyType: 'asteroid',
-    parentBodyId: 'sol-sun',
-    orbit: {
-      semiMajorAxisKm: au(2.772),
-      eccentricity: 0.2305,
-      inclinationDeg: 34.84,
-      longitudeOfAscendingNodeDeg: 173.08,
-      argumentOfPeriapsisDeg: 309.93,
-      meanAnomalyAtEpochDeg: 78.208,
-      orbitalPeriodSec: days(1685.97),
-      epoch: J2000_EPOCH,
-    },
-    physical: {
-      massKg: 2.04e20,
-      meanRadiusKm: 256,
-      rotationPeriodSec: 28128,
-      axialTiltDeg: 84,
-      surfaceGravityMps2: 0.21,
-      meanTemperatureK: 164,
-      compositionTags: ['carbonaceous', 'silicate'],
-    },
-    atmosphere: null,
-    discovery: { discoveredBy: 'Heinrich Olbers', discoveredYear: 1802, discoveryNotes: null },
-    magnitudes: {
-      absoluteMagnitudeH: 4.13,
-      apparentMagnitudeMin: 6.49,
-      apparentMagnitudeMax: 10.65,
-    },
-  },
-  {
-    id: 'sol-hygiea',
-    displayName: '10 Hygiea',
-    bodyType: 'asteroid',
-    parentBodyId: 'sol-sun',
-    orbit: {
-      semiMajorAxisKm: au(3.1392),
-      eccentricity: 0.1125,
-      inclinationDeg: 3.842,
-      longitudeOfAscendingNodeDeg: 283.2,
-      argumentOfPeriapsisDeg: 312.32,
-      meanAnomalyAtEpochDeg: 152.07,
-      orbitalPeriodSec: days(2030.0),
-      epoch: J2000_EPOCH,
-    },
-    physical: {
-      massKg: 8.67e19,
-      meanRadiusKm: 217,
-      rotationPeriodSec: 49926,
-      axialTiltDeg: null,
-      surfaceGravityMps2: 0.143,
-      meanTemperatureK: 164,
-      compositionTags: ['carbonaceous'],
-    },
-    atmosphere: null,
-    discovery: { discoveredBy: 'Annibale de Gasparis', discoveredYear: 1849, discoveryNotes: null },
-    magnitudes: { absoluteMagnitudeH: 5.43, apparentMagnitudeMin: 9.0, apparentMagnitudeMax: 12.0 },
-  },
-];
-
 // ---------- TNOs ----------
 
 const TNOS = [
@@ -757,6 +808,31 @@ const TNOS = [
     },
   },
 ];
+
+const ED138_CANDIDATE = {
+  id: 'sol-2026-ed138',
+  displayName: '2026 ED138 (dwarf-planet candidate)',
+  bodyType: 'tno',
+  parentBodyId: 'sol-sun',
+  orbit: {
+    semiMajorAxisKm: au(42.9),
+    eccentricity: 0.142,
+    inclinationDeg: 24.5,
+    longitudeOfAscendingNodeDeg: 323,
+    argumentOfPeriapsisDeg: 168,
+    meanAnomalyAtEpochDeg: 128,
+    orbitalPeriodSec: days(103000),
+    epoch: new Date((2461200.5 - 2440587.5) * 86400000).toISOString(),
+  },
+  physical: null,
+  discovery: {
+    discoveredBy: 'Matthew Holman',
+    discoveredYear: 2026,
+    discoveryNotes:
+      'Dwarf-planet candidate, not yet confirmed. Preliminary diameter estimate: 600-1,500 km. Orbit and inclination from NASA/JPL SBDB (2026-10-27); candidate status and size range from the NSF-DOE Vera C. Rubin Observatory release. Sources: https://ssd-api.jpl.nasa.gov/sbdb.api?sstr=2026%20ED138; https://www6.slac.stanford.edu/news/2026-10-27-nsf-doe-vera-c-rubin-observatory-reveals-its-first-dwarf-planet-candidate-our-solar',
+  },
+  magnitudes: null,
+};
 
 // ---------- Moons ----------
 //
@@ -1782,12 +1858,130 @@ function surfaceArchetypeForCatalogBody(entry) {
   );
 }
 
-const SOL_SYSTEM_CATALOG = [
-  SUN,
-  ...PLANETS,
-  ...DWARF_PLANETS,
-  ...ASTEROIDS,
-  ...TNOS,
+function satelliteNameKey(name) {
+  const normalized = name.trim().toLowerCase();
+  return normalized === 'luna' ? 'moon' : normalized;
+}
+
+function buildJplSatelliteCatalog(existingMoonEntries) {
+  const existingByParentAndName = new Map(
+    existingMoonEntries.map((entry) => [
+      `${entry.parentBodyId}/${satelliteNameKey(entry.displayName)}`,
+      entry,
+    ])
+  );
+  return JPL_SATELLITE_SNAPSHOT.records.map((satellite) => {
+    const parentBodyId = PLANET_ID_BY_JPL_NAME[satellite.planet];
+    if (!parentBodyId) {
+      throw new Error(`Unknown JPL satellite parent: ${satellite.planet}`);
+    }
+    const existing = existingByParentAndName.get(
+      `${parentBodyId}/${satelliteNameKey(satellite.name)}`
+    );
+    const sourceNote =
+      satellite.catalogNote ||
+      `Mean elements from NASA/JPL Solar System Dynamics (${JPL_SATELLITE_SNAPSHOT.snapshotDate}; ${satellite.frame} frame).`;
+    return {
+      ...(existing || {}),
+      id: existing?.id || `sol-satellite-${slug(satellite.code)}`,
+      displayName: existing?.displayName || satellite.name,
+      bodyType: 'moon',
+      parentBodyId,
+      orbit: {
+        semiMajorAxisKm: satellite.semiMajorAxisKm,
+        eccentricity: satellite.eccentricity,
+        inclinationDeg: satellite.inclinationDeg,
+        longitudeOfAscendingNodeDeg: satellite.longitudeOfAscendingNodeDeg,
+        argumentOfPeriapsisDeg: satellite.argumentOfPeriapsisDeg,
+        meanAnomalyAtEpochDeg: satellite.meanAnomalyAtEpochDeg,
+        orbitalPeriodSec: days(
+          satellite.orbitalPeriodDays * (satellite.inclinationDeg > 90 ? -1 : 1)
+        ),
+        epoch: jplEpochToIso(satellite.epoch),
+      },
+      physical:
+        existing?.physical ||
+        (Number.isFinite(satellite.meanRadiusKm) ? { meanRadiusKm: satellite.meanRadiusKm } : null),
+      discovery: {
+        ...(existing?.discovery || {}),
+        discoveredBy: existing?.discovery?.discoveredBy || satellite.discoveredBy || null,
+        discoveredYear: existing?.discovery?.discoveredYear || satellite.discoveredYear || null,
+        discoveryNotes: [existing?.discovery?.discoveryNotes, sourceNote].filter(Boolean).join(' '),
+      },
+    };
+  });
+}
+
+function slug(value) {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function buildCometOrbit(comet) {
+  if (comet.eccentricity >= 0.999) return null;
+  const semiMajorAxisKm = au(comet.perihelionDistanceAu / (1 - comet.eccentricity));
+  const orbitalPeriodSec = 2 * Math.PI * Math.sqrt(semiMajorAxisKm ** 3 / SOLAR_MU_KM3_PER_SEC2);
+  const perihelionJulianDay = julianDayFromCalendarDate(
+    comet.perihelionYear,
+    comet.perihelionMonth,
+    comet.perihelionDay
+  );
+  const meanAnomalyAtEpochDeg =
+    (((J2000_JULIAN_DAY - perihelionJulianDay) * 86400 * 360) / orbitalPeriodSec) % 360;
+  return {
+    semiMajorAxisKm,
+    eccentricity: comet.eccentricity,
+    inclinationDeg: comet.inclinationDeg,
+    longitudeOfAscendingNodeDeg: comet.longitudeOfAscendingNodeDeg,
+    argumentOfPeriapsisDeg: comet.argumentOfPerihelionDeg,
+    meanAnomalyAtEpochDeg,
+    orbitalPeriodSec,
+    epoch: J2000_EPOCH,
+  };
+}
+
+function buildMpcCometCatalog() {
+  const ids = new Set();
+  return MPC_COMET_SNAPSHOT.records.map((comet) => {
+    const id = `sol-comet-${slug(comet.name)}-${slug(comet.designation)}`;
+    if (ids.has(id)) {
+      throw new Error(`Duplicate MPC comet catalog id: ${id}`);
+    }
+    ids.add(id);
+    const orbit = buildCometOrbit(comet);
+    const entry = {
+      id,
+      displayName: comet.name,
+      bodyType: 'comet',
+      parentBodyId: 'sol-sun',
+      orbit,
+      physical: null,
+      discovery: {
+        discoveredBy: null,
+        discoveredYear: null,
+        discoveryNotes: `Minor Planet Center comet orbit record (${MPC_COMET_SNAPSHOT.snapshotDate}); designation ${comet.designation}.`,
+      },
+      magnitudes:
+        comet.absoluteMagnitudeH === null
+          ? null
+          : {
+              absoluteMagnitudeH: comet.absoluteMagnitudeH,
+              apparentMagnitudeMin: null,
+              apparentMagnitudeMax: null,
+            },
+    };
+    if (!orbit) {
+      entry.positionKmAtTimestamp = (timestampMs) => positionKmForComet(comet, timestampMs);
+    }
+    return entry;
+  });
+}
+
+const EXISTING_MOONS = [
   ...EARTH_MOONS,
   ...MARS_MOONS,
   ...JUPITER_MOONS,
@@ -1795,6 +1989,18 @@ const SOL_SYSTEM_CATALOG = [
   ...URANUS_MOONS,
   ...NEPTUNE_MOONS,
   ...PLUTO_MOONS,
+];
+const JPL_MOONS = buildJplSatelliteCatalog(EXISTING_MOONS);
+const MPC_COMETS = buildMpcCometCatalog();
+
+const SOL_SYSTEM_CATALOG = [
+  SUN,
+  ...PLANETS,
+  ...DWARF_PLANETS,
+  ...TNOS,
+  ED138_CANDIDATE,
+  ...JPL_MOONS,
+  ...MPC_COMETS,
 ].map((entry) => ({
   ...entry,
   ...(CATALOG_IDENTITY_BY_SOURCE.has(entry.id)
