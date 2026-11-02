@@ -378,9 +378,17 @@ paths:
     post:
       summary: solar-system-list-request
       description: |
-        Returns solar systems from the registry, optionally filtered by source
-        (`curated`, `procedural`, `exoplanet-catalog`), search text (matches
-        `displayName`, `id`, and `catalogName`), and maximum distance.
+        Returns one page of solar systems from the registry, optionally filtered by
+        source (`curated`, `procedural`, `exoplanet-catalog`), search text (matches
+        `displayName`, `id`, and `catalogName`), `minDistanceParsec` /
+        `maxDistanceParsec`, `minPlanetCount` (1 = has planets), and primary-star
+        `spectralClass`.
+
+        Paging (P2, breaking): results are always paged. `offset` defaults to 0 and
+        `limit` defaults to 100; values above 500 are clamped to 500. Invalid paging
+        values fail. Success responses include `total` (matches before paging),
+        the effective `offset` and `limit`, and `hasMore`. Request the next page with
+        `offset + limit` until `hasMore` is false.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).
@@ -388,7 +396,10 @@ paths:
           `containerId`.
 
         Response notes:
-        - Systems are sorted by increasing distance.
+        - `sort: distance` (default) orders by increasing distance, unknown distances
+          last, then `id`. `sort: name` orders by `displayName` (case- and
+          accent-insensitive, numeric-aware), then `id`.
+        - Enrichment counts are computed only for the returned page.
         - Optional count fields such as `planetCount`, `moonCount`, `asteroidCount`,
           and `marketCount` are included when enrichment succeeds. Planet and moon
           counts come from the catalog registry; asteroid counts are the larger of the
@@ -456,11 +467,15 @@ paths:
                         generationSeed: null
                         planetCount: 8
                         marketCount: 2
+                    total: 4845
+                    offset: 0
+                    limit: 1
+                    hasMore: true
                 failedSolarSystemList:
                   summary: Invalid source values return failure with an empty system list
                   value:
                     success: false
-                    message: 'source must be one of: curated, procedural'
+                    message: 'source must be one of: curated, procedural, exoplanet-catalog'
                     playerName: PilotOne
                     correlationId: 05bf6f98-a26f-4ccb-aa53-ef81259e8303
                     requestIdentity:

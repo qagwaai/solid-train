@@ -1,7 +1,7 @@
 {
   "checksums": {
     "openApiSha256": "5de26bd618b0d4b3b1d3832964a1ab0e72df21a4511670a975431bfa77163d5a",
-    "schemaBundleSha256": "73c1c8153671a8d08f74cd67b49ec8a7b32171a2d37bf9dc28df05e219e80cd4"
+    "schemaBundleSha256": "98dc5473e854a9bab9e24203388fc370c9e0c91bc94380dbbcb6534bcc561e79"
   },
   "components": {
     "resolvedSchemas": {
@@ -569,12 +569,19 @@
             "type": "number"
           },
           "limit": {
-            "description": "Optional positive result limit.",
+            "default": 100,
+            "description": "Page size. Defaults to 100; values above 500 are clamped to 500. Non-integers and values below 1 fail. Whole-system listings are ordered by id; radius queries by distanceKm, then id. Callers that need every match must keep requesting pages until hasMore is false.",
             "minimum": 1,
             "type": "integer"
           },
           "missionId": {
             "type": "string"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Zero-based index of the first item to return after filtering and sorting. An offset at or past total returns an empty page with success true.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -637,6 +644,21 @@
       },
       "CelestialBodyListResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "success": {
+                  "const": true
+                }
+              },
+              "required": ["success"]
+            },
+            "then": {
+              "required": ["total", "offset", "limit", "hasMore"]
+            }
+          }
+        ],
         "definitions": {
           "celestialBody": {
             "additionalProperties": true,
@@ -3827,8 +3849,23 @@
           "distanceKm": {
             "type": "number"
           },
+          "hasMore": {
+            "description": "True when offset + limit < total. Request the next page with offset + limit.",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Effective page size after defaulting and clamping.",
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
           "message": {
             "type": "string"
+          },
+          "offset": {
+            "description": "Effective offset of this page.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -3868,6 +3905,11 @@
           },
           "success": {
             "type": "boolean"
+          },
+          "total": {
+            "description": "Number of items matching the filters, before paging. 0 on failure.",
+            "minimum": 0,
+            "type": "integer"
           }
         },
         "required": [
@@ -27664,10 +27706,28 @@
             "type": "string"
           },
           "limit": {
+            "default": 100,
+            "description": "Page size. Defaults to 100; values above 500 are clamped to 500. Non-integers and values below 1 fail.",
+            "minimum": 1,
             "type": "integer"
           },
           "maxDistanceParsec": {
             "type": "number"
+          },
+          "minDistanceParsec": {
+            "description": "Inclusive lower distance bound. When set, entries with unknown distance are excluded. Must not exceed maxDistanceParsec.",
+            "type": "number"
+          },
+          "minPlanetCount": {
+            "description": "Only systems with at least this many catalog planets; 1 means has planets. 0 or omitted applies no filter.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Zero-based index of the first item to return after filtering and sorting. An offset at or past total returns an empty page with success true.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -27696,7 +27756,17 @@
           "sessionKey": {
             "type": "string"
           },
+          "sort": {
+            "default": "distance",
+            "description": "distance (default): distanceParsec ascending with unknown distances last, then id. name: case- and accent-insensitive, numeric-aware name order, then id.",
+            "enum": ["distance", "name"],
+            "type": "string"
+          },
           "source": {
+            "type": "string"
+          },
+          "spectralClass": {
+            "description": "Primary-star spectral class letter (for example G or M), case-insensitive.",
             "type": "string"
           }
         },
@@ -27706,6 +27776,21 @@
       },
       "SolarSystemListResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "success": {
+                  "const": true
+                }
+              },
+              "required": ["success"]
+            },
+            "then": {
+              "required": ["total", "offset", "limit", "hasMore"]
+            }
+          }
+        ],
         "definitions": {
           "primaryStarSummary": {
             "properties": {
@@ -27930,8 +28015,23 @@
             "format": "uuid",
             "type": "string"
           },
+          "hasMore": {
+            "description": "True when offset + limit < total. Request the next page with offset + limit.",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Effective page size after defaulting and clamping.",
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
           "message": {
             "type": "string"
+          },
+          "offset": {
+            "description": "Effective offset of this page.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -28108,6 +28208,11 @@
           },
           "success": {
             "type": "boolean"
+          },
+          "total": {
+            "description": "Number of items matching the filters, before paging. 0 on failure.",
+            "minimum": 0,
+            "type": "integer"
           }
         },
         "required": [
@@ -28561,10 +28666,23 @@
             "type": "string"
           },
           "limit": {
+            "default": 100,
+            "description": "Page size. Defaults to 100; values above 500 are clamped to 500. Non-integers and values below 1 fail.",
+            "minimum": 1,
             "type": "integer"
           },
           "maxDistanceParsec": {
             "type": "number"
+          },
+          "minDistanceParsec": {
+            "description": "Inclusive lower distance bound. When set, entries with unknown distance are excluded. Must not exceed maxDistanceParsec.",
+            "type": "number"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Zero-based index of the first item to return after filtering and sorting. An offset at or past total returns an empty page with success true.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -28590,6 +28708,12 @@
           "sessionKey": {
             "type": "string"
           },
+          "sort": {
+            "default": "distance",
+            "description": "distance (default): distanceParsec ascending with unknown distances last, then starId. The name key is properName, else catalogName, else starId. name: case- and accent-insensitive, numeric-aware name order, then starId. The name key is properName, else catalogName, else starId.",
+            "enum": ["distance", "name"],
+            "type": "string"
+          },
           "spectralClass": {
             "type": "string"
           },
@@ -28603,6 +28727,21 @@
       },
       "StarListResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "success": {
+                  "const": true
+                }
+              },
+              "required": ["success"]
+            },
+            "then": {
+              "required": ["total", "offset", "limit", "hasMore"]
+            }
+          }
+        ],
         "definitions": {
           "starCatalogEntry": {
             "description": "Canonical HYG star catalog entry returned by star and solar system queries.",
@@ -28753,8 +28892,23 @@
             "format": "uuid",
             "type": "string"
           },
+          "hasMore": {
+            "description": "True when offset + limit < total. Request the next page with offset + limit.",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Effective page size after defaulting and clamping.",
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
           "message": {
             "type": "string"
+          },
+          "offset": {
+            "description": "Effective offset of this page.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -28910,6 +29064,11 @@
           },
           "success": {
             "type": "boolean"
+          },
+          "total": {
+            "description": "Number of items matching the filters, before paging. 0 on failure.",
+            "minimum": 0,
+            "type": "integer"
           }
         },
         "required": [
@@ -29624,12 +29783,19 @@
             "type": "number"
           },
           "limit": {
-            "description": "Optional positive result limit.",
+            "default": 100,
+            "description": "Page size. Defaults to 100; values above 500 are clamped to 500. Non-integers and values below 1 fail. Whole-system listings are ordered by id; radius queries by distanceKm, then id. Callers that need every match must keep requesting pages until hasMore is false.",
             "minimum": 1,
             "type": "integer"
           },
           "missionId": {
             "type": "string"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Zero-based index of the first item to return after filtering and sorting. An offset at or past total returns an empty page with success true.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -29692,6 +29858,21 @@
       },
       "CelestialBodyListResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "success": {
+                  "const": true
+                }
+              },
+              "required": ["success"]
+            },
+            "then": {
+              "required": ["total", "offset", "limit", "hasMore"]
+            }
+          }
+        ],
         "definitions": {
           "celestialBody": {
             "additionalProperties": true,
@@ -30064,8 +30245,23 @@
           "distanceKm": {
             "type": "number"
           },
+          "hasMore": {
+            "description": "True when offset + limit < total. Request the next page with offset + limit.",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Effective page size after defaulting and clamping.",
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
           "message": {
             "type": "string"
+          },
+          "offset": {
+            "description": "Effective offset of this page.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -30105,6 +30301,11 @@
           },
           "success": {
             "type": "boolean"
+          },
+          "total": {
+            "description": "Number of items matching the filters, before paging. 0 on failure.",
+            "minimum": 0,
+            "type": "integer"
           }
         },
         "required": [
@@ -38364,10 +38565,28 @@
             "type": "string"
           },
           "limit": {
+            "default": 100,
+            "description": "Page size. Defaults to 100; values above 500 are clamped to 500. Non-integers and values below 1 fail.",
+            "minimum": 1,
             "type": "integer"
           },
           "maxDistanceParsec": {
             "type": "number"
+          },
+          "minDistanceParsec": {
+            "description": "Inclusive lower distance bound. When set, entries with unknown distance are excluded. Must not exceed maxDistanceParsec.",
+            "type": "number"
+          },
+          "minPlanetCount": {
+            "description": "Only systems with at least this many catalog planets; 1 means has planets. 0 or omitted applies no filter.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Zero-based index of the first item to return after filtering and sorting. An offset at or past total returns an empty page with success true.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -38396,7 +38615,17 @@
           "sessionKey": {
             "type": "string"
           },
+          "sort": {
+            "default": "distance",
+            "description": "distance (default): distanceParsec ascending with unknown distances last, then id. name: case- and accent-insensitive, numeric-aware name order, then id.",
+            "enum": ["distance", "name"],
+            "type": "string"
+          },
           "source": {
+            "type": "string"
+          },
+          "spectralClass": {
+            "description": "Primary-star spectral class letter (for example G or M), case-insensitive.",
             "type": "string"
           }
         },
@@ -38406,6 +38635,21 @@
       },
       "SolarSystemListResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "success": {
+                  "const": true
+                }
+              },
+              "required": ["success"]
+            },
+            "then": {
+              "required": ["total", "offset", "limit", "hasMore"]
+            }
+          }
+        ],
         "definitions": {
           "primaryStarSummary": {
             "properties": {
@@ -38568,8 +38812,23 @@
             "format": "uuid",
             "type": "string"
           },
+          "hasMore": {
+            "description": "True when offset + limit < total. Request the next page with offset + limit.",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Effective page size after defaulting and clamping.",
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
           "message": {
             "type": "string"
+          },
+          "offset": {
+            "description": "Effective offset of this page.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -38601,6 +38860,11 @@
           },
           "success": {
             "type": "boolean"
+          },
+          "total": {
+            "description": "Number of items matching the filters, before paging. 0 on failure.",
+            "minimum": 0,
+            "type": "integer"
           }
         },
         "required": [
@@ -38907,10 +39171,23 @@
             "type": "string"
           },
           "limit": {
+            "default": 100,
+            "description": "Page size. Defaults to 100; values above 500 are clamped to 500. Non-integers and values below 1 fail.",
+            "minimum": 1,
             "type": "integer"
           },
           "maxDistanceParsec": {
             "type": "number"
+          },
+          "minDistanceParsec": {
+            "description": "Inclusive lower distance bound. When set, entries with unknown distance are excluded. Must not exceed maxDistanceParsec.",
+            "type": "number"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Zero-based index of the first item to return after filtering and sorting. An offset at or past total returns an empty page with success true.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -38936,6 +39213,12 @@
           "sessionKey": {
             "type": "string"
           },
+          "sort": {
+            "default": "distance",
+            "description": "distance (default): distanceParsec ascending with unknown distances last, then starId. The name key is properName, else catalogName, else starId. name: case- and accent-insensitive, numeric-aware name order, then starId. The name key is properName, else catalogName, else starId.",
+            "enum": ["distance", "name"],
+            "type": "string"
+          },
           "spectralClass": {
             "type": "string"
           },
@@ -38949,6 +39232,21 @@
       },
       "StarListResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "success": {
+                  "const": true
+                }
+              },
+              "required": ["success"]
+            },
+            "then": {
+              "required": ["total", "offset", "limit", "hasMore"]
+            }
+          }
+        ],
         "definitions": {
           "starCatalogEntry": {
             "description": "Canonical HYG star catalog entry returned by star and solar system queries.",
@@ -39087,8 +39385,23 @@
             "format": "uuid",
             "type": "string"
           },
+          "hasMore": {
+            "description": "True when offset + limit < total. Request the next page with offset + limit.",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Effective page size after defaulting and clamping.",
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
           "message": {
             "type": "string"
+          },
+          "offset": {
+            "description": "Effective offset of this page.",
+            "minimum": 0,
+            "type": "integer"
           },
           "playerName": {
             "type": "string"
@@ -39120,6 +39433,11 @@
           },
           "success": {
             "type": "boolean"
+          },
+          "total": {
+            "description": "Number of items matching the filters, before paging. 0 on failure.",
+            "minimum": 0,
+            "type": "integer"
           }
         },
         "required": [

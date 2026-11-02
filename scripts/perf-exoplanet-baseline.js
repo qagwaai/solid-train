@@ -3,7 +3,9 @@
 
 /**
  * EX-7.1 server baseline: measures payload size and round-trip latency for the
- * unpaged list messages against a running Forge server, before paging (P2).
+ * list messages against a running Forge server. Phase 7 numbers were taken
+ * before paging; since P2 (D68) every list response is one page (default 100,
+ * maximum 500), so "no filters" scenarios measure the default first page.
  *
  * Usage: npm run perf:exoplanet:baseline -- [--url http://localhost:3000]
  *          [--runs 10] [--json <file>]
@@ -25,11 +27,11 @@ const { LOGIN_EVENT, LOGIN_RESPONSE_EVENT } = require('../src/model/login');
 
 const RESPONSE_TIMEOUT_MS = 60_000;
 
-/** Scenarios selected for Phase 7 (D63). */
+/** Scenarios selected for Phase 7 (D63); ids kept stable across P2 for comparison. */
 const SCENARIOS = [
   {
     id: 'solar-system-list-all',
-    label: 'solar-system-list, no filters (all systems)',
+    label: 'solar-system-list, no filters (default page of 100)',
     event: SOLAR_SYSTEM_LIST_REQUEST_EVENT,
     responseEvent: SOLAR_SYSTEM_LIST_RESPONSE_EVENT,
     operation: 'solar-system-list',
@@ -38,7 +40,7 @@ const SCENARIOS = [
   },
   {
     id: 'solar-system-list-cap',
-    label: 'solar-system-list, limit 1000 (server cap)',
+    label: 'solar-system-list, limit 1000 (clamped to 500)',
     event: SOLAR_SYSTEM_LIST_REQUEST_EVENT,
     responseEvent: SOLAR_SYSTEM_LIST_RESPONSE_EVENT,
     operation: 'solar-system-list',
@@ -65,7 +67,7 @@ const SCENARIOS = [
   },
   {
     id: 'star-list-all',
-    label: 'star-list, no filters (all stars)',
+    label: 'star-list, no filters (default page of 100)',
     event: STAR_LIST_REQUEST_EVENT,
     responseEvent: STAR_LIST_RESPONSE_EVENT,
     operation: 'star-list',

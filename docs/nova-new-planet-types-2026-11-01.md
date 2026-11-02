@@ -350,10 +350,10 @@ listed in `approximateFields`, and Nova decides how to present it at runtime
 >    approximate stars, and label `controversial` planets "disputed". Accept
 >    the optional `discovery.references` and `catalogSnapshotDate` fields;
 >    their display follows the attribution prompt.
-> 10. Make exoplanet systems selectable without loading the full list: add
->     search or filters (for example by name or distance band) to the viewer
->     list. Keep requests bounded with `limit`; the paging contract follows
->     in a separate prompt (P2).
+> 10. Make exoplanet systems selectable without loading the full list. The
+>     paging prompt (`docs/nova-prompt-celestial-body-paging-2026-11-01.md`)
+>     defines the server-side search, filters and pages; implement the viewer
+>     list there.
 > 11. Add tests that each of the ten archetypes renders, that rings render
 >     and are omitted when absent, that approximate markers appear only for
 >     listed paths, and that 55 Cnc and KOI-351 render all their bodies.

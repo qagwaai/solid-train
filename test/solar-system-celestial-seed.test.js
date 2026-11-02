@@ -21,7 +21,10 @@ const {
   CelestialBodyListMessageHandler,
 } = require('../src/handlers/celestial-body-list-message-handler');
 const { DatabaseService } = require('../src/db/service');
-const { seedPlayer } = require('../test-support/message-handler-test-helpers');
+const {
+  listAllCelestialBodies,
+  seedPlayer,
+} = require('../test-support/message-handler-test-helpers');
 
 const SEED_TIMESTAMP = '2026-05-08T00:00:00.000Z';
 
@@ -349,13 +352,10 @@ test('seeded appearance inputs round-trip through a fresh context and service', 
   const earthFromGet = getResponse.bodies.find((body) => body.id === originalAppearanceInputs.id);
   assert.deepEqual(appearanceInputs(earthFromGet), originalAppearanceInputs);
 
-  const listResponse = await new CelestialBodyListMessageHandler(freshContext).buildResponse({
+  const listed = await listAllCelestialBodies(new CelestialBodyListMessageHandler(freshContext), {
     playerName: 'PilotOne',
     solarSystemId: 'sol',
   });
-  assert.equal(listResponse.success, true);
-  const earthFromList = listResponse.celestialBodies.find(
-    (body) => body.id === originalAppearanceInputs.id
-  );
+  const earthFromList = listed.find((body) => body.id === originalAppearanceInputs.id);
   assert.deepEqual(appearanceInputs(earthFromList), originalAppearanceInputs);
 });

@@ -21,9 +21,39 @@
       }
     },
     "source": { "type": "string" },
+    "minDistanceParsec": {
+      "type": "number",
+      "description": "Inclusive lower distance bound. When set, entries with unknown distance are excluded. Must not exceed maxDistanceParsec."
+    },
     "maxDistanceParsec": { "type": "number" },
     "search": { "type": "string" },
-    "limit": { "type": "integer" },
+    "minPlanetCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Only systems with at least this many catalog planets; 1 means has planets. 0 or omitted applies no filter."
+    },
+    "spectralClass": {
+      "type": "string",
+      "description": "Primary-star spectral class letter (for example G or M), case-insensitive."
+    },
+    "sort": {
+      "type": "string",
+      "enum": ["distance", "name"],
+      "default": "distance",
+      "description": "distance (default): distanceParsec ascending with unknown distances last, then id. name: case- and accent-insensitive, numeric-aware name order, then id."
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Zero-based index of the first item to return after filtering and sorting. An offset at or past total returns an empty page with success true."
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 100,
+      "description": "Page size. Defaults to 100; values above 500 are clamped to 500. Non-integers and values below 1 fail."
+    },
     "requestId": { "type": "string" }
   }
 }

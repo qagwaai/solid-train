@@ -30,6 +30,7 @@ const {
   createTestContext,
   createCelestialBody,
   createMockSocket,
+  listAllCelestialBodies,
   seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 
@@ -267,13 +268,13 @@ test('system, list, radius, by-id and upsert projections preserve identity; read
   const earth = system.bodies.find((body) => body.id === 'sol-earth');
   const handler = new CelestialBodyListMessageHandler(context);
   for (const query of [{}, { positionKm: earth.spatial.positionKm, distanceKm: 0 }]) {
-    const result = await handler.buildResponse({
+    const bodies = await listAllCelestialBodies(handler, {
       playerName: 'Pilot',
       solarSystemId: 'sol',
       ...query,
     });
     assert.deepEqual(
-      result.celestialBodies.find((body) => body.id === earth.id).catalogIdentity,
+      bodies.find((body) => body.id === earth.id).catalogIdentity,
       earth.catalogIdentity
     );
   }

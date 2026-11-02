@@ -3,7 +3,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
-const { createCelestialBody, seedPlayer } = require('../test-support/message-handler-test-helpers');
+const {
+  createCelestialBody,
+  listAllCelestialBodies,
+  seedPlayer,
+} = require('../test-support/message-handler-test-helpers');
 const { createMockSocket } = require('../test-support/message-handler-test-helpers');
 const { DatabaseService } = require('../src/db/service');
 const { MongoConnection } = require('../src/db/connection');
@@ -218,11 +222,10 @@ test('stellar source fields, identity, archetype and orbitals survive Mongo reco
         asOf: '2030-01-01T00:00:00.000Z',
       });
       assert.equal(get.success, true);
-      const list = await new CelestialBodyListMessageHandler(fresh).buildResponse({
+      const listed = await listAllCelestialBodies(new CelestialBodyListMessageHandler(fresh), {
         playerName: 'Pilot',
         solarSystemId,
       });
-      assert.equal(list.success, true);
       const identityAndSource = (body) => ({
         id: body.id,
         bodyType: body.bodyType,
@@ -241,7 +244,7 @@ test('stellar source fields, identity, archetype and orbitals survive Mongo reco
           identityAndSource(body)
         );
         assert.deepEqual(
-          identityAndSource(list.celestialBodies.find((entry) => entry.id === body.id)),
+          identityAndSource(listed.find((entry) => entry.id === body.id)),
           identityAndSource(body)
         );
         checked += 1;

@@ -316,6 +316,24 @@ function seedTraderCharacter(context, options = {}) {
   });
 }
 
+/**
+ * Walk every celestial-body-list page (P2) and return the success responses'
+ * bodies in order. Fails the test on the first unsuccessful page.
+ */
+async function listAllCelestialBodies(handler, payload) {
+  const bodies = [];
+  for (let offset = 0, hasMore = true; hasMore;) {
+    const response = await handler.buildResponse({ ...payload, offset, limit: 500 });
+    if (!response.success) {
+      throw new Error(`celestial-body-list failed: ${response.message}`);
+    }
+    bodies.push(...response.celestialBodies);
+    ({ hasMore } = response);
+    offset += response.limit;
+  }
+  return bodies;
+}
+
 module.exports = {
   createCelestialBody,
   createContainedItem,
@@ -328,6 +346,7 @@ module.exports = {
   createShip,
   createSpatialState,
   createTestContext,
+  listAllCelestialBodies,
   seedCelestialBodies,
   seedItems,
   seedPlayer,

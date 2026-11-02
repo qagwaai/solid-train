@@ -3,6 +3,7 @@
 const { CELESTIAL_BODY_LIST_RESPONSE_EVENT } = require('../model/celestial-body-list');
 const { CELESTIAL_BODY_STATE_VALUES } = require('../model/celestial-body-upsert');
 const { isFiniteNumber, isTriple } = require('./handler-utils');
+const { compareIds, emptyPage, pageItems, parsePaging } = require('./list-paging');
 
 class CelestialBodyListMessageHandler {
   /**
@@ -14,18 +15,6 @@ class CelestialBodyListMessageHandler {
 
   toPositiveNumberOrZero(value) {
     if (!isFiniteNumber(value) || value < 0) {
-      return null;
-    }
-
-    return value;
-  }
-
-  toValidLimit(value) {
-    if (value === undefined || value === null) {
-      return null;
-    }
-
-    if (!Number.isInteger(value) || value <= 0) {
       return null;
     }
 
@@ -53,7 +42,9 @@ class CelestialBodyListMessageHandler {
   }
 
   /**
-   * Validate location query and build celestial-body-list response.
+   * Validate location query and build one page of the celestial-body-list
+   * response (P2). Whole-system listings are ordered by id; radius queries by
+   * distance, then id.
    * @param {Object} payload
    * @returns {Promise<Object>}
    */
@@ -69,19 +60,21 @@ class CelestialBodyListMessageHandler {
           }
         : null;
     const distanceKm = this.toPositiveNumberOrZero(payload?.distanceKm);
-    const limit = this.toValidLimit(payload?.limit);
+    const paging = parsePaging(payload);
     const states = this.normalizeStateFilters(payload?.states);
     const createdByCharacterId = this.context.toNonEmptyString(payload?.createdByCharacterId);
     const missionId = this.context.toNonEmptyString(payload?.missionId);
+    const fail = (message, name = playerName) => ({
+      success: false,
+      message,
+      playerName: name,
+      solarSystemId,
+      celestialBodies: [],
+      ...emptyPage(paging),
+    });
 
     if (!playerName || !solarSystemId) {
-      return {
-        success: false,
-        message: 'playerName and solarSystemId are required',
-        playerName,
-        solarSystemId,
-        celestialBodies: [],
-      };
+      return fail('playerName and solarSystemId are required');
     }
 
     // Allow whole-system queries when both positionKm and distanceKm are omitted.
@@ -89,45 +82,24 @@ class CelestialBodyListMessageHandler {
       positionKm === null && distanceKm === null && payload?.distanceKm === undefined;
 
     if (!isWholeSystemQuery && (!positionKm || distanceKm === null)) {
-      return {
-        success: false,
-        message:
-          'positionKm and distanceKm must both be supplied for radius queries; omit both for a whole-system listing',
-        playerName,
-        solarSystemId,
-        celestialBodies: [],
-      };
+      return fail(
+        'positionKm and distanceKm must both be supplied for radius queries; omit both for a whole-system listing'
+      );
     }
 
-    if (payload?.limit !== undefined && limit === null) {
-      return {
-        success: false,
-        message: 'limit must be a positive integer when provided',
-        playerName,
-        solarSystemId,
-        celestialBodies: [],
-      };
+    if (!paging.ok) {
+      return fail(paging.message);
     }
 
     if (payload?.states !== undefined && states === null) {
-      return {
-        success: false,
-        message: `states must be an array with values from: ${CELESTIAL_BODY_STATE_VALUES.join(', ')}`,
-        playerName,
-        solarSystemId,
-        celestialBodies: [],
-      };
+      return fail(
+        `states must be an array with values from: ${CELESTIAL_BODY_STATE_VALUES.join(', ')}`
+      );
     }
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return {
-        success: false,
-        message: 'Player is not registered',
-        playerName,
-        solarSystemId,
-        celestialBodies: [],
-      };
+      return fail('Player is not registered');
     }
 
     if (isWholeSystemQuery) {
@@ -137,15 +109,17 @@ class CelestialBodyListMessageHandler {
         createdByCharacterId: createdByCharacterId || undefined,
         missionId: missionId || undefined,
       });
-      const limited = limit ? all.slice(0, limit) : all;
+      all.sort((left, right) => compareIds(left.id, right.id));
+      const { items, page } = pageItems(all, paging);
       return {
         success: true,
-        message: limited.length
+        message: items.length
           ? 'Celestial body list retrieved successfully'
           : 'No celestial bodies found in solar system',
         playerName: player.playerName,
         solarSystemId,
-        celestialBodies: limited,
+        celestialBodies: items,
+        ...page,
       };
     }
 
@@ -156,10 +130,15 @@ class CelestialBodyListMessageHandler {
       stateValues: states,
       createdByCharacterId: createdByCharacterId || undefined,
       missionId: missionId || undefined,
-      limit,
     });
+    searchResult.sort(
+      (left, right) =>
+        left.distanceKm - right.distanceKm ||
+        compareIds(left.celestialBody.id, right.celestialBody.id)
+    );
+    const { items, page } = pageItems(searchResult, paging);
 
-    if (!searchResult.length) {
+    if (!items.length) {
       return {
         success: true,
         message: 'No celestial bodies found within distance',
@@ -168,10 +147,11 @@ class CelestialBodyListMessageHandler {
         positionKm,
         distanceKm,
         celestialBodies: [],
+        ...page,
       };
     }
 
-    const celestialBodies = searchResult.map((entry) => ({
+    const celestialBodies = items.map((entry) => ({
       ...entry.celestialBody,
       distanceKm: entry.distanceKm,
     }));
@@ -184,6 +164,7 @@ class CelestialBodyListMessageHandler {
       positionKm,
       distanceKm,
       celestialBodies,
+      ...page,
     };
   }
 

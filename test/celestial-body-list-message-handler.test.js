@@ -319,3 +319,57 @@ test('CelestialBodyListMessageHandler returns whole-system bodies when positionK
   assert.ok(response.celestialBodies.every((b) => !('distanceKm' in b)));
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_LIST_RESPONSE_EVENT);
 });
+
+test('CelestialBodyListMessageHandler pages whole-system by id and radius by distance then id (P2)', async () => {
+  const context = createTestContext({ seedDefaults: false });
+  seedPlayer(context, { playerName: 'ScannerOne', sessionKey: 'session-1' });
+  const at = (x) => ({
+    solarSystemId: 'paging-sys',
+    frame: 'barycentric',
+    positionKm: { x, y: 0, z: 0 },
+    epochMs: 1713360000000,
+  });
+  for (const [id, x] of [
+    ['cb-e', 1],
+    ['cb-b', 2],
+    ['cb-d', 2],
+    ['cb-a', 3],
+    ['cb-c', 4],
+  ]) {
+    await context.addOrUpdateCelestialBodyAsync(createCelestialBody({ id, spatial: at(x) }));
+  }
+  const handler = new CelestialBodyListMessageHandler(context);
+  const base = { playerName: 'ScannerOne', sessionKey: 'session-1', solarSystemId: 'paging-sys' };
+
+  const whole = await handler.buildResponse({ ...base, offset: 1, limit: 2 });
+  assert.equal(whole.success, true);
+  assert.deepEqual(
+    whole.celestialBodies.map((b) => b.id),
+    ['cb-b', 'cb-c']
+  );
+  assert.deepEqual(
+    { total: whole.total, offset: whole.offset, limit: whole.limit, hasMore: whole.hasMore },
+    { total: 5, offset: 1, limit: 2, hasMore: true }
+  );
+
+  const radius = { ...base, positionKm: { x: 0, y: 0, z: 0 }, distanceKm: 10 };
+  const ids = [];
+  for (let offset = 0, hasMore = true; hasMore;) {
+    const page = await handler.buildResponse({ ...radius, offset, limit: 2 });
+    assert.equal(page.success, true);
+    assert.equal(page.total, 5);
+    ids.push(...page.celestialBodies.map((b) => b.id));
+    ({ hasMore } = page);
+    offset += page.limit;
+  }
+  assert.deepEqual(ids, ['cb-e', 'cb-b', 'cb-d', 'cb-a', 'cb-c']);
+
+  const defaults = await handler.buildResponse(base);
+  assert.equal(defaults.limit, 100);
+  assert.equal(defaults.hasMore, false);
+
+  const invalid = await handler.buildResponse({ ...base, offset: -2 });
+  assert.equal(invalid.success, false);
+  assert.equal(invalid.message, 'offset must be a non-negative integer when provided');
+  assert.equal(invalid.total, 0);
+});

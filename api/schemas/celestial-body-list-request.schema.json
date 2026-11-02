@@ -36,10 +36,17 @@
       "minimum": 0,
       "description": "Required only for radius queries. Omit together with positionKm for whole-system listing mode."
     },
+    "offset": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Zero-based index of the first item to return after filtering and sorting. An offset at or past total returns an empty page with success true."
+    },
     "limit": {
       "type": "integer",
       "minimum": 1,
-      "description": "Optional positive result limit."
+      "default": 100,
+      "description": "Page size. Defaults to 100; values above 500 are clamped to 500. Non-integers and values below 1 fail. Whole-system listings are ordered by id; radius queries by distanceKm, then id. Callers that need every match must keep requesting pages until hasMore is false."
     },
     "states": {
       "type": "array",

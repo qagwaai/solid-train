@@ -88,9 +88,14 @@ paths:
     post:
       summary: star-list-request
       description: |
-        Returns catalog stars (HYG plus exoplanet-catalog host stars), optionally
-        filtered by system, spectral class, and maximum distance. Every star has a
-        unique `starId`.
+        Returns one page of catalog stars (HYG plus exoplanet-catalog host stars),
+        optionally filtered by system, spectral class, and `minDistanceParsec` /
+        `maxDistanceParsec`. Every star has a unique `starId`.
+
+        Paging (P2, breaking): results are always paged. `offset` defaults to 0 and
+        `limit` defaults to 100; values above 500 are clamped to 500. Invalid paging
+        values fail. Success responses include `total`, the effective `offset` and
+        `limit`, and `hasMore`.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).
@@ -98,7 +103,9 @@ paths:
           `containerId`.
 
         Response notes:
-        - Results are sorted by increasing `distanceParsec`.
+        - `sort: distance` (default) orders by increasing `distanceParsec`, unknown
+          distances last, then `starId`. `sort: name` orders by `properName`, else
+          `catalogName`, else `starId`, then `starId`.
         - `stars` is always present and is empty on failures or empty matches.
       operationId: socketStarList
       tags: [Stars]
@@ -145,6 +152,10 @@ paths:
                         systemId: alpha-centauri
                         spectralClass: M
                         distanceParsec: 1.301
+                    total: 5331
+                    offset: 0
+                    limit: 1
+                    hasMore: true
                 emptyStarList:
                   summary: No matches is still a successful query with an empty list
                   value:
@@ -157,6 +168,10 @@ paths:
                       entityType: star
                       containerId: registry
                     stars: []
+                    total: 0
+                    offset: 0
+                    limit: 100
+                    hasMore: false
 components:
   schemas:
     StarGetRequest:

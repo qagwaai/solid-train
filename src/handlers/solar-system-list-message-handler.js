@@ -3,8 +3,27 @@
 const { SOLAR_SYSTEM_LIST_RESPONSE_EVENT } = require('../model/solar-system-list');
 const { getSolarSystemRegistry } = require('../model/solar-system-registry');
 const { attachRequestId } = require('./handler-utils');
+const {
+  compareIds,
+  compareNames,
+  compareNullableNumbers,
+  emptyPage,
+  pageItems,
+  parsePaging,
+} = require('./list-paging');
 
 const VALID_SOURCES = new Set(['curated', 'procedural', 'exoplanet-catalog']);
+const VALID_SORTS = new Set(['distance', 'name']);
+
+function toFiniteNumberOrNull(value) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+const SORTERS = {
+  distance: (a, b) =>
+    compareNullableNumbers(a.distanceParsec, b.distanceParsec) || compareIds(a.id, b.id),
+  name: (a, b) => compareNames(a.displayName, b.displayName) || compareIds(a.id, b.id),
+};
 
 class SolarSystemListMessageHandler {
   constructor(context) {
@@ -12,58 +31,62 @@ class SolarSystemListMessageHandler {
   }
 
   /**
-   * Build a list of solar systems from the in-memory registry. The registry is
+   * Build a page of solar systems from the in-memory registry. The registry is
    * authoritative for what systems the server can serve; the DB collection
-   * is treated as a cache (populated by initialization).
+   * is treated as a cache (populated by initialization). Filters apply first,
+   * then the stable sort, then offset paging (P2).
    */
   async buildResponse(payload) {
-    const playerName = this.context.toNonEmptyString(payload?.playerName);
-    if (!playerName) {
-      return attachRequestId(
-        {
-          success: false,
-          message: 'playerName is required',
-          playerName,
-          solarSystems: [],
-        },
+    const paging = parsePaging(payload);
+    const fail = (message, playerName) =>
+      attachRequestId(
+        { success: false, message, playerName, solarSystems: [], ...emptyPage(paging) },
         payload
       );
+
+    const playerName = this.context.toNonEmptyString(payload?.playerName);
+    if (!playerName) {
+      return fail('playerName is required', playerName);
     }
 
     const player = this.context.getPlayer(playerName);
     if (!player) {
-      return attachRequestId(
-        {
-          success: false,
-          message: 'Player is not registered',
-          playerName,
-          solarSystems: [],
-        },
-        payload
-      );
+      return fail('Player is not registered', playerName);
     }
 
     const registry = getSolarSystemRegistry();
     const source = this.context.toNonEmptyString(payload?.source).toLowerCase();
     if (source && !VALID_SOURCES.has(source)) {
-      return attachRequestId(
-        {
-          success: false,
-          message: `source must be one of: ${[...VALID_SOURCES].join(', ')}`,
-          playerName: player.playerName,
-          solarSystems: [],
-        },
-        payload
-      );
+      return fail(`source must be one of: ${[...VALID_SOURCES].join(', ')}`, player.playerName);
+    }
+    if (!paging.ok) {
+      return fail(paging.message, player.playerName);
+    }
+    const sort = this.context.toNonEmptyString(payload?.sort).toLowerCase() || 'distance';
+    if (!VALID_SORTS.has(sort)) {
+      return fail(`sort must be one of: ${[...VALID_SORTS].join(', ')}`, player.playerName);
     }
 
     const search = this.context.toNonEmptyString(payload?.search).toLowerCase();
-    const maxDistanceParsec =
-      typeof payload?.maxDistanceParsec === 'number' && Number.isFinite(payload.maxDistanceParsec)
-        ? payload.maxDistanceParsec
-        : null;
-    const limit =
-      Number.isInteger(payload?.limit) && payload.limit > 0 ? Math.min(payload.limit, 1000) : 0;
+    const minDistanceParsec = toFiniteNumberOrNull(payload?.minDistanceParsec);
+    const maxDistanceParsec = toFiniteNumberOrNull(payload?.maxDistanceParsec);
+    if (
+      minDistanceParsec !== null &&
+      maxDistanceParsec !== null &&
+      minDistanceParsec > maxDistanceParsec
+    ) {
+      return fail('minDistanceParsec must not exceed maxDistanceParsec', player.playerName);
+    }
+    const rawMinPlanetCount = payload?.minPlanetCount;
+    if (
+      rawMinPlanetCount !== undefined &&
+      rawMinPlanetCount !== null &&
+      !(Number.isSafeInteger(rawMinPlanetCount) && rawMinPlanetCount >= 0)
+    ) {
+      return fail('minPlanetCount must be a non-negative integer when provided', player.playerName);
+    }
+    const minPlanetCount = rawMinPlanetCount || 0;
+    const spectralClass = this.context.toNonEmptyString(payload?.spectralClass).toUpperCase();
 
     let filtered = registry.slice();
     if (source) filtered = filtered.filter((entry) => entry.source === source);
@@ -81,15 +104,28 @@ class SolarSystemListMessageHandler {
         return haystack.includes(search);
       });
     }
+    if (minDistanceParsec !== null) {
+      filtered = filtered.filter(
+        (entry) => entry.distanceParsec !== null && entry.distanceParsec >= minDistanceParsec
+      );
+    }
     if (maxDistanceParsec !== null) {
       filtered = filtered.filter(
         (entry) => entry.distanceParsec !== null && entry.distanceParsec <= maxDistanceParsec
       );
     }
-    filtered.sort((a, b) => (a.distanceParsec ?? Infinity) - (b.distanceParsec ?? Infinity));
-    if (limit) filtered = filtered.slice(0, limit);
+    if (minPlanetCount) {
+      filtered = filtered.filter((entry) => (entry.planetCount || 0) >= minPlanetCount);
+    }
+    if (spectralClass) {
+      filtered = filtered.filter(
+        (entry) => (entry.primaryStar?.spectralClass || '').toUpperCase() === spectralClass
+      );
+    }
+    filtered.sort(SORTERS[sort]);
+    const { items, page } = pageItems(filtered, paging);
 
-    const enrichedSystems = await this.enrichSystemsWithCounts(filtered);
+    const enrichedSystems = await this.enrichSystemsWithCounts(items);
 
     return attachRequestId(
       {
@@ -99,6 +135,7 @@ class SolarSystemListMessageHandler {
           : 'No solar systems matched the query',
         playerName: player.playerName,
         solarSystems: enrichedSystems,
+        ...page,
       },
       payload
     );

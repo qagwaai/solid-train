@@ -254,6 +254,28 @@
       "items": {
         "$ref": "#/definitions/celestialBody"
       }
+    },
+    "total": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of items matching the filters, before paging. 0 on failure."
+    },
+    "offset": { "type": "integer", "minimum": 0, "description": "Effective offset of this page." },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 500,
+      "description": "Effective page size after defaulting and clamping."
+    },
+    "hasMore": {
+      "type": "boolean",
+      "description": "True when offset + limit < total. Request the next page with offset + limit."
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "success": { "const": true } }, "required": ["success"] },
+      "then": { "required": ["total", "offset", "limit", "hasMore"] }
+    }
+  ]
 }

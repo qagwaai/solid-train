@@ -227,3 +227,86 @@ test('SolarSystemListMessageHandler handles missing count data gracefully', asyn
   assert.equal(typeof solSystem.asteroidCount, 'number');
   assert.equal(typeof solSystem.marketCount, 'number');
 });
+
+test('SolarSystemListMessageHandler pages by default and pages are disjoint and stable (P2)', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+  const handler = new SolarSystemListMessageHandler(context);
+  const base = { playerName: 'PilotOne', sessionKey: 'session-1' };
+
+  const first = await handler.buildResponse(base);
+  assert.equal(first.success, true);
+  assert.equal(first.offset, 0);
+  assert.equal(first.limit, 100);
+  assert.ok(first.solarSystems.length <= 100);
+  assert.equal(first.hasMore, first.total > 100);
+
+  const pageA = await handler.buildResponse({ ...base, offset: 0, limit: 5 });
+  const pageB = await handler.buildResponse({ ...base, offset: 5, limit: 5 });
+  const wide = await handler.buildResponse({ ...base, offset: 0, limit: 10 });
+  assert.deepEqual(
+    [...pageA.solarSystems, ...pageB.solarSystems].map((s) => s.id),
+    wide.solarSystems.map((s) => s.id)
+  );
+  assert.equal(pageA.total, first.total);
+
+  const clamped = await handler.buildResponse({ ...base, limit: 5000 });
+  assert.equal(clamped.limit, 500);
+
+  const past = await handler.buildResponse({ ...base, offset: first.total + 10 });
+  assert.equal(past.success, true);
+  assert.deepEqual(past.solarSystems, []);
+  assert.equal(past.hasMore, false);
+});
+
+test('SolarSystemListMessageHandler applies P2 filters and name sort', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+  const handler = new SolarSystemListMessageHandler(context);
+  const base = { playerName: 'PilotOne', sessionKey: 'session-1', limit: 500 };
+
+  const near = await handler.buildResponse({
+    ...base,
+    minDistanceParsec: 5,
+    maxDistanceParsec: 10,
+  });
+  assert.equal(near.success, true);
+  assert.ok(near.solarSystems.length > 0);
+  for (const system of near.solarSystems) {
+    assert.ok(system.distanceParsec >= 5 && system.distanceParsec <= 10, system.id);
+  }
+
+  const withPlanets = await handler.buildResponse({ ...base, minPlanetCount: 2 });
+  assert.ok(withPlanets.solarSystems.length > 0);
+  for (const system of withPlanets.solarSystems) {
+    assert.ok(system.planetCount >= 2, system.id);
+  }
+
+  const mDwarfs = await handler.buildResponse({ ...base, spectralClass: 'm' });
+  assert.ok(mDwarfs.solarSystems.length > 0);
+  for (const system of mDwarfs.solarSystems) {
+    assert.equal(system.primaryStar.spectralClass, 'M', system.id);
+  }
+
+  const byName = await handler.buildResponse({ ...base, sort: 'name' });
+  const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
+  for (let i = 1; i < byName.solarSystems.length; i += 1) {
+    const prev = byName.solarSystems[i - 1];
+    const cur = byName.solarSystems[i];
+    assert.ok(collator.compare(prev.displayName, cur.displayName) <= 0, `name order at ${i}`);
+  }
+
+  for (const bad of [
+    { sort: 'size' },
+    { offset: -1 },
+    { limit: 0 },
+    { minPlanetCount: -1 },
+    { minDistanceParsec: 10, maxDistanceParsec: 5 },
+  ]) {
+    const response = await handler.buildResponse({ ...base, ...bad });
+    assert.equal(response.success, false, JSON.stringify(bad));
+    assert.deepEqual(response.solarSystems, []);
+    assert.equal(response.total, 0);
+    assert.equal(response.hasMore, false);
+  }
+});

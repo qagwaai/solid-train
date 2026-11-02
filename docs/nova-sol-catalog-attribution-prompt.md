@@ -263,8 +263,8 @@ Requirements:
    off.
 
 Out of scope: planet-type rendering and the archetype validator (see
-docs/nova-new-planet-types-2026-11-01.md) and list paging (a separate
-prompt).
+docs/nova-new-planet-types-2026-11-01.md) and list paging (see
+docs/nova-prompt-celestial-body-paging-2026-11-01.md).
 
 Report back: the files changed, screenshots of the credits panel and of a
 planet's references (for example 55 Cnc b), and the test command and its
@@ -287,5 +287,6 @@ result.
 ## Follow-up
 
 - Confirm the IAU NameExoWorlds reuse terms (A10) and then enable the flag.
-- Paging for the full system list is a separate prompt (P2 in the exoplanet
-  plan).
+- Paging for the system, star and body lists is in
+  [nova-prompt-celestial-body-paging-2026-11-01.md](./nova-prompt-celestial-body-paging-2026-11-01.md)
+  (P2). Ship it together with this addendum and the new-planet-types prompt.

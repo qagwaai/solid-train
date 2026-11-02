@@ -35,9 +35,18 @@ paths:
         - `states` limits results to the provided canonical body states.
         - `createdByCharacterId` and `missionId` narrow results to mission-generated
           or character-scoped bodies.
-        - `limit` caps the number of returned bodies.
+
+        Paging (P2, breaking): results are always paged. `offset` defaults to 0 and
+        `limit` defaults to 100; values above 500 are clamped to 500. Invalid paging
+        values fail. Success responses include `total`, the effective `offset` and
+        `limit`, and `hasMore`. Clients that need every match (sweeps, seeding
+        checks) must request pages with `offset + limit` until `hasMore` is false.
+        Pages are computed per request, so bodies created or destroyed between
+        requests can shift later pages; de-duplicate by `id`.
 
         Response notes:
+        - Whole-system listings are ordered by `id`; radius queries by `distanceKm`,
+          then `id`.
         - Radius queries include `distanceKm` on each returned body.
         - Whole-system listings omit per-body `distanceKm`.
       operationId: socketCelestialBodyList
@@ -192,6 +201,10 @@ paths:
                         debrisSeed: null
                         debris: []
                         distanceKm: 10
+                    total: 1
+                    offset: 0
+                    limit: 2
+                    hasMore: false
                 successfulWholeSystemListing:
                   summary: Whole-system listing omits query radius fields on each body
                   value:
@@ -243,6 +256,10 @@ paths:
                         parentBodyId: null
                         planetType: rocky
                         isCatalogBody: true
+                    total: 1
+                    offset: 0
+                    limit: 100
+                    hasMore: false
                 failedCelestialBodyList:
                   summary: Invalid radius query returns an empty result set
                   value:
