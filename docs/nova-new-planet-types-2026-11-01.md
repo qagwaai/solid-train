@@ -1,7 +1,8 @@
 # Nova prompt: new planet types, rings, and approximate values
 
-Status: Draft. Hand off to Nova with EX-5.4b, when the contract change ships.
-Date: 2026-11-01
+Status: Ready to hand off. The contract change shipped in Phase 5 (EX-5.4b),
+and Phase 7 (EX-7.3) confirmed the breakage in a running Nova build.
+Date: 2026-11-01 (updated 2026-11-02)
 From repo: solid-train (Forge)
 To repo: laughing-octo-journey (Nova)
 Related:
@@ -77,6 +78,78 @@ against Forge's OpenAPI and `docs/contracts` once that change merges.
 - **Catalog planets never have moons.**
 - Catalog text (`displayName`, `catalogName`, `discovery.*`) is **plain
   text**. Render it as text; never insert it as HTML.
+
+### Other contract changes from Phase 5
+
+These shipped with the archetypes and are additive unless marked otherwise.
+Check them against Forge's `api/schemas` and
+[celestial-body-contract.md](./celestial-body-contract.md).
+
+- **`source: 'exoplanet-catalog'`** joins `curated` and `procedural` on
+  solar-system summaries. Bodies and stars from the archive carry
+  `catalogSource: 'exoplanet-catalog'` (stars from HYG carry `hyg`) and
+  `catalogIds` (archive, HIP, HD, Gaia, TIC identifiers when known).
+- **Star identity is `starId` (D54).** Every star has a stable `starId`.
+  `hygId` is now **nullable and optional** in the star and primary-star
+  schemas: 4,383 of 5,331 stars have none. Where the summary echoes a top-level
+  `hygId`, it is `''` when absent. Key stars by `starId`, and call `star-get`
+  with `starId`; it still accepts `hygId` for HYG stars.
+- **`catalogName` beside `displayName` (D24, D53).** `displayName` may be a
+  game name (for example 55 Cnc appears as "Copernicus", from the IAU
+  NameExoWorlds list); `catalogName` is always the archive name. Show the
+  catalog name as a secondary label.
+- **`declaredStarCount`** on systems is the archive's star count. It can be
+  higher than the stars Forge returns when a companion could not be resolved.
+- **`distanceApproximate`** (and `approximate` on stars) marks host distances
+  Forge estimated (D31) and synthesized companion stars (D32). Mark them like
+  other approximate values.
+- **Registry counts (D51, D55).** `solar-system-list` reports `planetCount`,
+  `starCount` and `moonCount` from the catalog, so systems that have never
+  been opened still show real counts. Exoplanet systems are seeded the first
+  time `solar-system-get` asks for them.
+- **Planet `status`** is always `confirmed` for now (D15), and
+  **`controversial: true`** flags 58 disputed planets (D17). Show a small
+  "disputed" label.
+- **`discovery.references`** (Phase 7, additive) lists a catalog planet's
+  literature references as `[{ label, url }]`, discovery reference first.
+  `label` is plain text such as "Butler et al. 1997". `url` is an ADS
+  abstract link or an absolute archive or VizieR URL (some are `http`). The
+  list is omitted when a planet has none. Credit rules are in
+  `docs/nova-sol-catalog-attribution-prompt.md`.
+- **`catalogSnapshotDate`** (Phase 7, additive) on exoplanet-catalog system
+  summaries in `solar-system-list` and `solar-system-get` gives the archive
+  snapshot date (`YYYY-MM-DD`) for a "Data as of" line. It is absent or null
+  for curated and HYG systems, including Barnard's Star and Lalande 21185,
+  which carry archive planets.
+
+## Observed in Nova (Phase 7, 2026-11-02)
+
+Measured with Nova `main` at `fc9e889` against Forge at localhost:3000.
+
+- **Systems with a new archetype fail completely.**
+  `validateCanonicalBodyCollection` in `model/celestial-classification.ts`
+  rejects the whole body list on the first unknown `surfaceArchetype`. The
+  scene shows `viewer-scene-error celestial-body-contract unknown or missing
+surfaceArchetype for exo-55-cnc-b-c` and renders **0 bodies**. Seen on
+  55 Cnc (`sub-neptune`, `super-earth`) and KOI-351 / Kepler-90
+  (`sub-neptune`, `super-earth`). TRAPPIST-1, which uses only `rocky`,
+  renders all 8 bodies at 60 fps. In this snapshot only systems whose planets
+  all use the original five types render today.
+- **`COMPATIBLE_ARCHETYPES.planet`** lists only the original five values;
+  the five new values must be added there and to `SURFACE_ARCHETYPES`.
+- **The system details page works.** It does not run the archetype
+  validator. It shows 55 Cnc as "Copernicus" with 2 stars and 7 planets.
+- **Most exoplanet systems cannot be selected.** The viewer list asks for
+  `limit: 50` within `maxDistanceParsec: 50`, so it shows the 50 nearest
+  systems only. A system such as KOI-351 (about 800 pc) is reachable only by
+  URL. Selecting any of the 4,838 exoplanet systems needs a way to find them:
+  search, filters, or paged browsing. The paging plan (P2) owns the server
+  side; Nova needs the list UI. Do **not** simply drop the limit: the full
+  list is 3.0 MB and takes about 0.8 s to render as 87,000 DOM nodes (see
+  the plan's Phase 7 findings).
+- **Stars appear twice in `solar-system-get`** (in `stars` and in `bodies`).
+  This predates the import, and Nova already dedupes with
+  `mergeUniqueViewerBodies`.
 
 ## Planet types at a glance
 
@@ -266,9 +339,24 @@ listed in `approximateFields`, and Nova decides how to present it at runtime
 >    at those distances.
 > 7. Expect no moons on catalog planets, and render all catalog text as
 >    plain text.
-> 8. Add tests that each of the ten archetypes renders, that rings render
->    and are omitted when absent, and that approximate markers appear only
->    for listed paths.
+> 8. Add the five values to `SURFACE_ARCHETYPES` and to
+>    `COMPATIBLE_ARCHETYPES.planet` in `model/celestial-classification.ts`.
+>    Change `validateCanonicalBodyCollection` so one bad body is replaced by
+>    a placeholder and logged, instead of rejecting the whole system.
+> 9. Accept the other Phase 5 contract changes: key stars by `starId`, allow
+>    a null `hygId` (and `''` in summary echoes), accept
+>    `source: 'exoplanet-catalog'`, show `catalogName` as a secondary label
+>    when it differs from `displayName`, mark `distanceApproximate` and
+>    approximate stars, and label `controversial` planets "disputed". Accept
+>    the optional `discovery.references` and `catalogSnapshotDate` fields;
+>    their display follows the attribution prompt.
+> 10. Make exoplanet systems selectable without loading the full list: add
+>     search or filters (for example by name or distance band) to the viewer
+>     list. Keep requests bounded with `limit`; the paging contract follows
+>     in a separate prompt (P2).
+> 11. Add tests that each of the ten archetypes renders, that rings render
+>     and are omitted when absent, that approximate markers appear only for
+>     listed paths, and that 55 Cnc and KOI-351 render all their bodies.
 
 ## Acceptance criteria
 
@@ -281,3 +369,8 @@ listed in `approximateFields`, and Nova decides how to present it at runtime
 - Approximate values are visibly marked, and catalog values are not.
 - Planets around companion stars and circumbinary planets are placed on the
   correct parent.
+- `viewer-scene/exo-55-cnc` and `viewer-scene/exo-koi-351` render all their
+  bodies with no `celestial-body-contract` error.
+- Stars without a `hygId` load and are addressable by `starId`.
+- A player can find and open an exoplanet system beyond 50 pc from the
+  viewer without the client requesting the full system list.

@@ -11,6 +11,7 @@ const {
   generateExoplanetSystemBodies,
   getExoplanetNames,
   getExoplanetRegistryRecords,
+  getExoplanetSnapshotDate,
   getExoplanetStarEntries,
   getExoplanetSystemSeedHash,
   getExoplanetSystems,
@@ -191,6 +192,34 @@ test('EX-5.2 exoplanet systems seed deterministically with catalog provenance', 
   assert.deepEqual(buildSeededCelestialBodiesForSolarSystem('exo-unknown'), []);
 });
 
+test('EX-7.3 A2 planet references resolve to ADS or archive links, discovery reference first', () => {
+  const referencesFile = require('../data/exoplanet-references.json');
+  let urlRefs = 0;
+  for (const system of getExoplanetSystems().slice(0, 300)) {
+    const result = generateExoplanetSystemBodies(system.id);
+    for (const planet of result.planets) {
+      const source = planets.find((record) => record.id === planet.id);
+      const references = planet.discovery?.references || [];
+      assert.equal(references.length, source.refs.length, planet.id);
+      references.forEach((reference, index) => {
+        const [key] = referencesFile.records[source.refs[index]];
+        assert.equal(typeof reference.label, 'string');
+        assert.match(reference.url, /^https?:\/\//);
+        if (/^https?:\/\//.test(key)) {
+          urlRefs += 1;
+          assert.equal(reference.url, key);
+        } else {
+          assert.ok(reference.url.startsWith('https://ui.adsabs.harvard.edu/abs/'));
+        }
+      });
+    }
+  }
+  assert.ok(urlRefs > 0);
+  for (const record of getExoplanetRegistryRecords()) {
+    assert.match(record.catalogSnapshotDate, /^\d{4}-\d{2}-\d{2}$/);
+  }
+});
+
 test('EX-5.2 D48 seed version is per system for catalog-fed systems', () => {
   assert.equal(getSolarSystemCelestialSeedVersion('sol'), SOLAR_SYSTEM_CELESTIAL_SEED_VERSION);
   assert.equal(
@@ -352,6 +381,11 @@ test('EX-5.6 solar-system-get serves an exoplanet multi-star system that matches
   assert.equal(galileo.displayName, 'Galileo');
   assert.equal(galileo.catalogSource, 'exoplanet-catalog');
   assert.ok(Array.isArray(galileo.approximateFields));
+  assert.equal(response.solarSystem.catalogSnapshotDate, getExoplanetSnapshotDate());
+  assert.deepEqual(galileo.discovery.references[0], {
+    label: 'Butler et al. 1997',
+    url: 'https://ui.adsabs.harvard.edu/abs/1997ApJ...474L.115B/abstract',
+  });
 
   const schema = await responseSchema('/socket/solar-system-get');
   assertValid(schema.properties.solarSystem, response.solarSystem, 'solarSystem');

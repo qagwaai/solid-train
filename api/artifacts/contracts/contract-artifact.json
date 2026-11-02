@@ -1,7 +1,7 @@
 {
   "checksums": {
     "openApiSha256": "5de26bd618b0d4b3b1d3832964a1ab0e72df21a4511670a975431bfa77163d5a",
-    "schemaBundleSha256": "121584f507b59ee4a829f8247b275b667c151481774525eb31f2cae5927bda3a"
+    "schemaBundleSha256": "73c1c8153671a8d08f74cd67b49ec8a7b32171a2d37bf9dc28df05e219e80cd4"
   },
   "components": {
     "resolvedSchemas": {
@@ -4278,6 +4278,22 @@
                   },
                   "discoveryNotes": {
                     "type": ["string", "null"]
+                  },
+                  "references": {
+                    "description": "Literature references for catalog planets, discovery reference first. label is plain text; url is an ADS abstract link or an absolute archive URL.",
+                    "items": {
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["label", "url"],
+                      "type": "object"
+                    },
+                    "type": "array"
                   }
                 },
                 "type": ["object", "null"]
@@ -24562,6 +24578,10 @@
                 "description": "Scientific catalog designation of the system (for example '24 Boo'); displayName is the game name.",
                 "type": ["string", "null"]
               },
+              "catalogSnapshotDate": {
+                "description": "Exoplanet-catalog snapshot date (YYYY-MM-DD) for 'Data as of' attribution; set only for exoplanet-catalog systems.",
+                "type": ["string", "null"]
+              },
               "declaredStarCount": {
                 "description": "Star count the exoplanet archive declares (sy_snum); starCount includes synthesized companions that fill the gap.",
                 "type": "integer"
@@ -26147,6 +26167,10 @@
               },
               "catalogName": {
                 "description": "Scientific catalog designation of the system (for example '24 Boo'); displayName is the game name.",
+                "type": ["string", "null"]
+              },
+              "catalogSnapshotDate": {
+                "description": "Exoplanet-catalog snapshot date (YYYY-MM-DD) for 'Data as of' attribution; set only for exoplanet-catalog systems.",
                 "type": ["string", "null"]
               },
               "declaredStarCount": {
@@ -27746,6 +27770,10 @@
                 "description": "Scientific catalog designation of the system (for example '24 Boo'); displayName is the game name.",
                 "type": ["string", "null"]
               },
+              "catalogSnapshotDate": {
+                "description": "Exoplanet-catalog snapshot date (YYYY-MM-DD) for 'Data as of' attribution; set only for exoplanet-catalog systems.",
+                "type": ["string", "null"]
+              },
               "declaredStarCount": {
                 "description": "Star count the exoplanet archive declares (sy_snum); starCount includes synthesized companions that fill the gap.",
                 "type": "integer"
@@ -27936,6 +27964,10 @@
                 },
                 "catalogName": {
                   "description": "Scientific catalog designation of the system (for example '24 Boo'); displayName is the game name.",
+                  "type": ["string", "null"]
+                },
+                "catalogSnapshotDate": {
+                  "description": "Exoplanet-catalog snapshot date (YYYY-MM-DD) for 'Data as of' attribution; set only for exoplanet-catalog systems.",
                   "type": ["string", "null"]
                 },
                 "declaredStarCount": {
@@ -30215,6 +30247,22 @@
                   },
                   "discoveryNotes": {
                     "type": ["string", "null"]
+                  },
+                  "references": {
+                    "description": "Literature references for catalog planets, discovery reference first. label is plain text; url is an ADS abstract link or an absolute archive URL.",
+                    "items": {
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["label", "url"],
+                      "type": "object"
+                    },
+                    "type": "array"
                   }
                 },
                 "type": ["object", "null"]
@@ -38133,6 +38181,10 @@
                 "description": "Scientific catalog designation of the system (for example '24 Boo'); displayName is the game name.",
                 "type": ["string", "null"]
               },
+              "catalogSnapshotDate": {
+                "description": "Exoplanet-catalog snapshot date (YYYY-MM-DD) for 'Data as of' attribution; set only for exoplanet-catalog systems.",
+                "type": ["string", "null"]
+              },
               "declaredStarCount": {
                 "description": "Star count the exoplanet archive declares (sy_snum); starCount includes synthesized companions that fill the gap.",
                 "type": "integer"
@@ -38416,6 +38468,10 @@
               },
               "catalogName": {
                 "description": "Scientific catalog designation of the system (for example '24 Boo'); displayName is the game name.",
+                "type": ["string", "null"]
+              },
+              "catalogSnapshotDate": {
+                "description": "Exoplanet-catalog snapshot date (YYYY-MM-DD) for 'Data as of' attribution; set only for exoplanet-catalog systems.",
                 "type": ["string", "null"]
               },
               "declaredStarCount": {

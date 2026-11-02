@@ -47,6 +47,7 @@ function createSolarSystemModelArtifacts({ mongoose }) {
       moonCount: { type: Number, default: 0 },
       asteroidCount: { type: Number, default: 0 },
       distanceApproximate: { type: Boolean, default: false },
+      catalogSnapshotDate: { type: String, default: null },
       positionPc: { type: positionPcSchema, default: () => ({ x: 0, y: 0, z: 0 }) },
       distanceParsec: { type: Number, default: null, index: true },
       primaryStar: { type: primaryStarSummarySchema, default: null },

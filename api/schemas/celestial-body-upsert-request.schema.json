@@ -161,7 +161,19 @@
           "properties": {
             "discoveredBy": { "type": ["string", "null"] },
             "discoveredYear": { "type": ["number", "null"] },
-            "discoveryNotes": { "type": ["string", "null"] }
+            "discoveryNotes": { "type": ["string", "null"] },
+            "references": {
+              "type": "array",
+              "description": "Literature references for catalog planets, discovery reference first. label is plain text; url is an ADS abstract link or an absolute archive URL.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "url": { "type": "string" }
+                },
+                "required": ["label", "url"]
+              }
+            }
           }
         },
         "magnitudes": {

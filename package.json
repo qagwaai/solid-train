@@ -19,6 +19,7 @@
     "catalog:exoplanet:systems": "node scripts/build-exoplanet-systems.js",
     "catalog:exoplanet:calibrate": "node scripts/calibrate-exoplanet-crossmatch.js",
     "catalog:exoplanet:report": "node scripts/exoplanet-refresh-report.js",
+    "perf:exoplanet:baseline": "node scripts/perf-exoplanet-baseline.js",
     "typecheck": "tsc --noEmit -p tsconfig.checkjs.json",
     "contract:artifact": "node scripts/sw08/generate-contract-artifact.js --out api/artifacts/contracts/contract-artifact.json",
     "contract:lint:item-types": "node --test test/launch-item-contract-hardening.test.js",

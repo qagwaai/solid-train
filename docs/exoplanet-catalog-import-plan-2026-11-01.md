@@ -22,20 +22,20 @@ below.
 
 **Status legend:** ⬜ Not started · 🟦 In progress · ✅ Done · ⛔ Blocked · ⏸ Deferred
 
-| Phase | Title                                                                                    | Status | Owner | Started    | Completed  | Notes                                             |
-| ----: | ---------------------------------------------------------------------------------------- | :----: | ----- | ---------- | ---------- | ------------------------------------------------- |
-|     0 | [Source discovery and spikes](#phase-0--source-discovery-and-spikes)                     |   ✅   |       | 2026-11-01 | 2026-11-01 | See [findings](#phase-0-findings); Q6–Q8 resolved |
-|     1 | [Exoplanet archive importer](#phase-1--exoplanet-archive-importer)                       |   ✅   |       | 2026-11-01 | 2026-11-01 | See [findings](#phase-1-findings); D20–D23        |
-|     2 | [HYG host slice and cross-match](#phase-2--hyg-host-slice-and-cross-match)               |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-2-findings); D25–D30        |
-|     3 | [Solar-system grouping (multi-star)](#phase-3--solar-system-grouping-multi-star)         |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-3-findings); D32–D37        |
-|     4 | [Catalog-constrained procedural model](#phase-4--catalog-constrained-procedural-model)   |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-4-findings); D38–D44        |
-|     5 | [Registry, seeding, and contract](#phase-5--registry-seeding-and-contract)               |   ✅   |       | 2026-11-01 | 2026-11-02 | See [findings](#phase-5-findings); D45–D56        |
-|     6 | [Monthly refresh automation](#phase-6--monthly-refresh-automation)                       |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-6-findings); D57–D62        |
-|     7 | [Performance baseline and Nova handoff](#phase-7--performance-baseline-and-nova-handoff) |   ⬜   |       |            |            |                                                   |
-|    P2 | Paging (separate plan)                                                                   |   ⏸    |       |            |            | Starts after phase 7 results                      |
-|    N1 | Settler naming (separate plan)                                                           |   ⏸    |       |            |            | Hook only in this plan (D24)                      |
-|    F1 | [Review-queue resolution](#f1--review-queue-resolution)                                  |   ⏸    |       |            |            | 6 review hosts + 2 distance misses; next refresh  |
-|    F2 | [Sourced rings for Sol's giants](#f2--sourced-rings-for-sols-giants)                     |   ⏸    |       |            |            | After EX-5.4b adds `rings`                        |
+| Phase | Title                                                                                    | Status | Owner | Started    | Completed  | Notes                                                |
+| ----: | ---------------------------------------------------------------------------------------- | :----: | ----- | ---------- | ---------- | ---------------------------------------------------- |
+|     0 | [Source discovery and spikes](#phase-0--source-discovery-and-spikes)                     |   ✅   |       | 2026-11-01 | 2026-11-01 | See [findings](#phase-0-findings); Q6–Q8 resolved    |
+|     1 | [Exoplanet archive importer](#phase-1--exoplanet-archive-importer)                       |   ✅   |       | 2026-11-01 | 2026-11-01 | See [findings](#phase-1-findings); D20–D23           |
+|     2 | [HYG host slice and cross-match](#phase-2--hyg-host-slice-and-cross-match)               |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-2-findings); D25–D30           |
+|     3 | [Solar-system grouping (multi-star)](#phase-3--solar-system-grouping-multi-star)         |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-3-findings); D32–D37           |
+|     4 | [Catalog-constrained procedural model](#phase-4--catalog-constrained-procedural-model)   |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-4-findings); D38–D44           |
+|     5 | [Registry, seeding, and contract](#phase-5--registry-seeding-and-contract)               |   ✅   |       | 2026-11-01 | 2026-11-02 | See [findings](#phase-5-findings); D45–D56           |
+|     6 | [Monthly refresh automation](#phase-6--monthly-refresh-automation)                       |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-6-findings); D57–D62           |
+|     7 | [Performance baseline and Nova handoff](#phase-7--performance-baseline-and-nova-handoff) |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-7-findings); D63–D67           |
+|    P2 | Paging (separate plan)                                                                   |   ⏸    |       |            |            | Ready; see [draft](#paging-requirements-draft-ex-74) |
+|    N1 | Settler naming (separate plan)                                                           |   ⏸    |       |            |            | Hook only in this plan (D24)                         |
+|    F1 | [Review-queue resolution](#f1--review-queue-resolution)                                  |   ⏸    |       |            |            | 6 review hosts + 2 distance misses; next refresh     |
+|    F2 | [Sourced rings for Sol's giants](#f2--sourced-rings-for-sols-giants)                     |   ⏸    |       |            |            | After EX-5.4b adds `rings`                           |
 
 ### Snapshot metrics
 
@@ -120,6 +120,11 @@ instead (D60).
 | D60 | Snapshot-metrics history         | The workflow appends one row per refresh to [exoplanet-catalog-data.md](./exoplanet-catalog-data.md#snapshot-metrics). The plan's table keeps the development rows only.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | D61 | Guard failures                   | When shrinkage or match drift trips a guard, rerun with `EXOPLANET_ALLOW_SHRINK=1` and `EXOPLANET_ALLOW_MATCH_DRIFT=1` and open a **draft** PR labeled `needs-review` that lists the failures. A failed check or a names-file key that no longer resolves also makes the PR a draft. Other failures (network, crashes) fail the run.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | D62 | Proving the workflow             | Push `main` and trigger `workflow_dispatch`. A `force` input opens a PR even when no records changed (only the snapshot date moved), so the PR path can be verified on a quiet month. Forced PRs are closed without merging.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| D63 | Server baseline method           | A committed socket.io script (`npm run perf:exoplanet:baseline`, [perf-exoplanet-baseline.js](../scripts/perf-exoplanet-baseline.js)) logs in a throwaway player against a running Forge and reports payload bytes and p50/p95 latency for `solar-system-list` (all, `limit` 1000, `limit` 50, `limit` 50 within 50 pc) and `star-list` (all). Server memory and a server-side `solar-system-get` scenario were left out; the client measurements cover `solar-system-get`. Numbers are localhost only.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| D64 | Client baseline method           | Measured by driving Nova in a browser (Chrome DevTools), with the owner logged in. An init script wraps `WebSocket` and `XMLHttpRequest` to time socket frames to paint and records long tasks. The full-list case strips `limit` and `maxDistanceParsec` from the request in the browser; Nova code is not changed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| D65 | Nova handoff shape               | Update the two existing prompts instead of writing a consolidated one: [nova-new-planet-types-2026-11-01.md](./nova-new-planet-types-2026-11-01.md) for contract and rendering, and the exoplanet addendum in [nova-sol-catalog-attribution-prompt.md](./nova-sol-catalog-attribution-prompt.md) for credits. The paging prompt comes with P2.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| D66 | Paging requirements              | EX-7.4 drafts requirements with three options and a recommendation ([paging requirements draft](#paging-requirements-draft-ex-74)). P2 makes the final choice.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| D67 | Attribution fields in contract   | Two additive fields close the A2 and "Data as of" gaps: `discovery.references: [{ label, url }]` on catalog planets (discovery reference first; ADS link for bibcodes, absolute URLs passed through) and `catalogSnapshotDate` on exoplanet-catalog system summaries. Resolved references are part of the per-system seed hash, so seeded systems reseed when references change.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 ---
 
@@ -277,6 +282,10 @@ Notes:
   versions, and SHA-256 values. Nova needs no new credit beyond A3–A6, but
   the A3/A4 change notice should read "cross-matched with the NASA Exoplanet
   Archive and subset by Stellar".
+- Phase 7 (D67) puts per-planet references (A2) in the contract as
+  `discovery.references` and the snapshot date as `catalogSnapshotDate` on
+  exoplanet-catalog systems. The Nova credits are in the exoplanet addendum
+  of [nova-sol-catalog-attribution-prompt.md](./nova-sol-catalog-attribution-prompt.md#exoplanet-addendum-ex-73).
 
 - [x] **EX-0.1** Confirm the `pscomppars` column list through TAP
       (`TAP_SCHEMA.columns`). Pin the exact identifier columns, such as
@@ -886,24 +895,125 @@ was closed without merging (D62).
 
 ## Phase 7 — Performance baseline and Nova handoff
 
-- [ ] **EX-7.1** Record server-side baselines for payload bytes and latency of
+- [x] **EX-7.1** Record server-side baselines for payload bytes and latency of
       `solar-system-list`, `star-list`, and `solar-system-get` for the largest
-      system, plus server memory after the registry loads.
-- [ ] **EX-7.2** Record client-side baselines in Nova: time to first render,
+      system, plus server memory after the registry loads. _Done per D63: the
+      list scenarios run server-side; `solar-system-get` is measured from
+      Nova (EX-7.2); memory was left out._
+- [x] **EX-7.2** Record client-side baselines in Nova: time to first render,
       memory, and frame rate for the list view and a large system view.
-- [ ] **EX-7.3** Write a Nova handoff prompt covering the new fields, data
+- [x] **EX-7.3** Write a Nova handoff prompt covering the new fields, data
       attribution, and expected breakage, following the existing handoff docs.
       Generate the attribution section from the
       [attribution register](#attribution-register) as an addendum to
       [nova-sol-catalog-attribution-prompt.md](./nova-sol-catalog-attribution-prompt.md):
       global credits panel, per-planet references, license links, and
-      approximate-value disclosure.
-- [ ] **EX-7.4** Summarize the findings and draft paging requirements for the
+      approximate-value disclosure. _Done per D65 and D67._
+- [x] **EX-7.4** Summarize the findings and draft paging requirements for the
       phase-2 plan, including cursor or page size and spatial or
       distance-ordered queries.
 
 **Exit criteria:** Baseline numbers are recorded and the paging plan is ready
 to start.
+
+### Phase 7 findings
+
+Completed on 2026-11-02. All numbers are from localhost (Forge on `:3000`,
+Nova `main` at `fc9e889` on `:4200`), so they include no network latency.
+
+**Server baseline** (`npm run perf:exoplanet:baseline`, 10 runs after one
+warm-up):
+
+| Scenario                                     | Items | Payload | Bytes per item | p50 / p95 (ms) |
+| -------------------------------------------- | ----: | ------: | -------------: | -------------- |
+| `solar-system-list`, no filters              | 4,845 | 3.02 MB |            623 | 37.5 / 52.9    |
+| `solar-system-list`, `limit` 1000            | 1,000 | 0.62 MB |              — | 11.3 / 12.3    |
+| `solar-system-list`, `limit` 50              |    50 | 0.03 MB |              — | 5.6 / 10.6     |
+| `solar-system-list`, `limit` 50 within 50 pc |    50 | 0.03 MB |              — | 4.2 / 28.9     |
+| `star-list`, no filters                      | 5,331 | 3.22 MB |            604 | 33.4 / 46.2    |
+
+**Client baseline** (Nova in Chrome):
+
+| View                                             | Payload     | Request to response | Response to paint | Other                                                        |
+| ------------------------------------------------ | ----------- | ------------------- | ----------------- | ------------------------------------------------------------ |
+| Viewer list as shipped (`limit` 50, 50 pc)       | 30.8 KB     | 31–33 ms            | 45–47 ms          | 1,144 DOM nodes; heap about 105–111 MB (whole app)           |
+| Viewer list, full (4,845 cards)                  | 3.02 MB     | 202–206 ms          | 803–840 ms        | 87,436 DOM nodes; heap about 119–123 MB; scrolls at 60 fps   |
+| Sol scene (`solar-system-get sol`, 5,150 bodies) | 6.04 MB     | 426–659 ms          | 49–66 ms          | 959 ms long task building the scene; heap 230–267 MB; 60 fps |
+| TRAPPIST-1 scene (8 bodies)                      | about 21 KB | 21–23 ms            | 22–28 ms          | 60 fps                                                       |
+| 55 Cnc and KOI-351 scenes                        | 24–27 KB    | 25–134 ms           | n/a               | **0 bodies rendered** (see below)                            |
+| System details (`exo-55-cnc`)                    | 26.9 KB     | 38 ms               | n/a               | Renders, including the game name "Copernicus"                |
+
+- **New archetypes break the scene view.** Nova's
+  `validateCanonicalBodyCollection` rejects a whole system when one body has
+  an unknown `surfaceArchetype`, and `SURFACE_ARCHETYPES` lacks the five new
+  types. 55 Cnc and KOI-351 render nothing (`celestial-body-contract unknown
+or missing surfaceArchetype`). Systems with only existing types, such as
+  TRAPPIST-1, render normally. This is the expected breakage; the fix is in
+  the new-planet-types prompt (items 8 and 11).
+- **Distant systems cannot be selected.** The viewer list asks for the 50
+  nearest systems within 50 pc, so most exoplanet systems (KOI-351 is about
+  800 pc away) are reachable only by URL. The new-planet-types prompt adds
+  search or filters (item 10); paging follows in P2.
+- **Full list cost is on the client.** The server builds the full list in
+  about 40 ms, but Nova takes about 0.8 s to render 4,845 cards and 87k DOM
+  nodes. Scrolling stays smooth once rendered.
+- **Sol is the largest payload.** `solar-system-get sol` is 6 MB for 5,150
+  bodies (mostly comets and minor bodies), twice the full system list.
+  Exoplanet systems are small (at most about 27 KB).
+- **Duplicate stars.** `solar-system-get` returns stars in both `stars` and
+  `bodies`. This predates the exoplanet work (Sol and Alpha Centauri do it
+  too) and Nova deduplicates it. It costs little and is left as is.
+- **Silent truncation.** A `limit` above the cap (1,000 for
+  `solar-system-list`, 5,000 for `star-list`) is silently reduced, and no
+  response carries a total or a "more" flag. Paging must fix this.
+- **Measurement caveat.** An early 1.2 fps reading on the Sol scene came
+  from an occluded browser window; a recheck showed 60 fps.
+- **Attribution gaps closed (D67).** Per-planet references (A2) and the
+  snapshot date were not in the contract; both are now additive fields.
+
+### Paging requirements draft (EX-7.4)
+
+**Requirements.** Any option must:
+
+1. Return a bounded page by default. An unbounded request should no longer
+   return 3 MB.
+2. Report `total` (after filters) and whether more results exist, so clients
+   never truncate silently.
+3. Keep the order stable across pages: by distance from Sol, then by `id`.
+4. Keep the existing filters (`source`, `search`, `maxDistanceParsec`) and add
+   a minimum distance, so clients can browse distance bands.
+5. Apply the same scheme to `solar-system-list` and `star-list`, and to
+   `celestial-body-list` where it already takes a `limit`.
+6. Stay additive in the first release: an old client that sends no paging
+   fields gets the current behavior, with a deprecation note and a removal
+   date.
+
+**Options.**
+
+| Option                                    | How it works                                                                                                     | Pros                                                                    | Cons                                                                                                 |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| A. `offset` and `limit`                   | Client sends `offset`; response adds `total`. Follows the credit-ledger precedent.                               | Simplest; random page access; easy to test.                             | Pages shift when a monthly refresh adds or removes systems between requests.                         |
+| B. Opaque cursor and page size            | Response returns `nextCursor` (encodes the last distance and `id` plus the snapshot date); client sends it back. | Stable across refreshes; no deep-offset cost; detects a stale snapshot. | No random page access; cursor format must be versioned.                                              |
+| C. Distance windows and search, no paging | Clients ask for distance bands (`minDistanceParsec`, `maxDistanceParsec`) and search; responses stay unpaged.    | Matches how players browse space; no new paging state.                  | Dense bands can still be large (thousands of systems beyond 500 pc); does not fix silent truncation. |
+
+**Recommendation: B with the filters from C.** Use a cursor and page size
+(default 100, maximum 500) on distance-ordered lists, and add
+`minDistanceParsec` next to the existing search and `maxDistanceParsec`.
+Return `total`, `nextCursor`, and `catalogSnapshotDate` in each page. The
+cursor stays valid across a monthly refresh because it records the last
+distance and `id`, not a position. At about 620 bytes per system, a 100-item
+page is about 62 KB, which Nova renders as quickly as today's 50-item list.
+Nova adds search and filters first (new-planet-types prompt, item 10), then
+infinite scroll or "load more" with P2.
+
+**Also for P2:**
+
+- `solar-system-get sol` (6 MB) is a body-count problem, not a list problem.
+  Consider a lighter first response (planets, dwarf planets, and major
+  moons) with comets and minor bodies fetched by `celestial-body-list` with
+  the same paging scheme.
+- Decide whether `star-list` keeps a separate cap or follows the same page
+  limits.
 
 ---
 
@@ -999,3 +1109,4 @@ additively with an optional `bands` array instead of changing D42's shape.
 | 2026-11-02 | Added the draft Nova prompt for the new planet types, rings, and approximate values ([nova-new-planet-types-2026-11-01.md](./nova-new-planet-types-2026-11-01.md)), linked from EX-5.4b.                                                                                                                                   |
 | 2026-11-02 | Phase 5 complete. Added the runtime exoplanet and star catalogs, per-system seed versions and seed state, hashed startup sync, `starId` star identity, registry counts, the names file, and Phase 5 findings. Added D45–D56 and attribution A10. The owner approved the SW-08 baseline update for the seven D54 variances. |
 | 2026-11-02 | Phase 6 complete. Added the monthly refresh workflow, `exoplanet-refresh-report.js`, and [exoplanet-catalog-data.md](./exoplanet-catalog-data.md); added D57–D62 and Phase 6 findings. Enabled Actions PR creation with owner approval and verified with a forced dispatch (#80, closed).                                  |
+| 2026-11-02 | Phase 7 complete. Added the server baseline script, server and Nova baselines, and Phase 7 findings; added D63–D67, the `discovery.references` and `catalogSnapshotDate` contract fields, the exoplanet attribution addendum, Nova prompt updates, and the paging requirements draft. P2 is ready to start.                |

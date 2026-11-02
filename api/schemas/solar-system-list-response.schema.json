@@ -72,6 +72,10 @@
           "type": "boolean",
           "description": "True when distanceParsec and positionPc are estimated (photometric or default distance)."
         },
+        "catalogSnapshotDate": {
+          "type": ["string", "null"],
+          "description": "Exoplanet-catalog snapshot date (YYYY-MM-DD) for 'Data as of' attribution; set only for exoplanet-catalog systems."
+        },
         "isMultiStar": { "type": "boolean" },
         "positionPc": {
           "anyOf": [

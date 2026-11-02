@@ -195,6 +195,10 @@ function createCelestialModelArtifacts({
       discoveredBy: { type: String, default: null },
       discoveredYear: { type: Number, default: null },
       discoveryNotes: { type: String, default: null },
+      references: {
+        type: [new mongoose.Schema({ label: String, url: String }, { _id: false })],
+        default: undefined,
+      },
     },
     { _id: false }
   );

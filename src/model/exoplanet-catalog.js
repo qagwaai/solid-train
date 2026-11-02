@@ -44,9 +44,12 @@ function load() {
   const hyg = readSnapshot('exoplanet-hyg-stars.json').records;
   const planets = readSnapshot('exoplanet-planets.json').records;
   const names = readSnapshot('exoplanet-names.json');
+  const references = readSnapshot('exoplanet-references.json');
   const defaultHost = hosts.find((host) => host.resolvedDistance?.source === 'default');
   cache = {
     snapshotDate: systemsFile.snapshotDate,
+    references: references.records,
+    adsUrlTemplate: references.adsUrlTemplate,
     systems: systemsFile.records,
     systemsById: new Map(systemsFile.records.map((system) => [system.id, system])),
     hostsById: new Map(hosts.map((host) => [host.id, host])),
@@ -76,6 +79,33 @@ function getExoplanetSystemById(systemId) {
 
 function getExoplanetNames() {
   return load().names;
+}
+
+/** Snapshot date of the exoplanet catalog files (YYYY-MM-DD). */
+function getExoplanetSnapshotDate() {
+  return load().snapshotDate;
+}
+
+/**
+ * Literature references for one archive planet (A2, D19), discovery reference
+ * first. ADS bibcodes become ADS abstract links; absolute URLs pass through.
+ * Labels are plain text.
+ */
+function planetReferences(planet) {
+  const data = load();
+  const references = [];
+  for (const index of planet?.refs || []) {
+    const record = data.references[index];
+    if (!record) {
+      continue;
+    }
+    const [key, label] = record;
+    const url = /^https?:\/\//i.test(key)
+      ? key
+      : data.adsUrlTemplate.replace('{bibcode}', encodeURIComponent(key));
+    references.push({ label: label || key, url });
+  }
+  return references;
 }
 
 function getSystemStarFacts(system) {
@@ -114,6 +144,7 @@ function getExoplanetSystemSeedHash(systemId) {
     return null;
   }
   const planetIds = systemPlanetIds(system);
+  const planets = planetIds.map((planetId) => data.planetsById.get(planetId) || null);
   const hosts = system.stars.map((star) => data.hostsById.get(star.hostId) || null);
   const hygRecords = system.stars.map((star) => data.hygByAtHygId.get(star.atHygId) || null);
   const names = {
@@ -129,7 +160,8 @@ function getExoplanetSystemSeedHash(systemId) {
         system,
         hosts,
         hygRecords,
-        planets: planetIds.map((planetId) => data.planetsById.get(planetId) || null),
+        planets,
+        references: planets.map(planetReferences),
         names,
       })
     )
@@ -160,6 +192,10 @@ function generateExoplanetSystemBodies(systemId, asOfTimestamp) {
   }
   for (const planet of result.planets) {
     planet.displayName = data.names.planets[planet.id] || planet.displayName;
+    const references = planetReferences(data.planetsById.get(planet.id));
+    if (references.length) {
+      planet.discovery = { ...planet.discovery, references };
+    }
   }
   return result;
 }
@@ -310,6 +346,7 @@ function getExoplanetRegistryRecords() {
           positionPc: system.positionPc,
           distanceParsec: system.distancePc,
           distanceApproximate,
+          catalogSnapshotDate: data.snapshotDate,
           primaryStar: entries[0] ? primaryStarSummary(entries[0]) : null,
           starCount: system.stars.length,
           declaredStarCount: system.declaredStarCount,
@@ -340,6 +377,7 @@ module.exports = {
   getExistingSystemCatalogPlanetIds,
   getExoplanetNames,
   getExoplanetRegistryRecords,
+  getExoplanetSnapshotDate,
   getExoplanetStarEntries,
   getExoplanetSystemById,
   getExoplanetSystemSeedHash,

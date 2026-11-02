@@ -796,7 +796,7 @@ Both are synchronized at server startup from `src/model/star-catalog.js` (HYG fi
 - `displayName` (string).
 - `hygSystemId` (string, indexed).
 - `source` (`curated | procedural | exoplanet-catalog`, indexed), `catalogName` (string, nullable), `declaredStarCount` (number, nullable).
-- `planetCount`, `moonCount`, `asteroidCount` (numbers) — catalog body counts; `distanceApproximate` (boolean).
+- `planetCount`, `moonCount`, `asteroidCount` (numbers) — catalog body counts; `distanceApproximate` (boolean); `catalogSnapshotDate` (string `YYYY-MM-DD`, nullable — exoplanet-catalog systems only).
 - `isMultiStar` (boolean), `starCount` (number).
 - `positionPc`, `distanceParsec` (indexed).
 - `primaryStar` — embedded summary of the primary star (starId, hygId, properName, spectralClass, spectralType, colorHex, luminositySolar, massSolar, radiusSolar, absoluteMagnitude).
@@ -811,7 +811,7 @@ The `cb` collection schema gains optional fields used by the UI viewer:
 - `hygId` (string, nullable, indexed) — set on star bodies generated from HYG.
 - `visualization` — `{ colorHex, spectralClass, textureKey }`.
 
-Existing fields (`spatial`, `motion`, `physical`, `composition`, `state`, `bodyType`, `parentBodyId`, `orbitalElements`, `physicalCatalog`, `atmosphere`, `discovery`, `magnitudes`, `isCatalogBody`) are unchanged.
+Existing fields (`spatial`, `motion`, `physical`, `composition`, `state`, `bodyType`, `parentBodyId`, `orbitalElements`, `physicalCatalog`, `atmosphere`, `discovery`, `magnitudes`, `isCatalogBody`) are unchanged, except that `discovery` gains optional `references: [{ label, url }]` for exoplanet-catalog planets (discovery reference first).
 
 Within `orbitalElements`, moons and sub-satellites gain an optional field:
 
