@@ -90,7 +90,9 @@ The PR body lists added and removed planets and systems, the review queue
 (host, top AT-HYG candidate, and posterior), and the entries carried over from
 earlier runs. Merging is not blocked by the review queue; resolve entries in
 `exoplanet-overrides.json` before the next run. Repository settings must allow
-GitHub Actions to create pull requests.
+GitHub Actions to create pull requests. PRs opened with `GITHUB_TOKEN` do not
+trigger other workflows, so the SW-08 and security gates do not run on refresh
+PRs; the checks listed in the PR body are the validation.
 
 To run the same steps locally:
 

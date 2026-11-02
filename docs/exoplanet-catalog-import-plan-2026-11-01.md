@@ -30,7 +30,7 @@ below.
 |     3 | [Solar-system grouping (multi-star)](#phase-3--solar-system-grouping-multi-star)         |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-3-findings); D32–D37        |
 |     4 | [Catalog-constrained procedural model](#phase-4--catalog-constrained-procedural-model)   |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-4-findings); D38–D44        |
 |     5 | [Registry, seeding, and contract](#phase-5--registry-seeding-and-contract)               |   ✅   |       | 2026-11-01 | 2026-11-02 | See [findings](#phase-5-findings); D45–D56        |
-|     6 | [Monthly refresh automation](#phase-6--monthly-refresh-automation)                       |   🟦   |       | 2026-11-02 |            | D57–D62; dispatch verification pending            |
+|     6 | [Monthly refresh automation](#phase-6--monthly-refresh-automation)                       |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-6-findings); D57–D62        |
 |     7 | [Performance baseline and Nova handoff](#phase-7--performance-baseline-and-nova-handoff) |   ⬜   |       |            |            |                                                   |
 |    P2 | Paging (separate plan)                                                                   |   ⏸    |       |            |            | Starts after phase 7 results                      |
 |    N1 | Settler naming (separate plan)                                                           |   ⏸    |       |            |            | Hook only in this plan (D24)                      |
@@ -854,6 +854,36 @@ clean, and `contract:gate:hard` reports 0 issues.
 
 **Exit criteria:** A manual `workflow_dispatch` run opens a valid PR.
 
+### Phase 6 findings
+
+Completed on 2026-11-02. A forced `workflow_dispatch` run
+([41383154914](https://github.com/qagwaai/solid-train/actions/runs/41383154914))
+opened #80 with the expected seven files and a template-conformant body; it
+was closed without merging (D62).
+
+- **Quiet first month.** A live refresh on 2026-11-02 returned the same 6,451
+  planets (+0 / ?0); only `snapshotDate` moved. The report ignores the run
+  date, so an unforced run opens no PR. This is why D62 added the `force`
+  input.
+- **Repository setting.** The first dispatch
+  ([41382395926](https://github.com/qagwaai/solid-train/actions/runs/41382395926))
+  failed at `gh pr create` because "Allow GitHub Actions to create and approve
+  pull requests" was off. The owner approved enabling it on 2026-11-02
+  (`can_approve_pull_request_reviews: true`; the default token stays
+  read-only). The never-run Sol refresh needed the same setting.
+- **No CI on refresh PRs.** PRs opened with `GITHUB_TOKEN` do not trigger
+  other workflows, so the SW-08 gate and security gate do not run on them.
+  The refresh's own targeted checks are the validation; a contract change
+  never arrives through a data refresh.
+- **Timing.** The whole job takes about 1.5 minutes: refresh 37 s (including
+  the 214 MB HYG and AT-HYG download), checks and report 28 s. The HYG cache
+  entry is 203 MiB and is reused until the upstream LFS pointers change.
+- **Names guard.** The runtime test that keeps scripts away from
+  `exoplanet-names.json` now allows the report script to read it (to flag
+  orphaned names) but still forbids writes.
+- **Local dry run.** The report caught its own names-guard failure and marked
+  the PR as a draft, which exercised the D61 path before the first push.
+
 ## Phase 7 — Performance baseline and Nova handoff
 
 - [ ] **EX-7.1** Record server-side baselines for payload bytes and latency of
@@ -968,3 +998,4 @@ additively with an optional `bands` array instead of changing D42's shape.
 | 2026-11-02 | Phase 4 complete. Added D38–D44, the catalog body generator (`exoplanet-system-generator.js`), `systemStarFacts`, golden procedural hashes, and Phase 4 findings. Planned the contract change (EX-5.4b: archetypes, `rings`, `circumbinary`, `approximateFields`) and deferred F2 (sourced Sol rings).                     |
 | 2026-11-02 | Added the draft Nova prompt for the new planet types, rings, and approximate values ([nova-new-planet-types-2026-11-01.md](./nova-new-planet-types-2026-11-01.md)), linked from EX-5.4b.                                                                                                                                   |
 | 2026-11-02 | Phase 5 complete. Added the runtime exoplanet and star catalogs, per-system seed versions and seed state, hashed startup sync, `starId` star identity, registry counts, the names file, and Phase 5 findings. Added D45–D56 and attribution A10. The owner approved the SW-08 baseline update for the seven D54 variances. |
+| 2026-11-02 | Phase 6 complete. Added the monthly refresh workflow, `exoplanet-refresh-report.js`, and [exoplanet-catalog-data.md](./exoplanet-catalog-data.md); added D57–D62 and Phase 6 findings. Enabled Actions PR creation with owner approval and verified with a forced dispatch (#80, closed).                                  |
