@@ -345,9 +345,12 @@ module.exports = {
   G_GRAV,
   J2000_EPOCH,
   PROCEDURAL_SEED_VERSION,
+  classifyPlanet,
   createSeededRandom,
   hashStringToSeed,
   generateSystemBodies,
   habitableZoneAu,
+  orbitalPeriodSecFromAu,
+  planetPhysical,
   spectralClassPlanetCount,
 };

@@ -16,11 +16,14 @@ const {
   createSeededRandom,
   hashStringToSeed,
 } = require('../../src/model/procedural-system-generator');
+const {
+  mainSequenceFromMass,
+  spectralClassForTeff,
+} = require('../../src/model/exoplanet-system-generator');
 
 const LETTERS = 'ABCDEFGHIJ';
 const ROLES = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary'];
 const AU_PER_PC = 206264.806;
-const SUN_TEFF_K = 5772;
 const SUN_ABSOLUTE_V_MAG = 4.83;
 const DEFAULT_REFERENCE_MASS = 1;
 const MIN_STAR_MASS = 0.08;
@@ -319,31 +322,6 @@ function assignLetters(stars, letterCount) {
   return pool.filter((letter) => !taken.has(letter));
 }
 
-/** Simple main-sequence relations for synthesized stars (D32). */
-function mainSequenceFromMass(massSolar) {
-  let luminosity;
-  if (massSolar < 0.43) {
-    luminosity = 0.23 * massSolar ** 2.3;
-  } else if (massSolar < 2) {
-    luminosity = massSolar ** 4;
-  } else {
-    luminosity = 1.4 * massSolar ** 3.5;
-  }
-  const radius = massSolar < 1 ? massSolar ** 0.8 : massSolar ** 0.57;
-  const teff = SUN_TEFF_K * (luminosity / radius ** 2) ** 0.25;
-  return { luminosity, radius, teff };
-}
-
-function spectralClassForTeff(teff) {
-  if (teff >= 30000) return 'O';
-  if (teff >= 10000) return 'B';
-  if (teff >= 7500) return 'A';
-  if (teff >= 6000) return 'F';
-  if (teff >= 5200) return 'G';
-  if (teff >= 3700) return 'K';
-  return 'M';
-}
-
 function logUniform(rng, lo, hi) {
   return Math.exp(Math.log(lo) + (Math.log(hi) - Math.log(lo)) * rng());
 }
@@ -472,6 +450,27 @@ function buildSystems({
   return drafts
     .map((draft) => finishSystem(draft, planetsById))
     .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/**
+ * Re-derives the physics of a system's real stars (D37) for the body
+ * generator: starId → facts. Synthesized stars carry their own physics.
+ */
+function systemStarFacts(system, { hostsById, hygByAtHygId, defaultDistance = null }) {
+  const facts = new Map();
+  for (const star of system.stars) {
+    if (star.source === 'archive-host') {
+      const host = hostsById.get(star.hostId);
+      const matched = host.match && host.match.decision === 'matched';
+      facts.set(
+        star.starId,
+        hostStar(host, matched ? hygByAtHygId.get(host.match.atHygId) : null, defaultDistance)
+      );
+    } else if (star.source === 'hyg-companion') {
+      facts.set(star.starId, companionStar(hygByAtHygId.get(star.atHygId)));
+    }
+  }
+  return facts;
 }
 
 /** D34: existing IDs win; slug collisions fall back to the primary host's full name. */
@@ -731,5 +730,6 @@ module.exports = {
   spectralClassForTeff,
   summarizeSystems,
   synthesizeCompanion,
+  systemStarFacts,
   validateSystems,
 };

@@ -28,13 +28,14 @@ below.
 |     1 | [Exoplanet archive importer](#phase-1--exoplanet-archive-importer)                       |   ✅   |       | 2026-11-01 | 2026-11-01 | See [findings](#phase-1-findings); D20–D23        |
 |     2 | [HYG host slice and cross-match](#phase-2--hyg-host-slice-and-cross-match)               |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-2-findings); D25–D30        |
 |     3 | [Solar-system grouping (multi-star)](#phase-3--solar-system-grouping-multi-star)         |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-3-findings); D32–D37        |
-|     4 | [Catalog-constrained procedural model](#phase-4--catalog-constrained-procedural-model)   |   ⬜   |       |            |            |                                                   |
+|     4 | [Catalog-constrained procedural model](#phase-4--catalog-constrained-procedural-model)   |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-4-findings); D38–D44        |
 |     5 | [Registry, seeding, and contract](#phase-5--registry-seeding-and-contract)               |   ⬜   |       |            |            |                                                   |
 |     6 | [Monthly refresh automation](#phase-6--monthly-refresh-automation)                       |   ⬜   |       |            |            |                                                   |
 |     7 | [Performance baseline and Nova handoff](#phase-7--performance-baseline-and-nova-handoff) |   ⬜   |       |            |            |                                                   |
 |    P2 | Paging (separate plan)                                                                   |   ⏸    |       |            |            | Starts after phase 7 results                      |
 |    N1 | Settler naming (separate plan)                                                           |   ⏸    |       |            |            | Hook only in this plan (D24)                      |
 |    F1 | [Review-queue resolution](#f1--review-queue-resolution)                                  |   ⏸    |       |            |            | 6 review hosts + 2 distance misses; next refresh  |
+|    F2 | [Sourced rings for Sol's giants](#f2--sourced-rings-for-sols-giants)                     |   ⏸    |       |            |            | After EX-5.4b adds `rings`                        |
 
 ### Snapshot metrics
 
@@ -91,6 +92,13 @@ metrics show catalog growth and changes in match quality over time.
 | D35 | System position and name         | A system's position, distance, and distance source come from its primary star (letter A, or the first role). Each star keeps its own position. `catalogName` is the primary host's name without its component suffix (`Kepler-16`, `55 Cnc`), `properName` is the primary star's HYG proper name, and settler names stay in the D24 hook. Reconciled existing systems omit the system-level name and position, because the curated catalog owns them.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | D36 | Grouping and letters             | Hosts are grouped with union-find over: the host name without its component suffix; a shared HYG `base`, or an HYG companion linked to several hosts; a shared existing Forge system; and `systemAssignments` overrides (`join` with another host, or `detach`). Letters: host suffixes claim their letter first (`Aa` → A, `AB` → A, `BC` → B, no suffix → A). Collisions and unlettered HYG companions take the lowest free letters in brightness order, and synthesized stars take the letters that remain. Roles follow letter order (primary, secondary, tertiary, quaternary). Stars in reconciled existing systems keep their existing role.                                                                                                                                                                                                                                                                                                                                                                                           |
 | D37 | Slim system records              | To keep the snapshot under the D2 budget, archive-host and HYG-companion stars in `exoplanet-systems.json` carry only links (`starId`, `letter`, `role`, `source`, `hostId`, `atHygId`, `existing`, `planetIds`). Phase 5 seeding re-derives their position and physics with `resolveHostStar` from the hosts and HYG-star snapshots, using the report's `defaultDistancePc`, exactly as the build does. Synthesized stars exist nowhere else, so they carry full approximate physics and a 1e-6 pc position. Systems keep `positionPc`, `distancePc`, and `distanceApproximate` from their primary for spatial queries, and reconciled systems carry `existing: true` instead of a separate ID field. Supersedes "each star keeps its own position" in D35.                                                                                                                                                                                                                                                                                  |
+| D38 | Planet archetypes (Phase 4)      | **Extend the `surfaceArchetype` enum** (a contract change; no fallback field). Nova breaks until it consumes the new values, which is accepted. New values: `super-earth`, `sub-neptune`, `hot-neptune`, `hot-jupiter`, and `super-jupiter` (the form listed this option as `brown-dwarf-companion`; we use `super-jupiter`, the label the user saw). `planetType` equals `surfaceArchetype`. Purely procedural systems keep the original five values. |
+| D39 | Archetype rules                  | Mass > 13 Mjup (4,132 M⊕) → `super-jupiter`. Otherwise by radius R (R⊕) and "hot" (Teq ≥ 1000 K): R < 1.25 → `lava` if hot, else `rocky`. 1.25–2 → `lava` if hot, else `super-earth`. 2–4 → `hot-neptune` if hot; otherwise, if density ≥ 3.5 g/cm³, `ocean` at 200–350 K and `super-earth` outside that range; otherwise `sub-neptune`. 4–6 → `hot-neptune` if hot, else `ice-giant`. ≥ 6 → `hot-jupiter` if hot, else `gas-giant`. A missing R is estimated from mass (Chen and Kipping 2017 power laws). A missing Teq is estimated from insolation (278.6 K · S^¼), else from L\* / a². Density uses the archive value, else M/R³. Planets with neither radius nor mass (7) take the seeded procedural class. Every estimate is listed in `approximateFields`. |
+| D40 | Catalog values and fallback      | Known catalog values pass through **unchanged** (identical output). Archive masses whose provenance is `Msini`, `Msin(i)/sin(i)`, or `M-R relationship` are passed through but flagged approximate. Any missing value falls back to a seeded procedural value and its path is listed in the body's `approximateFields`, so Nova can decide at runtime how to present it. Seeds are per body and per purpose (`hash("<bodyId>:<purpose>")`), so adding a derived field never shifts another. |
+| D41 | Orbits in the game frame         | `a` comes from the catalog, else Kepler from P and the anchor's mass, else seeded (approximate). Missing `e` → 0 (approximate). **Inclination is relative to the system plane:** \|i − median(i)\| over the planets that share an anchor, and missing values → seeded 0–3° (approximate). Missing `ω` → seeded. `Ω` is never published, so it is always seeded (approximate). **Mean anomaly at J2000** is derived from the periapsis time, else the transit midpoint (true anomaly 90° − ω at transit), propagated with P. Otherwise it is seeded (approximate). The epoch is J2000. |
+| D42 | Rings (D12 detail)               | Only giants get rings, and never when Teq ≥ 1000 K. Chances: `gas-giant` and `super-jupiter` 30%; `ice-giant` and `sub-neptune` 20%. They are seeded from `<planetId>:rings`. Shape: an additive top-level `rings` object `{innerRadiusKm, outerRadiusKm, tiltDeg, colorHex, opacity, approximate: true}`, in the planet's equatorial plane (tilt = axial tilt). Catalog planets never get moons. **Contract change** in EX-5.4b; Sol's giants get sourced rings in follow-up F2. |
+| D43 | Star and circumbinary bodies     | Phase 4 builds the full body set. Star bodies come from the resolved D37 physics, with missing values estimated from main-sequence relations (approximate). The primary has no orbit. A synthesized companion orbits its `separationFromStarId` at `separationAu`. A real companion orbits the primary at its **projected separation** (angular separation × distance), flagged approximate, because the separate parallaxes are too noisy for a 3D separation. S-type planets are parented to their own star. Circumbinary planets are parented to the lower-letter star of their pair (normally the primary) with `circumbinary: true` and `circumbinaryStarIds`; their orbit uses the pair's summed mass and luminosity and is approximate (no barycenter body). Reconciled existing systems emit planets only, parented to the existing star ID, because the curated catalog owns the stars. |
+| D44 | Catalog seed version             | `PROCEDURAL_SEED_VERSION` is unchanged, so procedural systems never reseed. Catalog systems use a separate `CATALOG_SEED_VERSION` (`2026-11-exoplanet-v1`). The procedural generator is untouched, and a golden-output test proves it (EX-4.4). |
 
 ---
 
@@ -605,37 +613,111 @@ default orbital angles, and phase.
 
 Effects:
 
-- **No new renderers.** Catalog planets use the same body types and renderers
-  as procedural planets. They differ only in where their constraints come from.
+- **Same body types, five new archetypes.** Catalog planets use the existing
+  body types and fields. D38 adds five planet archetypes (and D42 adds
+  `rings`), so Nova needs new renderers for those; that contract change ships
+  in Phase 5.
 - **Small snapshots.** The snapshot stores only facts. Render detail is never
   persisted.
-- **Real where known, plausible where not.** Each derived field is marked
-  `approximate` so that clients and attribution can distinguish the two.
+- **Real where known, plausible where not.** Each derived field is listed in
+  the body's `approximateFields` so that clients and attribution can
+  distinguish the two (D40).
+
+The catalog generator is a sibling module,
+[exoplanet-system-generator.js](../src/model/exoplanet-system-generator.js),
+that reuses the procedural generator's seeded RNG and orbital helpers. It takes
+already-resolved star facts, so runtime code never depends on `scripts/`.
+Phase 5 decides where star resolution (`resolveHostStar`) lives at runtime.
 
 Steps:
 
-- [ ] **EX-4.1** Refactor the generator to accept an optional list of
-      constrained planets per system. When a list is present, generate only
-      those planets: real planets replace procedural planets, with no gap
-      filling (D13).
-- [ ] **EX-4.2** Classify planets from catalog facts. Use radius or mass
-      thresholds for rocky, super-Earth, Neptune, and gas giant classes, and
-      use equilibrium temperature for subtypes such as hot Jupiter and ice
-      giant. Fall back to the seeded RNG only when facts are missing.
-- [ ] **EX-4.3** Derive missing elements. Calculate a from P and M\* using
-      Kepler's third law, and default e, i, ω, Ω, and mean anomaly as flagged
-      approximations (D7).
-- [ ] **EX-4.4** Bump `PROCEDURAL_SEED_VERSION`. Existing purely procedural
-      systems with no catalog planets must produce **identical** output; add a
-      regression test to prove it.
-- [ ] **EX-4.5** Generate rings only, never moons, for catalog planets
-      classified as gas or ice giants (D12). Ring presence and parameters
-      come from the `planetId` seed and are flagged approximate. Add a test
-      that no catalog planet produces moons and that ring output is
+- [x] **EX-4.1** Add `generateCatalogSystemBodies` for systems with catalog
+      planets. Only the real planets are generated, with no gap filling
+      (D13). The procedural generator stays untouched (D44).
+- [x] **EX-4.2** Classify planets from catalog facts with the extended
+      archetypes (D38, D39). Fall back to the seeded procedural class only
+      when both radius and mass are missing.
+- [x] **EX-4.3** Derive missing elements in the game frame (D41): Kepler `a`,
+      system-relative inclination, phase from periapsis or transit time, and
+      seeded defaults listed in `approximateFields`.
+- [x] **EX-4.4** Keep `PROCEDURAL_SEED_VERSION` and add `CATALOG_SEED_VERSION`
+      (D44). Add a golden-output regression test proving that procedural
+      systems are byte-identical.
+- [x] **EX-4.5** Generate rings only, never moons, for catalog giants (D42).
+      Add tests that no catalog planet produces moons and that ring output is
       deterministic.
+- [x] **EX-4.6** Build star bodies and companion orbits, and anchor S-type and
+      circumbinary planets (D43). Reconciled existing systems emit planets
+      only.
+- [x] **EX-4.7** Run the generator over the full snapshot in a test: every
+      body is valid and deterministic. Record the archetype distribution in
+      the findings.
 
-**Exit criteria:** Catalog planets render through existing body types, and
-procedural-only systems are unchanged.
+**Exit criteria:** Every catalog planet produces a valid, deterministic body
+through the existing body types, and procedural-only systems are unchanged.
+
+### Phase 4 findings
+
+Measured on 2026-11-02 against the Phase 3 snapshot (4,841 systems).
+
+- **Output.** 5,323 star bodies and 6,451 planet bodies; every planet is
+  emitted exactly once, there are no duplicate IDs, and every number is
+  finite. The three existing curated systems emit only their 8 planets. A
+  full-snapshot run takes about 120 ms and is byte-identical across runs.
+- **Procedural systems.** SHA-256 golden hashes of all six HYG systems match
+  the pre-change output (EX-4.4). The only edit to
+  `procedural-system-generator.js` is three extra exports.
+- **Star facts.** `systemStarFacts` in `scripts/lib/exoplanet-systems.js`
+  re-derives real-star physics from the host and HYG records (D37). The
+  main-sequence helpers now live in the runtime generator and are shared by
+  the scripts.
+- **Archetype distribution (D39):**
+
+  | Archetype     | Planets | Share |
+  | ------------- | ------: | ----: |
+  | sub-neptune   |   1,637 | 25.4% |
+  | gas-giant     |   1,300 | 20.2% |
+  | super-earth   |     894 | 13.9% |
+  | hot-jupiter   |     757 | 11.7% |
+  | lava          |     683 | 10.6% |
+  | hot-neptune   |     420 |  6.5% |
+  | rocky         |     344 |  5.3% |
+  | ice-giant     |     254 |  3.9% |
+  | super-jupiter |     156 |  2.4% |
+  | ocean         |       6 |  0.1% |
+
+- **Rings (D42).** 831 planets have rings (all `approximate: true`): 426
+  gas giants, 325 sub-Neptunes, 51 ice giants, and 29 super-Jupiters. No
+  planet with Teq ≥ 1000 K has rings, and no catalog planet emits moons.
+- **Approximate fields (D40).** Always approximate on every planet: Ω,
+  rotation, axial tilt, composition tags, and atmosphere. Other counts:
+
+  | Field                                  | Planets |
+  | -------------------------------------- | ------: |
+  | `orbit.argumentOfPeriapsisDeg`         |   4,334 |
+  | `physical.surfaceGravityMps2`          |   4,015 |
+  | `physical.massKg` (mostly Msini)       |   3,974 |
+  | `orbit.inclinationDeg`                 |   1,600 |
+  | `orbit.eccentricity`                   |   1,068 |
+  | `orbit.meanAnomalyAtEpochDeg`          |     582 |
+  | `surfaceArchetype` / `planetType`      |     579 |
+  | `physical.meanTemperatureK`            |     540 |
+  | `physical.meanRadiusKm`                |      50 |
+  | `orbit` and `parentBodyId` (circumbinary) |      53 |
+  | `orbit.semiMajorAxisKm` / period       |       7 |
+
+- **Spot checks.** Kepler-16 b is circumbinary around the 0.12 AU A–B pair.
+  55 Cnc B and CD-35 2722 B carry their own 2025–2026 planets as S-type
+  hosts, and those records are genuine archive data. Proxima b and d attach to
+  `alpha-centauri-star-tertiary`.
+- **GJ 900.** Its synthesized companions orbit at 107,100 AU and 543,500 AU
+  (the 0.5–2.6 pc noted in Phase 3), and GJ 900 b sits at its catalog 12,000
+  AU. The values are valid but extreme; Nova's camera framing should not
+  assume companions are within a few thousand AU (noted for EX-5.4b).
+- **Seeding is blocked until Phase 5.** `buildCelestialBodyDocument` rejects
+  the five new archetypes, and its strict `visualization` schema has no
+  `rings`. Both are EX-5.4b contract changes, so Phase 4 output is not yet
+  persisted.
 
 ## Phase 5 — Registry, seeding, and contract
 
@@ -656,6 +738,18 @@ procedural-only systems are unchanged.
       (D15). Update `api/schemas/*`, `api/openapi*`, and
       [celestial-body-contract.md](./celestial-body-contract.md). Follow the
       SW-08 producer checklist.
+- [ ] **EX-5.4b** **Contract change for D38 and D42.** Add the five new planet
+      archetypes to `SURFACE_ARCHETYPE_VALUES`, `celestial-classification.schema.json`,
+      and every schema that copies the enum. Add the top-level `rings` object
+      (`innerRadiusKm`, `outerRadiusKm`, `tiltDeg`, `colorHex`, `opacity`,
+      `approximate`) to the celestial Mongo model, the normalizers, the
+      upsert/list/get schemas, OpenAPI, and the contract doc. Add
+      `circumbinary` and `approximateFields`. Hand Nova a prompt covering the
+      new archetype renderers, ring rendering, and approximate-value display
+      (A9). Nova breaks until it consumes these (D38). The prompt should also
+      say that planets may orbit a companion star rather than the primary,
+      that circumbinary planets are parented to one star of the pair, and
+      that companion separations can reach about 500,000 AU (GJ 900).
 - [ ] **EX-5.4a** Add the settler-name hook (D24). Add an additive
       `catalogName` to systems and bodies, and populate `displayName` from
       `data/exoplanet-names.json`, falling back to the catalog name. Create the
@@ -778,6 +872,15 @@ at the wrong distance):
 | Luhman 16 A | 664.568 pc (`default`)    | about 2 pc    | Archive row has no distance, parallax, or magnitude              | A `distance` override in `data/exoplanet-overrides.json`         |
 | SPECULOOS-3 | 113.46 pc (`photometric`) | about 17 pc   | The Sun's bolometric correction does not suit an ultracool dwarf | A `distance` override, or a Teff-dependent bolometric correction |
 
+### F2 — Sourced rings for Sol's giants
+
+Added on 2026-11-02 from the Phase 4 questions. When the `rings` contract
+field lands (EX-5.4b), give Jupiter, Saturn, Uranus, and Neptune their real ring
+systems from a cited source. Keep this in the Sol catalog pipeline, not the
+exoplanet one, and set `approximate: false` with a source reference. Sol
+rings may want bands (Saturn's A, B, and C rings); if so, extend `rings`
+additively with an optional `bands` array instead of changing D42's shape.
+
 ## Change log
 
 | Date       | Change                                                                                                                                                                                                                                                                                         |
@@ -791,3 +894,4 @@ at the wrong distance):
 | 2026-11-02 | Phase 2 complete. Added the HYG cross-match, calibration, overrides, match report, and HYG star slice. Added D25–D30, Phase 2 findings, and measured file sizes; refined cross-match tier 3 and attribution A3–A4.                                                                             |
 | 2026-11-02 | Added D31 (deterministic resolved host distance) and deferred follow-up F1 for the 6 review-queue hosts; the match report now flags carried-over review hosts.                                                                                                                                 |
 | 2026-11-02 | Phase 3 complete. Added solar-system grouping (D32–D36), synthesized companions, circumbinary anchors, `systemAssignments` overrides, and `exoplanet-systems.json`; added D37 (slim records) and Phase 3 findings; flagged Luhman 16 A and SPECULOOS-3 in F1; A9 now covers synthesized stars. |
+| 2026-11-02 | Phase 4 complete. Added D38–D44, the catalog body generator (`exoplanet-system-generator.js`), `systemStarFacts`, golden procedural hashes, and Phase 4 findings. Planned the contract change (EX-5.4b: archetypes, `rings`, `circumbinary`, `approximateFields`) and deferred F2 (sourced Sol rings). |
