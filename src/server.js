@@ -391,6 +391,8 @@ async function startServer(options = {}) {
   // solar-system registry into Mongo. Bulk writes are skipped when the content
   // hash is unchanged (D49). Failures are logged and ignored.
   if (databaseService) {
+    logger.info('[server] Starting star catalog + solar-system registry persistence');
+    const registryStartedAt = Date.now();
     try {
       const { getStarCatalogEntries } = require('./model/star-catalog');
       const { getSolarSystemRegistry } = require('./model/solar-system-registry');
@@ -399,51 +401,51 @@ async function startServer(options = {}) {
       const describe = (result) =>
         result.skipped ? 'unchanged' : `${result.upserted} upserted, ${result.removed} removed`;
       logger.info(
-        `[server] Star catalog (${describe(starSync)}) + solar-system registry (${describe(systemSync)}) persisted`
+        `[server] Star catalog (${describe(starSync)}) + solar-system registry (${describe(systemSync)}) persisted (${Date.now() - registryStartedAt}ms)`
       );
     } catch (registryError) {
       logger.error(
-        `[server] Failed to persist star/solar-system registry: ${registryError.message}`
+        `[server] Failed to persist star/solar-system registry (${Date.now() - registryStartedAt}ms): ${registryError.message}`
       );
     }
   }
 
-  const celestialSeedResult = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
-    solarSystemId: 'sol',
-  });
-  logger.info(
-    `[server] Celestial body seeding ${celestialSeedResult.success ? 'completed' : 'skipped'} for ${celestialSeedResult.solarSystemId}: ${celestialSeedResult.bodyCount}`
-  );
+  const seedCelestialBodies = async (solarSystemId) => {
+    logger.info(`[server] Starting celestial body seeding for ${solarSystemId}`);
+    const startedAt = Date.now();
+    const result = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
+      solarSystemId,
+    });
+    logger.info(
+      `[server] Celestial body seeding ${result.success ? 'completed' : 'skipped'} for ${result.solarSystemId}: ${result.bodyCount} (${Date.now() - startedAt}ms)`
+    );
+    return result;
+  };
 
-  const alphaCentauriSeedResult = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
-    solarSystemId: 'alpha-centauri',
-  });
-  logger.info(
-    `[server] Celestial body seeding ${alphaCentauriSeedResult.success ? 'completed' : 'skipped'} for ${alphaCentauriSeedResult.solarSystemId}: ${alphaCentauriSeedResult.bodyCount}`
-  );
+  await seedCelestialBodies('sol');
+  await seedCelestialBodies('alpha-centauri');
 
   const marketSystems = ['sol', 'alpha-centauri', 'barnards-star'];
   // Barnard b (exoplanet catalog, D45) must exist before strict station materialization.
-  const barnardsStarSeedResult = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
-    solarSystemId: 'barnards-star',
-  });
-  logger.info(
-    `[server] Celestial body seeding ${barnardsStarSeedResult.success ? 'completed' : 'skipped'} for ${barnardsStarSeedResult.solarSystemId}: ${barnardsStarSeedResult.bodyCount}`
-  );
+  await seedCelestialBodies('barnards-star');
   for (const solarSystemId of marketSystems) {
+    logger.info(`[server] Starting market seeding for ${solarSystemId}`);
+    const marketStartedAt = Date.now();
     const marketSeedResult = await messageHandlerContext.seedSolarSystemMarketsAsync({
       solarSystemId,
     });
     logger.info(
-      `[server] Market seeding ${marketSeedResult.success ? 'completed' : 'skipped'} for ${marketSeedResult.solarSystemId}: ${marketSeedResult.marketCount}`
+      `[server] Market seeding ${marketSeedResult.success ? 'completed' : 'skipped'} for ${marketSeedResult.solarSystemId}: ${marketSeedResult.marketCount} (${Date.now() - marketStartedAt}ms)`
     );
   }
 
+  logger.info('[server] Starting NPC seeding for sol');
+  const npcStartedAt = Date.now();
   const npcSeedResult = await messageHandlerContext.seedSolarSystemNpcsAsync({
     solarSystemId: 'sol',
   });
   logger.info(
-    `[server] NPC seeding ${npcSeedResult.success ? 'completed' : 'skipped'} for ${npcSeedResult.solarSystemId}: ${npcSeedResult.npcCount}`
+    `[server] NPC seeding ${npcSeedResult.success ? 'completed' : 'skipped'} for ${npcSeedResult.solarSystemId}: ${npcSeedResult.npcCount} (${Date.now() - npcStartedAt}ms)`
   );
 
   const host = options.host || process.env.HOST;
