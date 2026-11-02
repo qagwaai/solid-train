@@ -3,7 +3,7 @@
   "sourceUrl": "https://exoplanetarchive.ipac.caltech.edu/TAP/sync",
   "sourceTable": "pscomppars",
   "sourceDocsUrl": "https://exoplanetarchive.ipac.caltech.edu/docs/API_PS_columns.html",
-  "snapshotDate": "2026-11-01",
+  "snapshotDate": "2026-11-02",
   "license": "CC BY-SA 4.0",
   "licenseFile": "data/LICENSE-exoplanet-catalog.md",
   "recordCount": 6451,

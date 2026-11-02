@@ -104,8 +104,9 @@ npm run catalog:exoplanet:report -- --pr-body pr-body.md
 One row per refresh. Rows up to Phase 3 were recorded by hand in the import
 plan; later rows are appended by the refresh workflow.
 
-| Snapshot date | Planets | Host stars | Systems | Multi-star systems         | HYG matched (auto / review / manual) | Unmatched hosts | Approx. orbits           | Snapshot size | Notes            |
-| ------------- | ------: | ---------: | ------: | -------------------------- | ------------------------------------ | --------------: | ------------------------ | ------------: | ---------------- |
-| 2026-11-01    |   6,451 |      4,847 |   4,841 | 432 (43 with circumbinary) | 1,694 (34.95%) / 6 / 0               |           3,147 | 8 lack a semi-major axis |       9.75 MB | Phase 3 baseline |
+| Snapshot date | Planets | Host stars | Systems | Multi-star systems         | HYG matched (auto / review / manual) | Unmatched hosts | Approx. orbits           | Snapshot size | Notes                            |
+| ------------- | ------: | ---------: | ------: | -------------------------- | ------------------------------------ | --------------: | ------------------------ | ------------: | -------------------------------- |
+| 2026-11-01    |   6,451 |      4,847 |   4,841 | 432 (43 with circumbinary) | 1,694 (34.95%) / 6 / 0               |           3,147 | 8 lack a semi-major axis |       9.75 MB | Phase 3 baseline                 |
+| 2026-11-02    |   6,451 |      4,847 |   4,841 | 432 (43 with circumbinary) | 1,694 (34.95%) / 6 / 0               |           3,147 | 8 lack a semi-major axis |       9.75 MB | Monthly refresh; +0 / −0 planets |
 
 <!-- snapshot-metrics:end -->

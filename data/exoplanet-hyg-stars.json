@@ -1,7 +1,7 @@
 {
   "source": "AT-HYG v4.0 and HYG v4.4 (astronexus)",
   "sourceUrl": "https://codeberg.org/astronexus/athyg",
-  "snapshotDate": "2026-11-01",
+  "snapshotDate": "2026-11-02",
   "license": "CC BY-SA 4.0",
   "licenseFile": "data/LICENSE-exoplanet-catalog.md",
   "recordFormat": "AT-HYG row for each matched host star and its HYG multiple-star companions",

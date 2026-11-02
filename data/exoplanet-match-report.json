@@ -1,5 +1,5 @@
 {
-  "snapshotDate": "2026-11-01",
+  "snapshotDate": "2026-11-02",
   "sources": {"hyg_v44.csv.gz":{"label":"HYG v4.4","url":"https://codeberg.org/astronexus/hyg/media/branch/main/data/hyg/CURRENT/hyg_v44.csv.gz","sha256":"00b349893b9a53106dd488d8371e8d2fa586043e500bb3cdb8bff3931682197d","verified":true,"changedSinceLastRun":false},"athyg_40.csv.gz":{"label":"AT-HYG v4.0","url":"https://codeberg.org/astronexus/athyg/media/branch/main/data/athyg_40.csv.gz","sha256":"69ad04dd33d7c7bb4f5e1b4682798075811547ea9fb8d0e802e5b319c46818a6","verified":true,"changedSinceLastRun":false}},
   "calibration": {"generatedDate":"2026-11-02","atHygSha256":"69ad04dd33d7c7bb4f5e1b4682798075811547ea9fb8d0e802e5b319c46818a6","holdout":{"hosts":308,"autoMatches":299,"correct":299,"review":9,"truthRemovedAuto":3,"precision":1,"recall":0.9708,"truthRemovedFalseAutoRate":0.0097}},
   "counts": {"hosts":4847,"matched":1694,"review":6,"unmatched":3147,"byTier":{"gaia-dr3":1670,"hip":16,"scored":8},"autoMatchRate":0.3495},
