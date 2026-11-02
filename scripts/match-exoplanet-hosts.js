@@ -16,7 +16,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const Ajv = require('ajv').default;
 
-const { coneRadiusArcsec, enforceOneToOne, matchHost } = require('./lib/exoplanet-crossmatch');
+const {
+  coneRadiusArcsec,
+  defaultDistancePc,
+  enforceOneToOne,
+  matchHost,
+  resolveHostDistance,
+} = require('./lib/exoplanet-crossmatch');
 const {
   HYG_SOURCES,
   ensureSource,
@@ -113,7 +119,7 @@ function buildMatchBlock(result, host, existingByHip) {
   return block;
 }
 
-function buildReportRecord(result) {
+function buildReportRecord(result, previousReviewIds = new Set()) {
   const record = {
     hostId: result.hostId,
     decision: result.decision,
@@ -122,6 +128,9 @@ function buildReportRecord(result) {
     separationArcsec: round(result.separation, 3) ?? null,
     reasons: result.reasons.filter(Boolean),
   };
+  if (result.decision === 'review' && previousReviewIds.has(result.hostId)) {
+    record.carriedOver = true;
+  }
   if (result.tier === 'scored' || result.ranked.length) {
     record.posterior = round(result.posterior, 4) ?? null;
     record.margin = round(result.margin, 4) ?? null;
@@ -272,8 +281,35 @@ function readPreviousReport() {
   if (!fs.existsSync(REPORT_FILE)) {
     return null;
   }
-  const { records: _records, ...metadata } = readJson(REPORT_FILE);
+  const { records, ...metadata } = readJson(REPORT_FILE);
+  metadata.reviewIds = new Set(
+    records.filter((record) => record.decision === 'review').map((record) => record.hostId)
+  );
   return metadata;
+}
+
+/**
+ * D31: every host gets a deterministic distance. Matched hosts use AT-HYG;
+ * the default for hosts with no usable data is the median archive distance
+ * of the hosts that ship as archive-only stars.
+ */
+function buildResolvedDistances(hosts, resultsByHost) {
+  const archiveOnly = hosts.filter((host) => resultsByHost.get(host.id).decision !== 'matched');
+  const defaultDistance = defaultDistancePc(archiveOnly);
+  const byHost = new Map();
+  const bySource = {};
+  for (const host of hosts) {
+    const result = resultsByHost.get(host.id);
+    const star = result.decision === 'matched' ? result.star : null;
+    const resolved = resolveHostDistance(host, star, { defaultDistance });
+    bySource[resolved.source] = (bySource[resolved.source] || 0) + 1;
+    const block = { distancePc: round(resolved.distancePc, 4) ?? null, source: resolved.source };
+    if (resolved.approximate) {
+      block.approximate = true;
+    }
+    byHost.set(host.id, block);
+  }
+  return { byHost, summary: { defaultDistancePc: defaultDistance, bySource } };
 }
 
 function sourceSummary(source, previous) {
@@ -290,7 +326,9 @@ function sourceSummary(source, previous) {
 async function main(argv = process.argv.slice(2), env = process.env) {
   const allowDrift = isDriftOverride(argv, env);
   const hostsSnapshot = readJson(HOSTS_FILE);
-  const hosts = hostsSnapshot.records.map(({ match: _match, ...host }) => host);
+  const hosts = hostsSnapshot.records.map(
+    ({ match: _match, resolvedDistance: _distance, ...host }) => host
+  );
   const overrides = readJson(OVERRIDES_FILE);
   const overrideErrors = validateOverrides(overrides);
   if (overrideErrors.length) {
@@ -354,10 +392,14 @@ async function main(argv = process.argv.slice(2), env = process.env) {
 
   const existingByHip = existingStarsByHip();
   const resultsByHost = new Map(results.map((result) => [result.hostId, result]));
-  const matchedHosts = hostsSnapshot.records.map(({ match: _match, ...host }) => ({
-    ...host,
-    match: buildMatchBlock(resultsByHost.get(host.id), host, existingByHip),
-  }));
+  const distances = buildResolvedDistances(hosts, resultsByHost);
+  const matchedHosts = hostsSnapshot.records.map(
+    ({ match: _match, resolvedDistance: _distance, ...host }) => ({
+      ...host,
+      match: buildMatchBlock(resultsByHost.get(host.id), host, existingByHip),
+      resolvedDistance: distances.byHost.get(host.id),
+    })
+  );
   const { records: hygStars, missingCompanions } = buildHygStarSlice(
     results,
     hyg,
@@ -403,16 +445,22 @@ async function main(argv = process.argv.slice(2), env = process.env) {
         },
         counts,
         drift,
+        reviewCarriedOver: results.filter(
+          (result) =>
+            result.decision === 'review' && previous && previous.reviewIds.has(result.hostId)
+        ).length,
+        distances: distances.summary,
         companionsMissingFromAtHyg: missingCompanions,
         atHygRowsScanned: scan.rowCount,
         recordCount: results.length,
       },
-      results.map(buildReportRecord)
+      results.map((result) => buildReportRecord(result, previous ? previous.reviewIds : undefined))
     ),
     'utf8'
   );
 
   console.log(JSON.stringify(counts));
+  console.log(`Distances: ${JSON.stringify(distances.summary)}`);
   console.log(
     `Wrote ${hygStars.length} HYG stars (${hygStars.filter((star) => star.role === 'companion').length} companions)`
   );
@@ -432,6 +480,7 @@ module.exports = {
   buildHygStarSlice,
   buildMatchBlock,
   buildReportRecord,
+  buildResolvedDistances,
   checkMatchDrift,
   existingStarsByHip,
   isDriftOverride,

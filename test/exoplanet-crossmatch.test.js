@@ -12,6 +12,8 @@ const sources = require('../scripts/lib/exoplanet-hyg-sources');
 const {
   buildHygStarSlice,
   buildMatchBlock,
+  buildReportRecord,
+  buildResolvedDistances,
   checkMatchDrift,
   existingStarsByHip,
   isDriftOverride,
@@ -300,7 +302,100 @@ test('resolveHostStar: archive wins for physics, AT-HYG for position and names',
 
   const unmatched = crossmatch.resolveHostStar(host({ raDeg: 0, decDeg: 0, distancePc: 10 }));
   assert.equal(unmatched.positionSource, 'archive');
+  assert.equal(unmatched.distanceSource, 'archive');
+  assert.equal(unmatched.distanceApproximate, false);
   assert.ok(Math.abs(unmatched.positionPc.x - 10) < 1e-9);
+});
+
+test('resolveHostDistance follows the D31 order and is deterministic', () => {
+  const resolve = (overrides, star = null) =>
+    crossmatch.resolveHostDistance(host(overrides), star, { defaultDistance: 500 });
+
+  assert.deepEqual(resolve({ distancePc: 20 }, star({ distancePc: 21 })), {
+    distancePc: 21,
+    source: 'at-hyg',
+  });
+  // Precise parallax beats a TICv8 sy_dist that disagrees (the GJ 411 case).
+  assert.deepEqual(resolve({ distancePc: 5.68, parallaxMas: 392.6 }), {
+    distancePc: 1000 / 392.6,
+    source: 'parallax',
+  });
+  // Faint, distant hosts keep sy_dist even when 1/parallax disagrees.
+  assert.deepEqual(resolve({ distancePc: 162, parallaxMas: 3.17 }), {
+    distancePc: 162,
+    source: 'archive',
+  });
+  assert.deepEqual(resolve({ distancePc: null, parallaxMas: 10 }), {
+    distancePc: 100,
+    source: 'parallax',
+  });
+
+  // A Sun-like star (log L = 0) at V = 4.83 + 5 sits at 100 pc.
+  const photometric = resolve({ distancePc: null, vMag: 9.83, logLuminositySolar: 0 });
+  assert.equal(photometric.source, 'photometric');
+  assert.equal(photometric.approximate, true);
+  assert.ok(Math.abs(photometric.distancePc - 100) < 1e-6);
+  const fromRadius = resolve({
+    distancePc: null,
+    vMag: null,
+    gaiaMag: 9.83,
+    radiusSolar: 1,
+    teffK: 5772,
+  });
+  assert.ok(Math.abs(fromRadius.distancePc - 100) < 1e-6);
+
+  assert.deepEqual(resolve({ distancePc: null, vMag: null }), {
+    distancePc: 500,
+    source: 'default',
+    approximate: true,
+  });
+  assert.deepEqual(crossmatch.resolveHostDistance(host({ distancePc: null, vMag: null })), {
+    distancePc: null,
+    source: 'none',
+  });
+  assert.equal(
+    crossmatch.defaultDistancePc([{ distancePc: 30 }, { distancePc: 10 }, { distancePc: null }]),
+    20
+  );
+});
+
+test('buildResolvedDistances uses the archive-only median as the default', () => {
+  const hosts = [
+    host({ id: 'a', distancePc: 100 }),
+    host({ id: 'b', distancePc: 300 }),
+    host({ id: 'c', distancePc: 1, parallaxMas: 1000 }),
+    host({ id: 'd', distancePc: null, vMag: null }),
+  ];
+  const results = new Map([
+    ['a', { decision: 'unmatched' }],
+    ['b', { decision: 'review' }],
+    ['c', { decision: 'matched', star: star({ distancePc: 1.3 }) }],
+    ['d', { decision: 'unmatched' }],
+  ]);
+  const { byHost, summary } = buildResolvedDistances(hosts, results);
+  assert.deepEqual(summary, {
+    defaultDistancePc: 200,
+    bySource: { archive: 2, 'at-hyg': 1, default: 1 },
+  });
+  assert.deepEqual(byHost.get('c'), { distancePc: 1.3, source: 'at-hyg' });
+  assert.deepEqual(byHost.get('d'), { distancePc: 200, source: 'default', approximate: true });
+});
+
+test('buildReportRecord flags review hosts carried over from the previous run', () => {
+  const result = {
+    hostId: 'exo-host-a',
+    decision: 'review',
+    tier: 'gaia-dr3',
+    star: null,
+    reasons: ['sanity-gate:distance'],
+    ranked: [],
+  };
+  assert.equal(buildReportRecord(result, new Set(['exo-host-a'])).carriedOver, true);
+  assert.equal(buildReportRecord(result, new Set()).carriedOver, undefined);
+  assert.equal(
+    buildReportRecord({ ...result, decision: 'unmatched' }, new Set(['exo-host-a'])).carriedOver,
+    undefined
+  );
 });
 
 test('validateOverrides checks schema rules and duplicates', () => {

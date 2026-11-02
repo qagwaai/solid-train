@@ -699,15 +699,98 @@ function equatorialToCartesian(raDeg, decDeg, distancePc) {
 
 const firstDefined = (...values) => values.find((value) => value !== null && value !== undefined);
 
+const PRECISE_PARALLAX_MAS = 5;
+const DISTANCE_DISAGREEMENT = 0.1;
+const SUN_ABSOLUTE_V_MAG = 4.83;
+const SUN_TEFF_K = 5772;
+
+function median(values) {
+  const sorted = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
+  if (!sorted.length) {
+    return null;
+  }
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+/** D31 default: median archive distance of hosts that ship as archive-only stars. */
+function defaultDistancePc(hosts) {
+  const value = median(hosts.map((entry) => knownDistance(entry.distancePc)));
+  return value === null ? null : Number(value.toFixed(3));
+}
+
+function hostLogLuminosity(host) {
+  if (Number.isFinite(host.logLuminositySolar)) {
+    return host.logLuminositySolar;
+  }
+  if (host.radiusSolar > 0 && host.teffK > 0) {
+    return Math.log10(host.radiusSolar ** 2 * (host.teffK / SUN_TEFF_K) ** 4);
+  }
+  return null;
+}
+
+/**
+ * Photometric distance from apparent magnitude and luminosity. Assumes the
+ * Sun's bolometric correction for every star and no extinction (D31).
+ */
+function photometricDistancePc(host) {
+  const apparent = firstDefined(host.vMag, host.gaiaMag);
+  const logLuminosity = hostLogLuminosity(host);
+  if (!Number.isFinite(apparent) || logLuminosity === null) {
+    return null;
+  }
+  const absolute = SUN_ABSOLUTE_V_MAG - 2.5 * logLuminosity;
+  return knownDistance(10 ** ((apparent - absolute + 5) / 5));
+}
+
+/**
+ * Deterministic distance for a host (D31). Order: AT-HYG for matched hosts;
+ * 1000/parallax when it is precise (≥ 5 mas) and disagrees with sy_dist by
+ * > 10% (TICv8 errors); sy_dist; 1000/parallax; photometric; the default.
+ */
+function resolveHostDistance(host, star = null, { defaultDistance = null } = {}) {
+  const starDistance = star ? knownDistance(star.distancePc) : null;
+  if (starDistance) {
+    return { distancePc: starDistance, source: 'at-hyg' };
+  }
+  const archive = knownDistance(host.distancePc);
+  const parallax = host.parallaxMas > 0 ? knownDistance(1000 / host.parallaxMas) : null;
+  if (
+    archive &&
+    parallax &&
+    host.parallaxMas >= PRECISE_PARALLAX_MAS &&
+    Math.abs(parallax / archive - 1) > DISTANCE_DISAGREEMENT
+  ) {
+    return { distancePc: parallax, source: 'parallax' };
+  }
+  if (archive) {
+    return { distancePc: archive, source: 'archive' };
+  }
+  if (parallax) {
+    return { distancePc: parallax, source: 'parallax' };
+  }
+  const photometric = photometricDistancePc(host);
+  if (photometric) {
+    return { distancePc: photometric, source: 'photometric', approximate: true };
+  }
+  if (defaultDistance) {
+    return { distancePc: defaultDistance, source: 'default', approximate: true };
+  }
+  return { distancePc: null, source: 'none' };
+}
+
 /**
  * Resolves star facts for a host, applying the phase 2 precedence rule:
  * the archive wins for stellar physics; AT-HYG/HYG wins for position,
- * distance, and names. Unmatched hosts use archive values only.
+ * distance, and names. Unmatched hosts use archive values, with distance
+ * gaps filled by resolveHostDistance (D31).
  */
-function resolveHostStar(host, star = null, hygStar = null) {
-  const starDistance = star ? knownDistance(star.distancePc) : null;
-  const useCatalogPosition = Boolean(star && starDistance && star.x !== null);
-  const distancePc = useCatalogPosition ? starDistance : knownDistance(host.distancePc);
+function resolveHostStar(host, star = null, hygStar = null, options = {}) {
+  const resolvedDistance = resolveHostDistance(host, star, options);
+  const useCatalogPosition = Boolean(
+    star && resolvedDistance.source === 'at-hyg' && star.x !== null
+  );
+  const distancePc = resolvedDistance.distancePc;
   let position = null;
   if (useCatalogPosition) {
     position = { x: star.x, y: star.y, z: star.z };
@@ -723,6 +806,8 @@ function resolveHostStar(host, star = null, hygStar = null) {
     raDeg: useCatalogPosition ? star.raDeg : (host.raDeg ?? null),
     decDeg: useCatalogPosition ? star.decDeg : (host.decDeg ?? null),
     distancePc: distancePc ?? null,
+    distanceSource: resolvedDistance.source,
+    distanceApproximate: Boolean(resolvedDistance.approximate),
     positionPc: position,
     vMag: firstDefined(star && star.vMag, host.vMag) ?? null,
     spectralType: firstDefined(host.spectralType, star && star.spect) ?? null,
@@ -855,6 +940,7 @@ module.exports = {
   computeFeatures,
   coneRadiusArcsec,
   decideScored,
+  defaultDistancePc,
   enforceOneToOne,
   equatorialToCartesian,
   fitCalibration,
@@ -867,6 +953,8 @@ module.exports = {
   matchHost,
   normalizeDesignation,
   parseCsvLine,
+  photometricDistancePc,
+  resolveHostDistance,
   resolveHostStar,
   sanityGate,
   scoreCandidates,
