@@ -57,6 +57,8 @@ const TEST_FILES = [
   'test/exoplanet-systems.test.js',
   'test/exoplanet-system-generator.test.js',
   'test/exoplanet-catalog-runtime.test.js',
+  'test/exoplanet-catalog-cache.test.js',
+  'test/exoplanet-star-facts.test.js',
   'test/exoplanet-refresh-report.test.js',
   'test/solar-system-celestial-seed.test.js',
   'test/solar-system-get-message-handler.test.js',
@@ -66,7 +68,8 @@ const TEST_FILES = [
 ];
 
 const CHECKS = [
-  { id: 'tests', command: 'node', args: ['--test', ...TEST_FILES] },
+  { id: 'tests', command: 'npm', args: ['run', 'test:coverage'] },
+  { id: 'exoplanet-coverage', command: 'npm', args: ['run', 'test:coverage:exoplanet'] },
   { id: 'typecheck', command: 'npm', args: ['run', 'typecheck'] },
   { id: 'eslint', command: 'npx', args: ['eslint', ...CHECKED_FILES, ...TEST_FILES] },
   {

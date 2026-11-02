@@ -150,6 +150,34 @@ disk sizing. No travel routes or gates are added.
 npm test
 ```
 
+For database-free unit tests and enforced coverage, run:
+
+```bash
+npm run test:unit
+npm run test:coverage
+npm run test:coverage:exoplanet
+```
+
+The repository-wide coverage floor is **85% lines, 75% branches, and 85%
+functions**, aggregated over application and script modules loaded by unit tests
+(`src/**/*.js` and `scripts/**/*.js`). The three core exoplanet modules have a
+separate aggregate floor of **95% lines, 90% branches, and 95% functions**.
+Node's built-in V8 coverage does not report statement coverage or include modules
+that no test loads; these floors are not per-file guarantees.
+
+Unit commands discover `test/**/*.test.js`, excluding `*.integration.test.js`.
+Keep MongoDB persistence tests in the latter files; `npm test` still runs them.
+The repository-wide commands run test files serially to avoid resource contention
+with subprocess and socket tests. Coverage commands print summaries and write
+`unit-coverage.lcov` / `exoplanet-coverage.lcov` (ignored by Git).
+
+The [Unit Test Coverage workflow](.github/workflows/unit-test-coverage.yml) enforces
+both floors on pull requests, pushes to `main`, and manual runs, uploading text
+and LCOV reports even when a gate fails. Configure its `unit-test-coverage` job as
+a required status check in branch protection to prevent merging failures.
+Catalog refresh validation runs both gates as well, because its bot-created PRs
+do not trigger PR workflows.
+
 Run the remaining local validation checks with:
 
 ```bash

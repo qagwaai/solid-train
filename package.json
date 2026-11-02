@@ -5,6 +5,9 @@
   "main": "src/server.js",
   "scripts": {
     "test": "npx --yes @apidevtools/swagger-cli validate api/openapi.yaml && node scripts/lint-handler-patterns.js && node --test",
+    "test:unit": "node --test --test-concurrency=1 \"test/**/!(*.integration).test.js\"",
+    "test:coverage": "node --test --test-concurrency=1 --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-include=\"scripts/**/*.js\" --test-coverage-lines=85 --test-coverage-branches=75 --test-coverage-functions=85 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=unit-coverage.lcov \"test/**/!(*.integration).test.js\"",
+    "test:coverage:exoplanet": "node --test --test-concurrency=2 --experimental-test-coverage --test-coverage-include=\"src/model/exoplanet*.js\" --test-coverage-lines=95 --test-coverage-branches=90 --test-coverage-functions=95 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=exoplanet-coverage.lcov \"test/exoplanet*.test.js\"",
     "start": "cross-env MONGODB_URI=mongodb://localhost:27017/solid-train node src/server.js",
     "start:host": "cross-env HOST=0.0.0.0 MONGODB_URI=mongodb://localhost:27017/solid-train node src/server.js",
     "start:dev": "cross-env LOG_LEVEL=debug MONGODB_URI=mongodb://localhost:27017/solid-train node src/server.js",

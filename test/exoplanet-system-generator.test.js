@@ -11,9 +11,12 @@ const {
   catalogRings,
   classifyCatalogPlanet,
   completeStarFacts,
+  estimateRadiusEarth,
   generateCatalogSystemBodies,
+  mainSequenceFromMass,
   meanAnomalyAtJ2000,
   projectedSeparationAu,
+  spectralClassForTeff,
   teqFromInsolation,
 } = require('../src/model/exoplanet-system-generator');
 const { generateSystemBodies } = require('../src/model/procedural-system-generator');
@@ -289,6 +292,66 @@ test('completeStarFacts fills missing physics and reports approximate paths', ()
   ]);
   assert.equal(completeStarFacts({}).massSolar, 1);
   assert.equal(teqFromInsolation(1), 278.6);
+});
+
+test('mass-radius estimates cover invalid inputs and every power-law regime', () => {
+  for (const mass of [undefined, null, 0, -1, NaN, Infinity]) {
+    assert.equal(estimateRadiusEarth(mass), null);
+  }
+  assert.equal(estimateRadiusEarth(1), 1);
+  assert.equal(estimateRadiusEarth(2.04), 0.80811 * 2.04 ** 0.589);
+  assert.equal(estimateRadiusEarth(131.6), 0.80811 * 131.6 ** 0.589);
+  assert.ok(estimateRadiusEarth(1000) < estimateRadiusEarth(131.6));
+  assert.equal(teqFromInsolation(0), null);
+  assert.equal(teqFromInsolation(NaN), null);
+});
+
+test('stellar completion inverts each mass-luminosity regime and respects temperature boundaries', () => {
+  for (const mass of [0.1, 0.43, 1, 3, 10]) {
+    const expected = mainSequenceFromMass(mass);
+    const completed = completeStarFacts({ logLuminositySolar: Math.log10(expected.luminosity) });
+    assert.ok(Math.abs(completed.massSolar - mass) < 1e-10, `mass ${mass}`);
+    assert.ok(Math.abs(completed.radiusSolar - expected.radius) < 1e-10);
+  }
+  const radiusDerived = completeStarFacts({ massSolar: 1, teffK: 5772 });
+  assert.equal(radiusDerived.radiusSolar, 1);
+  const luminosityDerived = completeStarFacts({ massSolar: 1, radiusSolar: 1, teffK: 5772 });
+  assert.equal(luminosityDerived.luminosity, 1);
+  assert.deepEqual(luminosityDerived.approximate, ['luminositySolar']);
+  for (const [boundary, above, below] of [
+    [30000, 'O', 'B'],
+    [10000, 'B', 'A'],
+    [7500, 'A', 'F'],
+    [6000, 'F', 'G'],
+    [5200, 'G', 'K'],
+    [3700, 'K', 'M'],
+  ]) {
+    assert.equal(spectralClassForTeff(boundary), above);
+    assert.equal(spectralClassForTeff(boundary - 1), below);
+  }
+});
+
+test('catalog classification honors exact radius, temperature, density and mass boundaries', () => {
+  for (const [radiusEarth, expected] of [
+    [1.25, 'super-earth'],
+    [2, 'sub-neptune'],
+    [4, 'ice-giant'],
+    [6, 'gas-giant'],
+  ]) {
+    assert.equal(classifyCatalogPlanet({ radiusEarth, teqK: 999 }), expected);
+  }
+  assert.equal(classifyCatalogPlanet({ radiusEarth: 6, teqK: 1000 }), 'hot-jupiter');
+  for (const teqK of [200, 350]) {
+    assert.equal(classifyCatalogPlanet({ radiusEarth: 3, density: 3.5, teqK }), 'ocean');
+  }
+  for (const teqK of [199, 351]) {
+    assert.equal(classifyCatalogPlanet({ radiusEarth: 3, density: 3.5, teqK }), 'super-earth');
+  }
+  assert.equal(classifyCatalogPlanet({ radiusEarth: 12, massEarth: 13 * 317.828 }), 'gas-giant');
+  assert.equal(
+    classifyCatalogPlanet({ radiusEarth: 12, massEarth: 13 * 317.828 + 1 }),
+    'super-jupiter'
+  );
 });
 
 test('projectedSeparationAu converts angular separation at the primary distance', () => {

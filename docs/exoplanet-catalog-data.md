@@ -68,6 +68,32 @@ its records, so a refresh reseeds only the systems whose data changed. The
 `stars` and `solar_systems` collections are synchronized at startup and skip
 the write when nothing changed.
 
+## Unit test coverage
+
+Run `npm run test:coverage` for the repository-wide unit coverage floor, and
+`npm run test:coverage:exoplanet` for the stricter core exoplanet floor. The
+[testing guide](../README.md#test) describes thresholds, scope, reports, and CI.
+
+The coverage review added regression tests for per-system seed-hash changes
+(system, host, HYG record, planet, display names, references, and default
+distance), unrelated-planet isolation, cache reset behavior, absent systems,
+distance and companion-name fallbacks, mass-radius regimes, stellar temperature
+boundaries, and exact planet-classification cutoffs. Existing tests also verify
+full-snapshot finite values and determinism, procedural golden hashes, curated
+system precedence, circumbinary anchors, runtime schemas, and catalog sync.
+
+With the added tests, the three core runtime modules measure **99.80% lines,
+94.36% branches, and 100% functions** on Node 24.22.1, above the aggregate
+95% / 90% / 95% floor. Coverage is not a scientific-accuracy guarantee or a
+per-file guarantee: the catalog adapter still has lower branch coverage than
+the other two modules. Mongo round-trip checks remain integration tests and are
+not counted toward the unit floor.
+
+The repository-wide unit run passes **703 tests**, measuring **85.92% lines,
+80.14% branches, and 86.94% functions**, above its 85% / 75% / 85% floor.
+The focused exoplanet gate passes 85 tests. Eleven regression tests were added
+across the cache, star-fact, and generator suites.
+
 ## Monthly refresh
 
 [refresh-exoplanet-catalog.yml](../.github/workflows/refresh-exoplanet-catalog.yml)
@@ -79,8 +105,8 @@ refresh) and on `workflow_dispatch`. It:
 2. Runs `npm run catalog:exoplanet:refresh`. If a guard trips, it reruns with
    both overrides so the change can still be reviewed.
 3. Runs [exoplanet-refresh-report.js](../scripts/exoplanet-refresh-report.js),
-   which compares the snapshot with the default branch, runs the targeted
-   tests, typecheck, eslint, and prettier, appends a row to the metrics table
+   which compares the snapshot with the default branch, runs both unit coverage
+   gates, typecheck, eslint, and prettier, appends a row to the metrics table
    below, and writes the PR body.
 4. Opens a pull request only when snapshot records changed (the snapshot date
    alone does not count). The PR is a **draft labeled `needs-review`** when a

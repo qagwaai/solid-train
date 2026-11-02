@@ -8,3 +8,7 @@ node_modules/
 *.p12
 .DS_Store
 .cache/
+unit-coverage.txt
+unit-coverage.lcov
+exoplanet-coverage.txt
+exoplanet-coverage.lcov
