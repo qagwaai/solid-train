@@ -8,9 +8,9 @@ This notice covers the exoplanet catalog snapshots in this directory:
 - `exoplanet-hyg-stars.json` (AT-HYG and HYG rows for matched hosts and
   their companions)
 - `exoplanet-match-report.json`
+- `exoplanet-systems.json` (solar-system grouping)
 - The AT-HYG and HYG sample rows in `test/fixtures/exoplanet/`
-- Later snapshots from the same import pipeline, such as the solar-system
-  grouping
+- Later snapshots from the same import pipeline
 
 ## License
 
@@ -39,6 +39,11 @@ pipeline scripts. Compared with the sources:
   bibcode or URL.
 - Host stars are cross-matched against HYG and AT-HYG and grouped into
   solar systems.
+- Host distances missing or unreliable in the archive are estimated from
+  parallax, photometry, or a catalog-wide default and flagged approximate.
+- Companion stars that a system declares but no source resolves are
+  synthesized from simple main-sequence relations and flagged approximate.
+  They are not observations.
 
 ## Sources and acknowledgments
 

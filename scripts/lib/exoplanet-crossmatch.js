@@ -923,6 +923,7 @@ function evaluateCalibration(hosts, { idHits, neighbors }, calibration) {
 module.exports = {
   AUTO_MATCH_MARGIN,
   AUTO_MATCH_POSTERIOR,
+  COMPONENT_SUFFIX,
   FEATURES,
   MAX_AUTO_SEPARATION_NORM,
   MAX_AUTO_VMAG_DIFFERENCE,
