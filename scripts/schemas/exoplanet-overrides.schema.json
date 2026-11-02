@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "exoplanet-overrides.schema.json",
+  "title": "Exoplanet catalog manual overrides",
+  "description": "Hand-curated decisions that the monthly refresh never overwrites. hostMatches are tier 1 of the host cross-match; systemAssignments are used by phase 3 grouping.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["hostMatches", "systemAssignments"],
+  "properties": {
+    "description": { "type": "string" },
+    "hostMatches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hostId", "action", "reason"],
+        "properties": {
+          "hostId": { "type": "string", "pattern": "^exo-host-[a-z0-9-]+$" },
+          "action": { "enum": ["match", "no-match"] },
+          "atHygId": { "type": "string", "pattern": "^[0-9]+$" },
+          "reason": { "type": "string", "minLength": 1 }
+        },
+        "if": { "properties": { "action": { "const": "match" } } },
+        "then": { "required": ["atHygId"] },
+        "else": { "not": { "required": ["atHygId"] } }
+      }
+    },
+    "systemAssignments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["reason"],
+        "properties": {
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

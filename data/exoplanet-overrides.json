@@ -1,0 +1,5 @@
+{
+  "description": "Manual cross-match and system decisions for the exoplanet catalog. Edit by hand; npm run catalog:exoplanet:refresh reads this file and never writes it. Schema: scripts/schemas/exoplanet-overrides.schema.json",
+  "hostMatches": [],
+  "systemAssignments": []
+}

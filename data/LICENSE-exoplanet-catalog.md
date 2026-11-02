@@ -5,8 +5,12 @@ This notice covers the exoplanet catalog snapshots in this directory:
 - `exoplanet-planets.json`
 - `exoplanet-hosts.json`
 - `exoplanet-references.json`
-- Later snapshots from the same import pipeline, such as the HYG host slice,
-  the solar-system grouping, and the cross-match report
+- `exoplanet-hyg-stars.json` (AT-HYG and HYG rows for matched hosts and
+  their companions)
+- `exoplanet-match-report.json`
+- The AT-HYG and HYG sample rows in `test/fixtures/exoplanet/`
+- Later snapshots from the same import pipeline, such as the solar-system
+  grouping
 
 ## License
 

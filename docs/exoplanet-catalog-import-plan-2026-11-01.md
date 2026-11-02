@@ -26,7 +26,7 @@ below.
 | ----: | ---------------------------------------------------------------------------------------- | :----: | ----- | ---------- | ---------- | ------------------------------------------------- |
 |     0 | [Source discovery and spikes](#phase-0--source-discovery-and-spikes)                     |   ✅   |       | 2026-11-01 | 2026-11-01 | See [findings](#phase-0-findings); Q6–Q8 resolved |
 |     1 | [Exoplanet archive importer](#phase-1--exoplanet-archive-importer)                       |   ✅   |       | 2026-11-01 | 2026-11-01 | See [findings](#phase-1-findings); D20–D23        |
-|     2 | [HYG host slice and cross-match](#phase-2--hyg-host-slice-and-cross-match)               |   ⬜   |       |            |            |                                                   |
+|     2 | [HYG host slice and cross-match](#phase-2--hyg-host-slice-and-cross-match)               |   ✅   |       | 2026-11-02 | 2026-11-02 | See [findings](#phase-2-findings); D25–D30        |
 |     3 | [Solar-system grouping (multi-star)](#phase-3--solar-system-grouping-multi-star)         |   ⬜   |       |            |            |                                                   |
 |     4 | [Catalog-constrained procedural model](#phase-4--catalog-constrained-procedural-model)   |   ⬜   |       |            |            |                                                   |
 |     5 | [Registry, seeding, and contract](#phase-5--registry-seeding-and-contract)               |   ⬜   |       |            |            |                                                   |
@@ -40,10 +40,11 @@ below.
 Record one row per import run, including manual runs during development. These
 metrics show catalog growth and changes in match quality over time.
 
-| Snapshot date | Planets | Host stars | Systems |           Multi-star systems | HYG matched (auto / review / manual)                       | Unmatched hosts |                           Approx. orbits | Snapshot size | Notes                                    |
-| ------------- | ------: | ---------: | ------: | ---------------------------: | ---------------------------------------------------------- | --------------: | ---------------------------------------: | ------------: | ---------------------------------------- |
-| 2026-11-01    |   6,451 |      4,847 |       — | 432 hosts with `sy_snum` > 1 | 1,697 (35.0%) AT-HYG ID or 5″ cone; spike only, no scoring |           3,150 |            5,192 lack the full e/i/ω set |    ~6 MB est. | Phase 0 spike baseline                   |
-| 2026-11-01    |   6,451 |      4,847 |       — | 432 hosts with `sy_snum` > 1 | — (phase 2)                                                |               — | 8 still lack a semi-major axis after D20 |       5.69 MB | Phase 1 first snapshot; 2,452 references |
+| Snapshot date | Planets | Host stars | Systems |           Multi-star systems | HYG matched (auto / review / manual)                       | Unmatched hosts |                           Approx. orbits | Snapshot size | Notes                                          |
+| ------------- | ------: | ---------: | ------: | ---------------------------: | ---------------------------------------------------------- | --------------: | ---------------------------------------: | ------------: | ---------------------------------------------- |
+| 2026-11-01    |   6,451 |      4,847 |       — | 432 hosts with `sy_snum` > 1 | 1,697 (35.0%) AT-HYG ID or 5″ cone; spike only, no scoring |           3,150 |            5,192 lack the full e/i/ω set |    ~6 MB est. | Phase 0 spike baseline                         |
+| 2026-11-01    |   6,451 |      4,847 |       — | 432 hosts with `sy_snum` > 1 | — (phase 2)                                                |               — | 8 still lack a semi-major axis after D20 |       5.69 MB | Phase 1 first snapshot; 2,452 references       |
+| 2026-11-01    |   6,451 |      4,847 |       — | 432 hosts with `sy_snum` > 1 | 1,694 (34.95%) / 6 / 0                                     |           3,147 | 8 still lack a semi-major axis after D20 |       7.47 MB | Phase 2 match; 1,727 HYG stars (33 companions) |
 
 ---
 
@@ -75,6 +76,12 @@ metrics show catalog growth and changes in match quality over time.
 | D22 | Stable IDs (Phase 1)       | Planets use `exo-<slug(pl_name)>`, such as `exo-proxima-cen-b`. Hosts use `exo-host-<slug(hostname)>`. The prefixes keep catalog IDs from colliding with curated IDs. Reference indexes are append-only: existing entries keep their index across refreshes, and new entries are appended in key order.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | D23 | Shrinkage override         | Run the import with `--allow-shrink` or set `EXOPLANET_ALLOW_SHRINK=1` to acknowledge a loss of more than 2% of planets.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | D24 | Settler names (Q9)         | The game is set about 100 years in the future, so systems, host stars, and **planets** can carry human-readable settler names drawn from all cultures, like North American towns named after settlers. **This plan adds only the hook**; naming content is a separate later plan (N1). Rules: (1) IDs never change; names are not identity. (2) The existing contract `displayName` is the game name; each body and system also gets an additive `catalogName` (for example `24 Boo`), and stars keep `properName`. (3) Names live in a checked-in `data/exoplanet-names.json`, keyed by system, host, and planet ID, and the monthly refresh **never writes to it**. (4) Where no name has been assigned, `displayName` falls back to the catalog name, so the hook works before N1 exists. (5) Curated systems and well-known stars (Sol, Alpha Centauri, Cygnus X-1, IAU-named stars and planets) keep their real names. |
+| D25 | Match pipeline (Phase 2)   | The refresh runs two steps: the importer, then `scripts/match-exoplanet-hosts.js` (`npm run catalog:exoplanet:match`). HYG v4.4 and AT-HYG v4.0 are cached in the git-ignored `.cache/exoplanet/` (override with `EXOPLANET_CACHE_DIR`). Each file's SHA-256 comes from its Codeberg Git LFS pointer: a matching cache is reused, a new file is downloaded and verified, and a SHA change is **recorded** in the match report (`changedSinceLastRun`) rather than failing the run. If the pointer cannot be fetched, the cache is used with a warning. Outputs: a `match` block on each host in `exoplanet-hosts.json`, `exoplanet-hyg-stars.json` (matched host stars plus HYG `base` companions, D11), and `exoplanet-match-report.json`.                                                                                                                                                                                 |
+| D26 | Value precedence (Phase 2) | For matched hosts, the archive wins for stellar physics (spectral type, Teff, mass, radius, luminosity), and AT-HYG/HYG wins for position, distance, and names. HYG `lum` fills luminosity only when the archive has none. Unmatched hosts use archive values. Implemented as `resolveHostStar`; phases 3 and 5 consume it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| D27 | Epochs and sanity gate     | AT-HYG position epochs are mixed, and `pos_src` does not identify them (no row has a Gaia source; high proper-motion Tycho rows appear at both J2000 and J2016). Separation is therefore the **minimum** over the catalog position and the position propagated J2000→J2016. The sanity gate compares distance with both `sy_dist` and `1000 / sy_plx`, because TICv8 `sy_dist` is wrong for some nearby stars (GJ 411 is listed at 5.68 pc, while its parallax gives 2.55 pc). A position miss of 60″ or more is still accepted when distance and proper motion both agree within 5%, because Gliese-sourced positions can be off by arcminutes. The report notes these as `position-offset-accepted`.                                                                                                                                                                                                                      |
+| D28 | Tier-3 companion guards    | Naive Bayes over-counts the agreement in distance and proper motion of co-moving companions. So tier 3 auto-matches only when the best candidate's normalized separation is < 5″ and its V magnitude is within 1 mag of the host; otherwise the match goes to review (`wide-separation`, `magnitude-mismatch`). The prior counts every training host's cone candidates, including hosts without IDs, so it stays conservative for faint hosts.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| D29 | Match drift override       | The refresh fails when the auto-match rate (matched excluding overrides, divided by hosts) moves by more than 2 points from the previous report. Acknowledge with `--allow-match-drift` or `EXOPLANET_ALLOW_MATCH_DRIFT=1`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| D30 | Reconcile by HIP           | HYG v4.4 row IDs differ from the `hygId` values in the fixture and curated catalogs (for example, Proxima is 70666 in v4.4 but 70890 in the fixture). Existing Forge stars are matched by **HIP**, and the matched host carries `existingStarId` and `existingSystemId` for phase 3.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 ---
 
@@ -106,14 +113,15 @@ full HYG CSV is downloaded only during the import and is never committed.
 
 | File                        | Records |  Est. compact size |
 | --------------------------- | ------: | -----------------: |
-| exoplanet-planets.json      |   6,451 | 2.35 MB (measured) |
-| exoplanet-hosts.json        |   4,847 | 2.03 MB (measured) |
+| exoplanet-planets.json      |   6,451 | 3.21 MB (measured) |
+| exoplanet-hosts.json        |   4,847 | 2.63 MB (measured) |
+| exoplanet-hyg-stars.json    |   1,727 | 0.83 MB (measured) |
 | exoplanet-systems.json      |  ~4,800 |            ~0.5 MB |
-| exoplanet-match-report.json |  ~4,847 |              ~1 MB |
+| exoplanet-match-report.json |   4,847 | 0.67 MB (measured) |
 
 Phase 0 measured the planet and host files from the full export and estimated
-the other two. The total is about 6 MB, below the 10 MB threshold, so D2 is
-confirmed.
+the other two; phases 1 and 2 replaced the estimates with measured sizes. The
+total is about 8 MB, below the 10 MB threshold, so D2 holds.
 
 ---
 
@@ -144,10 +152,10 @@ AT-HYG's `hyg` column links each star back to **HYG v4.4**, which supplies the
    a host with a component suffix (`A`, `B`) is ambiguous because components
    can share one HD number, as in `HD 133131 A/B`. Send these matches to
    tier 3 for scoring instead of auto-accepting them.
-3. **Scored probabilistic match.** For remaining hosts, select HYG candidates
-   within a cone after propagating AT-HYG positions to J2016 with proper
-   motion. The cone radius is max(15″, |µ| × 30 yr) because AT-HYG position
-   epochs vary by source (`pos_src`). Score each candidate with a Fellegi–Sunter–style
+3. **Scored probabilistic match.** For remaining hosts, select AT-HYG candidates
+   within a cone around the host. Each candidate is compared at both its
+   catalog position and its position propagated from J2000 to J2016 (D27). The
+   cone radius is max(15″, |µ| × 30 yr). Score each candidate with a Fellegi–Sunter–style
    log-likelihood ratio built from these features:
    - Angular separation, normalized by combined positional uncertainty
    - Fractional parallax or distance difference
@@ -164,8 +172,12 @@ AT-HYG's `hyg` column links each star back to **HYG v4.4**, which supplies the
      match report.
    - Posterior < 0.80: **unmatched**. Create a new star record from archive
      data.
-   - Enforce a one-to-one assignment across hosts. Resolve conflicts by highest
-     posterior. Companions are exempt because they are grouped in phase 3.
+   - Companion guards (D28): a best candidate whose normalized separation is
+     ≥ 5″ or whose V magnitude differs by more than 1 mag goes to review even
+     when its posterior is ≥ 0.95.
+   - Enforce a one-to-one assignment across hosts. The strongest claim wins
+     (override > Gaia > HIP > HD > scored by posterior); the others go to review
+     with `claimed-by`. Companions are exempt because they are grouped in phase 3.
 
 ### Calibration and verification of the 95% target
 
@@ -213,10 +225,12 @@ Notes:
   source URLs, versions, and the snapshot date into each snapshot file's
   metadata, as the Sol snapshots do, so Nova can show "Data as of
   YYYY-MM-DD".
-
----
-
-## Phase 0 — Source discovery and spikes
+- Phase 2 added `data/exoplanet-hyg-stars.json`, plus AT-HYG/HYG rows in
+  `test/fixtures/exoplanet/`. Both are AT-HYG/HYG-derived and fall under A3
+  and A4 (CC BY-SA 4.0). The file's metadata carries the license, source
+  versions, and SHA-256 values. Nova needs no new credit beyond A3–A6, but
+  the A3/A4 change notice should read "cross-matched with the NASA Exoplanet
+  Archive and subset by Stellar".
 
 - [x] **EX-0.1** Confirm the `pscomppars` column list through TAP
       (`TAP_SCHEMA.columns`). Pin the exact identifier columns, such as
@@ -395,35 +409,95 @@ about 6 MB. D2 is confirmed.
 
 ## Phase 2 — HYG host slice and cross-match
 
-- [ ] **EX-2.1** Download and stream-parse the full HYG CSV at build time. Use a
+- [x] **EX-2.1** Download and stream-parse the full HYG CSV at build time. Use a
       quoted-CSV-aware parser because the current fixture splitter is not
-      sufficient.
-- [ ] **EX-2.2** Implement tiers 1–3 from the
-      [cross-match design](#cross-match-design) as pure functions.
-- [ ] **EX-2.3** Add a calibration script and commit the fitted constants.
+      sufficient. Implemented in `scripts/lib/exoplanet-hyg-sources.js`
+      (LFS-pointer-verified cache, gzip stream, one AT-HYG pass of about 14 s).
+- [x] **EX-2.2** Implement tiers 1–3 from the
+      [cross-match design](#cross-match-design) as pure functions
+      (`scripts/lib/exoplanet-crossmatch.js`).
+- [x] **EX-2.3** Add a calibration script and commit the fitted constants.
       Record precision and recall in this document.
-- [ ] **EX-2.4** Emit `data/exoplanet-hosts.json`, which includes merged stars
+      `npm run catalog:exoplanet:calibrate` writes
+      `scripts/lib/exoplanet-crossmatch-calibration.json`; results are in the
+      [findings](#phase-2-findings).
+- [x] **EX-2.4** Emit `data/exoplanet-hosts.json`, which includes merged stars
       with both `hygId` and archive IDs. Unmatched hosts are archive-only stars.
-- [ ] **EX-2.5** Emit `data/exoplanet-match-report.json`, containing each host's
+      Each host has a `match` block; the matched AT-HYG rows are in
+      `data/exoplanet-hyg-stars.json` (D25), and value precedence follows D26.
+- [x] **EX-2.5** Emit `data/exoplanet-match-report.json`, containing each host's
       tier, posterior, top candidates, and decision.
-- [ ] **EX-2.6** Add `data/exoplanet-overrides.json` and validate it with a
-      schema.
-- [ ] **EX-2.7** Reconcile with the existing [hyg-fixture.csv](../data/hyg-fixture.csv)
+- [x] **EX-2.6** Add `data/exoplanet-overrides.json` and validate it with a
+      schema (`scripts/schemas/exoplanet-overrides.schema.json`, ajv).
+- [x] **EX-2.7** Reconcile with the existing [hyg-fixture.csv](../data/hyg-fixture.csv)
       and the curated systems Sol, Alpha Centauri, and Cygnus X-1. Proxima Cen b
       and d must attach to the existing `alpha-centauri` system and must not
       create a duplicate. Attach Barnard's Star and Lalande 21185 planets to
       their existing fixture systems in the same way. Sirius, Wolf 359, and
-      Cygnus X-1 remain grandfathered (D11).
-- [ ] **EX-2.9** Apply the inclusion rule (D11). Keep in the host slice only
+      Cygnus X-1 remain grandfathered (D11). Reconciled by HIP (D30): Proxima
+      Cen → `alpha-centauri-star-tertiary`, Barnard's Star →
+      `barnards-star-star-primary`, GJ 411 → `lalande-21185-star-primary`.
+      Phase 3 attaches the planets to these systems.
+- [x] **EX-2.9** Apply the inclusion rule (D11). Keep in the host slice only
       HYG rows that are matched hosts or companions of matched hosts. Add a
       test that a planetless HYG system that is not grandfathered is never
       emitted.
-- [ ] **EX-2.8** Add tests covering known hard cases: Proxima Cen, 55 Cnc,
+- [x] **EX-2.8** Add tests covering known hard cases: Proxima Cen, 55 Cnc,
       Kepler-16 (circumbinary), TRAPPIST-1, a star found only by Gaia, a name
-      collision, and an ID match that fails the sanity gate.
+      collision, and an ID match that fails the sanity gate. The tests are in
+      `test/exoplanet-crossmatch.test.js` (24 tests) and use real catalog rows
+      extracted to `test/fixtures/exoplanet/`.
 
 **Exit criteria:** Held-out automatic-match precision is ≥ 0.95, the match
-report is reviewable, and curated systems contain no duplicates.
+report is reviewable, and curated systems contain no duplicates. ✅
+
+### Phase 2 findings
+
+- **Run results:** Of the 4,847 hosts, 1,694 (34.95%) matched
+  automatically: 1,670 by Gaia DR3, 16 by HIP, and 8 by scoring. Another 6 are
+  in review and 3,147 are unmatched, which agrees with the Phase 0 estimate
+  (35.0%). Of the unmatched hosts, 3,142 have no AT-HYG star within their cone
+  and only 2 have V ≤ 11. A full match run takes about 14 seconds. Output is
+  byte-identical on rerun.
+- **Calibration:** Trained on 1,378 positive and 1,907 negative pairs. On the
+  held-out 20% (308 hosts), automatic-match **precision is 1.00** and recall
+  is 0.971 (299 of 308; the other 9 go to review). When the true star is
+  removed from the pool (a stand-in for faint hosts), the false-auto rate is
+  0.97%. The remaining false-auto cases are co-moving companions in the same
+  system.
+- **Companion over-confidence:** The first prior counted only cone pools of
+  ID-matched hosts (log-odds 3.96), which gave a 3% false-auto rate with the
+  truth removed. Counting every training host's cone candidates lowered it
+  (log-odds 3.46). Even so, tier 3 auto-matched the wide binary companions
+  HAT-P-1, TOI-858 B, and WASP-94 B at 11–15″. The D28 guards send these
+  cases to review without lowering held-out recall.
+- **Epochs (D27):** AT-HYG `pos_src` is T, T_X, HIP_X, or GJ, never Gaia. High
+  proper-motion stars showed that a single assumed epoch fails in both
+  directions:
+  - Barnard's Star needs J2000.
+  - GJ 273 and GJ 411 already sit at J2016.
+  - Gliese-sourced positions such as LHS 475 can be off by about 110″ at any
+    epoch.
+- **Archive distance errors:** 66 hosts have a `sy_dist` more than 10% away
+  from `1000 / sy_plx` (TICv8). Of these, 5 are matched, so AT-HYG supplies
+  their distance under D26. The other 60 are unmatched and keep the archive
+  value. **Phase 3 must choose the distance used to place these systems.**
+- **Review queue (6):**
+  - HAT-P-1, TOI-858 B, and WASP-94 B: wide binaries, where the candidate is
+    the companion (`wide-separation`).
+  - HD 41004 A: claimed by HD 41004 B, because B's Gaia ID points to the only
+    AT-HYG row for the pair.
+  - Kepler-907 and WASP-20: Gaia matches with separations of 0.2″ or less, but
+    the distances differ by 36–40%.
+
+  These are resolved through `data/exoplanet-overrides.json` (D14,
+  non-blocking).
+
+- **ID disagreements:** 4 hosts have Gaia and HIP/HD IDs that point to
+  different AT-HYG rows (HD 133131 A, HD 135344 A, HD 178911 B, TOI-5811 B).
+  Gaia wins, and the report records `ids-disagree`.
+- **Multiplicity:** The HYG `base` field adds 33 companion stars to the slice.
+  No HYG companion is missing from AT-HYG.
 
 ## Phase 3 — Solar-system grouping (multi-star)
 
@@ -608,11 +682,12 @@ questions table).
 
 ## Change log
 
-| Date       | Change                                                                                                                                                                                                           |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-11-01 | Initial plan created.                                                                                                                                                                                            |
-| 2026-11-01 | Resolved Q1–Q5 and added decisions D11–D15. Updated EX-1.3, EX-2.7, EX-4.1, EX-4.5, EX-5.4, and EX-6.3; added EX-2.9 and two risks.                                                                              |
-| 2026-11-01 | Phase 0 complete. Recorded findings and the snapshot-metrics baseline; added D16 (AT-HYG and HYG v4.4) and refined cross-match tiers 2–3 with measured statistics; added the attribution register; opened Q6–Q8. |
-| 2026-11-01 | Resolved Q6–Q8 and added D17–D19. Added EX-1.3a (references) and EX-1.3b (data license notice); attribution rows A2–A4 confirmed.                                                                                |
-| 2026-11-01 | Phase 1 complete. Added the importer, tests, the first live snapshot, and the data license notice. Added D20–D23 and refined D19 and A2.                                                                         |
-| 2026-11-01 | Resolved Q9: added D24 (settler-name hook), EX-5.4a, deferred plan N1, and two naming risks.                                                                                                                     |
+| Date       | Change                                                                                                                                                                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-11-01 | Initial plan created.                                                                                                                                                                                              |
+| 2026-11-01 | Resolved Q1–Q5 and added decisions D11–D15. Updated EX-1.3, EX-2.7, EX-4.1, EX-4.5, EX-5.4, and EX-6.3; added EX-2.9 and two risks.                                                                                |
+| 2026-11-01 | Phase 0 complete. Recorded findings and the snapshot-metrics baseline; added D16 (AT-HYG and HYG v4.4) and refined cross-match tiers 2–3 with measured statistics; added the attribution register; opened Q6–Q8.   |
+| 2026-11-01 | Resolved Q6–Q8 and added D17–D19. Added EX-1.3a (references) and EX-1.3b (data license notice); attribution rows A2–A4 confirmed.                                                                                  |
+| 2026-11-01 | Phase 1 complete. Added the importer, tests, the first live snapshot, and the data license notice. Added D20–D23 and refined D19 and A2.                                                                           |
+| 2026-11-01 | Resolved Q9: added D24 (settler-name hook), EX-5.4a, deferred plan N1, and two naming risks.                                                                                                                       |
+| 2026-11-02 | Phase 2 complete. Added the HYG cross-match, calibration, overrides, match report, and HYG star slice. Added D25–D30, Phase 2 findings, and measured file sizes; refined cross-match tier 3 and attribution A3–A4. |

@@ -1,0 +1,132 @@
+{
+  "generatedDate": "2026-11-02",
+  "source": {
+    "label": "AT-HYG v4.0",
+    "sha256": "69ad04dd33d7c7bb4f5e1b4682798075811547ea9fb8d0e802e5b319c46818a6"
+  },
+  "trainingRadiusArcsec": 300,
+  "trainingPairs": {
+    "positives": 1378,
+    "negatives": 1907
+  },
+  "thresholds": {
+    "autoMatchPosterior": 0.95,
+    "autoMatchMargin": 0.2,
+    "reviewPosterior": 0.8,
+    "maxAutoSeparationNorm": 5,
+    "maxAutoVMagDifference": 1
+  },
+  "bins": {
+    "separation": [
+      0.05,
+      0.1,
+      0.2,
+      0.5,
+      1,
+      2,
+      5,
+      10,
+      null
+    ],
+    "distance": [
+      0.01,
+      0.03,
+      0.1,
+      0.3,
+      0.6,
+      null
+    ],
+    "vMag": [
+      0.1,
+      0.3,
+      0.6,
+      1,
+      2,
+      4,
+      null
+    ],
+    "properMotion": [
+      0.05,
+      0.15,
+      0.5,
+      1,
+      null
+    ],
+    "name": [
+      "agree",
+      "none"
+    ],
+    "spectralClass": [
+      "agree",
+      "differ"
+    ]
+  },
+  "priorLogOdds": 3.4643,
+  "features": {
+    "separation": [
+      7.2739,
+      5.3404,
+      3.6463,
+      3.2849,
+      0.7751,
+      -0.6324,
+      -1.5864,
+      -2.7679,
+      -7.1813
+    ],
+    "distance": [
+      3.1224,
+      2.4177,
+      0.3817,
+      -2.3639,
+      -5.277,
+      -6.8827
+    ],
+    "vMag": [
+      2.974,
+      1.5359,
+      -1.2548,
+      -2.716,
+      -4.4401,
+      -6.0091,
+      -5.2926
+    ],
+    "properMotion": [
+      3.2951,
+      -0.9302,
+      -3.8206,
+      -6.7609,
+      -5.8616
+    ],
+    "name": [
+      5.1475,
+      -0.7746
+    ],
+    "spectralClass": [
+      1.1426,
+      -1.8584
+    ]
+  },
+  "metrics": {
+    "holdout": {
+      "hosts": 308,
+      "autoMatches": 299,
+      "correct": 299,
+      "review": 9,
+      "truthRemovedAuto": 3,
+      "precision": 1,
+      "recall": 0.9708,
+      "truthRemovedFalseAutoRate": 0.0097
+    },
+    "training": {
+      "hosts": 1374,
+      "autoMatches": 1357,
+      "correct": 1357,
+      "review": 17,
+      "truthRemovedAuto": 4,
+      "precision": 1,
+      "recall": 0.9876,
+      "truthRemovedFalseAutoRate": 0.0029
+    }
+  }
+}
