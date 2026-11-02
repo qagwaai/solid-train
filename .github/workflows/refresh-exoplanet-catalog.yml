@@ -1,0 +1,114 @@
+name: Refresh exoplanet catalog
+
+on:
+  schedule:
+    # 09:00 UTC on the 2nd, one day after the quarterly Sol refresh (D57).
+    - cron: '0 9 2 * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Open a pull request even when no snapshot records changed
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: refresh-exoplanet-catalog
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compute HYG cache key
+        id: hyg-key
+        run: |
+          key="$(
+            for url in \
+              https://codeberg.org/astronexus/hyg/raw/branch/main/data/hyg/CURRENT/hyg_v44.csv.gz \
+              https://codeberg.org/astronexus/athyg/raw/branch/main/data/athyg_40.csv.gz; do
+              curl --fail --silent --show-error --location --max-time 60 "$url"
+            done | sha256sum | cut -c1-16
+          )"
+          echo "key=exoplanet-hyg-${key}" >> "$GITHUB_OUTPUT"
+
+      # The refresh verifies every cached file against its LFS SHA-256 (D58).
+      - name: Restore HYG download cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/exoplanet
+          key: ${{ steps.hyg-key.outputs.key }}
+          restore-keys: exoplanet-hyg-
+
+      - name: Refresh catalog snapshots
+        id: refresh
+        run: |
+          if npm run catalog:exoplanet:refresh; then
+            echo "first_attempt_failed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "::warning::A refresh guard tripped; rerunning with overrides for a draft PR (D61)."
+          echo "first_attempt_failed=true" >> "$GITHUB_OUTPUT"
+          EXOPLANET_ALLOW_SHRINK=1 EXOPLANET_ALLOW_MATCH_DRIFT=1 npm run catalog:exoplanet:refresh
+
+      - name: Validate and build the pull-request report
+        id: report
+        run: |
+          args=(--base HEAD --pr-body "$RUNNER_TEMP/pr-body.md")
+          if [ "${{ steps.refresh.outputs.first_attempt_failed }}" = "true" ]; then
+            args+=(--first-attempt-failed)
+          fi
+          if [ "${{ inputs.force }}" = "true" ]; then
+            args+=(--force)
+          fi
+          npm run catalog:exoplanet:report -- "${args[@]}"
+
+      - name: Open pull request for changed snapshots
+        if: steps.report.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          RUN_ID: ${{ github.run_id }}
+          SNAPSHOT_DATE: ${{ steps.report.outputs.date }}
+          DRAFT: ${{ steps.report.outputs.draft }}
+        run: |
+          branch="automation/exoplanet-catalog-refresh-${SNAPSHOT_DATE}-${RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add data/exoplanet-*.json docs/exoplanet-catalog-data.md
+          git commit -m "chore(exoplanets): refresh exoplanet catalog snapshot (${SNAPSHOT_DATE})"
+          git push --set-upstream origin "$branch"
+
+          pr_args=(
+            --base "$BASE_BRANCH"
+            --head "$branch"
+            --title "Refresh exoplanet catalog snapshot (${SNAPSHOT_DATE})"
+            --body-file "$RUNNER_TEMP/pr-body.md"
+          )
+          if [ "$DRAFT" = "true" ]; then
+            gh label create needs-review --color D93F0B \
+              --description "Automated change needs human review" 2>/dev/null || true
+            pr_args+=(--draft --label needs-review)
+          fi
+          gh pr create "${pr_args[@]}"
