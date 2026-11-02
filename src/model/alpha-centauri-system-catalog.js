@@ -175,6 +175,10 @@ const PROXIMA_B = {
   id: 'alpha-centauri-proxima-b',
   catalogId: 'alpha-centauri-proxima-b',
   displayName: 'Proxima Centauri b',
+  // Curated wins over the NASA Exoplanet Archive record (D46).
+  catalogSource: 'exoplanet-catalog',
+  catalogIds: { planetId: 'exo-proxima-cen-b', hostId: 'exo-host-proxima-cen' },
+  catalogName: 'Proxima Cen b',
   bodyType: 'planet',
   parentBodyId: 'alpha-centauri-star-tertiary',
   planetType: 'rocky',
@@ -253,6 +257,10 @@ const PROXIMA_D = {
   id: 'alpha-centauri-proxima-d',
   catalogId: 'alpha-centauri-proxima-d',
   displayName: 'Proxima Centauri d',
+  // Curated wins over the NASA Exoplanet Archive record (D46).
+  catalogSource: 'exoplanet-catalog',
+  catalogIds: { planetId: 'exo-proxima-cen-d', hostId: 'exo-host-proxima-cen' },
+  catalogName: 'Proxima Cen d',
   bodyType: 'planet',
   parentBodyId: 'alpha-centauri-star-tertiary',
   planetType: 'rocky',

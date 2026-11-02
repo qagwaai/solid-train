@@ -7,6 +7,7 @@ const {
 } = require('../src/handlers/solar-system-list-message-handler');
 const { SOLAR_SYSTEM_LIST_RESPONSE_EVENT } = require('../src/model/solar-system-list');
 const { buildSeededMarketsForSolarSystem } = require('../src/model/solar-system-market-seed');
+const { getSolarSystemById } = require('../src/model/solar-system-registry');
 const {
   createCelestialBody,
   createMarket,
@@ -168,10 +169,38 @@ test('SolarSystemListMessageHandler populates count fields when celestial bodies
   assert.equal(response.success, true);
   const solSystem = response.solarSystems.find((s) => s.id === 'sol');
   assert.ok(solSystem);
-  assert.equal(solSystem.planetCount, 2);
-  assert.equal(solSystem.moonCount, 1);
+  // D55: planet and moon counts are catalog counts precomputed in the registry;
+  // asteroid and market counts are live, so seeded discoveries show up.
+  const registrySol = getSolarSystemById('sol');
+  assert.equal(solSystem.planetCount, registrySol.planetCount);
+  assert.equal(solSystem.moonCount, registrySol.moonCount);
   assert.equal(solSystem.asteroidCount, 1);
   assert.equal(solSystem.marketCount, 2);
+});
+
+test('SolarSystemListMessageHandler lists exoplanet-catalog systems with catalog counts', async () => {
+  const context = createTestContext();
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+
+  const handler = new SolarSystemListMessageHandler(context);
+  const response = await handler.handle(createMockSocket(), {
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
+    source: 'exoplanet-catalog',
+    search: '55 Cnc',
+  });
+
+  assert.equal(response.success, true);
+  const system = response.solarSystems.find((s) => s.id === 'exo-55-cnc');
+  assert.ok(system);
+  assert.equal(system.displayName, 'Copernicus');
+  assert.equal(system.catalogName, '55 Cnc');
+  assert.equal(system.hygSystemId, null);
+  assert.equal(system.isMultiStar, true);
+  assert.equal(system.planetCount, 7);
+  assert.equal(system.marketCount, 0);
+  assert.equal(system.primaryStar.starId, 'exo-star-55-cnc');
+  assert.ok(response.solarSystems.every((s) => s.source === 'exoplanet-catalog'));
 });
 
 test('SolarSystemListMessageHandler handles missing count data gracefully', async () => {

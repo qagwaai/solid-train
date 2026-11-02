@@ -149,8 +149,27 @@ async function getCelestialBodies(ctx, CelestialBody, query = {}) {
   }
 }
 
+/**
+ * Celestial body counts of one body type for every solar system in one grouped
+ * query (D55: live asteroid counts include character discoveries).
+ * @returns {Promise<Map<string, number>>} solarSystemId ? count
+ */
+async function getCelestialBodyCountsBySolarSystem(ctx, CelestialBody, bodyType) {
+  try {
+    const rows = await CelestialBody.aggregate([
+      { $match: { bodyType } },
+      { $group: { _id: '$spatial.solarSystemId', count: { $sum: 1 } } },
+    ]);
+    return new Map(rows.filter((row) => row._id).map((row) => [row._id, row.count]));
+  } catch (error) {
+    ctx.log(`[db-service] Error counting celestial bodies: ${error.message}`);
+    throw error;
+  }
+}
+
 module.exports = {
   getCelestialBodyById,
+  getCelestialBodyCountsBySolarSystem,
   findCelestialBodiesNearPosition,
   getCelestialBodies,
 };

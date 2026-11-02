@@ -5,12 +5,15 @@
  * synthesized companions into solar systems (D32–D36). Pure functions only.
  */
 
+const { COMPONENT_SUFFIX, hostComponentSuffix } = require('./exoplanet-crossmatch');
 const {
-  COMPONENT_SUFFIX,
-  equatorialToCartesian,
-  hostComponentSuffix,
-  resolveHostStar,
-} = require('./exoplanet-crossmatch');
+  SUN_ABSOLUTE_V_MAG,
+  catalogStarFromSlice,
+  companionStarFacts,
+  hostStarFacts,
+  roundedPosition,
+  systemStarFacts,
+} = require('../../src/model/exoplanet-star-facts');
 const { slugify } = require('../import-exoplanet-catalog-data');
 const {
   createSeededRandom,
@@ -24,7 +27,6 @@ const {
 const LETTERS = 'ABCDEFGHIJ';
 const ROLES = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary'];
 const AU_PER_PC = 206264.806;
-const SUN_ABSOLUTE_V_MAG = 4.83;
 const DEFAULT_REFERENCE_MASS = 1;
 const MIN_STAR_MASS = 0.08;
 const CIRCUMBINARY_SEPARATION_AU = [0.05, 0.5];
@@ -161,125 +163,34 @@ function groupHosts(hosts, hygStars = [], systemAssignments = []) {
   return [...groups.values()].sort((a, b) => a[0].localeCompare(b[0]));
 }
 
-/** Adapts an `exoplanet-hyg-stars.json` record to the shape resolveHostStar expects. */
-function catalogStarFromSlice(record) {
-  return {
-    atHygId: record.atHygId,
-    hygId: record.hygId ?? null,
-    proper: record.properName ?? null,
-    distancePc: record.distancePc ?? null,
-    x: record.xPc ?? null,
-    y: record.yPc ?? null,
-    z: record.zPc ?? null,
-    raDeg: record.raDeg ?? null,
-    decDeg: record.decDeg ?? null,
-    vMag: record.vMag ?? null,
-    spect: record.spectralType ?? null,
-    gaia: record.gaiaDr3Id ?? null,
-    hip: record.hipId ?? null,
-    hd: record.hdId ?? null,
-  };
-}
-
-function companionCatalogName(record) {
-  if (record.properName) {
-    return record.properName;
-  }
-  if (record.bayer && record.constellation) {
-    return `${record.bayer} ${record.constellation}`;
-  }
-  if (record.flamsteed && record.constellation) {
-    return `${record.flamsteed} ${record.constellation}`;
-  }
-  if (record.glName) {
-    return record.glName;
-  }
-  if (record.hipId) {
-    return `HIP ${record.hipId}`;
-  }
-  if (record.hdId) {
-    return `HD ${record.hdId}`;
-  }
-  return record.gaiaDr3Id ? `Gaia DR3 ${record.gaiaDr3Id}` : `AT-HYG ${record.atHygId}`;
-}
-
 function existingRole(existingStarId) {
   const match = /-star-([a-z]+)$/.exec(existingStarId || '');
   return match ? match[1] : null;
 }
 
-// Real positions keep AT-HYG's 0.0001 pc precision; synthesized offsets of a
-// few AU need 1e-6 pc to survive rounding.
-function roundedPosition(position, digits = 4) {
-  return position
-    ? {
-        x: round(position.x, digits),
-        y: round(position.y, digits),
-        z: round(position.z, digits),
-      }
-    : null;
-}
-
 function hostStar(host, catalogRecord, defaultDistance) {
-  const resolved = resolveHostStar(
-    host,
-    catalogRecord ? catalogStarFromSlice(catalogRecord) : null,
-    catalogRecord ? { lum: catalogRecord.luminositySolar, proper: catalogRecord.properName } : null,
-    { defaultDistance }
-  );
   const existingStarId = host.match && host.match.existingStarId;
+  const { ids: _ids, ...facts } = hostStarFacts(host, catalogRecord, defaultDistance);
   return {
     starId: existingStarId || `exo-star-${slugify(host.name)}`,
     preferredLetter: preferredLetter(host.name),
     existingRole: existingRole(existingStarId),
     source: 'archive-host',
-    hostId: host.id,
-    atHygId: catalogRecord ? catalogRecord.atHygId : null,
-    hygId: catalogRecord ? (catalogRecord.hygId ?? null) : null,
     existing: Boolean(existingStarId),
-    catalogName: host.name,
-    properName: resolved.properName,
-    raDeg: round(resolved.raDeg, 7),
-    decDeg: round(resolved.decDeg, 7),
-    distancePc: round(resolved.distancePc, 4),
-    distanceSource: resolved.distanceSource,
-    distanceApproximate: resolved.distanceApproximate || null,
-    positionPc: roundedPosition(resolved.positionPc),
-    spectralType: resolved.spectralType,
-    teffK: resolved.teffK,
-    massSolar: resolved.massSolar,
-    radiusSolar: resolved.radiusSolar,
-    logLuminositySolar: round(resolved.logLuminositySolar, 5),
-    vMag: resolved.vMag,
+    ...facts,
     planetIds: [],
   };
 }
 
 function companionStar(record) {
-  const hasPosition = record.xPc !== undefined && record.xPc !== null;
-  let position = hasPosition ? { x: record.xPc, y: record.yPc, z: record.zPc } : null;
-  if (!position && record.distancePc && record.raDeg !== undefined) {
-    position = equatorialToCartesian(record.raDeg, record.decDeg, record.distancePc);
-  }
+  const { ids: _ids, ...facts } = companionStarFacts(record);
   return {
     starId: record.existingStarId || `exo-star-athyg-${record.atHygId}`,
     preferredLetter: null,
     existingRole: existingRole(record.existingStarId),
     source: 'hyg-companion',
-    atHygId: record.atHygId,
-    hygId: record.hygId ?? null,
     existing: Boolean(record.existingStarId),
-    catalogName: companionCatalogName(record),
-    properName: record.properName ?? null,
-    raDeg: record.raDeg ?? null,
-    decDeg: record.decDeg ?? null,
-    distancePc: record.distancePc ?? null,
-    distanceSource: 'at-hyg',
-    positionPc: roundedPosition(position),
-    spectralType: record.spectralType ?? null,
-    logLuminositySolar:
-      record.luminositySolar > 0 ? round(Math.log10(record.luminositySolar), 5) : null,
-    vMag: record.vMag ?? null,
+    ...facts,
     planetIds: [],
   };
 }
@@ -450,27 +361,6 @@ function buildSystems({
   return drafts
     .map((draft) => finishSystem(draft, planetsById))
     .sort((a, b) => a.id.localeCompare(b.id));
-}
-
-/**
- * Re-derives the physics of a system's real stars (D37) for the body
- * generator: starId → facts. Synthesized stars carry their own physics.
- */
-function systemStarFacts(system, { hostsById, hygByAtHygId, defaultDistance = null }) {
-  const facts = new Map();
-  for (const star of system.stars) {
-    if (star.source === 'archive-host') {
-      const host = hostsById.get(star.hostId);
-      const matched = host.match && host.match.decision === 'matched';
-      facts.set(
-        star.starId,
-        hostStar(host, matched ? hygByAtHygId.get(host.match.atHygId) : null, defaultDistance)
-      );
-    } else if (star.source === 'hyg-companion') {
-      facts.set(star.starId, companionStar(hygByAtHygId.get(star.atHygId)));
-    }
-  }
-  return facts;
 }
 
 /** D34: existing IDs win; slug collisions fall back to the primary host's full name. */

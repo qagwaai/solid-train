@@ -16,7 +16,24 @@
       "type": "object",
       "description": "Canonical HYG star catalog entry returned by star and solar system queries.",
       "properties": {
-        "hygId": { "type": "string" },
+        "starId": {
+          "type": "string",
+          "description": "Stable star identity; equals the star celestial body id."
+        },
+        "hygId": {
+          "type": ["string", "null"],
+          "description": "HYG id; null for archive-only and synthesized exoplanet-catalog stars."
+        },
+        "catalogSource": {
+          "type": "string",
+          "enum": ["hyg", "exoplanet-catalog"],
+          "description": "hyg for the HYG fixture; exoplanet-catalog for exoplanet-catalog system stars, including AT-HYG companions and synthesized stars."
+        },
+        "catalogName": { "type": ["string", "null"] },
+        "approximate": {
+          "type": "boolean",
+          "description": "True when the star is synthesized or its position or physics are estimated."
+        },
         "hipId": { "type": ["string", "null"] },
         "hdId": { "type": ["string", "null"] },
         "properName": { "type": ["string", "null"] },
@@ -43,6 +60,7 @@
         "systemRole": { "type": "string" }
       },
       "required": [
+        "starId",
         "hygId",
         "hipId",
         "hdId",
@@ -87,7 +105,14 @@
       }
     },
     "playerName": { "type": "string" },
-    "hygId": { "type": "string" },
+    "hygId": {
+      "type": "string",
+      "description": "Echo of the requested hygId, or the found star's hygId when the lookup used starId (empty when it has none)."
+    },
+    "starId": {
+      "type": "string",
+      "description": "Echo of the requested starId, or the found star's starId."
+    },
     "star": {
       "$ref": "#/definitions/starCatalogEntry",
       "description": "Present on successful star lookup responses."

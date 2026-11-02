@@ -921,6 +921,33 @@ function normalizeCelestialBody(ctx, celestialBody) {
     ...(source.hygId ? { hygId: toNonEmptyString(ctx, source.hygId) } : {}),
     ...(source.hipId ? { hipId: toNonEmptyString(ctx, source.hipId) } : {}),
     ...(source.hdId ? { hdId: toNonEmptyString(ctx, source.hdId) } : {}),
+    ...(source.catalogSource ? { catalogSource: toNonEmptyString(ctx, source.catalogSource) } : {}),
+    ...(source.catalogIds && typeof source.catalogIds === 'object'
+      ? { catalogIds: { ...source.catalogIds } }
+      : {}),
+    ...(source.catalogName ? { catalogName: toNonEmptyString(ctx, source.catalogName) } : {}),
+    ...(Array.isArray(source.approximateFields) && source.approximateFields.length
+      ? { approximateFields: [...source.approximateFields] }
+      : {}),
+    ...(source.rings && typeof source.rings === 'object'
+      ? {
+          rings: {
+            innerRadiusKm: source.rings.innerRadiusKm,
+            outerRadiusKm: source.rings.outerRadiusKm,
+            tiltDeg: source.rings.tiltDeg,
+            colorHex: source.rings.colorHex,
+            opacity: source.rings.opacity,
+            approximate: Boolean(source.rings.approximate),
+          },
+        }
+      : {}),
+    ...(source.status ? { status: toNonEmptyString(ctx, source.status) } : {}),
+    ...(source.controversial ? { controversial: true } : {}),
+    ...(source.circumbinary ? { circumbinary: true } : {}),
+    ...(Array.isArray(source.circumbinaryStarIds) && source.circumbinaryStarIds.length
+      ? { circumbinaryStarIds: [...source.circumbinaryStarIds] }
+      : {}),
+    ...(source.systemRole ? { systemRole: toNonEmptyString(ctx, source.systemRole) } : {}),
     ...(source.visualization
       ? {
           visualization: {

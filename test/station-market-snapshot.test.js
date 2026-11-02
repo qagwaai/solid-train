@@ -298,7 +298,7 @@ test('entire implemented market catalog resolves exact station hosts in registry
 
 for (const [system, marketId, hostId, a, e, period] of [
   ['alpha-centauri', 'ac-proxima-station', 'alpha-centauri-star-tertiary', 3200, 0.02, 95000],
-  ['barnards-star', 'bs-main-station', 'barnards-star-planet-1', 2800, 0.03, 88000],
+  ['barnards-star', 'bs-main-station', 'exo-barnard-b', 2800, 0.03, 88000],
 ]) {
   test(`${system}: cold celestial then market seeding retains approved host and authored orbit`, async () => {
     const ctx = new MessageHandlerContext({ log: () => {}, getCurrentTimestamp: () => EPOCH });

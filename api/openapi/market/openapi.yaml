@@ -349,7 +349,7 @@ paths:
         remains the element reference epoch. No parentBodyId inference or legacy
         alias is applied. sol-moon-orbit retains its ID and anchors to sol-luna.
         ac-proxima-station anchors to alpha-centauri-star-tertiary;
-        bs-main-station anchors to generated barnards-star-planet-1 (approved host).
+        bs-main-station anchors to catalog planet exo-barnard-b (approved host).
         Legacy ac-proxima/bs-b1 are not aliases; persisted legacy records require
         an explicitly approved repair. IDs and authored orbital parameters are unchanged.
         Reads materialize station responses without persisting repairs; missing,

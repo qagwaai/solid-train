@@ -1,0 +1,43 @@
+{
+  "description": "Game display names for exoplanet-catalog systems, stars, and planets (D24, EX-5.4a). Keys are stable IDs: systems by system ID, stars by star ID, planets by planet ID. displayName falls back to the HYG proper name, then the catalog name, when no entry exists. Hand-maintained: the monthly refresh never writes this file. Phase 5 seeds only well-known names; settler names come later (plan N1).",
+  "sources": [
+    {
+      "name": "IAU NameExoWorlds 2015",
+      "url": "https://www.nameexoworlds.iau.org/",
+      "note": "IAU-approved exoplanet names. Host-star names already arrive through AT-HYG proper names (IAU WGSN)."
+    }
+  ],
+  "systems": {},
+  "stars": {},
+  "planets": {
+    "exo-14-and-b": "Spe",
+    "exo-18-del-b": "Arion",
+    "exo-47-uma-b": "Taphao Thong",
+    "exo-47-uma-c": "Taphao Kaew",
+    "exo-51-peg-b": "Dimidium",
+    "exo-55-cnc-b": "Galileo",
+    "exo-55-cnc-c": "Brahe",
+    "exo-55-cnc-d": "Lipperhey",
+    "exo-55-cnc-e": "Janssen",
+    "exo-55-cnc-f": "Harriot",
+    "exo-eps-eri-b": "AEgir",
+    "exo-eps-tau-b": "Amateru",
+    "exo-gam-cep-b": "Tadmor",
+    "exo-hd-104985-b": "Meztli",
+    "exo-hd-149026-b": "Smertrios",
+    "exo-hd-160691-b": "Quijote",
+    "exo-hd-160691-c": "Dulcinea",
+    "exo-hd-160691-d": "Rocinante",
+    "exo-hd-160691-e": "Sancho",
+    "exo-hd-62509-b": "Thestias",
+    "exo-hd-81688-b": "Arkas",
+    "exo-iot-dra-b": "Hypatia",
+    "exo-psr-b1257-12-b": "Draugr",
+    "exo-psr-b1257-12-c": "Poltergeist",
+    "exo-psr-b1257-12-d": "Phobetor",
+    "exo-ups-and-b": "Saffar",
+    "exo-ups-and-c": "Samh",
+    "exo-ups-and-d": "Majriti",
+    "exo-xi-aql-b": "Fortitudo"
+  }
+}

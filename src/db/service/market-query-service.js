@@ -23,6 +23,23 @@ async function getMarkets(ctx, Market, query = {}) {
   }
 }
 
+/**
+ * Market counts for every solar system in one grouped query (D51).
+ * @returns {Promise<Map<string, number>>} lowercase solarSystemId ? count
+ */
+async function getMarketCountsBySolarSystem(ctx, Market) {
+  try {
+    const rows = await Market.aggregate([
+      { $group: { _id: { $toLower: '$solarSystemId' }, count: { $sum: 1 } } },
+    ]);
+    return new Map(rows.filter((row) => row._id).map((row) => [row._id, row.count]));
+  } catch (error) {
+    ctx.log(`[db-service] Error counting markets: ${error.message}`);
+    throw error;
+  }
+}
+
 module.exports = {
+  getMarketCountsBySolarSystem,
   getMarkets,
 };

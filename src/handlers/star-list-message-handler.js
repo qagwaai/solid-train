@@ -1,7 +1,7 @@
 'use strict';
 
 const { STAR_LIST_RESPONSE_EVENT } = require('../model/star-list');
-const { getHygStars } = require('../model/hyg-star-catalog');
+const { getStarCatalogEntries } = require('../model/star-catalog');
 const { attachRequestId } = require('./handler-utils');
 
 class StarListMessageHandler {
@@ -36,7 +36,7 @@ class StarListMessageHandler {
       );
     }
 
-    let stars = getHygStars().slice();
+    let stars = getStarCatalogEntries().slice();
     const systemId = this.context.toNonEmptyString(payload?.systemId).toLowerCase();
     if (systemId) stars = stars.filter((star) => star.systemId === systemId);
     const spectralClass = this.context.toNonEmptyString(payload?.spectralClass).toUpperCase();

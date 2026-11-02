@@ -18,7 +18,7 @@ const {
 } = require('../src/model/exoplanet-system-generator');
 const { generateSystemBodies } = require('../src/model/procedural-system-generator');
 const { getHygSystems } = require('../src/model/hyg-star-catalog');
-const { systemStarFacts } = require('../scripts/lib/exoplanet-systems');
+const { systemStarFacts } = require('../src/model/exoplanet-star-facts');
 
 const AU_KM = 149597870.7;
 const J2000_JD = 2451545;

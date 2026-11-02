@@ -1,8 +1,8 @@
 'use strict';
 
 const {
-  SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
   buildSeededCelestialBodiesForSolarSystem,
+  getSolarSystemCelestialSeedVersion,
 } = require('../../model/solar-system-celestial-seed');
 const {
   assertCatalogIdentityAssignments,
@@ -15,6 +15,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
   const solarSystemId = ctx.toNonEmptyString(request?.solarSystemId).toLowerCase() || 'sol';
   const asOf = ctx.toNonEmptyString(request?.asOf) || ctx.getCurrentTimestamp();
   const force = Boolean(request?.force);
+  const seedVersion = getSolarSystemCelestialSeedVersion(solarSystemId);
   const bodies = buildSeededCelestialBodiesForSolarSystem(solarSystemId, asOf);
 
   if (bodies.length === 0) {
@@ -35,7 +36,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
     return {
       success: true,
       solarSystemId,
-      seedVersion: SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
+      seedVersion,
       bodyCount: bodies.length,
       source: 'in-memory',
     };
@@ -44,8 +45,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
   try {
     const existingSeedState =
       await ctx.databaseService.getSolarSystemCelestialSeedState(solarSystemId);
-    const isCurrentVersion =
-      existingSeedState && existingSeedState.seedVersion === SOLAR_SYSTEM_CELESTIAL_SEED_VERSION;
+    const isCurrentVersion = existingSeedState && existingSeedState.seedVersion === seedVersion;
 
     if (!force && isCurrentVersion) {
       const persisted = await ctx.databaseService.getCelestialBodies({ solarSystemId });
@@ -64,7 +64,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
         return {
           success: true,
           solarSystemId,
-          seedVersion: SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
+          seedVersion,
           bodyCount: persisted.length,
           source: 'database-cache',
         };
@@ -80,11 +80,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
       if (failed) throw failed.reason;
     }
 
-    await ctx.databaseService.setSolarSystemCelestialSeedState(
-      solarSystemId,
-      SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
-      asOf
-    );
+    await ctx.databaseService.setSolarSystemCelestialSeedState(solarSystemId, seedVersion, asOf);
 
     const persisted = await ctx.databaseService.getCelestialBodies({ solarSystemId });
     const toCache = persisted.length > 0 ? persisted : bodies;
@@ -104,7 +100,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
     return {
       success: true,
       solarSystemId,
-      seedVersion: SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
+      seedVersion,
       bodyCount: toCache.length,
       source: 'database-upsert',
     };
@@ -127,7 +123,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
     return {
       success: true,
       solarSystemId,
-      seedVersion: SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
+      seedVersion,
       bodyCount: bodies.length,
       source: 'in-memory-fallback',
     };
@@ -166,6 +162,46 @@ async function getCelestialBodyByIdAsync(ctx, celestialBodyId) {
   const normalized = ctx.normalizeCelestialBody(celestialBody);
   ctx.celestialBodiesById.set(normalized.id, normalized);
   return normalized;
+}
+
+function countBy(values, keyOf) {
+  const counts = new Map();
+  for (const value of values) {
+    const key = keyOf(value);
+    if (key) counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return counts;
+}
+
+/**
+ * Live per-system counts for solar-system-list (D51, D55): markets and
+ * asteroids (catalog plus character discoveries), each from one grouped DB
+ * query, or from the in-memory caches when no database is configured.
+ * @returns {Promise<{ marketCounts: Map<string, number>, asteroidCounts: Map<string, number> }>}
+ */
+async function getSolarSystemLiveCountsAsync(ctx) {
+  const fromDb = await ctx.withDbOrNull(
+    'counting solar system markets and asteroids',
+    async (db) =>
+      typeof db.getMarketCountsBySolarSystem === 'function' &&
+      typeof db.getCelestialBodyCountsBySolarSystem === 'function'
+        ? {
+            marketCounts: await db.getMarketCountsBySolarSystem(),
+            asteroidCounts: await db.getCelestialBodyCountsBySolarSystem('asteroid'),
+          }
+        : null
+  );
+  if (fromDb) {
+    return fromDb;
+  }
+  return {
+    marketCounts: countBy(ctx.marketsByKey.values(), (market) =>
+      ctx.toNonEmptyString(market?.solarSystemId).toLowerCase()
+    ),
+    asteroidCounts: countBy(ctx.celestialBodiesById.values(), (body) =>
+      body?.bodyType === 'asteroid' ? body.spatial?.solarSystemId : null
+    ),
+  };
 }
 
 async function getCelestialBodiesAsync(ctx, query = {}) {
@@ -402,4 +438,5 @@ module.exports = {
   deleteCelestialBodyByIdAsync,
   addOrUpdateCelestialBodyAsync,
   getCelestialBodiesNearPositionAsync,
+  getSolarSystemLiveCountsAsync,
 };

@@ -789,6 +789,7 @@ module.exports = {
   CATALOG_SOURCE,
   PLANET_ARCHETYPES,
   RING_CHANCE,
+  STAR_COLORS,
   catalogRings,
   classifyCatalogPlanet,
   completeStarFacts,

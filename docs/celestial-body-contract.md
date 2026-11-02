@@ -60,10 +60,10 @@ optional. `visualization.textureKey` is never a classification field.
 
 The curated system id is `cygnus-x1`, and it seeds two distinct canonical bodies:
 
-| Entity id | Catalog identity | bodyType | Notes |
-| --- | --- | --- | --- |
-| `cygnus-x1-black-hole` | `{namespace: cygnus-x1, key: black-hole}` | `black-hole` | Accreting stellar-mass black hole |
-| `cygnus-x1-hd226868` | `{namespace: cygnus-x1, key: hd226868}` | `star` | Visible companion and system anchor |
+| Entity id              | Catalog identity                          | bodyType     | Notes                               |
+| ---------------------- | ----------------------------------------- | ------------ | ----------------------------------- |
+| `cygnus-x1-black-hole` | `{namespace: cygnus-x1, key: black-hole}` | `black-hole` | Accreting stellar-mass black hole   |
+| `cygnus-x1-hd226868`   | `{namespace: cygnus-x1, key: hd226868}`   | `star`       | Visible companion and system anchor |
 
 HYG 97987, HIP 98298 and HD 226868 refer to the visible companion/system
 anchor. They are not an HYG black-hole catalog entry. The black hole does not
@@ -117,18 +117,18 @@ The optional nullable [`BlackHoleProperties` schema](../api/schemas/black-hole-p
 is referenced by body writes and system/body reads. It is persisted separately
 from `physicalCatalog` and the gameplay `physical` estimates:
 
-| Field on `blackHoleProperties` | Cygnus seed value | Meaning |
-| --- | --- | --- |
-| `massSolar` / `massUncertaintySolar` | `21.2` / `2.2` | Black-hole mass and uncertainty in solar masses |
-| `distanceParsec` / `distanceUncertaintyParsec` | `2220` / `180` | Source distance estimate and uncertainty in pc; not a global position |
-| `orbitalPeriodDays` | `5.599829` | Binary period in days |
-| `relativeBinarySemimajorAxisAU` | `0.244` | Relative orbit semimajor axis in AU, approximately 36.5 million km; not instantaneous separation |
-| `eccentricity` | `0.0189` | Dimensionless relative orbit eccentricity |
-| `inclinationDeg` | `27.51` | Source inclination in degrees; insufficient to orient or phase the binary |
-| `schwarzschildReferenceRadiusKm` | `62.6` | Nonrotating `2GM/c²` reference in km |
-| `eventHorizonRadiusKm` | `null` | No canonical spin-dependent horizon radius asserted |
-| `visualAccretionDiskOuterRadiusKm` | `null` | No canonical physical disk boundary asserted |
-| `sourceReferences` | Citation strings | Literature provenance, including wind-fed accretion context |
+| Field on `blackHoleProperties`                 | Cygnus seed value | Meaning                                                                                          |
+| ---------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------ |
+| `massSolar` / `massUncertaintySolar`           | `21.2` / `2.2`    | Black-hole mass and uncertainty in solar masses                                                  |
+| `distanceParsec` / `distanceUncertaintyParsec` | `2220` / `180`    | Source distance estimate and uncertainty in pc; not a global position                            |
+| `orbitalPeriodDays`                            | `5.599829`        | Binary period in days                                                                            |
+| `relativeBinarySemimajorAxisAU`                | `0.244`           | Relative orbit semimajor axis in AU, approximately 36.5 million km; not instantaneous separation |
+| `eccentricity`                                 | `0.0189`          | Dimensionless relative orbit eccentricity                                                        |
+| `inclinationDeg`                               | `27.51`           | Source inclination in degrees; insufficient to orient or phase the binary                        |
+| `schwarzschildReferenceRadiusKm`               | `62.6`            | Nonrotating `2GM/c²` reference in km                                                             |
+| `eventHorizonRadiusKm`                         | `null`            | No canonical spin-dependent horizon radius asserted                                              |
+| `visualAccretionDiskOuterRadiusKm`             | `null`            | No canonical physical disk boundary asserted                                                     |
+| `sourceReferences`                             | Citation strings  | Literature provenance, including wind-fed accretion context                                      |
 
 The companion's `physicalCatalog` carries `massKg`, `massSolar: 40.6`,
 `massUncertaintySolar: 7.7`, `meanRadiusKm: 15514110`, and
@@ -248,12 +248,12 @@ npm test
 
 Session-close validation (2026-10-25):
 
-| Command | Result |
-| --- | --- |
-| `npm test` | Passed OpenAPI validation and all 627 tests before the final persistence regression was added |
+| Command                                                                               | Result                                                                                                     |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `npm test`                                                                            | Passed OpenAPI validation and all 627 tests before the final persistence regression was added              |
 | `node --test test\cygnus-x1-system.test.js test\celestial-operation-examples.test.js` | Passed all 9 tests after adding persistence coverage and the three missing Mongoose binary metadata fields |
-| `npx eslint src\db\models\celestial-model.js test\cygnus-x1-system.test.js` | Passed |
-| `git diff --check` | Passed |
+| `npx eslint src\db\models\celestial-model.js test\cygnus-x1-system.test.js`           | Passed                                                                                                     |
+| `git diff --check`                                                                    | Passed                                                                                                     |
 
 The final persistence correction adds `relativeBinarySemimajorAxisAU`,
 `eccentricity`, and `inclinationDeg` to the Mongoose subdocument so these source
@@ -487,7 +487,7 @@ Before deploying source behavior to an existing world:
    in the correct system/frame. Decide which persisted host snapshot is authoritative;
    no celestial reseed is implied. The approved exact seed mappings are
    `ac-proxima-station`: `ac-proxima` -> `alpha-centauri-star-tertiary` (Proxima's
-   canonical star), and `bs-main-station`: `bs-b1` -> `barnards-star-planet-1`
+   canonical star), and `bs-main-station`: `bs-b1` -> `exo-barnard-b`
    (the explicitly approved generated Barnard planet). Both hosts are emitted by
    their registry-backed catalogs. Station IDs and authored orbit parameters are
    preserved. Legacy IDs are not aliases and persisted records are not auto-repaired.

@@ -16,7 +16,7 @@ info:
     Station snapshot fix: canonical anchor lookup (Luna is sol-luna; station identity
     remains sol-moon-orbit), host-position translation and host snapshot epoch.
     Approved station hosts: ac-proxima-station uses alpha-centauri-star-tertiary;
-    bs-main-station uses the generated barnards-star-planet-1.
+    bs-main-station uses the catalog planet exo-barnard-b (NASA Exoplanet Archive).
     Unresolved station anchors fail explicitly; existing worlds require approved
     market seed repair, not automatic read-time persistence.
 

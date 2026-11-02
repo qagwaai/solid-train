@@ -7,12 +7,13 @@
  *   - id: canonical lowercase id used in spatial.solarSystemId
  *   - displayName
  *   - hygSystemId: matching system grouping in the HYG fixture (or null)
- *   - source: 'curated' | 'procedural'
- *   - position in galactic parsecs (from HYG)
+ *   - source: 'curated' | 'procedural' | 'exoplanet-catalog'
+ *   - position in galactic parsecs (from HYG or the exoplanet catalog)
  *   - distanceParsec from Sol
- *   - primaryStar: { spectralClass, spectralType, colorHex, luminositySolar, massSolar }
+ *   - primaryStar: { starId, spectralClass, spectralType, colorHex, luminositySolar, massSolar }
  *   - generationSeed (procedural only)
  *   - isMultiStar
+ *   - planetCount, moonCount, asteroidCount: catalog counts, precomputed (D51, D55)
  *
  * The server uses this registry to:
  *   - List available systems (`solar-system-list-request`).
@@ -21,6 +22,9 @@
  */
 
 const { getHygSystems } = require('./hyg-star-catalog');
+const { getExoplanetRegistryRecords } = require('./exoplanet-catalog');
+const { getSolarSystemCatalogEntries } = require('./solar-system-celestial-seed');
+const { hygStarId } = require('./star-catalog');
 
 const CURATED_SYSTEMS = new Set(['sol', 'alpha-centauri', 'cygnus-x1']);
 
@@ -60,6 +64,7 @@ function buildPrimaryStarSummary(stars) {
   if (!primary) return null;
   return {
     hygId: primary.hygId,
+    starId: hygStarId(primary),
     spectralClass: primary.spectralClass,
     spectralType: primary.spectralType,
     colorHex: primary.colorHex,
@@ -72,7 +77,20 @@ function buildPrimaryStarSummary(stars) {
   };
 }
 
+/** Catalog body counts for a curated or HYG procedural system (D51, D55). */
+function catalogBodyCounts(systemId) {
+  const catalog = getSolarSystemCatalogEntries(systemId);
+  const counts = { planetCount: 0, moonCount: 0, asteroidCount: 0 };
+  for (const entry of catalog ? catalog.entries : []) {
+    if (entry.bodyType === 'planet') counts.planetCount += 1;
+    else if (entry.bodyType === 'moon') counts.moonCount += 1;
+    else if (entry.bodyType === 'asteroid') counts.asteroidCount += 1;
+  }
+  return counts;
+}
+
 let cachedRegistry = null;
+let cachedRegistryById = null;
 
 function getSolarSystemRegistry() {
   if (cachedRegistry) return cachedRegistry;
@@ -100,10 +118,13 @@ function getSolarSystemRegistry() {
       starCount: system.stars.length,
       generationSeed:
         system.stars[0] && system.stars[0].hygId ? Number(system.stars[0].hygId) || null : null,
+      ...catalogBodyCounts(id),
     });
   }
-  records.push(CYGNUS_X1_REGISTRY_ENTRY);
+  records.push({ ...CYGNUS_X1_REGISTRY_ENTRY, ...catalogBodyCounts(CYGNUS_X1_REGISTRY_ENTRY.id) });
+  records.push(...getExoplanetRegistryRecords());
   cachedRegistry = records;
+  cachedRegistryById = new Map(records.map((entry) => [entry.id, entry]));
   return cachedRegistry;
 }
 
@@ -112,11 +133,13 @@ function getSolarSystemById(id) {
     .trim()
     .toLowerCase();
   if (!normalized) return null;
-  return getSolarSystemRegistry().find((entry) => entry.id === normalized) || null;
+  getSolarSystemRegistry();
+  return cachedRegistryById.get(normalized) || null;
 }
 
 function clearRegistryCache() {
   cachedRegistry = null;
+  cachedRegistryById = null;
 }
 
 module.exports = {

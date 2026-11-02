@@ -4,7 +4,7 @@ const { SOLAR_SYSTEM_LIST_RESPONSE_EVENT } = require('../model/solar-system-list
 const { getSolarSystemRegistry } = require('../model/solar-system-registry');
 const { attachRequestId } = require('./handler-utils');
 
-const VALID_SOURCES = new Set(['curated', 'procedural']);
+const VALID_SOURCES = new Set(['curated', 'procedural', 'exoplanet-catalog']);
 
 class SolarSystemListMessageHandler {
   constructor(context) {
@@ -72,6 +72,7 @@ class SolarSystemListMessageHandler {
         const haystack = [
           entry.id,
           entry.displayName,
+          entry.catalogName || '',
           entry.primaryStar?.properName || '',
           entry.primaryStar?.spectralType || '',
         ]
@@ -88,10 +89,7 @@ class SolarSystemListMessageHandler {
     filtered.sort((a, b) => (a.distanceParsec ?? Infinity) - (b.distanceParsec ?? Infinity));
     if (limit) filtered = filtered.slice(0, limit);
 
-    // Enrich each system with optional aggregate counts from the database
-    const enrichedSystems = await Promise.all(
-      filtered.map((system) => this.enrichSystemWithCounts(system))
-    );
+    const enrichedSystems = await this.enrichSystemsWithCounts(filtered);
 
     return attachRequestId(
       {
@@ -107,37 +105,31 @@ class SolarSystemListMessageHandler {
   }
 
   /**
-   * Enrich a solar system entry with optional count fields from the database.
-   * @param {Object} system
-   * @returns {Promise<Object>}
+   * Add count fields. Planet and moon counts are precomputed in the registry;
+   * asteroid and market counts come from one live grouped query each (D51,
+   * D55). The asteroid count never drops below the registry's catalog count,
+   * so unseeded systems still report their catalog asteroids.
+   * @param {Object[]} systems
+   * @returns {Promise<Object[]>}
    */
-  async enrichSystemWithCounts(system) {
-    const enriched = { ...system };
-
+  async enrichSystemsWithCounts(systems) {
+    let live = null;
     try {
-      // Get celestial bodies for this system and count by type
-      const bodies = await this.context.getCelestialBodiesAsync({
-        solarSystemId: system.id,
-      });
-
-      enriched.planetCount = bodies.filter((b) => b.bodyType === 'planet').length;
-      enriched.moonCount = bodies.filter((b) => b.bodyType === 'moon').length;
-      enriched.asteroidCount = bodies.filter((b) => b.bodyType === 'asteroid').length;
-
-      // Get markets for this system
-      const markets = await this.context.getMarketsAsync({
-        solarSystemId: system.id,
-      });
-
-      enriched.marketCount = markets.length;
+      live = await this.context.getSolarSystemLiveCountsAsync();
     } catch (error) {
-      // If enrichment fails, just return the system without the count fields
-      this.context.log(
-        `[solar-system-list] Failed to enrich counts for system ${system.id}: ${error.message}`
-      );
+      this.context.log(`[solar-system-list] Failed to load live counts: ${error.message}`);
     }
-
-    return enriched;
+    return systems.map((system) => {
+      const enriched = { ...system };
+      if (live) {
+        enriched.asteroidCount = Math.max(
+          system.asteroidCount || 0,
+          live.asteroidCounts.get(system.id) || 0
+        );
+        enriched.marketCount = live.marketCounts.get(system.id) || 0;
+      }
+      return enriched;
+    });
   }
 
   async handle(socket, payload) {

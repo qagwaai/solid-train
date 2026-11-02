@@ -313,8 +313,8 @@ const BARNARDS_STAR_MARKETS = [
   {
     marketId: 'bs-main-station',
     marketName: 'Barnard Frontier Outpost',
-    anchorBodyId: 'barnards-star-planet-1',
-    anchorBodyName: "Barnard's Star B1",
+    anchorBodyId: 'exo-barnard-b',
+    anchorBodyName: 'Barnard b',
     semiMajorAxisKm: 2800,
     eccentricity: 0.03,
     orbitalPeriodSec: 88000,

@@ -15,7 +15,14 @@
     "primaryStarSummary": {
       "type": ["object", "null"],
       "properties": {
-        "hygId": { "type": "string" },
+        "hygId": {
+          "type": ["string", "null"],
+          "description": "HYG id of the primary star; null for exoplanet-catalog primaries without a HYG match."
+        },
+        "starId": {
+          "type": "string",
+          "description": "Stable star identity; matches the star celestial body id and star-list starId."
+        },
         "spectralClass": {
           "type": ["string", "null"],
           "description": "Optional source spectral class; omitted and null both mean unknown. Current normalized reads serialize unknown as null; no generation fallback is used."
@@ -51,8 +58,23 @@
       "properties": {
         "id": { "type": "string" },
         "displayName": { "type": "string" },
-        "hygSystemId": { "type": "string" },
-        "source": { "type": "string", "enum": ["curated", "procedural"] },
+        "hygSystemId": {
+          "type": ["string", "null"],
+          "description": "HYG fixture system grouping; null for systems that exist only in the exoplanet catalog."
+        },
+        "catalogName": {
+          "type": ["string", "null"],
+          "description": "Scientific catalog designation of the system (for example '24 Boo'); displayName is the game name."
+        },
+        "source": { "type": "string", "enum": ["curated", "procedural", "exoplanet-catalog"] },
+        "declaredStarCount": {
+          "type": "integer",
+          "description": "Star count the exoplanet archive declares (sy_snum); starCount includes synthesized companions that fill the gap."
+        },
+        "distanceApproximate": {
+          "type": "boolean",
+          "description": "True when distanceParsec and positionPc are estimated (photometric or default distance)."
+        },
         "isMultiStar": { "type": "boolean" },
         "positionPc": {
           "anyOf": [
@@ -158,6 +180,11 @@
             "ocean",
             "gas-giant",
             "ice-giant",
+            "super-earth",
+            "sub-neptune",
+            "hot-neptune",
+            "hot-jupiter",
+            "super-jupiter",
             "star",
             "rocky-moon",
             "icy-moon",
@@ -218,7 +245,41 @@
         "clusterCenterKm": { "$ref": "#/definitions/vector3" },
         "localOffsetKm": { "$ref": "#/definitions/vector3" },
         "distanceFromClusterCenterKm": { "type": "number" },
-        "isCatalogBody": { "type": "boolean" }
+        "isCatalogBody": { "type": "boolean" },
+        "catalogSource": {
+          "type": ["string", "null"],
+          "description": "Producer catalog for imported bodies, 'exoplanet-catalog' for bodies imported from the NASA Exoplanet Archive. Omitted for curated and procedural bodies."
+        },
+        "catalogIds": {
+          "type": ["object", "null"],
+          "description": "Source catalog identifiers (for example planetId, hostId, atHygId, hygId, hipId, hdId, gaiaDr3Id). Keys are optional strings.",
+          "additionalProperties": { "type": "string" }
+        },
+        "catalogName": {
+          "type": ["string", "null"],
+          "description": "Scientific catalog designation (for example '24 Boo b'). displayName is the game name and may differ."
+        },
+        "approximateFields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Dotted paths of values estimated or procedurally generated rather than observed. Absent or empty means every published value is sourced."
+        },
+        "rings": { "$ref": "./celestial-rings.schema.json" },
+        "status": {
+          "type": "string",
+          "enum": ["confirmed"],
+          "description": "Catalog planet status. Only confirmed planets are imported today."
+        },
+        "controversial": { "type": "boolean" },
+        "circumbinary": {
+          "type": "boolean",
+          "description": "True when the planet orbits a star pair; parentBodyId is the lower-letter star of the pair."
+        },
+        "circumbinaryStarIds": { "type": "array", "items": { "type": "string" } },
+        "systemRole": {
+          "type": ["string", "null"],
+          "description": "Star role within its system: primary, secondary, tertiary, and so on."
+        }
       },
       "required": [
         "id",

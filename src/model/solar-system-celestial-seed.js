@@ -8,6 +8,10 @@ const { CYGNUS_X1_CATALOG } = require('./cygnus-x1-system-catalog');
 const { generateSystemBodies } = require('./procedural-system-generator');
 const { getHygSystems } = require('./hyg-star-catalog');
 const { assertCatalogIdentityAssignments } = require('./catalog-identity');
+const {
+  generateExoplanetSystemBodies,
+  getExoplanetSystemSeedHash,
+} = require('./exoplanet-catalog');
 
 const MPC_COMET_SNAPSHOT = require('../../data/sol-comets.json');
 const JPL_SATELLITE_SNAPSHOT = require('../../data/sol-satellites.json');
@@ -226,8 +230,34 @@ function buildCelestialBodyDocument(catalogEntry, asOfMs, asOfTimestamp, cache, 
     hygId: catalogEntry.hygId || null,
     hipId: catalogEntry.hipId || null,
     hdId: catalogEntry.hdId || null,
+    ...pickCatalogProvenance(catalogEntry),
     isCatalogBody: true,
   };
+}
+
+const CATALOG_PROVENANCE_FIELDS = [
+  'catalogSource',
+  'catalogIds',
+  'catalogName',
+  'approximateFields',
+  'rings',
+  'status',
+  'controversial',
+  'circumbinary',
+  'circumbinaryStarIds',
+  'systemRole',
+];
+
+/** Optional exoplanet-catalog fields (EX-5.4/5.4b); omitted when the entry has none. */
+function pickCatalogProvenance(catalogEntry) {
+  const picked = {};
+  for (const field of CATALOG_PROVENANCE_FIELDS) {
+    const value = catalogEntry[field];
+    if (value !== undefined && value !== null && !(Array.isArray(value) && !value.length)) {
+      picked[field] = value;
+    }
+  }
+  return picked;
 }
 
 /**
@@ -255,63 +285,113 @@ function inferCatalogComposition(catalogEntry) {
 }
 
 /**
- * Build the seeded celestial body document set for the given solar system.
+ * Raw catalog entries (stars, planets, moons, ...) for a solar system, before
+ * they become celestial-body documents.
  *
  * Dispatch order:
- *   1. Curated catalog (sol, alpha-centauri) — uses hand-built body lists.
- *   2. Procedural HYG-derived system — deterministic seeded RNG keyed by HYG id.
- *   3. Unknown system — empty array (caller treats as UNSUPPORTED).
+ *   1. Curated catalog (sol, alpha-centauri, cygnus-x1). Curated wins over the
+ *      exoplanet catalog for alpha-centauri (D46).
+ *   2. HYG procedural system. When the exoplanet catalog also covers it
+ *      (barnards-star, lalande-21185), the archive planets replace the
+ *      procedural ones and are parented to the procedural stars (D45).
+ *   3. Exoplanet-catalog system (EX-5.2).
+ *   4. Unknown system: null.
+ *
+ * @returns {{ entries: Object[], byId: Map<string, Object>, source: string } | null}
  */
-function buildSeededCelestialBodiesForSolarSystem(solarSystemId, asOfTimestamp) {
+function getSolarSystemCatalogEntries(solarSystemId, asOfTimestamp = J2000_EPOCH) {
   const normalizedSystemId =
     typeof solarSystemId === 'string' ? solarSystemId.trim().toLowerCase() : '';
   if (!normalizedSystemId) {
-    return [];
+    return null;
   }
 
+  const curated = CURATED_CATALOGS[normalizedSystemId];
+  if (curated) {
+    return { entries: curated.entries, byId: curated.byId, source: 'curated' };
+  }
+
+  const hygSystem = getHygSystems().find((entry) => entry.systemId === normalizedSystemId);
+  if (hygSystem) {
+    const generated = generateSystemBodies({
+      solarSystemId: normalizedSystemId,
+      stars: hygSystem.stars,
+      asOfTimestamp,
+    });
+    const catalog = generateExoplanetSystemBodies(normalizedSystemId, asOfTimestamp);
+    const entries = catalog
+      ? [...generated.stars, ...catalog.planets]
+      : [...generated.stars, ...generated.planets];
+    return {
+      entries,
+      byId: new Map(entries.map((entry) => [entry.id, entry])),
+      source: 'procedural',
+    };
+  }
+
+  const catalog = generateExoplanetSystemBodies(normalizedSystemId, asOfTimestamp);
+  if (catalog) {
+    const entries = [...catalog.stars, ...catalog.planets];
+    return {
+      entries,
+      byId: new Map(entries.map((entry) => [entry.id, entry])),
+      source: 'exoplanet-catalog',
+    };
+  }
+  return null;
+}
+
+/**
+ * Seed version for one solar system (D48). Systems fed by the exoplanet
+ * catalog append a hash of their source records, so a monthly refresh reseeds
+ * only the systems whose records changed.
+ */
+function getSolarSystemCelestialSeedVersion(solarSystemId) {
+  const normalizedSystemId =
+    typeof solarSystemId === 'string' ? solarSystemId.trim().toLowerCase() : '';
+  if (CURATED_CATALOGS[normalizedSystemId]) {
+    return SOLAR_SYSTEM_CELESTIAL_SEED_VERSION;
+  }
+  const hash = getExoplanetSystemSeedHash(normalizedSystemId);
+  return hash
+    ? `${SOLAR_SYSTEM_CELESTIAL_SEED_VERSION}-exo-${hash}`
+    : SOLAR_SYSTEM_CELESTIAL_SEED_VERSION;
+}
+
+/**
+ * Build the seeded celestial body document set for the given solar system.
+ * Unknown systems return an empty array (caller treats as UNSUPPORTED).
+ */
+function buildSeededCelestialBodiesForSolarSystem(solarSystemId, asOfTimestamp) {
   const timestamp =
     typeof asOfTimestamp === 'string' && asOfTimestamp.trim() ? asOfTimestamp.trim() : J2000_EPOCH;
   const asOfMs = Date.parse(timestamp);
   const safeAsOfMs = Number.isFinite(asOfMs) ? asOfMs : Date.parse(J2000_EPOCH);
 
-  const curated = CURATED_CATALOGS[normalizedSystemId];
-  if (curated) {
-    const positionCache = new Map();
-    const bodies = curated.entries.map((entry) =>
-      buildCelestialBodyDocument(entry, safeAsOfMs, timestamp, positionCache, {
-        solarSystemId: normalizedSystemId,
-        catalogById: curated.byId,
-      })
-    );
-    assertCatalogIdentityAssignments(bodies);
-    return bodies;
-  }
-
-  // Procedural fallback for HYG-known systems.
-  const hygSystem = getHygSystems().find((entry) => entry.systemId === normalizedSystemId);
-  if (!hygSystem) {
+  const catalog = getSolarSystemCatalogEntries(solarSystemId, timestamp);
+  if (!catalog) {
     return [];
   }
-  const generated = generateSystemBodies({
-    solarSystemId: normalizedSystemId,
-    stars: hygSystem.stars,
-    asOfTimestamp: timestamp,
-  });
-  const proceduralEntries = [...generated.stars, ...generated.planets];
-  const proceduralById = new Map(proceduralEntries.map((entry) => [entry.id, entry]));
+  const normalizedSystemId = solarSystemId.trim().toLowerCase();
   const positionCache = new Map();
-  return proceduralEntries.map((entry) =>
+  const bodies = catalog.entries.map((entry) =>
     buildCelestialBodyDocument(entry, safeAsOfMs, timestamp, positionCache, {
       solarSystemId: normalizedSystemId,
-      catalogById: proceduralById,
+      catalogById: catalog.byId,
     })
   );
+  if (catalog.source === 'curated') {
+    assertCatalogIdentityAssignments(bodies);
+  }
+  return bodies;
 }
 
 module.exports = {
   SOLAR_SYSTEM_CELESTIAL_SEED_VERSION,
   SOLAR_SYSTEM_CELESTIAL_SEED_STATE_KEY,
   buildSeededCelestialBodiesForSolarSystem,
+  getSolarSystemCatalogEntries,
+  getSolarSystemCelestialSeedVersion,
   computeRelativePositionKm,
   computeAbsolutePositionKm,
 };

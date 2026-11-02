@@ -1,17 +1,18 @@
 'use strict';
 
 /**
- * Read/write helpers for the stars collection (HYG-derived metadata).
+ * Read/write helpers for the stars collection (HYG fixture and exoplanet-catalog
+ * stars, keyed on starId per D54).
  */
 
 async function upsertStar(ctx, Star, starData) {
-  if (!starData || typeof starData.hygId !== 'string' || !starData.hygId.trim()) {
+  if (!starData || typeof starData.starId !== 'string' || !starData.starId.trim()) {
     return null;
   }
   try {
     const persisted = await Star.findOneAndUpdate(
-      { hygId: starData.hygId.trim() },
-      { ...starData, hygId: starData.hygId.trim() },
+      { starId: starData.starId.trim() },
+      { ...starData, starId: starData.starId.trim() },
       { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     ).lean();
     return persisted;
@@ -29,6 +30,17 @@ async function upsertStars(ctx, Star, starsData) {
     if (persisted) results.push(persisted);
   }
   return results;
+}
+
+async function getStarByStarId(ctx, Star, starId) {
+  const trimmed = ctx.toNonEmptyString(starId);
+  if (!trimmed) return null;
+  try {
+    return await Star.findOne({ starId: trimmed }).lean();
+  } catch (error) {
+    ctx.log(`[db-service] Error fetching star by starId: ${error.message}`);
+    throw error;
+  }
 }
 
 async function getStarByHygId(ctx, Star, hygId) {
@@ -71,5 +83,6 @@ module.exports = {
   upsertStar,
   upsertStars,
   getStarByHygId,
+  getStarByStarId,
   getStars,
 };

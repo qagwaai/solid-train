@@ -296,7 +296,8 @@ paths:
                           positionKm: { x: 0, y: 0, z: 0 }
                           epochMs: 946728000000
                         observability: { visibility: visible, scanState: scanned }
-                        composition: { rarity: Common, material: black-hole, textureColor: '#111827' }
+                        composition:
+                          { rarity: Common, material: black-hole, textureColor: '#111827' }
                         state: active
                         destroyedAt: null
                         destroyedReason: null
@@ -377,8 +378,9 @@ paths:
     post:
       summary: solar-system-list-request
       description: |
-        Returns solar systems from the registry, optionally filtered by source,
-        search text, and maximum distance.
+        Returns solar systems from the registry, optionally filtered by source
+        (`curated`, `procedural`, `exoplanet-catalog`), search text (matches
+        `displayName`, `id`, and `catalogName`), and maximum distance.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).
@@ -388,7 +390,9 @@ paths:
         Response notes:
         - Systems are sorted by increasing distance.
         - Optional count fields such as `planetCount`, `moonCount`, `asteroidCount`,
-          and `marketCount` are included when enrichment succeeds.
+          and `marketCount` are included when enrichment succeeds. Planet and moon
+          counts come from the catalog registry; asteroid counts are the larger of the
+          catalog and live counts; market counts are live.
         - Failure responses return an empty `solarSystems` array.
       operationId: socketSolarSystemList
       tags: [SolarSystem]

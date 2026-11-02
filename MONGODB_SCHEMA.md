@@ -767,14 +767,15 @@ After:
 
 Two collections back the multi-solar-system feature:
 
-- Collection: `stars` (root model `Star`) — HYG-derived star metadata.
+- Collection: `stars` (root model `Star`) — HYG-derived and exoplanet-catalog star metadata.
 - Collection: `solar_systems` (root model `SolarSystem`) — registry of solar systems known to the server.
 
-Both are populated at server startup from `data/hyg-fixture.csv` and the in-memory registry in `src/model/solar-system-registry.js`. Procedural-system bodies are still stored in the existing `cb` collection (`CelestialBody`) and reference the system via `spatial.solarSystemId`.
+Both are synchronized at server startup from `src/model/star-catalog.js` (HYG fixture plus `data/exoplanet-*.json`) and the in-memory registry in `src/model/solar-system-registry.js`. Each sync hashes its records and skips when the hash matches the `game_state` document (`star-catalog-sync-state`, `solar-system-registry-sync-state`); otherwise it bulk-upserts in batches of 1000 and deletes records no longer in the catalog. Celestial seeding is tracked per system in `game_state` documents keyed `solar-system-celestial-seed-state:<solarSystemId>` (`{ solarSystemId, seedVersion, seededAt }`). Procedural-system bodies are still stored in the existing `cb` collection (`CelestialBody`) and reference the system via `spatial.solarSystemId`.
 
 ### Star (collection: stars)
 
-- `hygId` (string, unique, indexed) — primary key from the HYG dataset.
+- `starId` (string, required, unique) — primary key. HYG stars use `sol-sun` or `<systemId>-star-<systemRole>`; exoplanet-catalog stars use the archive-derived id.
+- `hygId` (string, nullable, indexed, not unique) — HYG id; null for stars synthesized from the exoplanet catalog.
 - `hipId`, `hdId` (string, nullable, indexed) — Hipparcos / Henry Draper ids.
 - `properName` (string, nullable, indexed).
 - `raHours`, `decDeg` (numbers).
@@ -787,17 +788,18 @@ Both are populated at server startup from `data/hyg-fixture.csv` and the in-memo
 - `positionPc` (`{x,y,z}` in parsecs, galactic Cartesian).
 - `systemId` (string, indexed) — groups multi-star systems together.
 - `systemRole` (`primary | secondary | tertiary`).
-- `sourceCatalog` (string, default `hyg`).
+- `catalogSource` (`hyg | exoplanet-catalog`), `catalogName` (string, nullable), `approximate` (boolean — physical values estimated).
 
 ### SolarSystem (collection: solar_systems)
 
 - `id` (string, unique, indexed) — canonical lowercase id used throughout the spatial contract.
 - `displayName` (string).
 - `hygSystemId` (string, indexed).
-- `source` (`curated | procedural`, indexed).
+- `source` (`curated | procedural | exoplanet-catalog`, indexed), `catalogName` (string, nullable), `declaredStarCount` (number, nullable).
+- `planetCount`, `moonCount`, `asteroidCount` (numbers) — catalog body counts; `distanceApproximate` (boolean).
 - `isMultiStar` (boolean), `starCount` (number).
 - `positionPc`, `distanceParsec` (indexed).
-- `primaryStar` — embedded summary of the primary star (hygId, properName, spectralClass, spectralType, colorHex, luminositySolar, massSolar, radiusSolar, absoluteMagnitude).
+- `primaryStar` — embedded summary of the primary star (starId, hygId, properName, spectralClass, spectralType, colorHex, luminositySolar, massSolar, radiusSolar, absoluteMagnitude).
 - `generationSeed` (number, nullable) — deterministic procedural seed (defaults to primary HYG id).
 - `seedVersion`, `seededAt` (string, nullable).
 

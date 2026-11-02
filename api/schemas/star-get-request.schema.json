@@ -2,7 +2,8 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "star-get-request",
   "type": "object",
-  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity", "hygId"],
+  "required": ["playerName", "sessionKey", "correlationId", "requestIdentity"],
+  "anyOf": [{ "required": ["hygId"] }, { "required": ["starId"] }],
   "properties": {
     "playerName": { "type": "string" },
     "sessionKey": { "type": "string" },
@@ -21,6 +22,10 @@
       }
     },
     "hygId": { "type": "string" },
+    "starId": {
+      "type": "string",
+      "description": "Stable star identity (the star celestial body id). Required when hygId is absent."
+    },
     "requestId": { "type": "string" }
   }
 }

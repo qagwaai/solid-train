@@ -177,6 +177,7 @@ defineDelegatedMethods(MessageHandlerContext.prototype, celestialOperationsServi
   'deleteCelestialBodyByIdAsync',
   'addOrUpdateCelestialBodyAsync',
   'getCelestialBodiesNearPositionAsync',
+  'getSolarSystemLiveCountsAsync',
 ]);
 
 defineDelegatedMethods(MessageHandlerContext.prototype, marketOperationsService, [

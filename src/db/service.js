@@ -25,6 +25,7 @@ const celestialSeedStateService = require('./service/celestial-seed-state-servic
 const npcSeedStateService = require('./service/npc-seed-state-service');
 const jumpGateQueryService = require('./service/jump-gate-query-service');
 const starService = require('./service/star-service');
+const catalogSyncService = require('./service/catalog-sync-service');
 const solarSystemService = require('./service/solar-system-service');
 const npcBustService = require('./service/npc-bust-service');
 const { createLogger } = require('../logging/logger');
@@ -746,6 +747,15 @@ class DatabaseService {
   }
 
   /**
+   * Count celestial bodies of one type per solar system.
+   * @param {string} bodyType
+   * @returns {Promise<Map<string, number>>}
+   */
+  async getCelestialBodyCountsBySolarSystem(bodyType) {
+    return celestialQueryService.getCelestialBodyCountsBySolarSystem(this, CelestialBody, bodyType);
+  }
+
+  /**
    * Find items in a spherical radius around a position.
    * Items are located via spatial.positionKm and spatial.solarSystemId.
    * Uses a bounding-cube query first, then exact spherical distance filtering.
@@ -766,6 +776,10 @@ class DatabaseService {
 
   async getMarkets(query = {}) {
     return marketQueryService.getMarkets(this, Market, query);
+  }
+
+  async getMarketCountsBySolarSystem() {
+    return marketQueryService.getMarketCountsBySolarSystem(this, Market);
   }
 
   async getSolarSystemMarketSeedState(solarSystemId) {
@@ -877,6 +891,22 @@ class DatabaseService {
     return starService.getStarByHygId(this, Star, hygId);
   }
 
+  async getStarByStarId(starId) {
+    return starService.getStarByStarId(this, Star, starId);
+  }
+
+  /**
+   * Replace the stars collection with the star catalog (D49, D54).
+   * @param {Object[]} starEntries
+   */
+  async syncStars(starEntries) {
+    return catalogSyncService.syncCatalogCollection(this, Star, GameStateDocument, {
+      stateKey: 'star-catalog-sync-state',
+      keyField: 'starId',
+      records: starEntries,
+    });
+  }
+
   async getStars(query = {}) {
     return starService.getStars(this, Star, query);
   }
@@ -897,6 +927,18 @@ class DatabaseService {
 
   async getSolarSystems(query = {}) {
     return solarSystemService.getSolarSystems(this, SolarSystem, query);
+  }
+
+  /**
+   * Replace the solar_systems collection with the registry (D49).
+   * @param {Object[]} registryRecords
+   */
+  async syncSolarSystems(registryRecords) {
+    return catalogSyncService.syncCatalogCollection(this, SolarSystem, GameStateDocument, {
+      stateKey: 'solar-system-registry-sync-state',
+      keyField: 'id',
+      records: registryRecords,
+    });
   }
 
   /**

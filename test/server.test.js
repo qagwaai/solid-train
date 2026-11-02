@@ -163,7 +163,7 @@ test('startServer runs without MongoDB URI and shutdown exits cleanly', async ()
     assert.equal(typeof started.shutdown, 'function');
     for (const [marketId, hostId] of [
       ['ac-proxima-station', 'alpha-centauri-star-tertiary'],
-      ['bs-main-station', 'barnards-star-planet-1'],
+      ['bs-main-station', 'exo-barnard-b'],
     ]) {
       const ctx = started.messageHandlerContext;
       const market = [...ctx.marketsByKey.values()].find((entry) => entry.marketId === marketId);

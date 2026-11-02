@@ -387,15 +387,20 @@ async function startServer(options = {}) {
 
   await messageHandlerContext.initializeAsync({ seedDefaults: true });
 
-  // Best-effort persistence of HYG star + solar-system registry into Mongo so
-  // future deployments can query them directly. Failures are logged and ignored.
+  // Best-effort persistence of the star catalog (HYG + exoplanet catalog) and the
+  // solar-system registry into Mongo. Bulk writes are skipped when the content
+  // hash is unchanged (D49). Failures are logged and ignored.
   if (databaseService) {
     try {
-      const { getHygStars } = require('./model/hyg-star-catalog');
+      const { getStarCatalogEntries } = require('./model/star-catalog');
       const { getSolarSystemRegistry } = require('./model/solar-system-registry');
-      await databaseService.upsertStars(getHygStars());
-      await databaseService.upsertSolarSystems(getSolarSystemRegistry());
-      logger.info('[server] HYG star + solar-system registry persisted');
+      const starSync = await databaseService.syncStars(getStarCatalogEntries());
+      const systemSync = await databaseService.syncSolarSystems(getSolarSystemRegistry());
+      const describe = (result) =>
+        result.skipped ? 'unchanged' : `${result.upserted} upserted, ${result.removed} removed`;
+      logger.info(
+        `[server] Star catalog (${describe(starSync)}) + solar-system registry (${describe(systemSync)}) persisted`
+      );
     } catch (registryError) {
       logger.error(
         `[server] Failed to persist star/solar-system registry: ${registryError.message}`
@@ -418,7 +423,7 @@ async function startServer(options = {}) {
   );
 
   const marketSystems = ['sol', 'alpha-centauri', 'barnards-star'];
-  // Barnard's procedural host must exist before strict station materialization.
+  // Barnard b (exoplanet catalog, D45) must exist before strict station materialization.
   const barnardsStarSeedResult = await messageHandlerContext.seedSolarSystemCelestialBodiesAsync({
     solarSystemId: 'barnards-star',
   });

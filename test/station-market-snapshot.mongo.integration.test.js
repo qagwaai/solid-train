@@ -204,7 +204,7 @@ test('current seed metadata without persisted markets does not suppress an ordin
 
 for (const [system, marketId, hostId, legacyId] of [
   ['alpha-centauri', 'ac-proxima-station', 'alpha-centauri-star-tertiary', 'ac-proxima'],
-  ['barnards-star', 'bs-main-station', 'barnards-star-planet-1', 'bs-b1'],
+  ['barnards-star', 'bs-main-station', 'exo-barnard-b', 'bs-b1'],
 ]) {
   test(`${system}: cold persisted seed, failed-empty retry, fresh get/list/location/route shapes`, async () => {
     const ctx = freshContext();

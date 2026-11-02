@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CelestialRings",
+  "description": "Optional planetary ring system in the planet's equatorial plane (tilt equals the axial tilt). Catalog exoplanet rings are procedural (approximate: true); absence means no rings.",
+  "type": "object",
+  "required": ["innerRadiusKm", "outerRadiusKm", "tiltDeg", "colorHex", "opacity", "approximate"],
+  "properties": {
+    "innerRadiusKm": { "type": "number", "exclusiveMinimum": 0 },
+    "outerRadiusKm": { "type": "number", "exclusiveMinimum": 0 },
+    "tiltDeg": { "type": "number" },
+    "colorHex": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+    "approximate": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

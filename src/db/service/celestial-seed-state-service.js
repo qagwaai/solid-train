@@ -5,6 +5,15 @@ const {
 } = require('../../model/solar-system-celestial-seed');
 
 /**
+ * Seed state lives in one game-state document per solar system (D48), keyed
+ * `solar-system-celestial-seed-state:<solarSystemId>`, so seeding thousands of
+ * exoplanet systems never rewrites one shared array.
+ */
+function seedStateKey(solarSystemId) {
+  return `${SOLAR_SYSTEM_CELESTIAL_SEED_STATE_KEY}:${solarSystemId}`;
+}
+
+/**
  * Retrieve persisted celestial body catalog seed state for a solar system.
  * @param {Object} ctx
  * @param {Object} GameStateDocument
@@ -19,23 +28,16 @@ async function getSolarSystemCelestialSeedState(ctx, GameStateDocument, solarSys
     }
 
     const state = await GameStateDocument.findOne({
-      key: SOLAR_SYSTEM_CELESTIAL_SEED_STATE_KEY,
+      key: seedStateKey(normalizedSolarSystemId),
     }).lean();
-
-    const systems = Array.isArray(state?.value?.systems) ? state.value.systems : [];
-    const match = systems.find(
-      (entry) =>
-        ctx.toNonEmptyString(entry?.solarSystemId).toLowerCase() === normalizedSolarSystemId
-    );
-
-    if (!match) {
+    if (!state?.value) {
       return null;
     }
 
     return {
       solarSystemId: normalizedSolarSystemId,
-      seedVersion: ctx.toNonEmptyString(match.seedVersion),
-      seededAt: ctx.toNonEmptyString(match.seededAt),
+      seedVersion: ctx.toNonEmptyString(state.value.seedVersion),
+      seededAt: ctx.toNonEmptyString(state.value.seededAt),
     };
   } catch (error) {
     ctx.log(`[db-service] Error fetching celestial seed state: ${error.message}`);
@@ -44,7 +46,7 @@ async function getSolarSystemCelestialSeedState(ctx, GameStateDocument, solarSys
 }
 
 /**
- * Persist celestial body catalog seed state for a solar system (replace-or-insert entry).
+ * Persist celestial body catalog seed state for a solar system.
  * @param {Object} ctx
  * @param {Object} GameStateDocument
  * @param {string} solarSystemId
@@ -68,30 +70,16 @@ async function setSolarSystemCelestialSeedState(
       return null;
     }
 
-    const state = await GameStateDocument.findOne({
-      key: SOLAR_SYSTEM_CELESTIAL_SEED_STATE_KEY,
-    });
-
-    const systems = Array.isArray(state?.value?.systems)
-      ? state.value.systems.map((entry) => ({
-          solarSystemId: ctx.toNonEmptyString(entry?.solarSystemId).toLowerCase(),
-          seedVersion: ctx.toNonEmptyString(entry?.seedVersion),
-          seededAt: ctx.toNonEmptyString(entry?.seededAt),
-        }))
-      : [];
-
-    const filtered = systems.filter((entry) => entry.solarSystemId !== normalizedSolarSystemId);
-    filtered.push({
-      solarSystemId: normalizedSolarSystemId,
-      seedVersion: normalizedSeedVersion,
-      seededAt: normalizedSeededAt,
-    });
-
-    const persisted = await GameStateDocument.findOneAndUpdate(
-      { key: SOLAR_SYSTEM_CELESTIAL_SEED_STATE_KEY },
+    const key = seedStateKey(normalizedSolarSystemId);
+    return await GameStateDocument.findOneAndUpdate(
+      { key },
       {
-        key: SOLAR_SYSTEM_CELESTIAL_SEED_STATE_KEY,
-        value: { systems: filtered },
+        key,
+        value: {
+          solarSystemId: normalizedSolarSystemId,
+          seedVersion: normalizedSeedVersion,
+          seededAt: normalizedSeededAt,
+        },
         updatedAt: new Date(),
       },
       {
@@ -100,8 +88,6 @@ async function setSolarSystemCelestialSeedState(
         setDefaultsOnInsert: true,
       }
     ).lean();
-
-    return persisted;
   } catch (error) {
     ctx.log(`[db-service] Error setting celestial seed state: ${error.message}`);
     throw error;
@@ -110,5 +96,6 @@ async function setSolarSystemCelestialSeedState(
 
 module.exports = {
   getSolarSystemCelestialSeedState,
+  seedStateKey,
   setSolarSystemCelestialSeedState,
 };

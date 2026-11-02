@@ -11,7 +11,10 @@ paths:
     post:
       summary: star-get-request
       description: |
-        Returns a single HYG catalog star by `hygId`.
+        Returns a single catalog star by `starId` or `hygId` (`starId` wins when both
+        are sent). Stars come from HYG (`catalogSource: hyg`) or are synthesized from
+        the NASA Exoplanet Archive (`catalogSource: exoplanet-catalog`); synthesized
+        stars have `hygId: null` and the top-level `hygId` echo is an empty string.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).
@@ -20,7 +23,7 @@ paths:
 
         Response notes:
         - `star` is present only on success.
-        - Failure responses still echo `hygId` and `requestId` when provided.
+        - Failure responses still echo `hygId`, `starId`, and `requestId` when provided.
       operationId: socketStarGet
       tags: [Stars]
       requestBody:
@@ -85,8 +88,9 @@ paths:
     post:
       summary: star-list-request
       description: |
-        Returns HYG catalog stars, optionally filtered by system, spectral class,
-        and maximum distance.
+        Returns catalog stars (HYG plus exoplanet-catalog host stars), optionally
+        filtered by system, spectral class, and maximum distance. Every star has a
+        unique `starId`.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).

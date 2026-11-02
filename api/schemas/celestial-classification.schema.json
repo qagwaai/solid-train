@@ -17,6 +17,11 @@
         "ocean",
         "gas-giant",
         "ice-giant",
+        "super-earth",
+        "sub-neptune",
+        "hot-neptune",
+        "hot-jupiter",
+        "super-jupiter",
         "star",
         "rocky-moon",
         "icy-moon",
@@ -39,7 +44,20 @@
       "if": { "properties": { "bodyType": { "const": "planet" } } },
       "then": {
         "properties": {
-          "surfaceArchetype": { "enum": ["rocky", "lava", "ocean", "gas-giant", "ice-giant"] }
+          "surfaceArchetype": {
+            "enum": [
+              "rocky",
+              "lava",
+              "ocean",
+              "gas-giant",
+              "ice-giant",
+              "super-earth",
+              "sub-neptune",
+              "hot-neptune",
+              "hot-jupiter",
+              "super-jupiter"
+            ]
+          }
         }
       }
     },

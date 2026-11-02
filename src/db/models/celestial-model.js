@@ -399,6 +399,11 @@ function createCelestialModelArtifacts({
           'ocean',
           'gas-giant',
           'ice-giant',
+          'super-earth',
+          'sub-neptune',
+          'hot-neptune',
+          'hot-jupiter',
+          'super-jupiter',
           'star',
           'rocky-moon',
           'icy-moon',
@@ -484,6 +489,29 @@ function createCelestialModelArtifacts({
       },
       hipId: { type: String, default: null },
       hdId: { type: String, default: null },
+      catalogSource: { type: String, default: null, index: true },
+      catalogIds: { type: mongoose.Schema.Types.Mixed, default: null },
+      catalogName: { type: String, default: null },
+      approximateFields: { type: [String], default: undefined },
+      rings: {
+        type: new mongoose.Schema(
+          {
+            innerRadiusKm: { type: Number, required: true, min: 0 },
+            outerRadiusKm: { type: Number, required: true, min: 0 },
+            tiltDeg: { type: Number, required: true },
+            colorHex: { type: String, required: true },
+            opacity: { type: Number, required: true, min: 0, max: 1 },
+            approximate: { type: Boolean, required: true },
+          },
+          { _id: false }
+        ),
+        default: undefined,
+      },
+      status: { type: String, enum: ['confirmed'], default: undefined },
+      controversial: { type: Boolean, default: undefined },
+      circumbinary: { type: Boolean, default: undefined },
+      circumbinaryStarIds: { type: [String], default: undefined },
+      systemRole: { type: String, default: undefined },
       visualization: {
         type: new mongoose.Schema(
           {

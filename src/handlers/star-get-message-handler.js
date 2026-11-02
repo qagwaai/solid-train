@@ -1,7 +1,7 @@
 'use strict';
 
 const { STAR_GET_RESPONSE_EVENT } = require('../model/star-get');
-const { getHygStars } = require('../model/hyg-star-catalog');
+const { getStarEntryByHygId, getStarEntryByStarId } = require('../model/star-catalog');
 const { attachRequestId } = require('./handler-utils');
 
 class StarGetMessageHandler {
@@ -11,15 +11,17 @@ class StarGetMessageHandler {
 
   async buildResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
-    const hygId = this.context.toNonEmptyString(payload?.hygId);
+    const requestedHygId = this.context.toNonEmptyString(payload?.hygId);
+    const requestedStarId = this.context.toNonEmptyString(payload?.starId);
+    const echo = { hygId: requestedHygId, ...(requestedStarId ? { starId: requestedStarId } : {}) };
 
-    if (!playerName || !hygId) {
+    if (!playerName || (!requestedHygId && !requestedStarId)) {
       return attachRequestId(
         {
           success: false,
-          message: 'playerName and hygId are required',
+          message: 'playerName and starId or hygId are required',
           playerName,
-          hygId,
+          ...echo,
         },
         payload
       );
@@ -32,20 +34,23 @@ class StarGetMessageHandler {
           success: false,
           message: 'Player is not registered',
           playerName,
-          hygId,
+          ...echo,
         },
         payload
       );
     }
 
-    const star = getHygStars().find((entry) => entry.hygId === hygId) || null;
+    // starId wins when both are sent (D54).
+    const star = requestedStarId
+      ? getStarEntryByStarId(requestedStarId)
+      : getStarEntryByHygId(requestedHygId);
     if (!star) {
       return attachRequestId(
         {
           success: false,
           message: 'Star not found',
           playerName: player.playerName,
-          hygId,
+          ...echo,
         },
         payload
       );
@@ -56,7 +61,8 @@ class StarGetMessageHandler {
         success: true,
         message: 'Star retrieved successfully',
         playerName: player.playerName,
-        hygId,
+        hygId: star.hygId || '',
+        starId: star.starId,
         star,
       },
       payload

@@ -12,7 +12,10 @@ function createStarModelArtifacts({ mongoose }) {
 
   const starSchema = new mongoose.Schema(
     {
-      hygId: { type: String, required: true, unique: true, index: true },
+      // Stable identity (D54): the star celestial body id. hygId is optional and
+      // non-unique because exoplanet-catalog stars may have no HYG record.
+      starId: { type: String, required: true, unique: true, index: true },
+      hygId: { type: String, default: null, index: true },
       hipId: { type: String, default: null, index: true },
       hdId: { type: String, default: null, index: true },
       properName: { type: String, default: null, index: true },
@@ -34,7 +37,14 @@ function createStarModelArtifacts({ mongoose }) {
       positionPc: { type: positionPcSchema, default: () => ({ x: 0, y: 0, z: 0 }) },
       systemId: { type: String, required: true, index: true },
       systemRole: { type: String, default: 'primary' },
-      sourceCatalog: { type: String, default: 'hyg' },
+      catalogSource: {
+        type: String,
+        enum: ['hyg', 'exoplanet-catalog'],
+        default: 'hyg',
+        index: true,
+      },
+      catalogName: { type: String, default: null },
+      approximate: { type: Boolean, default: false },
     },
     {
       collection: 'stars',
