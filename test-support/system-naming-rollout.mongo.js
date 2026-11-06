@@ -30,6 +30,8 @@ const {
 const historical = require('../test/fixtures/system-naming-proposal-manifest-v1.json');
 const batch = require('../data/system-naming-weighted-batch-v1.json');
 const fullCatalogReview = require('../data/system-naming-full-catalog-review-v1.json');
+const finalization = require('../data/system-naming-finalization-v1.json');
+const expansionBaseline = require('../data/system-naming-finalization-baseline-v1.json');
 
 const hash = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const presentationIndependent = ({
@@ -45,7 +47,7 @@ const prefix = 'stellar_naming_rollout_test_';
 
 test(
   'actual Mongo: full-registry disabled sync, activation, search, repeat sync and rollback preserve bodies/save refs',
-  { timeout: 120000 },
+  { timeout: 300000 },
   async (t) => {
     const owner = randomUUID();
     const dbName = `${prefix}${owner.replaceAll('-', '')}`;
@@ -97,7 +99,7 @@ test(
     assert.equal(disabled.length, baseline.length);
     assert.equal(active.length, baseline.length);
     const assignedIds = Object.keys(getSystemNamingManifest().approvedAssignments);
-    assert.equal(assignedIds.length, 119);
+    assert.equal(assignedIds.length, 4025);
     const bodiesHash = () =>
       hash(
         assignedIds.map((id) =>
@@ -112,6 +114,7 @@ test(
       ]);
     const originalSeedHashes = seedHashes();
     const originalGeneratedBodies = bodiesHash();
+    t.diagnostic('Verified full-scope generated-body and physical-seed before-images.');
     // Simulate an existing pre-searchTerms registry and its real historical startup hash.
     await SolarSystem.collection.insertMany(baseline);
     await GameStateDocument.create({
@@ -180,6 +183,7 @@ test(
           .lean(),
       });
     const before = await untouchedDigest();
+    t.diagnostic('Pinned isolated stored-body and saved-player before-images.');
     // A reseed attempt is a hard failure, not a proxy success or swallowed fallback.
     service.addOrUpdateCelestialBody = async () => {
       throw new Error('UNAUTHORIZED RESEED');
@@ -242,6 +246,7 @@ test(
     assert.equal(migration.removed, 0);
     assert.notEqual(migration.hash, hash(baseline));
     const disabledStored = await verifySummaries(disabled);
+    t.diagnostic('Verified full-registry disabled synchronization.');
     assert.equal(disabledStored.filter((record) => record.settlementName !== null).length, 0);
     const assertSearch = async (query, id) => {
       const found = await service.getSolarSystems({ search: query });
@@ -258,6 +263,7 @@ test(
     assert.equal(activation.upserted, 4845);
     assert.equal(activation.removed, 0);
     const activeStored = await verifySummaries(active);
+    t.diagnostic('Verified full-registry 4025-name activation.');
     const changed = activeStored.filter(
       (record, i) => record.displayName !== disabledStored[i].displayName
     );
@@ -265,7 +271,7 @@ test(
     assert.equal(
       activeStored.filter((record, i) => record.settlementName !== disabledStored[i].settlementName)
         .length,
-      119
+      4025
     );
     assert.deepEqual(
       activeStored.map(presentationIndependent),
@@ -280,6 +286,11 @@ test(
       await assertSearch(row.designation, row.systemId);
       await assertSearch(row.proposedSettlementName, row.systemId);
     }
+    for (const language of new Set(finalization.rows.map((row) => row.language))) {
+      const row = finalization.rows.find((entry) => entry.language === language);
+      await assertSearch(row.designation, row.systemId);
+      await assertSearch(row.name, row.systemId);
+    }
     for (const query of ['星', '星港']) await assertSearch(query, 'exo-kepler-397');
     for (const query of ['منارة', 'Manara'.normalize('NFD')])
       await assertSearch(query, 'exo-k2-221');
@@ -291,6 +302,17 @@ test(
     const repeat = await service.syncSolarSystems(active);
     assert.deepEqual(repeat, { skipped: true, hash: activation.hash, upserted: 0, removed: 0 });
     assert.deepEqual(await readSummaries(), activeStored);
+    await verifyCachePath();
+
+    const expansionOnly = getSolarSystemRegistry({ namingManifest: expansionBaseline });
+    const expansionRollback = await service.syncSolarSystems(expansionOnly);
+    assert.equal(expansionRollback.removed, 0);
+    const expansionStored = await verifySummaries(expansionOnly);
+    assert.equal(expansionStored.filter((record) => record.settlementName !== null).length, 119);
+    assert.equal(
+      expansionStored.filter((record, i) => record.displayName !== activeStored[i].displayName).length,
+      3906
+    );
     await verifyCachePath();
 
     const rollback = await service.syncSolarSystems(disabled);
@@ -320,7 +342,7 @@ test(
     assert.ok(response.bodies.some((body) => body.id === anchor.id));
     assert.equal(getSystemNamingManifest().runtimeEnabled, true);
     t.diagnostic(
-      `PASS: 4845 systems; 119 label/settlement changes; 0 removals; identity/source/physical digests equal; ${await CelestialBody.countDocuments()} stored bodies and saved ship refs unchanged; disabled hash=${migration.hash}; active hash=${activation.hash}`
+      `PASS: 4845 systems; 4025 label/settlement changes; expansion-only rollback restores 119 names; 0 removals; identity/source/physical digests equal; ${await CelestialBody.countDocuments()} stored bodies and saved ship refs unchanged; disabled hash=${migration.hash}; active hash=${activation.hash}`
     );
   }
 );

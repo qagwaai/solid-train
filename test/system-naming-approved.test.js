@@ -6,7 +6,6 @@ const test = require('node:test');
 const { getSolarSystemRegistry } = require('../src/model/solar-system-registry');
 const { getExoplanetSystemProperNames } = require('../src/model/exoplanet-catalog');
 const {
-  getSystemNamingManifest,
   comparisonKeys,
   getSourceEvidence,
   isProtected,
@@ -16,15 +15,17 @@ const historical = require('./fixtures/system-naming-proposal-manifest-v1.json')
 const batch = require('../data/system-naming-weighted-batch-v1.json');
 const fullCatalog = require('../data/system-naming-full-catalog-review-v1.json');
 const eligibilityReview = require('../data/system-naming-eligibility-review-2026-11-06.json');
+const finalizationBaseline = require('../data/system-naming-finalization-baseline-v1.json');
 const hash = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
-test('active manifest publishes 119 assignments and records 144 eligible systems', () => {
-  const manifest = getSystemNamingManifest();
+test('pinned pre-finalization milestone publishes 119 assignments and records 144 eligible systems', () => {
+  const manifest = finalizationBaseline;
+  const runtime = getSolarSystemRegistry();
   const baseline = getSolarSystemRegistry({ namingManifest: historical });
   const disabled = getSolarSystemRegistry({
     namingManifest: { ...manifest, runtimeEnabled: false },
   });
-  const active = getSolarSystemRegistry();
+  const active = getSolarSystemRegistry({ namingManifest: manifest });
   assert.equal(manifest.runtimeEnabled, true);
   assert.equal(manifest.approval.livePublicationAuthorized, true);
   assert.equal(manifest.approval.date, '2026-11-06');
@@ -185,7 +186,7 @@ test('active manifest publishes 119 assignments and records 144 eligible systems
   }
   assert.strictEqual(
     getSolarSystemRegistry(),
-    active,
+    runtime,
     'injected disabled projection must not replace runtime cache'
   );
 });

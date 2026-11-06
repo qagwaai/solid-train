@@ -145,6 +145,20 @@ function validateNamingManifest(registry, namingManifest = manifest) {
       errors.push(`assignment ${id} has no settlement name`);
     }
   }
+  const labelOwners = new Map();
+  for (const system of registry) {
+    for (const label of [
+      system.displayName,
+      system.catalogName,
+      system.primaryStar?.properName,
+      ...(Array.isArray(system.aliases) ? system.aliases : []),
+    ]) {
+      for (const key of comparisonKeys(label)) {
+        if (!labelOwners.has(key)) labelOwners.set(key, new Set());
+        labelOwners.get(key).add(system.id);
+      }
+    }
+  }
   const assignedKeys = new Map();
   for (const [id, assignment] of Object.entries(publishableAssignments)) {
     for (const key of comparisonKeys(assignment?.settlementName)) {
@@ -153,18 +167,9 @@ function validateNamingManifest(registry, namingManifest = manifest) {
       } else {
         assignedKeys.set(key, id);
       }
-    }
-    for (const system of registry) {
-      if (system.id === id) continue;
-      const labels = [
-        system.displayName,
-        system.catalogName,
-        system.primaryStar?.properName,
-        ...(Array.isArray(system.aliases) ? system.aliases : []),
-      ];
-      for (const label of labels) {
-        if (comparisonKeys(label).some((key) => assignedKeys.get(key) === id)) {
-          errors.push(`assignment name collision between ${id} and ${system.id}`);
+      for (const otherId of labelOwners.get(key) || []) {
+        if (otherId !== id) {
+          errors.push(`assignment name collision between ${id} and ${otherId}`);
         }
       }
     }

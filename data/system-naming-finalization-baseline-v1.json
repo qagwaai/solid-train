@@ -1,0 +1,2083 @@
+{
+  "manifestVersion": 2,
+  "algorithmVersion": "system-naming-weighted-batch-v2",
+  "policyVersion": "system-naming-weighted-allocation-v2",
+  "seed": "stellar-naming-seed-v1",
+  "runtimeEnabled": true,
+  "approval": {
+    "date": "2026-11-06",
+    "reviewer": "project owner (user)",
+    "scope": "Original 25 frozen batch entries remain unchanged; owner approved 94 full-catalog pairings for source eligibility and name content, then approved 25 additional systems for eligibility only.",
+    "source": "Owner decisions recorded 2026-11-06; data/system-naming-full-catalog-review-v1.json reviewProposals and data/system-naming-eligibility-review-2026-11-06.json.",
+    "proposal": "data/system-naming-weighted-batch-v1.json",
+    "frozenPlan": "data/system-naming-weighted-batch-plan-v2.json",
+    "independentLinguisticOrCulturalVerification": "not-performed",
+    "editorialContextAndAllAgesReview": "owner-approved-exact-review-pairings; no independent certification claimed",
+    "rightsStatus": "owner-risk-acceptance-not-legal-clearance",
+    "livePublicationAuthorized": true,
+    "additionalProposal": "data/system-naming-full-catalog-review-v1.json#reviewProposals",
+    "ownerDecision": "All rows are accepted. All rows are approved. All rows are ready for activation.",
+    "activationStatus": "manifest-enabled; coordinated-backend-startup-and-live-verification-pending"
+  },
+  "eligibility": {
+    "exo-gj-9066": {
+      "decision": "eligible",
+      "reason": "GJ 9066: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "f95a573cbb017cd1e2d34a5196181ce31eb2d456636742377b13191360c22f82"
+    },
+    "exo-kepler-931": {
+      "decision": "eligible",
+      "reason": "Kepler-931: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "861e70dbb5643dcd99162c7f6d188a5a5a5304395acc5137764a87a5d43cf809"
+    },
+    "exo-kepler-1723": {
+      "decision": "eligible",
+      "reason": "Kepler-1723: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "2f5ee9b84b4ed7515b80beaf92ae1d8b1afc30320861f873ef4dc8d4b69b324c"
+    },
+    "exo-toi-406": {
+      "decision": "eligible",
+      "reason": "TOI-406: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "9c50baac0e601539a8d8fff1d2a13ac41f174d735cd5858f532fcfe1a5206717"
+    },
+    "exo-hd-221416": {
+      "decision": "eligible",
+      "reason": "HD 221416: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "4e309f50e5fecef35291bc7dd382fffa12c8a8adcf80bae89b5da4ae218945a1"
+    },
+    "exo-wispit-1": {
+      "decision": "eligible",
+      "reason": "WISPIT 1: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "9ecbece3c711549568d7fe38f83ee6e01d9f668268ef7a96a1ba15ff936325a4"
+    },
+    "exo-hd-103197": {
+      "decision": "eligible",
+      "reason": "HD 103197: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "2251cf3bc80ddd396dd3d7a4f42580427aba43979e5b33d3b72256e8fe15535b"
+    },
+    "exo-hd-133131": {
+      "decision": "eligible",
+      "reason": "HD 133131: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "0fa12f476376226dcb8d88eb0aa64caeb65737a963c67d2e48b0221cbc9d09b8"
+    },
+    "exo-kepler-397": {
+      "decision": "eligible",
+      "reason": "Kepler-397: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "0fcae9ee813dfc183677bf5d7a63f90242b3c6ac6bed14035aa03868cc64edd6"
+    },
+    "exo-kepler-214": {
+      "decision": "eligible",
+      "reason": "Kepler-214: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "a2502ef6bb1ed54b8a77385c6331808d7d88f304e2f7f9b3b3f81c8818476763"
+    },
+    "exo-toi-1846": {
+      "decision": "eligible",
+      "reason": "TOI-1846: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8263c6d18bfc94027e54cc38f8dd58d685fb066650fcd7babb4ca9c587ca5d50"
+    },
+    "exo-hd-216770": {
+      "decision": "eligible",
+      "reason": "HD 216770: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "b1a30ed448f199504251419370a541801ebde591d7841be044aa327d7de7a729"
+    },
+    "exo-kepler-1605": {
+      "decision": "eligible",
+      "reason": "Kepler-1605: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "dc7871e7334e3f14d0960dbc32c2159575589a3ec8c514090b5cd04a05a5a8a0"
+    },
+    "exo-kepler-1633": {
+      "decision": "eligible",
+      "reason": "Kepler-1633: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "c0d8b50358468c5f41c3787a31a41517f157e5e049549267282cf1c24c1c47b7"
+    },
+    "exo-kepler-1548": {
+      "decision": "eligible",
+      "reason": "Kepler-1548: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d72e995849f42dc269de42aa1f1a793ea3b58b5a59fabe01ee621ee0f9fca919"
+    },
+    "exo-hd-238914": {
+      "decision": "eligible",
+      "reason": "HD 238914: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "15d74d02cc0c5c4d27466e3e076e6300e0ba88dc7f320b6ee54c7013ca8303b4"
+    },
+    "exo-hd-86065": {
+      "decision": "eligible",
+      "reason": "HD 86065: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "0f18b138c6cd8a0decd32bf3899fda78f55dbde4871f7871e260fb188cd0dbe0"
+    },
+    "exo-hd-164595": {
+      "decision": "eligible",
+      "reason": "HD 164595: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "b926ae68c7145fd242ace60e258149cd089e1117adee16ba28c514953fe19837"
+    },
+    "exo-k2-221": {
+      "decision": "eligible",
+      "reason": "K2-221: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "98fb062578dad04e86e535a022bb8985a268566ff543a89663dff0893fb49991"
+    },
+    "exo-kepler-1999": {
+      "decision": "eligible",
+      "reason": "Kepler-1999: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "78187a7fc0ca8417bc6a1670ff0fff9d9ec8e2cb7137446a27765d99212f093c"
+    },
+    "exo-kepler-625": {
+      "decision": "eligible",
+      "reason": "Kepler-625: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "6b17906afbd62233d6a386016d0099fb7cee145005d006fd4d9fd0a06c5a86cc"
+    },
+    "exo-k2-133": {
+      "decision": "eligible",
+      "reason": "K2-133: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "237756c5f8e3bd488df0ffe58bd55828c38100f93145172f33de7f64209ebecf"
+    },
+    "exo-hd-66428": {
+      "decision": "eligible",
+      "reason": "HD 66428: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8ea148ed7436a9ba42dab8593e1abeaed9b89a82e7bf075374fbd7a25ba150d7"
+    },
+    "exo-k2-196": {
+      "decision": "eligible",
+      "reason": "K2-196: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "e721ebf975a97aa24ef600b792398b6cc6b7b6d07c62d1cd0eb352470e395177"
+    },
+    "exo-kic-9663113": {
+      "decision": "eligible",
+      "reason": "KIC 9663113: frozen source evidence reviewed; no source component proper names.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "beffe20f2fc218887dc9ecb8409f38ef832e82521d616a5f893915ad378567bb"
+    },
+    "exo-kepler-1558": {
+      "decision": "eligible",
+      "reason": "Kepler-1558: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "14d447b9d2d254b98d9210ef0bb3bb2f3b152b4cf43481d7cb343cda75ebd253"
+    },
+    "exo-wasp-107": {
+      "decision": "eligible",
+      "reason": "WASP-107: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "25af97469795808e2bd5996db3a8d8624c7ce8993c9809b57866e01de1a603cd"
+    },
+    "exo-hd-108863": {
+      "decision": "eligible",
+      "reason": "HD 108863: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "e1fa777d95de15d785cc75087d31038a5cbe706358ed4e452b1518bb5557441d"
+    },
+    "exo-hd-171238": {
+      "decision": "eligible",
+      "reason": "HD 171238: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "f5ead3ee7f0e928964cbaa682e19b02cf18cd972c8a8d5893e4c800f05a1798b"
+    },
+    "exo-kepler-1913": {
+      "decision": "eligible",
+      "reason": "Kepler-1913: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "eb1b5a433fa4dd7bca7e6537f44550342525b1f430e9467e2e44524d419739cc"
+    },
+    "exo-kepler-586": {
+      "decision": "eligible",
+      "reason": "Kepler-586: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "46e42732f9b821779577f36caae78c436a7c0b60a3f4648956d6f7fd41701f8a"
+    },
+    "exo-kepler-305": {
+      "decision": "eligible",
+      "reason": "Kepler-305: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "6bdc62f32b2108338c7b3116b0cf7a44dfabc577c9a0ee80429532bd150e5b42"
+    },
+    "exo-kepler-775": {
+      "decision": "eligible",
+      "reason": "Kepler-775: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "622d961d1a9b39127959eddbfcbdbe42f9b11fc5a518bda91ec59918574ff88b"
+    },
+    "exo-kepler-1667": {
+      "decision": "eligible",
+      "reason": "Kepler-1667: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "064451bb264227e155840c3784f227ff3eae78b00f726bcba11763f883199095"
+    },
+    "exo-kepler-1756": {
+      "decision": "eligible",
+      "reason": "Kepler-1756: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "f1dec8f487f0ea15ff595cdafd5f8ffdadd8c9106d1ff7cdc9cfa365e74988e9"
+    },
+    "exo-hd-140901": {
+      "decision": "eligible",
+      "reason": "HD 140901: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "5c04211afc0e9806038aa2d1265a1314a65791c5d9ac8f645e10988bf94661b0"
+    },
+    "exo-kepler-1390": {
+      "decision": "eligible",
+      "reason": "Kepler-1390: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "fa4a8e6687657aaf87a54719d55a49bb2665781af168f697ec1e9c88ef578b06"
+    },
+    "exo-kepler-1164": {
+      "decision": "eligible",
+      "reason": "Kepler-1164: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "6f836244f6a514ca24e50f05769465b088388b7af56a779a10e4c8cd2caa454c"
+    },
+    "exo-kepler-338": {
+      "decision": "eligible",
+      "reason": "Kepler-338: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "982526cf40300f6c29b457fd30d68d2ac06ede1dc3b9849a585de88cab7b956d"
+    },
+    "exo-toi-2578": {
+      "decision": "eligible",
+      "reason": "TOI-2578: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "4bea6a32ff9795e3152d30a470424401abee4f04a53a7a3aa4074691f7725175"
+    },
+    "exo-kepler-1899": {
+      "decision": "eligible",
+      "reason": "Kepler-1899: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "c6b651190c37bd2526142144305913311751565582c395ce100f6eae9da39d0e"
+    },
+    "exo-kepler-1080": {
+      "decision": "eligible",
+      "reason": "Kepler-1080: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "51f42e05f08d6833402b6c755526e72f964cccf33ad836ece49606cd5b2e7041"
+    },
+    "exo-k2-63": {
+      "decision": "eligible",
+      "reason": "K2-63: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "99a7420bf65ece9f26ebbefbc71519788090d2d845565365402ff53519868bd1"
+    },
+    "exo-kepler-1210": {
+      "decision": "eligible",
+      "reason": "Kepler-1210: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "2a6233809a8c5f815b5c4785f3a724d0615a0da33a3478b2342fa5089ec60680"
+    },
+    "exo-kepler-755": {
+      "decision": "eligible",
+      "reason": "Kepler-755: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "b2539b1dfa2aa31bf04aedef0e380fa6229df2175612a5e711f0a383eafaf34a"
+    },
+    "exo-toi-4034": {
+      "decision": "eligible",
+      "reason": "TOI-4034: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "870055f078dcf691fe0bc69482d69898ef3315d9d01a360614a93c39dd90a4d2"
+    },
+    "exo-kepler-1636": {
+      "decision": "eligible",
+      "reason": "Kepler-1636: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "ae1d943250dabcc6b408d7d0f595433ddb53d8041af2a45b863ced334c7322b4"
+    },
+    "exo-toi-4914": {
+      "decision": "eligible",
+      "reason": "TOI-4914: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "43b50c371cca7156ecee4a012c6d9390f090a96babb13b2a0aa13fd4dfa7eee9"
+    },
+    "exo-kepler-622": {
+      "decision": "eligible",
+      "reason": "Kepler-622: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "c5ea2c3667310b14122dd7c5c8e4f529d75248f284c30cfea3327dd51577c062"
+    },
+    "exo-kepler-197": {
+      "decision": "eligible",
+      "reason": "Kepler-197: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "f8e02d597b7f36e6b8d5ac5cfefbee1f0a91bf444c07d6765a86da4a08094aa1"
+    },
+    "exo-hd-97048": {
+      "decision": "eligible",
+      "reason": "HD 97048: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "39ce8f14383b595ede9217758219d1358d248d9165468ef04e1786abafeb2b38"
+    },
+    "exo-gliese-12": {
+      "decision": "eligible",
+      "reason": "Gliese 12: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "dd0e9341c80c16130222816860410f0054c2aa9f0e2f08545f42995051fb8abb"
+    },
+    "exo-hip-54515": {
+      "decision": "eligible",
+      "reason": "HIP 54515: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "b4aa7428a0103d1ad69ca7d9317bae35d98431f7c83b0eb1d0232943378a12b5"
+    },
+    "exo-toi-3457": {
+      "decision": "eligible",
+      "reason": "TOI-3457: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d29493b73a34b1ed9a2697bad3de4a175095bd1bc172c55bfc6cf6e4a2e9eeb7"
+    },
+    "exo-toi-512": {
+      "decision": "eligible",
+      "reason": "TOI-512: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "af6caf42516ee2244f139aa75c78f3863e29fbf0dcbb618a1fea4fbbb988a5f9"
+    },
+    "exo-wasp-145": {
+      "decision": "eligible",
+      "reason": "WASP-145: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "9de5c062ce9c16603d2608d3414059caaaf1f84a79454cd8f27099b144927ef2"
+    },
+    "exo-kepler-1930": {
+      "decision": "eligible",
+      "reason": "Kepler-1930: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "16707fb1f9797999dbc23b63fbdec51ea02bf190decbf03a7240f4958dc64469"
+    },
+    "exo-tic-18942729": {
+      "decision": "eligible",
+      "reason": "TIC 18942729: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "98d63042a8f66f6b6ba8c66b7ae129320628ed8cf67a7b08cf3d07ebdeaad5af"
+    },
+    "exo-kepler-1928": {
+      "decision": "eligible",
+      "reason": "Kepler-1928: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "e414e0da257a645e0afae61d8666cacd08adb66a5d3a31d038ebf96cc436a2f1"
+    },
+    "exo-kepler-571": {
+      "decision": "eligible",
+      "reason": "Kepler-571: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "5a11206c721f1047010947f7138baeb9d7d0e57abdf106dbc171601df96262a4"
+    },
+    "exo-epic-212737443": {
+      "decision": "eligible",
+      "reason": "EPIC 212737443: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "ed1f384e0df5f930cce42a305dcf4072e28081d94da6ffd947ec33951f2a8657"
+    },
+    "exo-gl-49": {
+      "decision": "eligible",
+      "reason": "Gl 49: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8425b75088b65ac52cdcd1af364ea7634376ea83fb3b3db8e7265f0bd0997a35"
+    },
+    "exo-hd-181433": {
+      "decision": "eligible",
+      "reason": "HD 181433: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8e8b7c01cb61913a1026da2e600a57e3efc311b0b00dbc985680544a80d0d0fd"
+    },
+    "exo-kepler-1383": {
+      "decision": "eligible",
+      "reason": "Kepler-1383: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "792c5a599f425e6e556bad27103ac3ba02a1aff461e18f81e05bcb5a69c6dc5d"
+    },
+    "exo-kepler-1797": {
+      "decision": "eligible",
+      "reason": "Kepler-1797: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d5cc83c8fcda4d173a4478e4d7f1e7d347f464410a60ca0a3f4f17b7c5ab395b"
+    },
+    "exo-gj-328": {
+      "decision": "eligible",
+      "reason": "GJ 328: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "afbf94e3ced2771d5f5463464f01cd449b6b377e88ae1233a6dbc2e1641d2725"
+    },
+    "exo-kepler-836": {
+      "decision": "eligible",
+      "reason": "Kepler-836: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "657698192df87dc05781e1ab70d4576a55cf0906dfb3ca51c17162361305a154"
+    },
+    "exo-toi-4527": {
+      "decision": "eligible",
+      "reason": "TOI-4527: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8b9eb0d9dc2e8cbda0ced2c708afd8af1421bd37777bd506925bd3b30550a92c"
+    },
+    "exo-toi-1824": {
+      "decision": "eligible",
+      "reason": "TOI-1824: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8867fb69aef6ef3c990d04e2387bd609b36bc58c16d3011ad7c608612bab379b"
+    },
+    "exo-tyc-4282-00605-1": {
+      "decision": "eligible",
+      "reason": "TYC 4282-00605-1: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "4b2d9b325f32907369a22d849565ebced04d0b2371264e7cdbfad852d2add676"
+    },
+    "exo-k2-249": {
+      "decision": "eligible",
+      "reason": "K2-249: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "43394e75794e5dffd59d49277dad51f26f7b7f07ff089e15072191cca83fb9ed"
+    },
+    "exo-toi-1232": {
+      "decision": "eligible",
+      "reason": "TOI-1232: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "6c257233d4afebd7e50327c3830fdc31b0ddaab3bc7360690c43b1964ab5b969"
+    },
+    "exo-kepler-379": {
+      "decision": "eligible",
+      "reason": "Kepler-379: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "7c91a3472fe401a1d1ab3abbcba1f8b3fba9fc93a2b4e8676dbcffbeaa54cbf0"
+    },
+    "exo-kepler-1352": {
+      "decision": "eligible",
+      "reason": "Kepler-1352: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "52e8b6f69b6c2ee07a625f168273e1fea99dda6fa14b5b7e2abb16c51ab61876"
+    },
+    "exo-kepler-236": {
+      "decision": "eligible",
+      "reason": "Kepler-236: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "932e1480ecd5693dfe675429f919395c3e5e75e0f1b9b538b11f4ab0845e75b9"
+    },
+    "exo-bd-06-1339": {
+      "decision": "eligible",
+      "reason": "BD-06 1339: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "fd697828bfa7f1a7dd434a790e47001922c2ef0570cf0260a805aec7e2732b99"
+    },
+    "exo-toi-7166": {
+      "decision": "eligible",
+      "reason": "TOI-7166: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "2e7e57c9546d72ef3e88f73a920b1b5c0a4af277d9648277bf77bfa71926a41f"
+    },
+    "exo-toi-169": {
+      "decision": "eligible",
+      "reason": "TOI-169: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "c489b79b3635e3ef24518df867579d40401e65582782ab37373ee5877a3d0487"
+    },
+    "exo-hd-20781": {
+      "decision": "eligible",
+      "reason": "HD 20781: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "1b82477c60ddb96f904bf1ca76da7c9cbb8177e62daee55855530de7f87207af"
+    },
+    "exo-hd-34445": {
+      "decision": "eligible",
+      "reason": "HD 34445: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "6fbc0dcfe22ec36b3f0859da0f346a02df3d8081fedf993ea88e07e1f50e2289"
+    },
+    "exo-toi-1272": {
+      "decision": "eligible",
+      "reason": "TOI-1272: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "b05b260ac0ff7b089a33fd6192d201179c9a65c332c975e6757b3f7f7906e975"
+    },
+    "exo-lhs-1815": {
+      "decision": "eligible",
+      "reason": "LHS 1815: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "37d9bce70903fa54e8f5a4faaad09e173a2176e4017113d17029a5b0a742b0ea"
+    },
+    "exo-kepler-1540": {
+      "decision": "eligible",
+      "reason": "Kepler-1540: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "3d4c0509dce83c581e5aa2a000f228dca71314f8a9c3108f5049eef969b7aaf1"
+    },
+    "exo-kepler-99": {
+      "decision": "eligible",
+      "reason": "Kepler-99: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "c415d1e4b8702b241c77d2c72b959ed7e05fafc43e19804d2620239e1e8019fb"
+    },
+    "exo-toi-4438": {
+      "decision": "eligible",
+      "reason": "TOI-4438: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "4a9da2191954705f2fcb786c101ff8d65d26ed4d434dd29ea8146d6e5429eb64"
+    },
+    "exo-kepler-1881": {
+      "decision": "eligible",
+      "reason": "Kepler-1881: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "eb69b05d6c739446bec386334612f8eae6e5cb7e9e7db8998ff0afd72fccb67f"
+    },
+    "exo-hd-22496": {
+      "decision": "eligible",
+      "reason": "HD 22496: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "acac8723d15a877f1ecdde87be74e490639b0820b003c83f08cc507c8456b1f0"
+    },
+    "exo-toi-1441": {
+      "decision": "eligible",
+      "reason": "TOI-1441: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8926c698d4d619a3afdcc629fa7062f9f8160555ec6f21d92ff92944b9fe4c0a"
+    },
+    "exo-kepler-354": {
+      "decision": "eligible",
+      "reason": "Kepler-354: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "f5035e2412f171891e0d48eadbe1bd327964c5507046c69c5a7529c413349081"
+    },
+    "exo-kepler-1945": {
+      "decision": "eligible",
+      "reason": "Kepler-1945: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "49c2b286fdb54ce695aa369389b7435ee25002dea7e0e7c2f0c77a0248ab4ad0"
+    },
+    "exo-kepler-643": {
+      "decision": "eligible",
+      "reason": "Kepler-643: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "759021a0229adab47b10afdcbdd0deee1f4afdb7d117c7673648f889b9719168"
+    },
+    "exo-hd-142245": {
+      "decision": "eligible",
+      "reason": "HD 142245: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "6dda5dfd7fc93c41f6edc4a7fe16f1e4ad32a88c4a38dd9cce71f334412f4486"
+    },
+    "exo-kepler-1019": {
+      "decision": "eligible",
+      "reason": "Kepler-1019: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "e55d7afb87712c0c1540b728f6240f5a9aea6259a4053bcb86bdee61f0841a17"
+    },
+    "exo-wd-1856-534": {
+      "decision": "eligible",
+      "reason": "WD 1856+534: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "4b42d739811f9d005f9502f352f93390e76a4acefd623d84143655f81bed1a0e"
+    },
+    "exo-wasp-147": {
+      "decision": "eligible",
+      "reason": "WASP-147: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "1f5d0d52aa48b2d6add6234e21d4fed1b431350a07cbcfad49163306a6bf4d3d"
+    },
+    "exo-kepler-724": {
+      "decision": "eligible",
+      "reason": "Kepler-724: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "2546f6aa2d2c4f9b37729e5a8a3f28480537d9e9b5aef291b6c5a8625a5d4676"
+    },
+    "exo-hd-153557": {
+      "decision": "eligible",
+      "reason": "HD 153557: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d5b2beb40aa79be06c45e6ab332c17cffb988c1c885c0e84f2b967396226c3dc"
+    },
+    "exo-k2-233": {
+      "decision": "eligible",
+      "reason": "K2-233: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "10bfee398a6e2aac446e3e0f58c476e4618c1354d334aabdfca98e0e92a9d32d"
+    },
+    "exo-kepler-127": {
+      "decision": "eligible",
+      "reason": "Kepler-127: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "950c65b787a2067280e41509e861eb3df92efb87e96682ff7b218b70e6c1f3d6"
+    },
+    "exo-gj-433": {
+      "decision": "eligible",
+      "reason": "GJ 433: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "aa128259520bdee2f776e7563e0d725c4902b732e23e35bf660e53e477a00245"
+    },
+    "exo-kepler-1621": {
+      "decision": "eligible",
+      "reason": "Kepler-1621: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "2c41024f628b3b17e51e16ca7ed353ad7cf11adf601b5079db3d5f434ae589f9"
+    },
+    "exo-kepler-133": {
+      "decision": "eligible",
+      "reason": "Kepler-133: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "746dde2edfb81c71517dcec60e9c8833838beeb200ca0b05325c157ab32117df"
+    },
+    "exo-kepler-1392": {
+      "decision": "eligible",
+      "reason": "Kepler-1392: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "7dc9ae683fdcc28f416fc2a6812011446d49d394f72189c24c6e79d84b1f110b"
+    },
+    "exo-kepler-1077": {
+      "decision": "eligible",
+      "reason": "Kepler-1077: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "ebf30c706269dc6727ab815b93129c30e77ef7490a801fbe3d9c08c8ef98545d"
+    },
+    "exo-kepler-759": {
+      "decision": "eligible",
+      "reason": "Kepler-759: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d2062967775a8249b10ea78a232ac09e17f7ca977e8c707a1ceb224b8ce6a3e8"
+    },
+    "exo-toi-4214": {
+      "decision": "eligible",
+      "reason": "TOI-4214: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "a98f55e20df27dea4bc7171d3d643da4b00d4e3654281dd074c9e7eac9e0578a"
+    },
+    "exo-kepler-782": {
+      "decision": "eligible",
+      "reason": "Kepler-782: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "c3a69c8317c3064ee58aaa0f7db8a28f5f0aeedfe4b5411b7d1473a88c291adc"
+    },
+    "exo-k2-200": {
+      "decision": "eligible",
+      "reason": "K2-200: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "6a137f982cdc967bab01cdde9d39cbde0b72d132e5158f65e8a4626f60e53f9d"
+    },
+    "exo-hd-154088": {
+      "decision": "eligible",
+      "reason": "HD 154088: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "b419670be36de99f1f0fc7f044417b72dd91114966151ba6a06cee686eaa50b8"
+    },
+    "exo-kepler-506": {
+      "decision": "eligible",
+      "reason": "Kepler-506: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "1b79a5c638676ae4684026db40c9fdf5cae2edefa68539a4f56a1aa4806be45a"
+    },
+    "exo-kepler-894": {
+      "decision": "eligible",
+      "reason": "Kepler-894: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "0ecf25106eba03dbf62028c056b63d69d1ee407e470b7cc8e66925acc6c5cde4"
+    },
+    "exo-kepler-1101": {
+      "decision": "eligible",
+      "reason": "Kepler-1101: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "91fe8f4bf4a8382c27eb0ac856887a2f4f425e8dbd980e1451704ad3da39b8c2"
+    },
+    "exo-toi-4507": {
+      "decision": "eligible",
+      "reason": "TOI-4507: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "6c0840a1e89728ab8f54fd60c089af1132fa93705af2ed6254635fbd29005554"
+    },
+    "exo-kepler-1838": {
+      "decision": "eligible",
+      "reason": "Kepler-1838: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "89db9545193bd04accf03e21bd0a046cb2412c49c7b19eac1fa8c139c4167935"
+    },
+    "exo-kepler-819": {
+      "decision": "eligible",
+      "reason": "Kepler-819: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "1b772740fedf455cf3b8df6d41d0b7097e283ac6d8749967c85546effee7e3d2"
+    },
+    "exo-k2-95": {
+      "decision": "eligible",
+      "reason": "K2-95: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "14d0ed4df26bb15814c05f1dbd6301c9643589806eabc6432f6452a6c36ecaa8"
+    },
+    "exo-kepler-1724": {
+      "decision": "eligible",
+      "reason": "Kepler-1724: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "b58c5037763a42e427ddcf2d7bbfce530f1e0fb59683d54d8d629f4456e1190e"
+    },
+    "exo-kepler-926": {
+      "decision": "eligible",
+      "reason": "Kepler-926: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "a98a4aaba3cd52182a4fdde0090f3b7cd36fdec58ceb70a099e95c698264085d"
+    },
+    "exo-hd-11964": {
+      "decision": "eligible",
+      "reason": "HD 11964: owner approved source eligibility for the frozen review pairing on 2026-11-06.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "30635fb18c4eadd1060611266bf4e5e30a895a840d48c08b65536ccddbc3ed12"
+    },
+    "exo-kepler-1954": {
+      "decision": "eligible",
+      "reason": "Kepler-1954: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8f3589e598fe898074fd85066d93e7032a3667273672b03f258c13b779d53eda"
+    },
+    "exo-kepler-650": {
+      "decision": "eligible",
+      "reason": "Kepler-650: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d8cf6ff2e638f8445afc17ce5aebe80b5af965ac3ee8ac8f5404bf79b7645b3d"
+    },
+    "exo-kepler-1064": {
+      "decision": "eligible",
+      "reason": "Kepler-1064: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "6cf691a7daf5766169e911d9d94b9ecab5ca7646570306d2173769bc9e5c8d09"
+    },
+    "exo-hd-7924": {
+      "decision": "eligible",
+      "reason": "HD 7924: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "586f7e62e93d241d24ecb0b9d00dea68ed9888f17d661b326dd139c501b75e62"
+    },
+    "exo-toi-6002": {
+      "decision": "eligible",
+      "reason": "TOI-6002: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "9d9bdcdc25b494912fa9bde631756b098c1da1ca7b1a3f418b8bbe6cc0bd2197"
+    },
+    "exo-kepler-900": {
+      "decision": "eligible",
+      "reason": "Kepler-900: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d84cf651760647d549f7b848115b555fb415f8985109194f5c654c867cb00306"
+    },
+    "exo-toi-1669": {
+      "decision": "eligible",
+      "reason": "TOI-1669: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "4301e364e4eede430f9c3c33a668e80f2b7eeae846d9fb1caadb37048ab951c9"
+    },
+    "exo-hd-127506": {
+      "decision": "eligible",
+      "reason": "HD 127506: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "f3ee22222bd14d7749fc74fce360b1432f536b4014e3dd0411c9cc91d215763b"
+    },
+    "exo-kepler-1106": {
+      "decision": "eligible",
+      "reason": "Kepler-1106: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "cc3acd75cac3a3d16bee3b42291c6a8b9b956ad482ca516be7722991c6b305f5"
+    },
+    "exo-kepler-1239": {
+      "decision": "eligible",
+      "reason": "Kepler-1239: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "28a61167f5324e682c84933da4ae60942939fbb451b07ae3653c3aa9d2a3a4b3"
+    },
+    "exo-kepler-1442": {
+      "decision": "eligible",
+      "reason": "Kepler-1442: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d43bd92212817b847974ef041145f899a21a1a72de1b1ba09b5a8aed0798fa64"
+    },
+    "exo-corot-6": {
+      "decision": "eligible",
+      "reason": "CoRoT-6: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d233b8f02cbf53b7e321090e7f7d1f6da65fb8563997373f5d7a730922192440"
+    },
+    "exo-kepler-1938": {
+      "decision": "eligible",
+      "reason": "Kepler-1938: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "ee21af30064b663389eb94bf58bcd2140dcd7691d54bdaa1d2bf1344b36c05d8"
+    },
+    "exo-kepler-943": {
+      "decision": "eligible",
+      "reason": "Kepler-943: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "b601f86caf9037bc2c1af2569ba4942ee18ed1521cb48fa69a033a2b6786f870"
+    },
+    "exo-kepler-1798": {
+      "decision": "eligible",
+      "reason": "Kepler-1798: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "0c6affda6cf358a188f6b1b46993719d9718325b0bee8e69b8fb7ffac40f3fbe"
+    },
+    "exo-kepler-1216": {
+      "decision": "eligible",
+      "reason": "Kepler-1216: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "66d1ae73a72ac30b061945b135bb64381dcd3735fb17473481315d23ac562af8"
+    },
+    "exo-k2-393": {
+      "decision": "eligible",
+      "reason": "K2-393: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "32cfcf380e80b877f879a8f7f9edad1ba852e0a1ad10a21c1f3893bc5383cf8c"
+    },
+    "exo-kepler-1647": {
+      "decision": "eligible",
+      "reason": "Kepler-1647: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "18106b42283fa0a434378b462222ea73015c6fa31e37e27031068d412230dc7c"
+    },
+    "exo-hd-142415": {
+      "decision": "eligible",
+      "reason": "HD 142415: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8a03c2fc600a92ec6de6cf41fc5a6a5b051544074eef1962d00016f914a99f20"
+    },
+    "exo-gj-682": {
+      "decision": "eligible",
+      "reason": "GJ 682: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "7866360891b7b1c90cd295907dc8eb9b2511b5d212274f75f94c8779cbbd85e0"
+    },
+    "exo-k2-392": {
+      "decision": "eligible",
+      "reason": "K2-392: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "7e527714221ce4aa6d02b6d224e10c10ff1aa5937903c371298d17cc91753ade"
+    },
+    "exo-toi-5786": {
+      "decision": "eligible",
+      "reason": "TOI-5786: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "52d0c0889571e6dc7fccb41241496dc3cbe82fed5e7126c5fc1bc60a0e4f74ca"
+    },
+    "exo-kepler-393": {
+      "decision": "eligible",
+      "reason": "Kepler-393: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "1af3ff0099acfb5bd3786a95b245b03c2f148b92db588dede5f1fa7eb981e983"
+    },
+    "exo-kepler-1016": {
+      "decision": "eligible",
+      "reason": "Kepler-1016: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "7f75d3bb4c914a0c56c11574934db3e79bb994949be90442a906bee661275e4a"
+    },
+    "exo-kepler-1998": {
+      "decision": "eligible",
+      "reason": "Kepler-1998: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "2a3cf1dae20a440c91a05a78b1c379a9b4ce9d3cf1fe6f7d823e67c61f668259"
+    }
+  },
+  "protections": {
+    "sol": {
+      "reason": "Established proper name and curated system identity."
+    },
+    "alpha-centauri": {
+      "reason": "Established proper name and curated system identity."
+    },
+    "sirius": {
+      "reason": "Established proper name."
+    },
+    "barnards-star": {
+      "reason": "Established proper name."
+    },
+    "cygnus-x1": {
+      "reason": "Established proper name and curated system identity."
+    },
+    "wolf-359": {
+      "reason": "Ambiguous familiar/catalog designation; protected pending explicit review."
+    },
+    "lalande-21185": {
+      "reason": "Established proper name; protected pending explicit review."
+    },
+    "exo-14-and": {
+      "reason": "Source record carries IAU proper name Veritate."
+    },
+    "exo-11-umi": {
+      "reason": "Source record carries IAU proper name Pherkad Minor."
+    }
+  },
+  "approvedAssignments": {
+    "exo-gj-9066": {
+      "status": "approved",
+      "settlementName": "Copper Vale",
+      "candidateId": "original-english-01",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 1"
+    },
+    "exo-kepler-931": {
+      "status": "approved",
+      "settlementName": "Liu Cixin's Signal",
+      "candidateId": "author-tribute-07",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 2",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared"
+    },
+    "exo-kepler-1723": {
+      "status": "approved",
+      "settlementName": "Le Guin's Horizon",
+      "candidateId": "author-tribute-02",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 3",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared"
+    },
+    "exo-toi-406": {
+      "status": "approved",
+      "settlementName": "Jemisin Accord",
+      "candidateId": "author-tribute-06",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 4",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared"
+    },
+    "exo-hd-221416": {
+      "status": "approved",
+      "settlementName": "Asimov's Beacon",
+      "candidateId": "author-tribute-01",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 5",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared"
+    },
+    "exo-wispit-1": {
+      "status": "approved",
+      "settlementName": "Butler's Reach",
+      "candidateId": "author-tribute-03",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 6",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared"
+    },
+    "exo-hd-103197": {
+      "status": "approved",
+      "settlementName": "Bradbury's Hearth",
+      "candidateId": "author-tribute-05",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 7",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared"
+    },
+    "exo-hd-133131": {
+      "status": "approved",
+      "settlementName": "Clarke Meridian",
+      "candidateId": "author-tribute-04",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 8",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared"
+    },
+    "exo-kepler-397": {
+      "status": "approved",
+      "settlementName": "星港",
+      "candidateId": "multilingual-chinese-21",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 9"
+    },
+    "exo-kepler-214": {
+      "status": "approved",
+      "settlementName": "同行",
+      "candidateId": "multilingual-chinese-22",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 10"
+    },
+    "exo-toi-1846": {
+      "status": "approved",
+      "settlementName": "泰山",
+      "candidateId": "earth-mandarin-taishan",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 11"
+    },
+    "exo-hd-216770": {
+      "status": "approved",
+      "settlementName": "天山",
+      "candidateId": "earth-mandarin-tianshan",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 12"
+    },
+    "exo-kepler-1605": {
+      "status": "approved",
+      "settlementName": "黄山",
+      "candidateId": "earth-mandarin-huangshan",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 13"
+    },
+    "exo-kepler-1633": {
+      "status": "approved",
+      "settlementName": "Маяк",
+      "candidateId": "multilingual-russian-24",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 14"
+    },
+    "exo-kepler-1548": {
+      "status": "approved",
+      "settlementName": "Заря",
+      "candidateId": "multilingual-russian-23",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 15"
+    },
+    "exo-hd-238914": {
+      "status": "approved",
+      "settlementName": "Байкал",
+      "candidateId": "earth-russian-baykal",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 16"
+    },
+    "exo-hd-86065": {
+      "status": "approved",
+      "settlementName": "Encuentro",
+      "candidateId": "multilingual-spanish-08",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 17"
+    },
+    "exo-hd-164595": {
+      "status": "approved",
+      "settlementName": "Alborada",
+      "candidateId": "multilingual-spanish-07",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 18"
+    },
+    "exo-k2-221": {
+      "status": "approved",
+      "settlementName": "منارة",
+      "candidateId": "multilingual-arabic-04",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 19"
+    },
+    "exo-kepler-1999": {
+      "status": "approved",
+      "settlementName": "आशा",
+      "candidateId": "multilingual-hindi-17",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 20"
+    },
+    "exo-kepler-625": {
+      "status": "approved",
+      "settlementName": "Travessia",
+      "candidateId": "multilingual-portuguese-09",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 21"
+    },
+    "exo-k2-133": {
+      "status": "approved",
+      "settlementName": "木漏れ日",
+      "candidateId": "multilingual-japanese-01",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 22"
+    },
+    "exo-hd-66428": {
+      "status": "approved",
+      "settlementName": "Mont Blanc",
+      "candidateId": "earth-french-mont-blanc",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 23"
+    },
+    "exo-k2-196": {
+      "status": "approved",
+      "settlementName": "Pamoja",
+      "candidateId": "multilingual-swahili-06",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 24"
+    },
+    "exo-kic-9663113": {
+      "status": "approved",
+      "settlementName": "Harapan",
+      "candidateId": "multilingual-indonesian-15",
+      "version": 2,
+      "provenance": "approval; weighted batch slot 25"
+    },
+    "exo-kepler-1558": {
+      "status": "approved",
+      "settlementName": "Sunward Basin",
+      "candidateId": "original-english-29",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-wasp-107": {
+      "status": "approved",
+      "settlementName": "Harvest Moon",
+      "candidateId": "original-english-43",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-108863": {
+      "status": "approved",
+      "settlementName": "Horizon Field",
+      "candidateId": "original-english-21",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-171238": {
+      "status": "approved",
+      "settlementName": "Blue Meridian",
+      "candidateId": "original-english-64",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1913": {
+      "status": "approved",
+      "settlementName": "Glasshouse",
+      "candidateId": "original-english-46",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-586": {
+      "status": "approved",
+      "settlementName": "Pamukkale Terrace",
+      "candidateId": "earth-landmark-sketch-10",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-305": {
+      "status": "approved",
+      "settlementName": "Beacon Hill",
+      "candidateId": "original-english-49",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-775": {
+      "status": "approved",
+      "settlementName": "Windward Table",
+      "candidateId": "original-english-32",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1667": {
+      "status": "approved",
+      "settlementName": "Brightwater",
+      "candidateId": "original-english-39",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1756": {
+      "status": "approved",
+      "settlementName": "Long Voyage",
+      "candidateId": "original-english-44",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-140901": {
+      "status": "approved",
+      "settlementName": "Far Lantern",
+      "candidateId": "original-english-30",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1390": {
+      "status": "approved",
+      "settlementName": "Summer Threshold",
+      "candidateId": "original-english-36",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1164": {
+      "status": "approved",
+      "settlementName": "Longview",
+      "candidateId": "original-english-19",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-338": {
+      "status": "approved",
+      "settlementName": "First Light",
+      "candidateId": "original-english-13",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-2578": {
+      "status": "approved",
+      "settlementName": "Aconcagua Haven",
+      "candidateId": "earth-landmark-sketch-04",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1899": {
+      "status": "approved",
+      "settlementName": "Kamchatka Meridian",
+      "candidateId": "earth-landmark-sketch-11",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1080": {
+      "status": "approved",
+      "settlementName": "Bright Landing",
+      "candidateId": "original-english-10",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-k2-63": {
+      "status": "approved",
+      "settlementName": "Verdant Step",
+      "candidateId": "original-english-45",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1210": {
+      "status": "approved",
+      "settlementName": "Promise Bay",
+      "candidateId": "original-english-58",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-755": {
+      "status": "approved",
+      "settlementName": "New Common",
+      "candidateId": "original-english-65",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-4034": {
+      "status": "approved",
+      "settlementName": "Farwater",
+      "candidateId": "original-english-09",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1636": {
+      "status": "approved",
+      "settlementName": "Lantern Reach",
+      "candidateId": "original-english-02",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-4914": {
+      "status": "approved",
+      "settlementName": "Quiet Current",
+      "candidateId": "original-english-33",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-622": {
+      "status": "approved",
+      "settlementName": "New Tidemark",
+      "candidateId": "original-english-20",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-197": {
+      "status": "approved",
+      "settlementName": "Clearwater Station",
+      "candidateId": "original-english-24",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-97048": {
+      "status": "approved",
+      "settlementName": "Aster Crossing",
+      "candidateId": "original-english-03",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-gliese-12": {
+      "status": "approved",
+      "settlementName": "Torres del Paine Reach",
+      "candidateId": "earth-landmark-sketch-15",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hip-54515": {
+      "status": "approved",
+      "settlementName": "Blueglass Harbor",
+      "candidateId": "original-english-18",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-3457": {
+      "status": "approved",
+      "settlementName": "Silver Orchard",
+      "candidateId": "original-english-26",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-512": {
+      "status": "approved",
+      "settlementName": "Titicaca Wayfinder",
+      "candidateId": "earth-landmark-sketch-08",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-wasp-145": {
+      "status": "approved",
+      "settlementName": "Compass Rose",
+      "candidateId": "original-english-42",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1930": {
+      "status": "approved",
+      "settlementName": "New Morning",
+      "candidateId": "original-english-41",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-tic-18942729": {
+      "status": "approved",
+      "settlementName": "Blue Mountain",
+      "candidateId": "original-english-37",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1928": {
+      "status": "approved",
+      "settlementName": "Everest Commons",
+      "candidateId": "earth-landmark-sketch-01",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-571": {
+      "status": "approved",
+      "settlementName": "Open Meridian",
+      "candidateId": "original-english-05",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-epic-212737443": {
+      "status": "approved",
+      "settlementName": "Superior Passage",
+      "candidateId": "earth-landmark-sketch-14",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-gl-49": {
+      "status": "approved",
+      "settlementName": "Quiet Harbor",
+      "candidateId": "original-english-04",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-181433": {
+      "status": "approved",
+      "settlementName": "Open Door",
+      "candidateId": "original-english-35",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1383": {
+      "status": "approved",
+      "settlementName": "Bright Assembly",
+      "candidateId": "original-english-60",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1797": {
+      "status": "approved",
+      "settlementName": "Iguazú Garden",
+      "candidateId": "earth-landmark-sketch-17",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-gj-328": {
+      "status": "approved",
+      "settlementName": "Hopeful Passage",
+      "candidateId": "original-english-68",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-836": {
+      "status": "approved",
+      "settlementName": "Kindred Shore",
+      "candidateId": "original-english-06",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-4527": {
+      "status": "approved",
+      "settlementName": "Hearthline",
+      "candidateId": "original-english-15",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-1824": {
+      "status": "approved",
+      "settlementName": "Far Orchard",
+      "candidateId": "original-english-48",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-tyc-4282-00605-1": {
+      "status": "approved",
+      "settlementName": "Commonwealth Rise",
+      "candidateId": "original-english-27",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-k2-249": {
+      "status": "approved",
+      "settlementName": "Northstar Haven",
+      "candidateId": "original-english-12",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-1232": {
+      "status": "approved",
+      "settlementName": "Namib Beacon",
+      "candidateId": "earth-landmark-sketch-16",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-379": {
+      "status": "approved",
+      "settlementName": "Wayfarer Vale",
+      "candidateId": "original-english-14",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1352": {
+      "status": "approved",
+      "settlementName": "Sahara Lantern",
+      "candidateId": "earth-landmark-sketch-02",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-236": {
+      "status": "approved",
+      "settlementName": "Okavango Horizon",
+      "candidateId": "earth-landmark-sketch-07",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-bd-06-1339": {
+      "status": "approved",
+      "settlementName": "Morrow Bay",
+      "candidateId": "original-english-16",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-7166": {
+      "status": "approved",
+      "settlementName": "Gathering Point",
+      "candidateId": "original-english-17",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-169": {
+      "status": "approved",
+      "settlementName": "Sundial Harbor",
+      "candidateId": "original-english-51",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-20781": {
+      "status": "approved",
+      "settlementName": "Distant Garden",
+      "candidateId": "original-english-56",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-34445": {
+      "status": "approved",
+      "settlementName": "Kindred Crossing",
+      "candidateId": "original-english-50",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-1272": {
+      "status": "approved",
+      "settlementName": "Niagara Passage",
+      "candidateId": "earth-landmark-sketch-03",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-lhs-1815": {
+      "status": "approved",
+      "settlementName": "Atacama Crossing",
+      "candidateId": "earth-landmark-sketch-05",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1540": {
+      "status": "approved",
+      "settlementName": "Cinder Garden",
+      "candidateId": "original-english-23",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-99": {
+      "status": "approved",
+      "settlementName": "Resting Place",
+      "candidateId": "original-english-54",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-4438": {
+      "status": "approved",
+      "settlementName": "Westward Light",
+      "candidateId": "original-english-61",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1881": {
+      "status": "approved",
+      "settlementName": "Starling Reach",
+      "candidateId": "original-english-40",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-22496": {
+      "status": "approved",
+      "settlementName": "Open Sky",
+      "candidateId": "original-english-52",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-1441": {
+      "status": "approved",
+      "settlementName": "Cedar Landing",
+      "candidateId": "original-english-55",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-354": {
+      "status": "approved",
+      "settlementName": "Patient Voyager",
+      "candidateId": "original-english-62",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1945": {
+      "status": "approved",
+      "settlementName": "Victoria Falls Reach",
+      "candidateId": "earth-landmark-sketch-06",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-643": {
+      "status": "approved",
+      "settlementName": "Evening Compass",
+      "candidateId": "original-english-25",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-142245": {
+      "status": "approved",
+      "settlementName": "Pilgrim's Rest",
+      "candidateId": "original-english-22",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1019": {
+      "status": "approved",
+      "settlementName": "River of Stars",
+      "candidateId": "original-english-53",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-wd-1856-534": {
+      "status": "approved",
+      "settlementName": "Gathering Shore",
+      "candidateId": "original-english-67",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-wasp-147": {
+      "status": "approved",
+      "settlementName": "Angel Falls Commons",
+      "candidateId": "earth-landmark-sketch-13",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-724": {
+      "status": "approved",
+      "settlementName": "Hearth and Harbor",
+      "candidateId": "original-english-63",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-153557": {
+      "status": "approved",
+      "settlementName": "Mosaic Vale",
+      "candidateId": "original-english-31",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-k2-233": {
+      "status": "approved",
+      "settlementName": "Vatnajökull Crossing",
+      "candidateId": "earth-landmark-sketch-18",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-127": {
+      "status": "approved",
+      "settlementName": "Starlit Crossing",
+      "candidateId": "original-english-66",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-gj-433": {
+      "status": "approved",
+      "settlementName": "Welcoming Tide",
+      "candidateId": "original-english-47",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1621": {
+      "status": "approved",
+      "settlementName": "Dawnward",
+      "candidateId": "original-english-07",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-133": {
+      "status": "approved",
+      "settlementName": "Danakil Light",
+      "candidateId": "earth-landmark-sketch-12",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1392": {
+      "status": "approved",
+      "settlementName": "Aurora Commons",
+      "candidateId": "original-english-57",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1077": {
+      "status": "approved",
+      "settlementName": "Tanglewood Port",
+      "candidateId": "original-english-28",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-759": {
+      "status": "approved",
+      "settlementName": "Wayfinder's Reach",
+      "candidateId": "original-english-59",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-4214": {
+      "status": "approved",
+      "settlementName": "Far Beacon",
+      "candidateId": "original-english-69",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-782": {
+      "status": "approved",
+      "settlementName": "Great Barrier Harbor",
+      "candidateId": "earth-landmark-sketch-09",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-k2-200": {
+      "status": "approved",
+      "settlementName": "Cloudbreak",
+      "candidateId": "original-english-34",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-154088": {
+      "status": "approved",
+      "settlementName": "Stillwater Reach",
+      "candidateId": "original-english-11",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-506": {
+      "status": "approved",
+      "settlementName": "Shared Horizon",
+      "candidateId": "original-english-38",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-894": {
+      "status": "approved",
+      "settlementName": "Common Ground",
+      "candidateId": "original-english-08",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1101": {
+      "status": "approved",
+      "settlementName": "أمل",
+      "candidateId": "multilingual-arabic-03",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-toi-4507": {
+      "status": "approved",
+      "settlementName": "मिलन",
+      "candidateId": "multilingual-hindi-18",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1838": {
+      "status": "approved",
+      "settlementName": "Horizonte",
+      "candidateId": "multilingual-portuguese-10",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-819": {
+      "status": "approved",
+      "settlementName": "光",
+      "candidateId": "multilingual-japanese-02",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-k2-95": {
+      "status": "approved",
+      "settlementName": "Tumaini",
+      "candidateId": "multilingual-swahili-05",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-1724": {
+      "status": "approved",
+      "settlementName": "Rembulan",
+      "candidateId": "multilingual-indonesian-16",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-kepler-926": {
+      "status": "approved",
+      "settlementName": "Ufuk",
+      "candidateId": "multilingual-turkish-12",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    },
+    "exo-hd-11964": {
+      "status": "approved",
+      "settlementName": "İmece",
+      "candidateId": "multilingual-turkish-11",
+      "version": 2,
+      "provenance": "Owner approved exact full-catalog review pairing on 2026-11-06; no independent linguistic/cultural or legal clearance claimed."
+    }
+  },
+  "overrides": {},
+  "aliases": {
+    "exo-kepler-397": [
+      "Xingang"
+    ],
+    "exo-kepler-214": [
+      "Tongxing"
+    ],
+    "exo-toi-1846": [
+      "Tàishān"
+    ],
+    "exo-hd-216770": [
+      "Tiānshān"
+    ],
+    "exo-kepler-1605": [
+      "Huángshān"
+    ],
+    "exo-kepler-1633": [
+      "Mayak"
+    ],
+    "exo-kepler-1548": [
+      "Zarya"
+    ],
+    "exo-hd-238914": [
+      "Baykal"
+    ],
+    "exo-k2-221": [
+      "Manara"
+    ],
+    "exo-kepler-1999": [
+      "Asha"
+    ],
+    "exo-k2-133": [
+      "Komorebi"
+    ]
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "vocabularyVersion": 1,
+  "date": "2026-11-06",
+  "seed": "stellar-final-naming-2026-11-06-v1",
+  "status": "owner-authorized-generated-fictional-content",
+  "scope": "Original fictional settlement labels: landscapes, shared hopes, light, journeys, and meeting places. Not astronomical or habitability claims.",
+  "curation": "Owner authorized generation, source-evidenced eligibility decisions, and activation for all remaining catalog-pattern nominations using existing themes and language weights.",
+  "independentLinguisticOrCulturalVerification": "not-performed",
+  "rightsStatus": "owner-authorized-not-legal-clearance",
+  "referenceScope": "Lexical reference links for component vocabulary, not certification of the generated compounds or translations. Glosses are compositional editorial aids.",
+  "entryFormat": "Each image/place entry is native label|English gloss; templates produce original fictional names, not claimed established place names.",
+  "languages": [
+    {
+      "policyId": "english",
+      "language": "English",
+      "script": "Latin",
+      "template": "{image} {place}",
+      "glossTemplate": "{image} {place}",
+      "references": ["https://en.wiktionary.org/wiki/harbor#English"],
+      "images": ["Amber|amber", "Amethyst|amethyst", "Apricot|apricot", "Aspen|aspen", "Autumn|autumn", "Azure|azure", "Birch|birch", "Blossom|blossom", "Cedar|cedar", "Celestial|celestial", "Clover|clover", "Coral|coral", "Crystal|crystal", "Dawn|dawn", "Dew|dew", "Ember|ember", "Evening|evening", "Fern|fern", "Firefly|firefly", "Golden|golden", "Harmony|harmony", "Hazel|hazel", "Heather|heather", "Hope|hope", "Iris|iris", "Jade|jade", "Juniper|juniper", "Lavender|lavender", "Linden|linden", "Maple|maple", "Meadowlark|meadowlark", "Moonlit|moonlit", "Morning|morning", "Opal|opal", "Orchid|orchid", "Pearl|pearl", "Rain|rain", "Saffron|saffron", "Sapphire|sapphire", "Silver|silver", "Starlight|starlight", "Willow|willow"],
+      "places": ["Anchorage|anchorage", "Arbor|arbor", "Assembly|assembly", "Basin|basin", "Bay|bay", "Beacon|beacon", "Bridge|bridge", "Brook|brook", "Cairn|cairn", "Canopy|canopy", "Commons|commons", "Cove|cove", "Crossing|crossing", "Field|field", "Garden|garden", "Gateway|gateway", "Glen|glen", "Grove|grove", "Harbor|harbor", "Haven|haven", "Landing|landing", "Meadow|meadow", "Orchard|orchard", "Passage|passage", "Quay|quay", "Reach|reach", "Ridge|ridge", "Rise|rise", "Shore|shore", "Station|station", "Terrace|terrace", "Vale|vale"]
+    },
+    {
+      "policyId": "mandarin",
+      "language": "Mandarin",
+      "script": "Han",
+      "template": "{image}{place}",
+      "glossTemplate": "{image} {place}",
+      "references": ["https://en.wiktionary.org/wiki/港#Chinese", "https://en.wiktionary.org/wiki/晨#Chinese"],
+      "images": ["晨光|morning light", "星河|river of stars", "月光|moonlight", "春风|spring breeze", "秋水|autumn water", "青山|green mountain", "白云|white cloud", "清泉|clear spring", "明月|bright moon", "旭日|rising sun", "彩虹|rainbow", "松林|pine forest", "竹影|bamboo shadow", "花海|sea of flowers", "远帆|distant sail", "新风|new breeze", "微光|glimmer", "流星|shooting star", "银杏|ginkgo", "海棠|crabapple blossom", "荷风|lotus breeze", "梅香|plum fragrance", "天光|sky light", "碧波|blue-green waves", "晨露|morning dew", "晚霞|evening glow", "晴空|clear sky", "星辉|star radiance", "溪声|stream sounds", "云帆|cloud sail"],
+      "places": ["港|harbor", "湾|bay", "谷|valley", "园|garden", "城|town", "桥|bridge", "台|terrace", "岭|ridge", "洲|islet", "岛|island", "岸|shore", "原|plain", "坡|slope", "亭|pavilion", "苑|garden enclosure", "站|station", "塔|tower", "渡|crossing", "阁|hall", "堡|fort", "湖|lake", "泉|spring", "河|river", "溪|stream", "林|grove", "庭|courtyard", "径|path", "门|gate", "村|village", "浦|waterside"]
+    },
+    {
+      "policyId": "russian",
+      "language": "Russian",
+      "script": "Cyrillic",
+      "template": "{place} {image}",
+      "glossTemplate": "{place} of {image}",
+      "references": ["https://en.wiktionary.org/wiki/гавань#Russian", "https://en.wiktionary.org/wiki/рассвет#Russian"],
+      "images": ["Рассвета|dawn", "Звёзд|stars", "Света|light", "Надежды|hope", "Мира|peace", "Луны|moon", "Солнца|sun", "Весны|spring", "Ветра|wind", "Дождя|rain", "Облаков|clouds", "Росы|dew", "Цветов|flowers", "Моря|sea", "Горизонта|horizon", "Утра|morning", "Зари|daybreak", "Берёз|birches", "Сосен|pines", "Ив|willows", "Рек|rivers", "Радуги|rainbow", "Путешествий|journeys", "Встреч|meetings"],
+      "places": ["Гавань|harbor", "Долина|valley", "Залив|bay", "Сад|garden", "Луг|meadow", "Берег|shore", "Пристань|landing", "Переход|crossing", "Остров|island", "Мыс|cape", "Мост|bridge", "Башня|tower", "Станция|station", "Площадь|square", "Поляна|glade", "Роща|grove", "Терраса|terrace", "Тропа|path", "Исток|headwaters", "Порт|port", "Дом|home", "Ключ|spring", "Посёлок|settlement", "Высота|height"]
+    },
+    {
+      "policyId": "spanish",
+      "language": "Spanish",
+      "script": "Latin",
+      "template": "{place} {image}",
+      "glossTemplate": "{place} of {image}",
+      "references": ["https://en.wiktionary.org/wiki/puerto#Spanish", "https://en.wiktionary.org/wiki/alba#Spanish"],
+      "images": ["del Alba|dawn", "de las Estrellas|stars", "de la Luz|light", "de la Esperanza|hope", "de la Paz|peace", "de la Luna|moon", "del Sol|sun", "de la Primavera|spring", "del Viento|wind", "de la Lluvia|rain", "de las Nubes|clouds", "del Rocío|dew", "de las Flores|flowers", "del Mar|sea", "del Horizonte|horizon", "del Encuentro|meeting"],
+      "places": ["Puerto|port", "Valle|valley", "Bahía|bay", "Jardín|garden", "Prado|meadow", "Costa|coast", "Refugio|refuge", "Paso|passage", "Isla|island", "Cabo|cape", "Puente|bridge", "Torre|tower", "Estación|station", "Plaza|square", "Bosque|woodland", "Terraza|terrace", "Sendero|path", "Fuente|spring"]
+    },
+    {
+      "policyId": "arabic",
+      "language": "Arabic",
+      "script": "Arabic",
+      "template": "{place} {image}",
+      "glossTemplate": "{place} of {image}",
+      "references": ["https://en.wiktionary.org/wiki/ميناء#Arabic", "https://en.wiktionary.org/wiki/فجر#Arabic"],
+      "images": ["الفجر|dawn", "النجوم|stars", "النور|light", "الأمل|hope", "السلام|peace", "القمر|moon", "الشمس|sun", "الربيع|spring", "النسيم|breeze", "المطر|rain", "السحاب|clouds", "الندى|dew", "الزهور|flowers", "البحر|sea", "الرحلة|journey"],
+      "places": ["ميناء|port", "وادي|valley", "مرفأ|harbor", "حديقة|garden", "واحة|oasis", "مرسى|anchorage", "جسر|bridge", "ساحل|coast", "برج|tower", "مرج|meadow", "جزيرة|island", "خليج|bay", "سهل|plain", "بوابة|gateway", "محطة|station", "أفق|horizon"]
+    },
+    {
+      "policyId": "hindi",
+      "language": "Hindi",
+      "script": "Devanagari",
+      "template": "{image} {place}",
+      "glossTemplate": "{image} {place}",
+      "references": ["https://en.wiktionary.org/wiki/आशा#Hindi", "https://en.wiktionary.org/wiki/नगर#Hindi"],
+      "images": ["आशा|hope", "प्रभात|dawn", "प्रकाश|light", "शांति|peace", "चंद्र|moon", "सूर्य|sun", "वसंत|spring", "पवन|wind", "वर्षा|rain", "मेघ|cloud", "पुष्प|flower", "सागर|sea", "मैत्री|friendship", "स्वप्न|dream", "आकाश|sky"],
+      "places": ["नगर|town", "उद्यान|garden", "घाटी|valley", "तट|shore", "द्वीप|island", "सेतु|bridge", "पथ|path", "वन|woodland", "आँगन|courtyard", "ग्राम|village", "कुंज|bower", "धारा|stream", "शिखर|summit", "सदन|hall", "सरिता|river", "सरवर|lake"]
+    },
+    {
+      "policyId": "portuguese",
+      "language": "Portuguese",
+      "script": "Latin",
+      "template": "{place} {image}",
+      "glossTemplate": "{place} of {image}",
+      "references": ["https://en.wiktionary.org/wiki/porto#Portuguese", "https://en.wiktionary.org/wiki/aurora#Portuguese"],
+      "images": ["da Aurora|dawn", "das Estrelas|stars", "da Luz|light", "da Esperança|hope", "da Paz|peace", "da Lua|moon", "do Sol|sun", "da Primavera|spring", "do Vento|wind", "da Chuva|rain", "das Nuvens|clouds", "das Flores|flowers", "do Mar|sea", "do Horizonte|horizon"],
+      "places": ["Porto|port", "Vale|valley", "Baía|bay", "Jardim|garden", "Prado|meadow", "Costa|coast", "Refúgio|refuge", "Passagem|passage", "Ilha|island", "Cabo|cape", "Ponte|bridge", "Torre|tower", "Estação|station", "Fonte|spring"]
+    },
+    {
+      "policyId": "japanese",
+      "language": "Japanese",
+      "script": "Japanese",
+      "template": "{image}の{place}",
+      "glossTemplate": "{place} of {image}",
+      "references": ["https://en.wiktionary.org/wiki/港#Japanese", "https://en.wiktionary.org/wiki/光#Japanese"],
+      "images": ["朝日|morning sun", "星|stars", "光|light", "希望|hope", "月|moon", "春|spring", "風|wind", "雨|rain", "雲|clouds", "露|dew", "花|flowers", "海|sea", "虹|rainbow", "旅|journey"],
+      "places": ["港|harbor", "谷|valley", "庭|garden", "丘|hill", "浜|beach", "島|island", "橋|bridge", "塔|tower", "森|forest", "泉|spring", "道|path", "岬|cape", "駅|station", "里|village"]
+    },
+    {
+      "policyId": "french",
+      "language": "French",
+      "script": "Latin",
+      "template": "{place} {image}",
+      "glossTemplate": "{place} of {image}",
+      "references": ["https://en.wiktionary.org/wiki/port#French", "https://en.wiktionary.org/wiki/aube#French"],
+      "images": ["de l'Aube|dawn", "des Étoiles|stars", "de la Lumière|light", "de l'Espérance|hope", "de la Paix|peace", "de la Lune|moon", "du Soleil|sun", "du Printemps|spring", "du Vent|wind", "de la Pluie|rain", "des Nuages|clouds", "des Fleurs|flowers", "de la Mer|sea", "de l'Horizon|horizon"],
+      "places": ["Port|port", "Vallée|valley", "Baie|bay", "Jardin|garden", "Prairie|meadow", "Rivage|shore", "Refuge|refuge", "Passage|passage", "Île|island", "Cap|cape", "Pont|bridge", "Tour|tower", "Gare|station", "Source|spring"]
+    },
+    {
+      "policyId": "swahili",
+      "language": "Swahili",
+      "script": "Latin",
+      "template": "{place} {image}",
+      "glossTemplate": "{place} of {image}",
+      "references": ["https://en.wiktionary.org/wiki/bandari#Swahili", "https://en.wiktionary.org/wiki/tumaini#Swahili"],
+      "images": ["Alfajiri|dawn", "Nyota|stars", "Nuru|light", "Tumaini|hope", "Amani|peace", "Mwezi|moon", "Jua|sun", "Upepo|wind", "Mvua|rain", "Mawingu|clouds", "Maua|flowers", "Bahari|sea"],
+      "places": ["Bandari ya|port", "Bonde la|valley", "Bustani ya|garden", "Pwani ya|coast", "Kisiwa cha|island", "Daraja la|bridge", "Mnara wa|tower", "Msitu wa|forest", "Chemchemi ya|spring", "Njia ya|path", "Makazi ya|settlement", "Uwanja wa|field"]
+    },
+    {
+      "policyId": "indonesian",
+      "language": "Indonesian",
+      "script": "Latin",
+      "template": "{place} {image}",
+      "glossTemplate": "{image} {place}",
+      "references": ["https://en.wiktionary.org/wiki/pelabuhan#Indonesian", "https://en.wiktionary.org/wiki/fajar#Indonesian"],
+      "images": ["Fajar|dawn", "Bintang|stars", "Cahaya|light", "Harapan|hope", "Damai|peace", "Bulan|moon", "Matahari|sun", "Angin|wind", "Hujan|rain", "Awan|clouds", "Bunga|flowers", "Laut|sea"],
+      "places": ["Pelabuhan|harbor", "Lembah|valley", "Teluk|bay", "Taman|garden", "Padang|meadow", "Pantai|shore", "Pulau|island", "Jembatan|bridge", "Menara|tower", "Hutan|forest", "Gerbang|gate", "Desa|village"]
+    },
+    {
+      "policyId": "turkish",
+      "language": "Turkish",
+      "script": "Latin",
+      "template": "{image} {place}",
+      "glossTemplate": "{image} {place}",
+      "references": ["https://en.wiktionary.org/wiki/liman#Turkish", "https://en.wiktionary.org/wiki/umut#Turkish"],
+      "images": ["Şafak|dawn", "Yıldız|star", "Işık|light", "Umut|hope", "Barış|peace", "Ay|moon", "Güneş|sun", "Bahar|spring", "Rüzgâr|wind", "Yağmur|rain", "Bulut|cloud", "Çiçek|flower"],
+      "places": ["Limanı|harbor", "Vadisi|valley", "Bahçesi|garden", "Kıyısı|shore", "Adası|island", "Köprüsü|bridge", "Kulesi|tower", "Ormanı|forest", "Yolu|path", "Koyu|bay", "Kapısı|gate", "Meydanı|square"]
+    },
+    {
+      "policyId": "korean",
+      "language": "Korean",
+      "script": "Hangul",
+      "template": "{image}{place}",
+      "glossTemplate": "{image} {place}",
+      "references": ["https://en.wiktionary.org/wiki/항구#Korean", "https://en.wiktionary.org/wiki/별#Korean"],
+      "images": ["새벽|dawn", "별빛|starlight", "희망|hope", "달빛|moonlight", "햇살|sunlight", "바람|wind", "구름|cloud", "꽃|flower"],
+      "places": ["항구|harbor", "계곡|valley", "정원|garden", "언덕|hill", "마을|village", "다리|bridge", "숲|forest", "길|path"]
+    },
+    {
+      "policyId": "german",
+      "language": "German",
+      "script": "Latin",
+      "template": "{image}{place}",
+      "glossTemplate": "{image} {place}",
+      "references": ["https://en.wiktionary.org/wiki/Hafen#German", "https://en.wiktionary.org/wiki/Morgen#German"],
+      "images": ["Morgen|morning", "Sternen|stars", "Licht|light", "Mond|moon", "Sonnen|sun", "Frühlings|spring", "Wolken|clouds", "Blumen|flowers"],
+      "places": ["hafen|harbor", "tal|valley", "garten|garden", "bucht|bay", "hain|grove", "insel|island", "wald|forest", "pfad|path"]
+    },
+    {
+      "policyId": "other-reviewed-traditions",
+      "language": "Finnish",
+      "script": "Latin",
+      "template": "{image}{place}",
+      "glossTemplate": "{place} of {image}",
+      "references": ["https://en.wiktionary.org/wiki/satama#Finnish", "https://en.wiktionary.org/wiki/aamu#Finnish"],
+      "images": ["Aamun|morning", "Tähden|star", "Valon|light", "Toivon|hope", "Kuun|moon", "Tuulen|wind", "Pilven|cloud", "Kukan|flower"],
+      "places": ["satama|harbor", "laakso|valley", "puutarha|garden", "ranta|shore", "saari|island", "silta|bridge", "metsä|forest", "polku|path"]
+    },
+    {
+      "policyId": "other-reviewed-traditions",
+      "language": "Welsh",
+      "script": "Latin",
+      "template": "{place} {image}",
+      "glossTemplate": "{place} of {image}",
+      "references": ["https://en.wiktionary.org/wiki/hafan#Welsh", "https://en.wiktionary.org/wiki/seren#Welsh"],
+      "images": ["y Wawr|dawn", "y Seren|star", "y Goleuni|light", "y Gobaith|hope", "y Lleuad|moon", "y Gwynt|wind", "y Glaw|rain", "y Blodau|flowers"],
+      "places": ["Hafan|haven", "Dyffryn|valley", "Gardd|garden", "Ynys|island", "Pont|bridge", "Tŵr|tower", "Coedwig|forest", "Llwybr|path"]
+    }
+  ]
+}

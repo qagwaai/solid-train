@@ -4,7 +4,7 @@ Date: 2026-11-05
 
 Owner: Forge (backend); consumer coordination: Nova
 
-Status: **The existing 25-entry manifest is enabled on disk and the owner reported live confirmation.** The full-catalog review in section 13 found no additional system that meets both explicit eligibility and approved-unused-content gates, so it made zero additional activations. Eighteen new Earth-landmark draft labels are review-only and unapproved. No independent linguistic/cultural certification or legal clearance is claimed.
+Status: **The owner authorized finalization of all remaining catalog-pattern nominations on 2026-11-06. The manifest enables 4,025 assignments on disk; live restart/verification remains pending.** Sections 13-15 preserve the historical 25/119-assignment reviews. Section 16 supersedes their expansion gates with owner-authorized generated fictional curation. No independent linguistic/cultural certification or legal clearance is claimed.
 
 ## 1. Confirmed direction and boundaries
 
@@ -478,3 +478,30 @@ On 2026-11-06, the owner approved the next 25 undecided nominations from the fro
 This decision is **eligibility only**. It adds 25 explicit eligibility decisions (144 total) while retaining 119 approved assignments and 119 active names. No name content, aliases, assignment, or additional publication was approved. `runtimeEnabled` and all assignments remain unchanged, so no server restart or database write is required for this metadata-only update. Independent linguistic/cultural review and legal clearance remain unclaimed.
 
 Validation: the naming approval test confirms the exact deterministic selection, evidence digests, continued eligibility protection, and unchanged active-name count. The full-catalog report remains a historical snapshot and was not regenerated.
+
+## 16. Owner-authorized final full-scope expansion
+
+On 2026-11-06 the owner revised "curated" to mean generated and source-checked names using the existing themes and language policy, without separate per-name independent certification, and explicitly authorized generation, eligibility decisions, and activation now. This authorization covers **all remaining catalog-pattern nominations**, not protected systems or systems outside those patterns. All 119 earlier assignments and all 144 earlier eligibility decisions are preserved exactly.
+
+The deterministic finalizer, `scripts/finalize-system-naming.js`, uses the existing nomination/protection/source-evidence helpers and Hamilton full-scope allocator. It adds 3,906 assignments and 3,881 eligibility decisions: **4,025 eligible/assigned systems out of 4,845**, with 162 protected and 658 non-nominated systems unchanged. All source-evidence digests match the frozen review and current pinned catalog; source component proper names remain protected.
+
+The new original fictional vocabulary in `data/system-naming-final-vocabulary-v1.json` combines landscape, settlement, light, hope, journey and meeting-place components. Each exact assignment retains its language, components, editorial gloss, lexical reference links and source evidence in `data/system-naming-finalization-v1.json`. References ground component vocabulary, not every generated compound or translation; no native-speaker certification, cultural endorsement, rights clearance, habitability, settlement population or physical-system claim is made. No new real-person tributes or real Earth-landmark references are added. Existing 11 alias entries remain unchanged; no new transliterations are claimed.
+
+The final **remaining-scope** Hamilton quotas are English 1,172; Mandarin 703; Russian 469; Spanish 235; Arabic 196; Hindi 195; Portuguese/Japanese/French 156 each; Swahili/Indonesian 117 each; Turkish 78; Korean/German 39 each; Finnish/Welsh together 78. These are per-scope weights, not a retroactive rebalance of the 119 frozen assignments. The Finnish/Welsh bucket's independent-reviewed-status gate is replaced only in the finalizer's owner-curated policy clone; its 2% weight and the historical v2 policy file are unchanged. No shortages are redistributed.
+
+`data/system-naming-finalization-baseline-v1.json` pins the previous 119-assignment/144-decision manifest for historical tests and expansion-only rollback. The earlier 25/94-pairing reports remain historical and were not regenerated. `docs/system-naming-final-review-2026-11-06.md` contains all 3,906 new pairs and rollout instructions.
+
+Manifest validation now indexes registry-label comparison keys once rather than repeatedly scanning and normalizing the full registry per assignment. This preserves case/accent/punctuation-folded collision checks and self-label behavior while keeping the 4,025-assignment startup practical. No runtime API fields or contracts change.
+
+Reproducibility: `node scripts/finalize-system-naming.js --check` compares the complete generated manifest and review artifacts to the pinned baseline and vocabulary without writing. `--activate` is the explicit materialization command and refuses to overwrite a manifest that differs from both the pinned baseline and exact generated result.
+
+Deployment remains a human-coordinated normal backend restart, synchronizing the **full 4,845-system registry**, never the assignment subset. Verify 4,025 active labels, exactly 3,906 additional label changes against the prior 119-name deployment, zero removals, preserved body/save references and authenticated list/get/search parity. No live database writes or restarts were performed by the finalizer. Expansion-only rollback restores the pinned 119-name manifest before the same full-registry sync; `runtimeEnabled: false` instead disables all 4,025 names.
+
+Validation:
+
+- `node --test test/system-naming.test.js test/system-naming-approved.test.js test/system-naming-full-catalog.test.js test/system-naming-100-review-preview.test.js test/system-naming-weighted-allocation.test.js test/system-naming-finalization.test.js`: **23/23 passed**.
+- `npm run test:unit`: **738/738 passed** on the final run without competing Mongo-test workload. The initial concurrent run passed 737/738, with the 10-second server-import smoke test timing out; `node --test test/server-env.test.js` then passed **3/3**, including default-port import in 2.74 seconds, without changing its timeout.
+- `node --test test-support/system-naming-rollout.mongo.js`: **1/1 passed**, verifying all 4,845 stored summaries, 4,025 active names, zero removals, full-scope physical/generated-body digests, 5,140 stored bodies and saved ship references, idempotence, language-representative searches, full disabling and expansion-only rollback to 119 names. The first attempt exceeded the earlier 120-second pilot-sized timeout; the full-scope test now allows 300 seconds and passed in 246 seconds. Cleanup verified only its uniquely owned loopback test database was dropped.
+- `npm run typecheck`: **passed**.
+- `npx eslint src/model/system-naming.js scripts/finalize-system-naming.js test/system-naming.test.js test/system-naming-approved.test.js test/system-naming-full-catalog.test.js test/system-naming-100-review-preview.test.js test/system-naming-weighted-allocation.test.js test/system-naming-finalization.test.js test-support/system-naming-rollout.mongo.js`: **passed**.
+- `node scripts/finalize-system-naming.js --check` and `git diff --check`: **passed**. The final manifest's canonical JSON SHA-256 is `4d223d0f230db58e47ffe92f96cdecaa77de9263983d2af489006c90c4be3dc2`.
