@@ -29,6 +29,7 @@ const {
 } = require('../src/handlers/solar-system-get-message-handler');
 const historical = require('../test/fixtures/system-naming-proposal-manifest-v1.json');
 const batch = require('../data/system-naming-weighted-batch-v1.json');
+const fullCatalogReview = require('../data/system-naming-full-catalog-review-v1.json');
 
 const hash = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const presentationIndependent = ({
@@ -95,7 +96,8 @@ test(
     assert.equal(baseline.length, 4845);
     assert.equal(disabled.length, baseline.length);
     assert.equal(active.length, baseline.length);
-    const assignedIds = batch.rows.map((row) => row.systemId);
+    const assignedIds = Object.keys(getSystemNamingManifest().approvedAssignments);
+    assert.equal(assignedIds.length, 119);
     const bodiesHash = () =>
       hash(
         assignedIds.map((id) =>
@@ -263,7 +265,7 @@ test(
     assert.equal(
       activeStored.filter((record, i) => record.settlementName !== disabledStored[i].settlementName)
         .length,
-      25
+      119
     );
     assert.deepEqual(
       activeStored.map(presentationIndependent),
@@ -273,6 +275,10 @@ test(
       await assertSearch(row.originalDesignation, row.systemId);
       await assertSearch(row.proposedSettlementName, row.systemId);
       if (row.transliteration) await assertSearch(row.transliteration, row.systemId);
+    }
+    for (const row of fullCatalogReview.reviewProposals) {
+      await assertSearch(row.designation, row.systemId);
+      await assertSearch(row.proposedSettlementName, row.systemId);
     }
     for (const query of ['星', '星港']) await assertSearch(query, 'exo-kepler-397');
     for (const query of ['منارة', 'Manara'.normalize('NFD')])
@@ -314,7 +320,7 @@ test(
     assert.ok(response.bodies.some((body) => body.id === anchor.id));
     assert.equal(getSystemNamingManifest().runtimeEnabled, true);
     t.diagnostic(
-      `PASS: 4845 systems; 25 label/settlement changes; 0 removals; identity/source/physical digests equal; ${await CelestialBody.countDocuments()} stored bodies and saved ship refs unchanged; disabled hash=${migration.hash}; active hash=${activation.hash}`
+      `PASS: 4845 systems; 119 label/settlement changes; 0 removals; identity/source/physical digests equal; ${await CelestialBody.countDocuments()} stored bodies and saved ship refs unchanged; disabled hash=${migration.hash}; active hash=${activation.hash}`
     );
   }
 );

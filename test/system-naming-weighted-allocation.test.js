@@ -440,7 +440,7 @@ test('weighted review preview preserves all frozen pairings and fills the approv
   for (const row of earthRows) assert.ok(rendered.includes(row.proposedDisplayName));
 
   assert.equal(getSystemNamingManifest().runtimeEnabled, true);
-  assert.equal(Object.keys(getSystemNamingManifest().approvedAssignments).length, 25);
+  assert.equal(Object.keys(getSystemNamingManifest().approvedAssignments).length, 119);
 });
 
 test('frozen review locks reject stale, invalid, colliding, protected and mismatched references', () => {

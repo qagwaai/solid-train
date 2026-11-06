@@ -45,7 +45,7 @@ test('author tribute candidate approval retains its limited review metadata', ()
   }
   assert.equal(bank.runtimeConsumed, false);
   assert.equal(getSystemNamingManifest().runtimeEnabled, true);
-  assert.equal(Object.keys(getSystemNamingManifest().approvedAssignments).length, 25);
+  assert.equal(Object.keys(getSystemNamingManifest().approvedAssignments).length, 119);
 });
 
 test('registry naming projection uses approved label and preserves original catalog designation', () => {
@@ -217,5 +217,5 @@ test('full-catalog dry-run is reproducible and leaves all assignments unpublishe
   assert.equal(report.nonNameFieldsChanged, 0);
   assert.equal(report.identitiesChanged, 0);
   assert.equal(report.physicalSeedOrBodyChanges, 0);
-  assert.equal(Object.keys(getSystemNamingManifest().approvedAssignments).length, 25);
+  assert.equal(Object.keys(getSystemNamingManifest().approvedAssignments).length, 119);
 });

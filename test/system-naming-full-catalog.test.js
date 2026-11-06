@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const test = require('node:test');
 const { getSolarSystemRegistry } = require('../src/model/solar-system-registry');
 const { getSystemNamingManifest } = require('../src/model/system-naming');
+const historicalManifest = require('./fixtures/system-naming-full-catalog-manifest-v2.json');
 const batch = require('../data/system-naming-weighted-batch-v1.json');
 const policy = require('../data/system-naming-weight-policy-v2.json');
 const {
@@ -55,8 +56,9 @@ test('full-catalog Hamilton scope is bounded, deterministic and separate from th
 });
 
 test('full-catalog report inventories every system while preserving the active 25 and gating all new names', () => {
-  const registry = getSolarSystemRegistry();
-  const manifest = getSystemNamingManifest();
+  const registry = getSolarSystemRegistry({ namingManifest: historicalManifest });
+  const manifest = historicalManifest;
+  const runtimeManifest = getSystemNamingManifest();
   const report = buildFullCatalogReport({ registry, manifest });
   const reordered = buildFullCatalogReport({ registry: [...registry].reverse(), manifest });
   const stored = JSON.parse(fs.readFileSync(JSON_OUTPUT, 'utf8'));
@@ -206,5 +208,6 @@ test('full-catalog report inventories every system while preserving the active 2
   assert.match(rendered, /five earlier Earth-landmark references are already assigned/u);
   assert.match(markdown, /full-catalog-offline-review-no-new-activation/u);
   assert.equal(manifest.runtimeEnabled, true);
-  assert.equal(Object.keys(manifest.approvedAssignments).length, 25);
+  assert.equal(Object.keys(runtimeManifest.approvedAssignments).length, 119);
+  assert.equal(Object.keys(runtimeManifest.eligibility).length, 119);
 });

@@ -13,9 +13,10 @@ const {
 } = require('../src/model/system-naming');
 const historical = require('./fixtures/system-naming-proposal-manifest-v1.json');
 const batch = require('../data/system-naming-weighted-batch-v1.json');
+const fullCatalog = require('../data/system-naming-full-catalog-review-v1.json');
 const hash = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
-test('active manifest exactly publishes the frozen 25 and disabled clone restores baseline', () => {
+test('active manifest publishes the approved 119 and disabled clone restores baseline', () => {
   const manifest = getSystemNamingManifest();
   const baseline = getSolarSystemRegistry({ namingManifest: historical });
   const disabled = getSolarSystemRegistry({
@@ -23,20 +24,28 @@ test('active manifest exactly publishes the frozen 25 and disabled clone restore
   });
   const active = getSolarSystemRegistry();
   assert.equal(manifest.runtimeEnabled, true);
-  // This is historical review metadata, not the later activation authorization.
-  assert.equal(manifest.approval.livePublicationAuthorized, false);
+  assert.equal(manifest.approval.livePublicationAuthorized, true);
+  assert.equal(manifest.approval.date, '2026-11-06');
+  assert.equal(
+    manifest.approval.activationStatus,
+    'manifest-enabled; coordinated-backend-startup-and-live-verification-pending'
+  );
   assert.equal(manifest.approval.independentLinguisticOrCulturalVerification, 'not-performed');
-  assert.equal(Object.keys(manifest.eligibility).length, 25);
-  assert.equal(Object.keys(manifest.approvedAssignments).length, 25);
+  assert.equal(Object.keys(manifest.eligibility).length, 119);
+  assert.equal(Object.keys(manifest.approvedAssignments).length, 119);
   assert.equal(validateNamingManifest(baseline, manifest), true);
   assert.equal(hash(historical), batch.inputs.manifestSha256);
   assert.deepEqual(manifest.protections, historical.protections);
   assert.deepEqual(manifest.overrides, {});
-  const expected = new Set(batch.rows.map((row) => row.systemId));
+  const expected = new Set([
+    ...batch.rows.map((row) => row.systemId),
+    ...fullCatalog.reviewProposals.map((row) => row.systemId),
+  ]);
   assert.deepEqual(new Set(Object.keys(manifest.eligibility)), expected);
   assert.deepEqual(new Set(Object.keys(manifest.approvedAssignments)), expected);
   assert.equal(batch.rows.length, 25);
-  assert.equal(expected.size, 25);
+  assert.equal(fullCatalog.reviewProposals.length, 94);
+  assert.equal(expected.size, 119);
   assert.equal(baseline.length, 4845);
   assert.equal(active.length, baseline.length);
   assert.equal(disabled.length, baseline.length);
@@ -80,10 +89,38 @@ test('active manifest exactly publishes the frozen 25 and disabled clone restore
       row.transliteration ? [row.transliteration] : []
     );
   }
-  assert.equal(active.filter((system) => system.settlementName).length, 25);
+  for (const row of fullCatalog.reviewProposals) {
+    const system = baseline.find((entry) => entry.id === row.systemId);
+    const activeSystem = active.find((entry) => entry.id === row.systemId);
+    const decision = manifest.eligibility[row.systemId];
+    const assignment = manifest.approvedAssignments[row.systemId];
+    const evidence = getSourceEvidence(system);
+    assert.ok(system);
+    assert.ok(activeSystem);
+    assert.equal(isProtected(system, manifest), false);
+    assert.equal(system.catalogName, row.designation);
+    assert.equal(evidence.snapshot, row.sourceSnapshot);
+    assert.equal(evidence.digest, row.sourceEvidenceSha256);
+    assert.equal(decision.decision, 'eligible');
+    assert.equal(decision.sourceSnapshot, row.sourceSnapshot);
+    assert.equal(decision.sourceEvidenceSha256, row.sourceEvidenceSha256);
+    assert.equal(assignment.status, 'approved');
+    assert.equal(assignment.candidateId, row.candidateId);
+    assert.equal(assignment.settlementName, row.proposedSettlementName);
+    assert.ok(assignment.provenance);
+    assert.equal(manifest.aliases[row.systemId], undefined);
+    for (const key of comparisonKeys(assignment.settlementName)) {
+      assert.equal(nameKeys.has(key), false);
+      nameKeys.add(key);
+    }
+    assert.equal(activeSystem.catalogName, row.designation);
+    assert.equal(activeSystem.settlementName, row.proposedSettlementName);
+    assert.equal(activeSystem.displayName, `${row.proposedSettlementName} (${row.designation})`);
+  }
+  assert.equal(active.filter((system) => system.settlementName).length, 119);
   assert.equal(
     active.filter((system, i) => system.displayName !== disabled[i].displayName).length,
-    25
+    119
   );
   for (let i = 0; i < baseline.length; i++) {
     assert.equal(disabled[i].displayName, baseline[i].displayName);
