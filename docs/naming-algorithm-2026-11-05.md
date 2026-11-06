@@ -4,7 +4,7 @@ Date: 2026-11-05
 
 Owner: Forge (backend); consumer coordination: Nova
 
-Status: **The owner authorized finalization of all remaining catalog-pattern nominations on 2026-11-06. The manifest enables 4,025 assignments on disk; live restart/verification remains pending.** Sections 13-15 preserve the historical 25/119-assignment reviews. Section 16 supersedes their expansion gates with owner-authorized generated fictional curation. No independent linguistic/cultural certification or legal clearance is claimed.
+Status: **The owner restarted the backend on 2026-11-06; live verification confirms 4,025 active assignments across 4,845 stored systems, and authenticated English/Mandarin/Arabic viewer search/detail checks passed. The scoped naming rollout is complete.** Sections 13-15 preserve the historical 25/119-assignment reviews. Section 16 supersedes their expansion gates with owner-authorized generated fictional curation. No independent linguistic/cultural certification or legal clearance is claimed.
 
 ## 1. Confirmed direction and boundaries
 
@@ -505,3 +505,30 @@ Validation:
 - `npm run typecheck`: **passed**.
 - `npx eslint src/model/system-naming.js scripts/finalize-system-naming.js test/system-naming.test.js test/system-naming-approved.test.js test/system-naming-full-catalog.test.js test/system-naming-100-review-preview.test.js test/system-naming-weighted-allocation.test.js test/system-naming-finalization.test.js test-support/system-naming-rollout.mongo.js`: **passed**.
 - `node scripts/finalize-system-naming.js --check` and `git diff --check`: **passed**. The final manifest's canonical JSON SHA-256 is `4d223d0f230db58e47ffe92f96cdecaa77de9263983d2af489006c90c4be3dc2`.
+
+### Live restart verification
+
+After the owner reported commit/push and backend restart on 2026-11-06, the worktree was clean at `0cc01ed` and aligned with `origin/main`. Read-only checks of the configured local `solid-train` database and backend on port 3000 confirmed:
+
+- `/health`: HTTP 200 with `status: ok`; `/openapi.yaml`: HTTP 200 and exact workspace-file match.
+- `solar_systems`: 4,845 records, 4,025 nonempty settlement names, no duplicate/missing/extra canonical system IDs, and zero display-name, settlement-name, catalog-name, alias or search-term mismatches against the full runtime registry.
+- Exactly 3,906 stored display names differ from the pinned 119-assignment baseline projection. This is a comparison with the versioned registry, not a live pre-restart database before-image.
+- Representative new names from every policy bucket occur in the corresponding persisted normalized search terms; original designations match the registry search helper.
+
+No live database writes were performed by the direct database checks. No pre-restart body/save-data before-image was captured, so unchanged live body/save data and the historical count of database removals are not independently asserted; the isolated rollout test supplies those invariant checks separately. Deterministic finalization artifacts retain their generation-time `livePublicationVerified: false` metadata; this section records the subsequent deployment evidence without regenerating historical artifacts.
+
+### Authenticated viewer close-out
+
+The owner logged into the attached viewer at `http://localhost:4200` on 2026-11-06. Six normal UI search/open/detail checks passed:
+
+| Search by new name and original designation | Expected stable ID | Verified list and detail heading |
+| --- | --- | --- |
+| `Apricot Bridge` / `Kepler-1954` | `exo-kepler-1954` | `Apricot Bridge (Kepler-1954)` |
+| `晨光泉` / `Kepler-1338` | `exo-kepler-1338` | `晨光泉 (Kepler-1338)` |
+| `ميناء الفجر` / `Kepler-102` | `exo-kepler-102` | `ميناء الفجر (Kepler-102)` |
+
+Each query returned the matching system button and opened its expected stable-ID detail route with one exact combined heading; no duplicated designation was observed. These checks exercised the served authenticated list/get/search flows, not an injected response or local mock. The Arabic heading was visible and retained its exact Unicode text; this is not a complete RTL, browser/platform, visual or assistive-technology certification.
+
+The browser reported zero console errors and three existing Three.js/WebGL shader warnings about potentially uninitialized shader variables. The browse counter remained `50 of 621 systems` with blank search and distance fields, while global search successfully found the distant review examples. This is an existing browse-count discrepancy, not a 621-system backend census; it is documented for a separate frontend exercise and was not changed in this naming rollout.
+
+Viewer interactions used the normal detail flow, which can perform normal lazy body loading/seeding; no explicit database mutation, forced reseeding, server restart or gameplay action was performed by the validation tools. The scoped naming rollout is complete, with the existing browse-count behavior and broader visual/accessibility verification explicitly outside this close-out.
