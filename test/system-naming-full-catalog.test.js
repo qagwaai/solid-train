@@ -209,5 +209,5 @@ test('full-catalog report inventories every system while preserving the active 2
   assert.match(markdown, /full-catalog-offline-review-no-new-activation/u);
   assert.equal(manifest.runtimeEnabled, true);
   assert.equal(Object.keys(runtimeManifest.approvedAssignments).length, 119);
-  assert.equal(Object.keys(runtimeManifest.eligibility).length, 119);
+  assert.equal(Object.keys(runtimeManifest.eligibility).length, 144);
 });

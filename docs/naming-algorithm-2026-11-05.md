@@ -470,3 +470,11 @@ Manifest enablement is not proof of live publication. On 2026-11-06, the owner s
 The authenticated Nova viewer returned the expected combined labels for searches `Sunward Basin` → `Sunward Basin (Kepler-1558)`, `أمل` → `أمل (Kepler-1101)`, and `İmece` → `İmece (HD 11964)`. Its “Known Systems” list showed 50 of 621; that consumer count is not a census of the backend's 4,845-record registry. The browser reported zero console errors and one WebGL shader numerical warning.
 
 The isolated activation/rollback check passed using its uniquely owned Mongo test database: 4,845 systems, 119 label changes, zero removals, unchanged identity/source/physical digests, and 5,140 bodies plus saved ship references preserved. The test cleaned only its verified owned database. No live body/save-data before-image was taken, so live body/save-data non-change is not independently asserted.
+
+## 15. Owner approval of 25 additional eligibility decisions
+
+On 2026-11-06, the owner approved the next 25 undecided nominations from the frozen full-catalog review as eligible. The tranche was selected by ascending stored nomination rank, then system ID, excluding systems with existing eligibility decisions; its baseline manifest SHA-256 and exact system IDs/source-evidence digests are recorded in `data/system-naming-eligibility-review-2026-11-06.json`. Each source digest was rechecked against the pinned `exoplanet-snapshot-2026-11-01`; all 25 systems have no attached system/component proper names and no protection conflict. The source resolves one star for 23 systems and two stars for two systems.
+
+This decision is **eligibility only**. It adds 25 explicit eligibility decisions (144 total) while retaining 119 approved assignments and 119 active names. No name content, aliases, assignment, or additional publication was approved. `runtimeEnabled` and all assignments remain unchanged, so no server restart or database write is required for this metadata-only update. Independent linguistic/cultural review and legal clearance remain unclaimed.
+
+Validation: the naming approval test confirms the exact deterministic selection, evidence digests, continued eligibility protection, and unchanged active-name count. The full-catalog report remains a historical snapshot and was not regenerated.

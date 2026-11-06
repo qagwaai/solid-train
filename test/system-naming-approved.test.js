@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const { createHash } = require('node:crypto');
 const test = require('node:test');
 const { getSolarSystemRegistry } = require('../src/model/solar-system-registry');
+const { getExoplanetSystemProperNames } = require('../src/model/exoplanet-catalog');
 const {
   getSystemNamingManifest,
   comparisonKeys,
@@ -14,9 +15,10 @@ const {
 const historical = require('./fixtures/system-naming-proposal-manifest-v1.json');
 const batch = require('../data/system-naming-weighted-batch-v1.json');
 const fullCatalog = require('../data/system-naming-full-catalog-review-v1.json');
+const eligibilityReview = require('../data/system-naming-eligibility-review-2026-11-06.json');
 const hash = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
-test('active manifest publishes the approved 119 and disabled clone restores baseline', () => {
+test('active manifest publishes 119 assignments and records 144 eligible systems', () => {
   const manifest = getSystemNamingManifest();
   const baseline = getSolarSystemRegistry({ namingManifest: historical });
   const disabled = getSolarSystemRegistry({
@@ -31,7 +33,7 @@ test('active manifest publishes the approved 119 and disabled clone restores bas
     'manifest-enabled; coordinated-backend-startup-and-live-verification-pending'
   );
   assert.equal(manifest.approval.independentLinguisticOrCulturalVerification, 'not-performed');
-  assert.equal(Object.keys(manifest.eligibility).length, 119);
+  assert.equal(Object.keys(manifest.eligibility).length, 144);
   assert.equal(Object.keys(manifest.approvedAssignments).length, 119);
   assert.equal(validateNamingManifest(baseline, manifest), true);
   assert.equal(hash(historical), batch.inputs.manifestSha256);
@@ -41,11 +43,27 @@ test('active manifest publishes the approved 119 and disabled clone restores bas
     ...batch.rows.map((row) => row.systemId),
     ...fullCatalog.reviewProposals.map((row) => row.systemId),
   ]);
-  assert.deepEqual(new Set(Object.keys(manifest.eligibility)), expected);
+  const expectedEligible = new Set([
+    ...expected,
+    ...eligibilityReview.rows.map((row) => row.systemId),
+  ]);
+  assert.deepEqual(new Set(Object.keys(manifest.eligibility)), expectedEligible);
   assert.deepEqual(new Set(Object.keys(manifest.approvedAssignments)), expected);
   assert.equal(batch.rows.length, 25);
   assert.equal(fullCatalog.reviewProposals.length, 94);
   assert.equal(expected.size, 119);
+  assert.equal(eligibilityReview.rows.length, 25);
+  assert.equal(eligibilityReview.assignmentCount, 0);
+  assert.equal(eligibilityReview.runtimeEnabled, false);
+  assert.deepEqual(
+    eligibilityReview.rows.map((row) => row.systemId),
+    fullCatalog.pendingNominations
+      .filter((row) => !expected.has(row.systemId))
+      .sort((a, b) => a.rank.localeCompare(b.rank) || a.systemId.localeCompare(b.systemId))
+      .slice(0, 25)
+      .map((row) => row.systemId)
+  );
+  assert.equal(expectedEligible.size, 144);
   assert.equal(baseline.length, 4845);
   assert.equal(active.length, baseline.length);
   assert.equal(disabled.length, baseline.length);
@@ -116,6 +134,24 @@ test('active manifest publishes the approved 119 and disabled clone restores bas
     assert.equal(activeSystem.catalogName, row.designation);
     assert.equal(activeSystem.settlementName, row.proposedSettlementName);
     assert.equal(activeSystem.displayName, `${row.proposedSettlementName} (${row.designation})`);
+  }
+  for (const row of eligibilityReview.rows) {
+    const system = baseline.find((entry) => entry.id === row.systemId);
+    const activeSystem = active.find((entry) => entry.id === row.systemId);
+    const disabledSystem = disabled.find((entry) => entry.id === row.systemId);
+    const decision = manifest.eligibility[row.systemId];
+    const evidence = getSourceEvidence(system);
+    assert.ok(system);
+    assert.equal(isProtected(system, manifest), false);
+    assert.equal(evidence.digest, row.sourceEvidenceSha256);
+    assert.equal(evidence.snapshot, eligibilityReview.sourceSnapshot);
+    assert.deepEqual(getExoplanetSystemProperNames(row.systemId), []);
+    assert.equal(decision.decision, 'eligible');
+    assert.equal(decision.sourceEvidenceSha256, evidence.digest);
+    assert.match(decision.reason, /source eligibility only .* no name or assignment approved/u);
+    assert.equal(manifest.approvedAssignments[row.systemId], undefined);
+    assert.equal(activeSystem.displayName, disabledSystem.displayName);
+    assert.equal(activeSystem.settlementName, null);
   }
   assert.equal(active.filter((system) => system.settlementName).length, 119);
   assert.equal(

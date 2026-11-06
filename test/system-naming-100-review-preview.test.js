@@ -84,5 +84,5 @@ test('100-system review preview is deterministic, source-evidenced, and proposal
   assert.equal(preview.candidatePortfolio.reviewerSignoffsRecorded, 0);
   assert.equal(getSystemNamingManifest().runtimeEnabled, true);
   assert.equal(Object.keys(getSystemNamingManifest().approvedAssignments).length, 119);
-  assert.equal(Object.keys(getSystemNamingManifest().eligibility).length, 119);
+  assert.equal(Object.keys(getSystemNamingManifest().eligibility).length, 144);
 });

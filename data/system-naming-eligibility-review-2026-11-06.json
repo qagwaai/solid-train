@@ -1,0 +1,52 @@
+{
+  "reviewVersion": 1,
+  "date": "2026-11-06",
+  "reviewer": "project owner (user)",
+  "decision": "owner-approved-eligible",
+  "scope": "Eligibility only; no naming content or assignments approved by this review.",
+  "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+  "sourceEvidence": "SHA-256 of each source system record, its host records, and its HYG component-star records.",
+  "selection": {
+    "source": "data/system-naming-full-catalog-review-v1.json#pendingNominations",
+    "method": "Select the first 25 currently undecided nominations ordered by stored rank, then system ID, excluding systems with existing eligibility decisions.",
+    "baseManifestSha256": "a95489127c0f8228d9b3cc9f9d981aaec3ddbcb1582e2d9d62c3e1c10f7ba45c"
+  },
+  "sourceReview": {
+    "allFromExoplanetCatalog": true,
+    "attachedSystemOrComponentProperNamesFound": false,
+    "protectedSystemsFound": false,
+    "resolvedStarCounts": {
+      "1": 23,
+      "2": 2
+    }
+  },
+  "assignmentCount": 0,
+  "runtimeEnabled": false,
+  "rows": [
+    { "systemId": "exo-kepler-1954", "designation": "Kepler-1954", "sourceEvidenceSha256": "8f3589e598fe898074fd85066d93e7032a3667273672b03f258c13b779d53eda", "selectionRank": "04ec6a7f8093a197e8528abfe0c09d2ef066147dcb4e981a40095b4422b6b7f0" },
+    { "systemId": "exo-kepler-650", "designation": "Kepler-650", "sourceEvidenceSha256": "d8cf6ff2e638f8445afc17ce5aebe80b5af965ac3ee8ac8f5404bf79b7645b3d", "selectionRank": "04f6f83be4469dc962011dba2645ccd7e077434afb7112454282272e76953d56" },
+    { "systemId": "exo-kepler-1064", "designation": "Kepler-1064", "sourceEvidenceSha256": "6cf691a7daf5766169e911d9d94b9ecab5ca7646570306d2173769bc9e5c8d09", "selectionRank": "04fb787df9aafc95ff3f467de733c90c0fe461d8380af9015edcb6f22ea311fc" },
+    { "systemId": "exo-hd-7924", "designation": "HD 7924", "sourceEvidenceSha256": "586f7e62e93d241d24ecb0b9d00dea68ed9888f17d661b326dd139c501b75e62", "selectionRank": "0514a8b9fb98cf783dd25c98cbf2ed525b86d18f8a48dae249a1102614afa03a" },
+    { "systemId": "exo-toi-6002", "designation": "TOI-6002", "sourceEvidenceSha256": "9d9bdcdc25b494912fa9bde631756b098c1da1ca7b1a3f418b8bbe6cc0bd2197", "selectionRank": "051b2e75bc48947f289f5f398f066d87108775fae5840ab4d62b17d0f36ee58e" },
+    { "systemId": "exo-kepler-900", "designation": "Kepler-900", "sourceEvidenceSha256": "d84cf651760647d549f7b848115b555fb415f8985109194f5c654c867cb00306", "selectionRank": "052389cacabf1aa055ab36a6aa5b9d5bc69a4866fd8b1103e18afebbf3a493ec" },
+    { "systemId": "exo-toi-1669", "designation": "TOI-1669", "sourceEvidenceSha256": "4301e364e4eede430f9c3c33a668e80f2b7eeae846d9fb1caadb37048ab951c9", "selectionRank": "053730a0edaa20d01e8791b430688adfda5988a86183f1e5b21438d62355aa0f" },
+    { "systemId": "exo-hd-127506", "designation": "HD 127506", "sourceEvidenceSha256": "f3ee22222bd14d7749fc74fce360b1432f536b4014e3dd0411c9cc91d215763b", "selectionRank": "05465e4521737fe6c2fbc536d0db7238b34bdb06ca695c2dceea7f32faa53181" },
+    { "systemId": "exo-kepler-1106", "designation": "Kepler-1106", "sourceEvidenceSha256": "cc3acd75cac3a3d16bee3b42291c6a8b9b956ad482ca516be7722991c6b305f5", "selectionRank": "0560b5d7dbe926ac4381ecc7077b1ed7a2b730125962e1682f846d3fbec1d759" },
+    { "systemId": "exo-kepler-1239", "designation": "Kepler-1239", "sourceEvidenceSha256": "28a61167f5324e682c84933da4ae60942939fbb451b07ae3653c3aa9d2a3a4b3", "selectionRank": "056abdc1811bf938b97dcec06ecc4f9636fbaeaa94e844242d2d802e53d20f0b" },
+    { "systemId": "exo-kepler-1442", "designation": "Kepler-1442", "sourceEvidenceSha256": "d43bd92212817b847974ef041145f899a21a1a72de1b1ba09b5a8aed0798fa64", "selectionRank": "0579d0a8a438a506a513b2cfc0816729e64c1a11196c4649dfd199516b1dd4e1" },
+    { "systemId": "exo-corot-6", "designation": "CoRoT-6", "sourceEvidenceSha256": "d233b8f02cbf53b7e321090e7f7d1f6da65fb8563997373f5d7a730922192440", "selectionRank": "05806538606d8d66007faac0fc17b13c0287c22bc4b281aa4ee4ff18878d9f82" },
+    { "systemId": "exo-kepler-1938", "designation": "Kepler-1938", "sourceEvidenceSha256": "ee21af30064b663389eb94bf58bcd2140dcd7691d54bdaa1d2bf1344b36c05d8", "selectionRank": "058543bda3aa8271c580124a0931347b2ee9f577339cba8c0fd02830c9384032" },
+    { "systemId": "exo-kepler-943", "designation": "Kepler-943", "sourceEvidenceSha256": "b601f86caf9037bc2c1af2569ba4942ee18ed1521cb48fa69a033a2b6786f870", "selectionRank": "0594f7156b556f1b755307f9c0ba3db15bc916eb44dc203de94cf9981430f500" },
+    { "systemId": "exo-kepler-1798", "designation": "Kepler-1798", "sourceEvidenceSha256": "0c6affda6cf358a188f6b1b46993719d9718325b0bee8e69b8fb7ffac40f3fbe", "selectionRank": "05950d4001455ff6d2dfb12805ef11858e0ed9107625f33941d009dd18a8a76b" },
+    { "systemId": "exo-kepler-1216", "designation": "Kepler-1216", "sourceEvidenceSha256": "66d1ae73a72ac30b061945b135bb64381dcd3735fb17473481315d23ac562af8", "selectionRank": "05aed664754adccf87855fa3f308e90dd895caf7f323183a4435125818811ac7" },
+    { "systemId": "exo-k2-393", "designation": "K2-393", "sourceEvidenceSha256": "32cfcf380e80b877f879a8f7f9edad1ba852e0a1ad10a21c1f3893bc5383cf8c", "selectionRank": "05af918dec55c64f80799afa09fa9acaeae25658173aca51caf75d62f0643ed6" },
+    { "systemId": "exo-kepler-1647", "designation": "Kepler-1647", "sourceEvidenceSha256": "18106b42283fa0a434378b462222ea73015c6fa31e37e27031068d412230dc7c", "selectionRank": "05b75088ebf67f44de7d9953687a3e1ec8040500080f54e14d210e1a20092556" },
+    { "systemId": "exo-hd-142415", "designation": "HD 142415", "sourceEvidenceSha256": "8a03c2fc600a92ec6de6cf41fc5a6a5b051544074eef1962d00016f914a99f20", "selectionRank": "05d72f16b2359c79c4eab741f7bb353c1c62cc6193702790e316e755880ab19c" },
+    { "systemId": "exo-gj-682", "designation": "GJ 682", "sourceEvidenceSha256": "7866360891b7b1c90cd295907dc8eb9b2511b5d212274f75f94c8779cbbd85e0", "selectionRank": "05e44db144984f1a47390ffeb56032edaed721a301781e78e0f843716486b230" },
+    { "systemId": "exo-k2-392", "designation": "K2-392", "sourceEvidenceSha256": "7e527714221ce4aa6d02b6d224e10c10ff1aa5937903c371298d17cc91753ade", "selectionRank": "05f6750e0644eabb54dbc7a7a0b4c67572440567fe8232be99c7d4537f21d98e" },
+    { "systemId": "exo-toi-5786", "designation": "TOI-5786", "sourceEvidenceSha256": "52d0c0889571e6dc7fccb41241496dc3cbe82fed5e7126c5fc1bc60a0e4f74ca", "selectionRank": "060762934ed21b8ce8edb08b7090832965e7714aa3759a5dfc0b01716f97626f" },
+    { "systemId": "exo-kepler-393", "designation": "Kepler-393", "sourceEvidenceSha256": "1af3ff0099acfb5bd3786a95b245b03c2f148b92db588dede5f1fa7eb981e983", "selectionRank": "06153d712f6bc35a7e3a5dc7a1d7bc9d2b4446ce880ed0939873546c05d11839" },
+    { "systemId": "exo-kepler-1016", "designation": "Kepler-1016", "sourceEvidenceSha256": "7f75d3bb4c914a0c56c11574934db3e79bb994949be90442a906bee661275e4a", "selectionRank": "06343c1efaa52c2efb07561ff727ecffe0b993597fdc1f36170bb8e05d727879" },
+    { "systemId": "exo-kepler-1998", "designation": "Kepler-1998", "sourceEvidenceSha256": "2a3cf1dae20a440c91a05a78b1c379a9b4ce9d3cf1fe6f7d823e67c61f668259", "selectionRank": "063abea2db7f502b0ad1bdfdcb0b7a13b4a4b87eee130633df3da25196b57ce6" }
+  ]
+}

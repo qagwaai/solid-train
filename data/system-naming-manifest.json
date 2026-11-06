@@ -7,8 +7,8 @@
   "approval": {
     "date": "2026-11-06",
     "reviewer": "project owner (user)",
-    "scope": "Original 25 frozen batch entries remain unchanged; owner additionally approved all 94 exact full-catalog review pairings for source eligibility and name content.",
-    "source": "Owner decision recorded 2026-11-06; data/system-naming-full-catalog-review-v1.json reviewProposals and docs/system-naming-full-catalog-review-2026-11-05.md.",
+    "scope": "Original 25 frozen batch entries remain unchanged; owner approved 94 full-catalog pairings for source eligibility and name content, then approved 25 additional systems for eligibility only.",
+    "source": "Owner decisions recorded 2026-11-06; data/system-naming-full-catalog-review-v1.json reviewProposals and data/system-naming-eligibility-review-2026-11-06.json.",
     "proposal": "data/system-naming-weighted-batch-v1.json",
     "frozenPlan": "data/system-naming-weighted-batch-plan-v2.json",
     "independentLinguisticOrCulturalVerification": "not-performed",
@@ -971,6 +971,206 @@
       "reviewStatus": "owner-approved-source-eligibility",
       "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
       "sourceEvidenceSha256": "30635fb18c4eadd1060611266bf4e5e30a895a840d48c08b65536ccddbc3ed12"
+    },
+    "exo-kepler-1954": {
+      "decision": "eligible",
+      "reason": "Kepler-1954: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8f3589e598fe898074fd85066d93e7032a3667273672b03f258c13b779d53eda"
+    },
+    "exo-kepler-650": {
+      "decision": "eligible",
+      "reason": "Kepler-650: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d8cf6ff2e638f8445afc17ce5aebe80b5af965ac3ee8ac8f5404bf79b7645b3d"
+    },
+    "exo-kepler-1064": {
+      "decision": "eligible",
+      "reason": "Kepler-1064: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "6cf691a7daf5766169e911d9d94b9ecab5ca7646570306d2173769bc9e5c8d09"
+    },
+    "exo-hd-7924": {
+      "decision": "eligible",
+      "reason": "HD 7924: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "586f7e62e93d241d24ecb0b9d00dea68ed9888f17d661b326dd139c501b75e62"
+    },
+    "exo-toi-6002": {
+      "decision": "eligible",
+      "reason": "TOI-6002: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "9d9bdcdc25b494912fa9bde631756b098c1da1ca7b1a3f418b8bbe6cc0bd2197"
+    },
+    "exo-kepler-900": {
+      "decision": "eligible",
+      "reason": "Kepler-900: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d84cf651760647d549f7b848115b555fb415f8985109194f5c654c867cb00306"
+    },
+    "exo-toi-1669": {
+      "decision": "eligible",
+      "reason": "TOI-1669: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "4301e364e4eede430f9c3c33a668e80f2b7eeae846d9fb1caadb37048ab951c9"
+    },
+    "exo-hd-127506": {
+      "decision": "eligible",
+      "reason": "HD 127506: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "f3ee22222bd14d7749fc74fce360b1432f536b4014e3dd0411c9cc91d215763b"
+    },
+    "exo-kepler-1106": {
+      "decision": "eligible",
+      "reason": "Kepler-1106: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "cc3acd75cac3a3d16bee3b42291c6a8b9b956ad482ca516be7722991c6b305f5"
+    },
+    "exo-kepler-1239": {
+      "decision": "eligible",
+      "reason": "Kepler-1239: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "28a61167f5324e682c84933da4ae60942939fbb451b07ae3653c3aa9d2a3a4b3"
+    },
+    "exo-kepler-1442": {
+      "decision": "eligible",
+      "reason": "Kepler-1442: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d43bd92212817b847974ef041145f899a21a1a72de1b1ba09b5a8aed0798fa64"
+    },
+    "exo-corot-6": {
+      "decision": "eligible",
+      "reason": "CoRoT-6: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "d233b8f02cbf53b7e321090e7f7d1f6da65fb8563997373f5d7a730922192440"
+    },
+    "exo-kepler-1938": {
+      "decision": "eligible",
+      "reason": "Kepler-1938: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "ee21af30064b663389eb94bf58bcd2140dcd7691d54bdaa1d2bf1344b36c05d8"
+    },
+    "exo-kepler-943": {
+      "decision": "eligible",
+      "reason": "Kepler-943: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "b601f86caf9037bc2c1af2569ba4942ee18ed1521cb48fa69a033a2b6786f870"
+    },
+    "exo-kepler-1798": {
+      "decision": "eligible",
+      "reason": "Kepler-1798: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "0c6affda6cf358a188f6b1b46993719d9718325b0bee8e69b8fb7ffac40f3fbe"
+    },
+    "exo-kepler-1216": {
+      "decision": "eligible",
+      "reason": "Kepler-1216: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "66d1ae73a72ac30b061945b135bb64381dcd3735fb17473481315d23ac562af8"
+    },
+    "exo-k2-393": {
+      "decision": "eligible",
+      "reason": "K2-393: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "32cfcf380e80b877f879a8f7f9edad1ba852e0a1ad10a21c1f3893bc5383cf8c"
+    },
+    "exo-kepler-1647": {
+      "decision": "eligible",
+      "reason": "Kepler-1647: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "18106b42283fa0a434378b462222ea73015c6fa31e37e27031068d412230dc7c"
+    },
+    "exo-hd-142415": {
+      "decision": "eligible",
+      "reason": "HD 142415: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "8a03c2fc600a92ec6de6cf41fc5a6a5b051544074eef1962d00016f914a99f20"
+    },
+    "exo-gj-682": {
+      "decision": "eligible",
+      "reason": "GJ 682: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "7866360891b7b1c90cd295907dc8eb9b2511b5d212274f75f94c8779cbbd85e0"
+    },
+    "exo-k2-392": {
+      "decision": "eligible",
+      "reason": "K2-392: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "7e527714221ce4aa6d02b6d224e10c10ff1aa5937903c371298d17cc91753ade"
+    },
+    "exo-toi-5786": {
+      "decision": "eligible",
+      "reason": "TOI-5786: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "52d0c0889571e6dc7fccb41241496dc3cbe82fed5e7126c5fc1bc60a0e4f74ca"
+    },
+    "exo-kepler-393": {
+      "decision": "eligible",
+      "reason": "Kepler-393: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "1af3ff0099acfb5bd3786a95b245b03c2f148b92db588dede5f1fa7eb981e983"
+    },
+    "exo-kepler-1016": {
+      "decision": "eligible",
+      "reason": "Kepler-1016: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "7f75d3bb4c914a0c56c11574934db3e79bb994949be90442a906bee661275e4a"
+    },
+    "exo-kepler-1998": {
+      "decision": "eligible",
+      "reason": "Kepler-1998: owner approved source eligibility only on 2026-11-06; no name or assignment approved.",
+      "reviewer": "project owner (user)",
+      "reviewStatus": "owner-approved-source-eligibility",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "2a3cf1dae20a440c91a05a78b1c379a9b4ce9d3cf1fe6f7d823e67c61f668259"
     }
   },
   "protections": {
