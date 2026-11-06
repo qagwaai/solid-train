@@ -1,0 +1,33 @@
+{
+  "manifestVersion": 1,
+  "algorithmVersion": "system-name-proposal-v1",
+  "policyVersion": "eligibility-explicit-v1",
+  "seed": "stellar-naming-seed-v1",
+  "runtimeEnabled": false,
+  "eligibility": {
+    "exo-gj-9066": {
+      "decision": "eligible",
+      "reason": "Single-star exoplanet catalog record; source designation is GJ 9066; no source proper name is recorded in the pinned catalog snapshots. Explicitly reviewed for proposal only.",
+      "reviewer": "Forge",
+      "reviewStatus": "reviewed-eligible-proposal-only",
+      "sourceSnapshot": "exoplanet-snapshot-2026-11-01",
+      "sourceEvidenceSha256": "f95a573cbb017cd1e2d34a5196181ce31eb2d456636742377b13191360c22f82"
+    }
+  },
+  "protections": {
+    "sol": { "reason": "Established proper name and curated system identity." },
+    "alpha-centauri": { "reason": "Established proper name and curated system identity." },
+    "sirius": { "reason": "Established proper name." },
+    "barnards-star": { "reason": "Established proper name." },
+    "cygnus-x1": { "reason": "Established proper name and curated system identity." },
+    "wolf-359": {
+      "reason": "Ambiguous familiar/catalog designation; protected pending explicit review."
+    },
+    "lalande-21185": { "reason": "Established proper name; protected pending explicit review." },
+    "exo-14-and": { "reason": "Source record carries IAU proper name Veritate." },
+    "exo-11-umi": { "reason": "Source record carries IAU proper name Pherkad Minor." }
+  },
+  "approvedAssignments": {},
+  "overrides": {},
+  "aliases": {}
+}

@@ -27,6 +27,7 @@ const jumpGateQueryService = require('./service/jump-gate-query-service');
 const starService = require('./service/star-service');
 const catalogSyncService = require('./service/catalog-sync-service');
 const solarSystemService = require('./service/solar-system-service');
+const solarSystemSearch = require('../model/solar-system-search');
 const npcBustService = require('./service/npc-bust-service');
 const { createLogger } = require('../logging/logger');
 
@@ -934,10 +935,14 @@ class DatabaseService {
    * @param {Object[]} registryRecords
    */
   async syncSolarSystems(registryRecords) {
+    const recordsWithSearchTerms = registryRecords.map((record) => ({
+      ...record,
+      searchTerms: solarSystemSearch.buildSolarSystemSearchTerms(record),
+    }));
     return catalogSyncService.syncCatalogCollection(this, SolarSystem, GameStateDocument, {
       stateKey: 'solar-system-registry-sync-state',
       keyField: 'id',
-      records: registryRecords,
+      records: recordsWithSearchTerms,
     });
   }
 

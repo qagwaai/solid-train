@@ -195,6 +195,8 @@ test('SolarSystemListMessageHandler lists exoplanet-catalog systems with catalog
   assert.ok(system);
   assert.equal(system.displayName, 'Copernicus');
   assert.equal(system.catalogName, '55 Cnc');
+  assert.equal(system.settlementName, null);
+  assert.deepEqual(system.aliases, ['55 Cnc']);
   assert.equal(system.hygSystemId, null);
   assert.equal(system.isMultiStar, true);
   assert.equal(system.planetCount, 7);

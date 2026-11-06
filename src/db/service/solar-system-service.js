@@ -1,5 +1,8 @@
 'use strict';
 
+const { normalizeAlias } = require('../../model/system-naming');
+const { buildSolarSystemSearchTerms } = require('../../model/solar-system-search');
+
 /**
  * Read/write helpers for the solar_systems collection.
  */
@@ -9,10 +12,11 @@ async function upsertSolarSystem(ctx, SolarSystem, systemData) {
     return null;
   }
   const id = systemData.id.trim().toLowerCase();
+  const record = { ...systemData, id };
   try {
     const persisted = await SolarSystem.findOneAndUpdate(
       { id },
-      { ...systemData, id },
+      { ...record, searchTerms: buildSolarSystemSearchTerms(record) },
       { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     ).lean();
     return persisted;
@@ -51,12 +55,11 @@ async function getSolarSystems(ctx, SolarSystem, query = {}) {
 
     const search = ctx.toNonEmptyString(query?.search);
     if (search) {
-      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      mongoQuery.$or = [
-        { id: new RegExp(escaped, 'i') },
-        { displayName: new RegExp(escaped, 'i') },
-        { 'primaryStar.properName': new RegExp(escaped, 'i') },
-      ];
+      const normalizedSearch = normalizeAlias(search);
+      if (normalizedSearch) {
+        const escaped = normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        mongoQuery.searchTerms = new RegExp(escaped);
+      }
     }
 
     const limit =

@@ -1,0 +1,64 @@
+{
+  "reportVersion": 1,
+  "status": "proposal-only-human-review-required",
+  "runtimeEnabled": false,
+  "writesPerformed": false,
+  "scope": "full checked-in system registry; no row limit",
+  "registryCount": 4845,
+  "eligibilityCounts": {
+    "explicitlyEligible": 1,
+    "protected": 162,
+    "needsReview": 4682
+  },
+  "sourceCounts": { "curated": 3, "procedural": 4, "exoplanet-catalog": 4838 },
+  "candidateCounts": {
+    "originalFictional": 2,
+    "authorHonoring": 7,
+    "culturallySourced": 0,
+    "proposalsByStyle": {
+      "settlement": 1,
+      "welcome": 1,
+      "science-fiction-motif": 1,
+      "landscape-metaphor": 1
+    }
+  },
+  "collisionRetries": 0,
+  "inputs": {
+    "manifestVersion": 1,
+    "algorithmVersion": "system-name-proposal-v1",
+    "seed": "stellar-naming-seed-v1",
+    "policyVersion": "eligibility-explicit-v1",
+    "candidateBankVersion": 3,
+    "registrySha256": "8e7c8b5c37ad67366b14aeab1a093705949ad1db71c9211de222e5b5bf2c83c0",
+    "eligibilitySha256": "46a641704fa4024362cb9acb1b99c99ee019c17e9023e7b7d79b3acae95fd416",
+    "candidateBankSha256": "28409779cf4dc21ebb52460bb4efffc93f802ea453df865c163c92f3e9c7422a"
+  },
+  "proposals": [
+    {
+      "systemId": "exo-gj-9066",
+      "source": "exoplanet-catalog",
+      "originalDesignation": "GJ 9066",
+      "currentDisplayName": "GJ 9066",
+      "candidateId": "original-copper-vale",
+      "proposedSettlementName": "Copper Vale",
+      "proposedDisplayName": "Copper Vale (GJ 9066)",
+      "candidateLane": "original-fictional",
+      "styles": ["landscape-metaphor"],
+      "collisionRetries": 0,
+      "aliasesIfApproved": ["GJ 9066"],
+      "eligibilityReview": "reviewed-eligible-proposal-only",
+      "candidateReview": "unreviewed-proposal",
+      "rightsReview": "originality-review-pending",
+      "allAgesReview": "human-review-pending",
+      "assignmentStatus": "pending-human-approval",
+      "runtimeEnabled": false
+    }
+  ],
+  "exhaustedIds": [],
+  "approvedAssignmentCount": 0,
+  "changedExistingAssignments": 0,
+  "protectedOrUnreviewedLabelsChanged": 0,
+  "nonNameFieldsChanged": 0,
+  "identitiesChanged": 0,
+  "physicalSeedOrBodyChanges": 0
+}

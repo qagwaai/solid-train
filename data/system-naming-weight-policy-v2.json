@@ -1,0 +1,105 @@
+{
+  "policyVersion": "system-naming-weighted-allocation-v2",
+  "status": "review-only-allocation-policy",
+  "totalWeight": 100,
+  "defaultBatchSize": 25,
+  "minimumBatchSize": 1,
+  "maximumBatchSize": 100,
+  "allocationMethod": "hamilton-largest-remainder-per-batch",
+  "fractionalRemainderTieBreak": "higher integer remainder first; exact ties use the language order listed below",
+  "languages": [
+    {
+      "id": "english",
+      "language": "English",
+      "weight": 30,
+      "candidateLanguageLabels": ["English"]
+    },
+    {
+      "id": "mandarin",
+      "language": "Mandarin",
+      "weight": 18,
+      "candidateLanguageLabels": ["Chinese", "Mandarin"],
+      "candidateLanguageMappingNote": "The user-directed Mandarin policy bucket accepts candidates with the explicit Chinese tag used by the earlier review bank or the more specific Mandarin tag on the approved Earth-landmark supplement. Each proposal retains its exact candidate language tag. No script or nationality inference is used."
+    },
+    {
+      "id": "russian",
+      "language": "Russian",
+      "weight": 12,
+      "candidateLanguageLabels": ["Russian"]
+    },
+    {
+      "id": "spanish",
+      "language": "Spanish",
+      "weight": 6,
+      "candidateLanguageLabels": ["Spanish"]
+    },
+    {
+      "id": "arabic",
+      "language": "Arabic",
+      "weight": 5,
+      "candidateLanguageLabels": ["Arabic"]
+    },
+    {
+      "id": "hindi",
+      "language": "Hindi",
+      "weight": 5,
+      "candidateLanguageLabels": ["Hindi"]
+    },
+    {
+      "id": "portuguese",
+      "language": "Portuguese",
+      "weight": 4,
+      "candidateLanguageLabels": ["Portuguese"]
+    },
+    {
+      "id": "japanese",
+      "language": "Japanese",
+      "weight": 4,
+      "candidateLanguageLabels": ["Japanese"]
+    },
+    {
+      "id": "french",
+      "language": "French",
+      "weight": 4,
+      "candidateLanguageLabels": ["French"]
+    },
+    {
+      "id": "swahili",
+      "language": "Swahili",
+      "weight": 3,
+      "candidateLanguageLabels": ["Swahili"]
+    },
+    {
+      "id": "indonesian",
+      "language": "Indonesian",
+      "weight": 3,
+      "candidateLanguageLabels": ["Indonesian"]
+    },
+    {
+      "id": "turkish",
+      "language": "Turkish",
+      "weight": 2,
+      "candidateLanguageLabels": ["Turkish"]
+    },
+    {
+      "id": "korean",
+      "language": "Korean",
+      "weight": 1,
+      "candidateLanguageLabels": ["Korean"]
+    },
+    {
+      "id": "german",
+      "language": "German",
+      "weight": 1,
+      "candidateLanguageLabels": ["German"]
+    },
+    {
+      "id": "other-reviewed-traditions",
+      "language": "Other reviewed traditions",
+      "weight": 2,
+      "candidateLanguageLabels": ["Finnish", "Welsh"],
+      "requiredLinguisticStatus": "reviewed",
+      "candidateEligibilityNote": "Only explicitly language-tagged proposals with recorded linguisticStatus reviewed may fill this reviewed-traditions bucket; the current Finnish and Welsh sketches are unverified and remain unallocated."
+    }
+  ]
+}

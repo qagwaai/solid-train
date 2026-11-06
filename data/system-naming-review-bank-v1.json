@@ -1,0 +1,335 @@
+{
+  "bankVersion": 1,
+  "status": "review-preview-only",
+  "runtimeConsumed": false,
+  "originalEnglishNames": [
+    "Copper Vale",
+    "Lantern Reach",
+    "Aster Crossing",
+    "Quiet Harbor",
+    "Open Meridian",
+    "Kindred Shore",
+    "Dawnward",
+    "Common Ground",
+    "Farwater",
+    "Bright Landing",
+    "Stillwater Reach",
+    "Northstar Haven",
+    "First Light",
+    "Wayfarer Vale",
+    "Hearthline",
+    "Morrow Bay",
+    "Gathering Point",
+    "Blueglass Harbor",
+    "Longview",
+    "New Tidemark",
+    "Horizon Field",
+    "Pilgrim's Rest",
+    "Cinder Garden",
+    "Clearwater Station",
+    "Evening Compass",
+    "Silver Orchard",
+    "Commonwealth Rise",
+    "Tanglewood Port",
+    "Sunward Basin",
+    "Far Lantern",
+    "Mosaic Vale",
+    "Windward Table",
+    "Quiet Current",
+    "Cloudbreak",
+    "Open Door",
+    "Summer Threshold",
+    "Blue Mountain",
+    "Shared Horizon",
+    "Brightwater",
+    "Starling Reach",
+    "New Morning",
+    "Compass Rose",
+    "Harvest Moon",
+    "Long Voyage",
+    "Verdant Step",
+    "Glasshouse",
+    "Welcoming Tide",
+    "Far Orchard",
+    "Beacon Hill",
+    "Kindred Crossing",
+    "Sundial Harbor",
+    "Open Sky",
+    "River of Stars",
+    "Resting Place",
+    "Cedar Landing",
+    "Distant Garden",
+    "Aurora Commons",
+    "Promise Bay",
+    "Wayfinder's Reach",
+    "Bright Assembly",
+    "Westward Light",
+    "Patient Voyager",
+    "Hearth and Harbor",
+    "Blue Meridian",
+    "New Common",
+    "Starlit Crossing",
+    "Gathering Shore",
+    "Hopeful Passage",
+    "Far Beacon"
+  ],
+  "multilingualProposals": [
+    {
+      "name": "木漏れ日",
+      "language": "Japanese",
+      "script": "Japanese",
+      "transliteration": "Komorebi",
+      "provisionalGloss": "sunlight filtering through leaves",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "光",
+      "language": "Japanese",
+      "script": "Japanese",
+      "transliteration": "Hikari",
+      "provisionalGloss": "light",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "أمل",
+      "language": "Arabic",
+      "script": "Arabic",
+      "transliteration": "Amal",
+      "provisionalGloss": "hope",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "منارة",
+      "language": "Arabic",
+      "script": "Arabic",
+      "transliteration": "Manara",
+      "provisionalGloss": "lighthouse / beacon",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Tumaini",
+      "language": "Swahili",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "hope",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Pamoja",
+      "language": "Swahili",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "together",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Alborada",
+      "language": "Spanish",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "dawn / dawn song",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Encuentro",
+      "language": "Spanish",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "meeting / encounter",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Travessia",
+      "language": "Portuguese",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "crossing / passage",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Horizonte",
+      "language": "Portuguese",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "horizon",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "İmece",
+      "language": "Turkish",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "communal cooperative work",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Ufuk",
+      "language": "Turkish",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "horizon",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Sisu",
+      "language": "Finnish",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "resolve / perseverance (nuanced)",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Aamunkajo",
+      "language": "Finnish",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "dawn glow",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Harapan",
+      "language": "Indonesian",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "hope",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Rembulan",
+      "language": "Indonesian",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "poetic moon",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "आशा",
+      "language": "Hindi",
+      "script": "Devanagari",
+      "transliteration": "Asha",
+      "provisionalGloss": "hope",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "मिलन",
+      "language": "Hindi",
+      "script": "Devanagari",
+      "transliteration": "Milan",
+      "provisionalGloss": "meeting / union",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Hafan",
+      "language": "Welsh",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "haven",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "Seren",
+      "language": "Welsh",
+      "script": "Latin",
+      "transliteration": null,
+      "provisionalGloss": "star",
+      "linguisticStatus": "unverified-sketch"
+    },
+    {
+      "name": "星港",
+      "language": "Chinese",
+      "script": "Chinese",
+      "transliteration": "Xingang",
+      "provisionalGloss": "star harbor (lexical sketch)",
+      "linguisticStatus": "unverified-lexical-sketch"
+    },
+    {
+      "name": "同行",
+      "language": "Chinese",
+      "script": "Chinese",
+      "transliteration": "Tongxing",
+      "provisionalGloss": "companionship / traveling together (lexical sketch)",
+      "linguisticStatus": "unverified-lexical-sketch"
+    },
+    {
+      "name": "Заря",
+      "language": "Russian",
+      "script": "Cyrillic",
+      "transliteration": "Zarya",
+      "provisionalGloss": "dawn",
+      "linguisticStatus": "unverified-lexical-sketch"
+    },
+    {
+      "name": "Маяк",
+      "language": "Russian",
+      "script": "Cyrillic",
+      "transliteration": "Mayak",
+      "provisionalGloss": "beacon / lighthouse",
+      "linguisticStatus": "unverified-lexical-sketch"
+    }
+  ],
+  "authorHonoringProposals": [
+    {
+      "name": "Asimov's Beacon",
+      "honors": "Isaac Asimov",
+      "language": "English",
+      "editorialStatus": "user-approved",
+      "allAgesStatus": "user-approved-english-language-review",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "approved": true
+    },
+    {
+      "name": "Le Guin's Horizon",
+      "honors": "Ursula K. Le Guin",
+      "language": "English",
+      "editorialStatus": "user-approved",
+      "allAgesStatus": "user-approved-english-language-review",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "approved": true
+    },
+    {
+      "name": "Butler's Reach",
+      "honors": "Octavia E. Butler",
+      "language": "English",
+      "editorialStatus": "user-approved",
+      "allAgesStatus": "user-approved-english-language-review",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "approved": true
+    },
+    {
+      "name": "Clarke Meridian",
+      "honors": "Arthur C. Clarke",
+      "language": "English",
+      "editorialStatus": "user-approved",
+      "allAgesStatus": "user-approved-english-language-review",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "approved": true
+    },
+    {
+      "name": "Bradbury's Hearth",
+      "honors": "Ray Bradbury",
+      "language": "English",
+      "editorialStatus": "user-approved",
+      "allAgesStatus": "user-approved-english-language-review",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "approved": true
+    },
+    {
+      "name": "Jemisin Accord",
+      "honors": "N. K. Jemisin",
+      "language": "English",
+      "editorialStatus": "user-approved",
+      "allAgesStatus": "user-approved-english-language-review",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "approved": true
+    },
+    {
+      "name": "Liu Cixin's Signal",
+      "honors": "Liu Cixin",
+      "language": "English",
+      "editorialStatus": "user-approved",
+      "allAgesStatus": "user-approved-english-language-review",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "approved": true
+    }
+  ]
+}

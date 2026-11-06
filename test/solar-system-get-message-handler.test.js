@@ -32,6 +32,8 @@ test('SolarSystemGetMessageHandler seeds Alpha Centauri and returns curated bodi
   assert.equal(response.success, true);
   assert.equal(response.solarSystem.id, 'alpha-centauri');
   assert.equal(response.solarSystem.isMultiStar, true);
+  assert.equal(response.solarSystem.settlementName, null);
+  assert.deepEqual(response.solarSystem.aliases, ['Alpha Centauri A']);
   assert.ok(response.bodies.length >= 6);
   assert.ok(response.stars.length === 3);
   assert.ok(response.stars.every((s) => s.bodyType === 'star'));

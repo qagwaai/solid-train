@@ -26,7 +26,10 @@
       "description": "Inclusive lower distance bound. When set, entries with unknown distance are excluded. Must not exceed maxDistanceParsec."
     },
     "maxDistanceParsec": { "type": "number" },
-    "search": { "type": "string" },
+    "search": {
+      "type": "string",
+      "description": "Literal substring search across system id, displayName, settlementName, catalogName, aliases, and primary-star properName/spectralType. Any non-whitespace length is supported, including one or two characters. Matching normalizes Unicode to NFC, collapses whitespace, and applies toLocaleLowerCase('en-US'); it does not remove accents, transliterate, or fold scripts. Regex metacharacters are literal."
+    },
     "minPlanetCount": {
       "type": "integer",
       "minimum": 0,

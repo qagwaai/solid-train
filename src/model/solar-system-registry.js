@@ -25,6 +25,11 @@ const { getHygSystems } = require('./hyg-star-catalog');
 const { getExoplanetRegistryRecords } = require('./exoplanet-catalog');
 const { getSolarSystemCatalogEntries } = require('./solar-system-celestial-seed');
 const { hygStarId } = require('./star-catalog');
+const {
+  getSystemNamingManifest,
+  resolveSystemNaming,
+  validateNamingManifest,
+} = require('./system-naming');
 
 const CURATED_SYSTEMS = new Set(['sol', 'alpha-centauri', 'cygnus-x1']);
 
@@ -92,8 +97,10 @@ function catalogBodyCounts(systemId) {
 let cachedRegistry = null;
 let cachedRegistryById = null;
 
-function getSolarSystemRegistry() {
-  if (cachedRegistry) return cachedRegistry;
+function getSolarSystemRegistry({ namingManifest = getSystemNamingManifest() } = {}) {
+  // Explicit projections must never change the process-wide runtime cache.
+  const useRuntimeCache = namingManifest === getSystemNamingManifest();
+  if (useRuntimeCache && cachedRegistry) return cachedRegistry;
   const hygSystems = getHygSystems();
   const records = [];
   for (const system of hygSystems) {
@@ -123,8 +130,11 @@ function getSolarSystemRegistry() {
   }
   records.push({ ...CYGNUS_X1_REGISTRY_ENTRY, ...catalogBodyCounts(CYGNUS_X1_REGISTRY_ENTRY.id) });
   records.push(...getExoplanetRegistryRecords());
-  cachedRegistry = records;
-  cachedRegistryById = new Map(records.map((entry) => [entry.id, entry]));
+  validateNamingManifest(records, namingManifest);
+  const resolved = records.map((record) => resolveSystemNaming(record, namingManifest));
+  if (!useRuntimeCache) return resolved;
+  cachedRegistry = resolved;
+  cachedRegistryById = new Map(cachedRegistry.map((entry) => [entry.id, entry]));
   return cachedRegistry;
 }
 

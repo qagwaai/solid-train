@@ -72,7 +72,6 @@ test('seed hashes change for each relevant input, but not unrelated planets or s
     () => (fixtures['exoplanet-hosts'].records[0].massSolar = 2),
     () => (fixtures['exoplanet-hyg-stars'].records[0].distancePc = 11),
     () => (fixtures['exoplanet-planets'].records[0].massEarth = 5),
-    () => (fixtures['exoplanet-names'].systems['exo-test'] = 'System name'),
     () => (fixtures['exoplanet-names'].stars['exo-star-test'] = 'Star name'),
     () => (fixtures['exoplanet-names'].planets['planet-test'] = 'Planet name'),
     () => (fixtures['exoplanet-references'].records[0][1] = 'Updated discovery'),
@@ -89,10 +88,22 @@ test('seed hashes change for each relevant input, but not unrelated planets or s
     assert.notEqual(next, previous, mutate.toString());
     previous = next;
   }
+  fixtures['exoplanet-names'].systems['exo-test'] = 'Presentation-only system name';
+  assert.equal(hash(), previous, 'system names must not change physical/body seed hashes');
   fixtures['exoplanet-planets'].records[1].massEarth = 50;
   fixtures['exoplanet-systems'].snapshotDate = '2026-12-02';
   assert.equal(hash(), previous);
   assert.equal(catalog.getExoplanetSystemSeedHash('exo-test'), previous);
+});
+
+test('system presentation override does not alter exoplanet body labels or physical hash', (t) => {
+  const fixtures = fixtureCatalog(t);
+  const hash = catalog.getExoplanetSystemSeedHash('exo-test');
+  const bodiesBefore = catalog.generateExoplanetSystemBodies('exo-test');
+  fixtures['exoplanet-names'].systems['exo-test'] = 'Presentation-only system name';
+  catalog.clearExoplanetCatalogCache();
+  assert.equal(catalog.getExoplanetSystemSeedHash('exo-test'), hash);
+  assert.deepEqual(catalog.generateExoplanetSystemBodies('exo-test'), bodiesBefore);
 });
 
 test('cache reset refreshes seed hashes, display names, references and star entries', (t) => {

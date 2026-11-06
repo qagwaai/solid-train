@@ -2,6 +2,7 @@
 
 const { SOLAR_SYSTEM_LIST_RESPONSE_EVENT } = require('../model/solar-system-list');
 const { getSolarSystemRegistry } = require('../model/solar-system-registry');
+const { matchesSolarSystemSearch } = require('../model/solar-system-search');
 const { attachRequestId } = require('./handler-utils');
 const {
   compareIds,
@@ -67,7 +68,7 @@ class SolarSystemListMessageHandler {
       return fail(`sort must be one of: ${[...VALID_SORTS].join(', ')}`, player.playerName);
     }
 
-    const search = this.context.toNonEmptyString(payload?.search).toLowerCase();
+    const search = this.context.toNonEmptyString(payload?.search);
     const minDistanceParsec = toFiniteNumberOrNull(payload?.minDistanceParsec);
     const maxDistanceParsec = toFiniteNumberOrNull(payload?.maxDistanceParsec);
     if (
@@ -91,18 +92,7 @@ class SolarSystemListMessageHandler {
     let filtered = registry.slice();
     if (source) filtered = filtered.filter((entry) => entry.source === source);
     if (search) {
-      filtered = filtered.filter((entry) => {
-        const haystack = [
-          entry.id,
-          entry.displayName,
-          entry.catalogName || '',
-          entry.primaryStar?.properName || '',
-          entry.primaryStar?.spectralType || '',
-        ]
-          .join('|')
-          .toLowerCase();
-        return haystack.includes(search);
-      });
+      filtered = filtered.filter((entry) => matchesSolarSystemSearch(entry, search));
     }
     if (minDistanceParsec !== null) {
       filtered = filtered.filter(

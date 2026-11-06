@@ -31,6 +31,10 @@ function createSolarSystemModelArtifacts({ mongoose }) {
     {
       id: { type: String, required: true, unique: true, index: true },
       displayName: { type: String, required: true },
+      // Derived NFC/case-normalized labels used only for literal substring search.
+      searchTerms: { type: [String], default: [] },
+      settlementName: { type: String, default: null },
+      aliases: { type: [String], default: [] },
       hygSystemId: { type: String, default: null, index: true },
       catalogName: { type: String, default: null },
       source: {

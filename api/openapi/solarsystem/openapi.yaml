@@ -85,6 +85,8 @@ paths:
                     solarSystem:
                       id: alpha-centauri
                       displayName: Alpha Centauri
+                      settlementName: null
+                      aliases: [Alpha Centauri A]
                       hygSystemId: alpha-centauri
                       source: curated
                       isMultiStar: true
@@ -232,6 +234,8 @@ paths:
                     solarSystem:
                       id: cygnus-x1
                       displayName: Cygnus X-1
+                      settlementName: null
+                      aliases: []
                       hygSystemId: cygnus-x1
                       source: curated
                       isMultiStar: false
@@ -380,9 +384,17 @@ paths:
       description: |
         Returns one page of solar systems from the registry, optionally filtered by
         source (`curated`, `procedural`, `exoplanet-catalog`), search text (matches
-        `displayName`, `id`, and `catalogName`), `minDistanceParsec` /
+        `displayName`, `settlementName`, `aliases`, `id`, `catalogName`, and primary
+        star proper name/spectral type),
+        `minDistanceParsec` /
         `maxDistanceParsec`, `minPlanetCount` (1 = has planets), and primary-star
         `spectralClass`.
+
+        Search is a literal substring match and accepts any non-whitespace length,
+        including one- and two-character queries. Matching normalizes both query
+        and labels to NFC, collapses whitespace, and applies English-locale case
+        conversion; it preserves accents and does not transliterate or fold scripts.
+        Regex metacharacters are treated literally.
 
         Paging (P2, breaking): results are always paged. `offset` defaults to 0 and
         `limit` defaults to 100; values above 500 are clamped to 500. Invalid paging
@@ -396,6 +408,15 @@ paths:
           `containerId`.
 
         Response notes:
+        - `displayName` is the authoritative combined label; when naming is approved
+          and enabled it is `Settlement Name (Original Catalog Designation)`.
+          `settlementName` is nullable and contains only the bare assigned name.
+          `aliases` contains searchable historical/source labels and is always an
+          array. At present no new settlement assignments are enabled, so
+          `settlementName` is null and existing display labels are unchanged.
+        - Alias searches return all matching systems; exact `id` remains the only
+          canonical get/navigation key. Search covers displayName, settlementName,
+          aliases, catalogName and primary-star proper name.
         - `sort: distance` (default) orders by increasing distance, unknown distances
           last, then `id`. `sort: name` orders by `displayName` (case- and
           accent-insensitive, numeric-aware), then `id`.
@@ -447,6 +468,8 @@ paths:
                     solarSystems:
                       - id: sol
                         displayName: Sol
+                        settlementName: null
+                        aliases: []
                         hygSystemId: sol
                         source: curated
                         isMultiStar: false

@@ -54,7 +54,19 @@
       "description": "Solar system registry summary enriched with optional count fields when available.",
       "properties": {
         "id": { "type": "string" },
-        "displayName": { "type": "string" },
+        "displayName": {
+          "type": "string",
+          "description": "Authoritative system label. When an approved settlement name is enabled, format is 'Settlement Name (Original Catalog Designation)'; otherwise preserve the existing label."
+        },
+        "settlementName": {
+          "type": ["string", "null"],
+          "description": "Bare approved settlement name, or null when no reviewed assignment is enabled."
+        },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Searchable source/catalog and historical display aliases. Does not replace canonical id."
+        },
         "hygSystemId": {
           "type": ["string", "null"],
           "description": "HYG fixture system grouping; null for systems that exist only in the exoplanet catalog."
@@ -78,10 +90,7 @@
         },
         "isMultiStar": { "type": "boolean" },
         "positionPc": {
-          "anyOf": [
-            { "$ref": "#/definitions/vector3" },
-            { "type": "null" }
-          ],
+          "anyOf": [{ "$ref": "#/definitions/vector3" }, { "type": "null" }],
           "description": "HYG-fixture system-wide coordinate in parsecs; not spatial.positionKm and not converted into the system-local celestial snapshots. Null means the global coordinate is unavailable."
         },
         "distanceParsec": { "type": ["number", "null"] },
@@ -96,6 +105,8 @@
       "required": [
         "id",
         "displayName",
+        "settlementName",
+        "aliases",
         "hygSystemId",
         "source",
         "isMultiStar",

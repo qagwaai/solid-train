@@ -1,0 +1,90 @@
+{
+  "candidateBankVersion": 3,
+  "status": "editorial-proposals-only",
+  "runtimeConsumed": false,
+  "fictionalOriginalNames": [
+    {
+      "candidateId": "original-lantern-reach",
+      "name": "Lantern Reach",
+      "style": ["settlement", "welcome", "science-fiction-motif"],
+      "editorialStatus": "unreviewed-proposal",
+      "rightsStatus": "originality-review-pending",
+      "allAgesStatus": "human-review-pending",
+      "approved": false
+    },
+    {
+      "candidateId": "original-copper-vale",
+      "name": "Copper Vale",
+      "style": ["landscape-metaphor"],
+      "editorialStatus": "unreviewed-proposal",
+      "rightsStatus": "originality-review-pending",
+      "allAgesStatus": "human-review-pending",
+      "approved": false
+    }
+  ],
+  "authorHonoringProposals": [
+    {
+      "candidateId": "author-asimov-beacon",
+      "name": "Asimov's Beacon",
+      "honors": "Isaac Asimov",
+      "editorialStatus": "user-approved",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "allAgesStatus": "user-approved-english-language-review",
+      "approved": true
+    },
+    {
+      "candidateId": "author-le-guin-horizon",
+      "name": "Le Guin's Horizon",
+      "honors": "Ursula K. Le Guin",
+      "editorialStatus": "user-approved",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "allAgesStatus": "user-approved-english-language-review",
+      "approved": true
+    },
+    {
+      "candidateId": "author-butler-reach",
+      "name": "Butler's Reach",
+      "honors": "Octavia E. Butler",
+      "editorialStatus": "user-approved",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "allAgesStatus": "user-approved-english-language-review",
+      "approved": true
+    },
+    {
+      "candidateId": "author-clarke-meridian",
+      "name": "Clarke Meridian",
+      "honors": "Arthur C. Clarke",
+      "editorialStatus": "user-approved",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "allAgesStatus": "user-approved-english-language-review",
+      "approved": true
+    },
+    {
+      "candidateId": "author-bradbury-horizon",
+      "name": "Bradbury's Hearth",
+      "honors": "Ray Bradbury",
+      "editorialStatus": "user-approved",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "allAgesStatus": "user-approved-english-language-review",
+      "approved": true
+    },
+    {
+      "candidateId": "author-jemisin-accord",
+      "name": "Jemisin Accord",
+      "honors": "N. K. Jemisin",
+      "editorialStatus": "user-approved",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "allAgesStatus": "user-approved-english-language-review",
+      "approved": true
+    },
+    {
+      "candidateId": "author-liu-cixin-signal",
+      "name": "Liu Cixin's Signal",
+      "honors": "Liu Cixin",
+      "editorialStatus": "user-approved",
+      "rightsStatus": "owner-authorized-risk-accepted-not-legally-cleared",
+      "allAgesStatus": "user-approved-english-language-review",
+      "approved": true
+    }
+  ]
+}

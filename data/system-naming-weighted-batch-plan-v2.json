@@ -1,0 +1,262 @@
+{
+  "planVersion": 2,
+  "status": "frozen-offline-review-continuity-plan",
+  "batchSize": 25,
+  "policyVersion": "system-naming-weighted-allocation-v2",
+  "systemSelection": {
+    "algorithmVersion": "system-naming-weighted-batch-v1",
+    "seed": "stellar-weighted-review-batch-2026-11-05-v1"
+  },
+  "slots": [
+    {
+      "slot": 1,
+      "languageSlot": 1,
+      "policyLanguageId": "english",
+      "systemId": "exo-gj-9066",
+      "originalDesignation": "GJ 9066",
+      "sourceEvidenceSha256": "f95a573cbb017cd1e2d34a5196181ce31eb2d456636742377b13191360c22f82",
+      "candidateId": "original-english-01",
+      "candidateName": "Copper Vale"
+    },
+    {
+      "slot": 2,
+      "languageSlot": 2,
+      "policyLanguageId": "english",
+      "systemId": "exo-kepler-931",
+      "originalDesignation": "Kepler-931",
+      "sourceEvidenceSha256": "861e70dbb5643dcd99162c7f6d188a5a5a5304395acc5137764a87a5d43cf809",
+      "candidateId": "author-tribute-07",
+      "candidateName": "Liu Cixin's Signal"
+    },
+    {
+      "slot": 3,
+      "languageSlot": 3,
+      "policyLanguageId": "english",
+      "systemId": "exo-kepler-1723",
+      "originalDesignation": "Kepler-1723",
+      "sourceEvidenceSha256": "2f5ee9b84b4ed7515b80beaf92ae1d8b1afc30320861f873ef4dc8d4b69b324c",
+      "candidateId": "author-tribute-02",
+      "candidateName": "Le Guin's Horizon"
+    },
+    {
+      "slot": 4,
+      "languageSlot": 4,
+      "policyLanguageId": "english",
+      "systemId": "exo-toi-406",
+      "originalDesignation": "TOI-406",
+      "sourceEvidenceSha256": "9c50baac0e601539a8d8fff1d2a13ac41f174d735cd5858f532fcfe1a5206717",
+      "candidateId": "author-tribute-06",
+      "candidateName": "Jemisin Accord"
+    },
+    {
+      "slot": 5,
+      "languageSlot": 5,
+      "policyLanguageId": "english",
+      "systemId": "exo-hd-221416",
+      "originalDesignation": "HD 221416",
+      "sourceEvidenceSha256": "4e309f50e5fecef35291bc7dd382fffa12c8a8adcf80bae89b5da4ae218945a1",
+      "candidateId": "author-tribute-01",
+      "candidateName": "Asimov's Beacon"
+    },
+    {
+      "slot": 6,
+      "languageSlot": 6,
+      "policyLanguageId": "english",
+      "systemId": "exo-wispit-1",
+      "originalDesignation": "WISPIT 1",
+      "sourceEvidenceSha256": "9ecbece3c711549568d7fe38f83ee6e01d9f668268ef7a96a1ba15ff936325a4",
+      "candidateId": "author-tribute-03",
+      "candidateName": "Butler's Reach"
+    },
+    {
+      "slot": 7,
+      "languageSlot": 7,
+      "policyLanguageId": "english",
+      "systemId": "exo-hd-103197",
+      "originalDesignation": "HD 103197",
+      "sourceEvidenceSha256": "2251cf3bc80ddd396dd3d7a4f42580427aba43979e5b33d3b72256e8fe15535b",
+      "candidateId": "author-tribute-05",
+      "candidateName": "Bradbury's Hearth"
+    },
+    {
+      "slot": 8,
+      "languageSlot": 8,
+      "policyLanguageId": "english",
+      "systemId": "exo-hd-133131",
+      "originalDesignation": "HD 133131",
+      "sourceEvidenceSha256": "0fa12f476376226dcb8d88eb0aa64caeb65737a963c67d2e48b0221cbc9d09b8",
+      "candidateId": "author-tribute-04",
+      "candidateName": "Clarke Meridian"
+    },
+    {
+      "slot": 9,
+      "languageSlot": 1,
+      "policyLanguageId": "mandarin",
+      "systemId": "exo-kepler-397",
+      "originalDesignation": "Kepler-397",
+      "sourceEvidenceSha256": "0fcae9ee813dfc183677bf5d7a63f90242b3c6ac6bed14035aa03868cc64edd6",
+      "candidateId": "multilingual-chinese-21",
+      "candidateName": "星港"
+    },
+    {
+      "slot": 10,
+      "languageSlot": 2,
+      "policyLanguageId": "mandarin",
+      "systemId": "exo-kepler-214",
+      "originalDesignation": "Kepler-214",
+      "sourceEvidenceSha256": "a2502ef6bb1ed54b8a77385c6331808d7d88f304e2f7f9b3b3f81c8818476763",
+      "candidateId": "multilingual-chinese-22",
+      "candidateName": "同行"
+    },
+    {
+      "slot": 11,
+      "languageSlot": 3,
+      "policyLanguageId": "mandarin",
+      "systemId": "exo-toi-1846",
+      "originalDesignation": "TOI-1846",
+      "sourceEvidenceSha256": "8263c6d18bfc94027e54cc38f8dd58d685fb066650fcd7babb4ca9c587ca5d50",
+      "candidateId": null,
+      "candidateName": null
+    },
+    {
+      "slot": 12,
+      "languageSlot": 4,
+      "policyLanguageId": "mandarin",
+      "systemId": "exo-hd-216770",
+      "originalDesignation": "HD 216770",
+      "sourceEvidenceSha256": "b1a30ed448f199504251419370a541801ebde591d7841be044aa327d7de7a729",
+      "candidateId": null,
+      "candidateName": null
+    },
+    {
+      "slot": 13,
+      "languageSlot": 5,
+      "policyLanguageId": "mandarin",
+      "systemId": "exo-kepler-1605",
+      "originalDesignation": "Kepler-1605",
+      "sourceEvidenceSha256": "dc7871e7334e3f14d0960dbc32c2159575589a3ec8c514090b5cd04a05a5a8a0",
+      "candidateId": null,
+      "candidateName": null
+    },
+    {
+      "slot": 14,
+      "languageSlot": 1,
+      "policyLanguageId": "russian",
+      "systemId": "exo-kepler-1633",
+      "originalDesignation": "Kepler-1633",
+      "sourceEvidenceSha256": "c0d8b50358468c5f41c3787a31a41517f157e5e049549267282cf1c24c1c47b7",
+      "candidateId": "multilingual-russian-24",
+      "candidateName": "Маяк"
+    },
+    {
+      "slot": 15,
+      "languageSlot": 2,
+      "policyLanguageId": "russian",
+      "systemId": "exo-kepler-1548",
+      "originalDesignation": "Kepler-1548",
+      "sourceEvidenceSha256": "d72e995849f42dc269de42aa1f1a793ea3b58b5a59fabe01ee621ee0f9fca919",
+      "candidateId": "multilingual-russian-23",
+      "candidateName": "Заря"
+    },
+    {
+      "slot": 16,
+      "languageSlot": 3,
+      "policyLanguageId": "russian",
+      "systemId": "exo-hd-238914",
+      "originalDesignation": "HD 238914",
+      "sourceEvidenceSha256": "15d74d02cc0c5c4d27466e3e076e6300e0ba88dc7f320b6ee54c7013ca8303b4",
+      "candidateId": null,
+      "candidateName": null
+    },
+    {
+      "slot": 17,
+      "languageSlot": 1,
+      "policyLanguageId": "spanish",
+      "systemId": "exo-hd-86065",
+      "originalDesignation": "HD 86065",
+      "sourceEvidenceSha256": "0f18b138c6cd8a0decd32bf3899fda78f55dbde4871f7871e260fb188cd0dbe0",
+      "candidateId": "multilingual-spanish-08",
+      "candidateName": "Encuentro"
+    },
+    {
+      "slot": 18,
+      "languageSlot": 2,
+      "policyLanguageId": "spanish",
+      "systemId": "exo-hd-164595",
+      "originalDesignation": "HD 164595",
+      "sourceEvidenceSha256": "b926ae68c7145fd242ace60e258149cd089e1117adee16ba28c514953fe19837",
+      "candidateId": "multilingual-spanish-07",
+      "candidateName": "Alborada"
+    },
+    {
+      "slot": 19,
+      "languageSlot": 1,
+      "policyLanguageId": "arabic",
+      "systemId": "exo-k2-221",
+      "originalDesignation": "K2-221",
+      "sourceEvidenceSha256": "98fb062578dad04e86e535a022bb8985a268566ff543a89663dff0893fb49991",
+      "candidateId": "multilingual-arabic-04",
+      "candidateName": "منارة"
+    },
+    {
+      "slot": 20,
+      "languageSlot": 1,
+      "policyLanguageId": "hindi",
+      "systemId": "exo-kepler-1999",
+      "originalDesignation": "Kepler-1999",
+      "sourceEvidenceSha256": "78187a7fc0ca8417bc6a1670ff0fff9d9ec8e2cb7137446a27765d99212f093c",
+      "candidateId": "multilingual-hindi-17",
+      "candidateName": "आशा"
+    },
+    {
+      "slot": 21,
+      "languageSlot": 1,
+      "policyLanguageId": "portuguese",
+      "systemId": "exo-kepler-625",
+      "originalDesignation": "Kepler-625",
+      "sourceEvidenceSha256": "6b17906afbd62233d6a386016d0099fb7cee145005d006fd4d9fd0a06c5a86cc",
+      "candidateId": "multilingual-portuguese-09",
+      "candidateName": "Travessia"
+    },
+    {
+      "slot": 22,
+      "languageSlot": 1,
+      "policyLanguageId": "japanese",
+      "systemId": "exo-k2-133",
+      "originalDesignation": "K2-133",
+      "sourceEvidenceSha256": "237756c5f8e3bd488df0ffe58bd55828c38100f93145172f33de7f64209ebecf",
+      "candidateId": "multilingual-japanese-01",
+      "candidateName": "木漏れ日"
+    },
+    {
+      "slot": 23,
+      "languageSlot": 1,
+      "policyLanguageId": "french",
+      "systemId": "exo-hd-66428",
+      "originalDesignation": "HD 66428",
+      "sourceEvidenceSha256": "8ea148ed7436a9ba42dab8593e1abeaed9b89a82e7bf075374fbd7a25ba150d7",
+      "candidateId": null,
+      "candidateName": null
+    },
+    {
+      "slot": 24,
+      "languageSlot": 1,
+      "policyLanguageId": "swahili",
+      "systemId": "exo-k2-196",
+      "originalDesignation": "K2-196",
+      "sourceEvidenceSha256": "e721ebf975a97aa24ef600b792398b6cc6b7b6d07c62d1cd0eb352470e395177",
+      "candidateId": "multilingual-swahili-06",
+      "candidateName": "Pamoja"
+    },
+    {
+      "slot": 25,
+      "languageSlot": 1,
+      "policyLanguageId": "indonesian",
+      "systemId": "exo-kic-9663113",
+      "originalDesignation": "KIC 9663113",
+      "sourceEvidenceSha256": "beffe20f2fc218887dc9ecb8409f38ef832e82521d616a5f893915ad378567bb",
+      "candidateId": "multilingual-indonesian-15",
+      "candidateName": "Harapan"
+    }
+  ]
+}

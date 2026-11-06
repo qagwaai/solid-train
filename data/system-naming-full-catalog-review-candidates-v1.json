@@ -1,0 +1,142 @@
+{
+  "candidateBankVersion": 1,
+  "status": "unapproved-offline-review-sketches",
+  "runtimeConsumed": false,
+  "approval": {
+    "contentApproved": false,
+    "assignmentOrPublicationAuthorization": "not-granted",
+    "independentLinguisticOrCulturalVerification": "not-performed",
+    "earthReferenceAndContextReview": "pending",
+    "allAgesReview": "pending",
+    "legalClearance": "not-assessed"
+  },
+  "languageTagNote": "English denotes the language of these newly composed draft labels only; it does not assert the language or origin of the referenced Earth place name.",
+  "candidates": [
+    {
+      "candidateId": "earth-landmark-sketch-01",
+      "name": "Everest Commons",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Mount Everest"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-02",
+      "name": "Sahara Lantern",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Sahara Desert"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-03",
+      "name": "Niagara Passage",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Niagara Falls"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-04",
+      "name": "Aconcagua Haven",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Aconcagua"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-05",
+      "name": "Atacama Crossing",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Atacama Desert"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-06",
+      "name": "Victoria Falls Reach",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Victoria Falls"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-07",
+      "name": "Okavango Horizon",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Okavango Delta"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-08",
+      "name": "Titicaca Wayfinder",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Lake Titicaca"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-09",
+      "name": "Great Barrier Harbor",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Great Barrier Reef"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-10",
+      "name": "Pamukkale Terrace",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Pamukkale"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-11",
+      "name": "Kamchatka Meridian",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Kamchatka Peninsula"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-12",
+      "name": "Danakil Light",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Danakil Depression"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-13",
+      "name": "Angel Falls Commons",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Angel Falls"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-14",
+      "name": "Superior Passage",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Lake Superior"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-15",
+      "name": "Torres del Paine Reach",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Torres del Paine"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-16",
+      "name": "Namib Beacon",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Namib Desert"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-17",
+      "name": "Iguazú Garden",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Iguazú Falls"
+    },
+    {
+      "candidateId": "earth-landmark-sketch-18",
+      "name": "Vatnajökull Crossing",
+      "language": "English",
+      "script": "Latin",
+      "earthReference": "Vatnajökull"
+    }
+  ]
+}

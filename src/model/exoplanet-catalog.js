@@ -77,6 +77,30 @@ function getExoplanetSystemById(systemId) {
   return load().systemsById.get(systemId) || null;
 }
 
+/** Source proper names attached to any component of an exoplanet system. */
+function getExoplanetSystemProperNames(systemId) {
+  const data = load();
+  const system = data.systemsById.get(systemId);
+  if (!system) return [];
+  return [
+    system.properName,
+    ...system.stars.map((star) => data.hygByAtHygId.get(star.atHygId)?.properName || null),
+  ].filter((name) => typeof name === 'string' && name.trim());
+}
+
+/** Pinned source digest used to validate naming eligibility decisions. */
+function getExoplanetSystemEvidence(systemId) {
+  const data = load();
+  const system = data.systemsById.get(systemId);
+  if (!system) return null;
+  const hosts = system.stars.map((star) => data.hostsById.get(star.hostId) || null);
+  const hygRecords = system.stars.map((star) => data.hygByAtHygId.get(star.atHygId) || null);
+  const digest = createHash('sha256')
+    .update(JSON.stringify({ system, hosts, hygRecords }))
+    .digest('hex');
+  return { digest, snapshot: `exoplanet-snapshot-${data.snapshotDate}` };
+}
+
 function getExoplanetNames() {
   return load().names;
 }
@@ -132,7 +156,8 @@ function systemPlanetIds(system) {
 
 /**
  * Hash of every source record that feeds one system's bodies: the system
- * record, its hosts and AT-HYG records, its planets, and its display names.
+ * record, its hosts and AT-HYG records, its planets, and body display names.
+ * System naming is presentation-only and intentionally excluded from this hash.
  */
 function getExoplanetSystemSeedHash(systemId) {
   const data = load();
@@ -148,7 +173,6 @@ function getExoplanetSystemSeedHash(systemId) {
   const hosts = system.stars.map((star) => data.hostsById.get(star.hostId) || null);
   const hygRecords = system.stars.map((star) => data.hygByAtHygId.get(star.atHygId) || null);
   const names = {
-    system: data.names.systems[systemId] || null,
     stars: system.stars.map((star) => data.names.stars[star.starId] || null),
     planets: planetIds.map((planetId) => data.names.planets[planetId] || null),
   };
@@ -380,6 +404,8 @@ module.exports = {
   getExoplanetSnapshotDate,
   getExoplanetStarEntries,
   getExoplanetSystemById,
+  getExoplanetSystemEvidence,
+  getExoplanetSystemProperNames,
   getExoplanetSystemSeedHash,
   getExoplanetSystems,
   getSystemStarFacts,
