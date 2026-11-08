@@ -144,6 +144,15 @@ systems currently adds representatives, four remain blocked. Its counts and
 hypothetical structures must not be advertised as released discoveries or live
 universe population totals.
 
+The scoped P4 body-naming preview adds 18 owner-approved fictional names in Copper
+Vale only, retaining old labels as aliases. English profile evidence is recovered
+from the approved system candidate lineage; landscape/navigation themes and
+motivations are authored. Five native-script candidates reuse the backend
+multilingual review bank with explicitly provisional, uncertified glosses. Their
+offline editorial approval is not independent linguistic/cultural certification
+or permission to announce live body-name activation. The body manifest is
+runtime-disabled and separate from the already approved system-name manifest.
+
 ## Fictional and estimated content disclosure
 
 - Retained catalog identities do not mean every parameter is measured.

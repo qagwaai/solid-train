@@ -218,6 +218,7 @@ module.exports = {
   getSourceEvidence,
   isProtected,
   normalizeAlias,
+  uniqueNames,
   resolveSystemNaming,
   validateNamingManifest,
 };

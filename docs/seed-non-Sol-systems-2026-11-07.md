@@ -2,10 +2,12 @@
 
 Date: 2026-11-07
 
-Status: **P0, P1 and P2 accepted; Copper Vale-only P3 offline checkpoint implemented.**
+Status: **P0-P5 accepted by the owner for their recorded scopes.**
 The other four expanded pilots remain blocked. P2 acceptance includes its
 explicitly blocked cases, not resolution of missing models or runtime activation.
-P4-P7 remain planning-only.
+P4 Copper Vale names are validated and accepted for offline use.
+P5 acceptance covers the reviewed isolated Copper Vale slice only;
+P6-P7 remain planning-only.
 The direction below incorporates the initial user question forms
 and implementation-startup decisions. P1 adds optional backend contracts and
 ownership safeguards, not new bodies, names, stations, or deployment records.
@@ -499,8 +501,8 @@ is authoritative for per-system progress; this table summarizes milestones.
 | P0 scope and manifest              | None       | Accepted by owner                      | Owner: "P0 is green and accepted"; frozen baseline and Section 9     |
 | P1 ownership/contracts             | P0         | Accepted by owner                      | Owner: "P1 is green and accepted"; Section 10 evidence               |
 | P2 scientific generation           | P0, P1     | Accepted by owner, known blockers retained | Owner: "P2 is green and accepted"; [five-system assessment and counts](./seed-non-Sol-systems-2026-11-07-five-system-review.md); Section 13 records transition |
-| P3 mining/stations                 | P2         | Copper Vale offline checkpoint implemented; four pilots blocked | Section 13.6; no runtime activation or persistent rollout |
-| P4 body naming/hooks               | P0, P1, P2 | Not started                            | Pending                                                              |
+| P3 mining/stations                 | P2         | Accepted by owner, Copper Vale scoped checkpoint | Owner: "P3 is green and accepted"; Sections 13.6-13.7; no runtime activation |
+| P4 body naming/hooks               | P0, P1, P2 | Accepted by owner, Copper Vale scoped checkpoint | Owner: "P4 is validated and green"; Section 14.6 evidence and Section 14.7 acceptance |
 | P5 pilot/authorization             | P3, P4     | Not started                            | Pending                                                              |
 | P6 persistent rollout              | P5         | Not started                            | Pending                                                              |
 | P7 final handoff                   | P6         | Not started                            | Pending                                                              |
@@ -1495,3 +1497,414 @@ unactivated slice.
 Request owner acceptance of **Copper Vale's scoped P3 checkpoint**, not global
 coverage. The unrelated full-suite names-file assertion above remains reported;
 the other four pilot systems retain their explicit blockers.
+
+## 14. P3 acceptance and P4 Copper Vale naming proposal
+
+### 14.1 Startup decisions and recovered profile
+
+Owner accepted P3 on 2026-11-07 and committed it; observed commit `cc05f60`,
+clean worktree at P4 startup. No push was performed here.
+
+The P4 form selected Copper Vale **generated bodies only**, cultural name
+proposals with approval **before applying**, recovery of explicit approved
+profile evidence, minimal fictional motivations/optional interest hooks, and
+offline manifest/preview plus isolated tests. The other four previews stay
+unchanged. No live renaming, runtime activation, artifacts, story arc or tech-tree
+changes are authorized. Prettier stays deferred until major-phase completion.
+
+Profile recovery:
+
+- [Active system manifest](../data/system-naming-manifest.json) records approved
+  Copper Vale and candidate `original-english-01`.
+- [Weighted review row](../data/system-naming-weighted-batch-v1.json) explicitly
+  identifies that exact system/candidate pairing as English. This is lineage
+  recovery, not guessing a language from spelling.
+- No approved theme is recorded in the active assignment. The older bank's
+  landscape style remains unreviewed; it was not promoted automatically.
+- After this gap was surfaced, the follow-up form approved **English landscape/
+  navigation metaphors, with no claimed settlement history**, authorizing name
+  proposal preparation only. Record this authored profile evidence in a future
+  separate body manifest; do not modify the active system-naming manifest.
+
+### 14.2 Eligibility, lanes and languages
+
+| Generated category | Total | Proposed cultural names | Retain systematic labels |
+| --- | --- | --- | --- |
+| Planets | 4 | 4 | 0 |
+| Dwarf planets | 0 | 0 | 0 |
+| Moons | 16 | 14 (diameter >=200 km) | 2 |
+| Asteroids | 26 | 0 | 26 |
+| Outer/TNO analogues | 7 | 0 | 7 |
+| Comets | 2 | 0 | 2 |
+| **Total** | **55** | **18** | **37** |
+
+No story-important smaller-body override was requested. The existing star and
+GJ 9066 c remain unchanged and outside the 18 assignments. The station's own
+name remains unchanged; its host label must agree with the renamed host in a
+future offline naming layer, without changing any station identity/physics.
+
+Proposed lanes: **11 inherited / 7 narrative**, **61.11% / 38.89%**, the nearest
+whole-body split to 60/40. Protected and neutral systematic names are excluded
+from that denominator; no deviation exception is needed.
+
+Using the existing ordered [weighted palette](../data/system-naming-weight-policy-v2.json)
+and Hamilton rounding across the seven frozen narrative assignments gives
+English 2, Mandarin 1, Russian 1, Spanish 1, Arabic 1, Hindi 1; other languages
+zero in this small sample. Combined cultural-name language counts: English 13,
+five other languages 1 each. These are editorial counts, not demographics.
+Do not allocate profile languages anew per single-body batch or rebalance existing
+system assignments.
+
+### 14.3 Proposed exact pairings: not yet approved
+
+English names are original editorial proposals, not certified unique or legally
+cleared. The five non-English names reuse the
+[multilingual review bank](../data/system-naming-review-bank-v1.json), retaining
+its **unverified sketch** status. Glosses below remain provisional; no linguistic
+or cultural certification is claimed. Native script is proposed; unreviewed
+transliterations from the bank are not proposed as preferred names or aliases.
+
+Table ordering uses existing slot labels, not orbital distance or NASA discovery
+letters. No Roman-numeral renumbering is proposed. Every row must be frozen by
+the full body ID, not by slot text alone.
+
+| Stable body ID | Current slot / host | Proposed preferred name | Lane / language | Fictional motivation |
+| --- | --- | --- | --- | --- |
+| `exo-gj-9066-generated-planet-0ec42578e1833c74c9b54d32` | planet slot-01 | Stillglass Reach | Inherited / English | Landscape/navigation metaphor, not an observed lake or settlement |
+| `exo-gj-9066-generated-planet-4ec2528f0ada1e4684410f30` | planet slot-02 | Far Compass | Inherited / English | Navigation metaphor, not an observed magnetic property |
+| `exo-gj-9066-generated-planet-d569077cea00ac968d730c15` | planet slot-03; station host | Hearthward | Inherited / English | Welcome/direction metaphor, not habitation or safety certification |
+| `exo-gj-9066-generated-planet-77b0fe14208b827c13f50157` | planet slot-04 | Long Horizon | Inherited / English | Distance/landscape metaphor, not surface evidence |
+| `exo-gj-9066-generated-moon-0f518a6f67c3ac5f5ca94549` | GJ 9066 c moon slot-01 | Cairnlight | Inherited / English | Wayfinding marker metaphor, not a constructed cairn |
+| `exo-gj-9066-generated-moon-8af923eda324135ab968a759` | GJ 9066 c moon slot-02 | Quiet Bearing | Inherited / English | Navigation metaphor, not guaranteed dynamical stability |
+| `exo-gj-9066-generated-moon-fef4929e856700bfa496edee` | GJ 9066 c moon slot-03 | Frostward | Inherited / English | Association with modeled ice, not observed surface frost |
+| `exo-gj-9066-generated-moon-ac255a0452d20436c427cdbc` | GJ 9066 c moon slot-04 | Pale Crossing | Inherited / English | Passage metaphor, not a safe route |
+| `exo-gj-9066-generated-moon-be58ceaa180146f00e39222f` | GJ 9066 c moon slot-05 | Lantern Shelf | Inherited / English | Landscape/wayfinding metaphor, not mapped topography |
+| `exo-gj-9066-generated-moon-1a0c12ffd85268685cdda7cd` | GJ 9066 c moon slot-06 | Northwake | Inherited / English | Navigation metaphor, not a new reference frame |
+| `exo-gj-9066-generated-moon-6c87552a1096a74ebd8321ea` | GJ 9066 c moon slot-08 | Silver Traverse | Inherited / English | Landscape metaphor, not a silver deposit |
+| `exo-gj-9066-generated-moon-c43c40daff1abf911da3bbb6` | GJ 9066 c moon slot-09 | Patient Signal | Narrative / English | Optional fictional survey naming motif, not actual survey history |
+| `exo-gj-9066-generated-moon-d79aed44b8d45f9dea8c5da4` | planet slot-04 moon slot-01 | Common Promise | Narrative / English | Fictional cooperation/remembrance motif, no population inference |
+| `exo-gj-9066-generated-moon-81376b1ddfdb059355012eda` | planet slot-04 moon slot-02 | 星港 | Narrative / Mandarin | Bank's provisional "star harbor" metaphor, not an actual harbor |
+| `exo-gj-9066-generated-moon-a250c3bd19412ec8730af24c` | planet slot-04 moon slot-03 | Заря | Narrative / Russian | Bank's provisional "dawn" motif, not physical lighting evidence |
+| `exo-gj-9066-generated-moon-7e52693aa9008cb87b13cc01` | planet slot-03 moon slot-01 | Encuentro | Narrative / Spanish | Bank's provisional "meeting / encounter" motif, not an authored event |
+| `exo-gj-9066-generated-moon-e080baa131323de51a933b38` | planet slot-03 moon slot-02 | أمل | Narrative / Arabic | Bank's provisional "hope" motif, no demographic inference |
+| `exo-gj-9066-generated-moon-531101df2ea49c84a4f46b4b` | planet slot-03 moon slot-03 | आशा | Narrative / Hindi | Bank's provisional "hope" motif, no demographic inference |
+
+The giant's moon slot-07 and the outer rocky planet's small moon retain their
+existing labels: each is below 200 km diameter. Do not close slot-number gaps by
+moving names between bodies or changing IDs.
+
+### 14.4 Next implementation gate and owner validation
+
+**Proposal only:** no names applied, body manifest created, runtime consumer
+activated, or database accessed.
+
+Review the exact 18 pairings, especially station host **Hearthward** and the five
+native-script sketches. Approve, replace or defer those candidates; earlier
+system-name approval does not approve these body names or verify their glosses.
+The eligibility/11-7 lane counts can be reviewed independently of name taste.
+
+After pairing approval:
+
+- Freeze a separate versioned manifest keyed by full body ID with scope/input
+  digests, owner approval, lane/language, theme evidence, fictional motivation
+  and gloss/review status.
+- Retain each old full label as a meaningful alias. Reuse normalized collision
+  checks against existing/catalog/generated preferred names and aliases; do not
+  duplicate preferred names or add unreviewed transliterations.
+- Layer over P3 without changing physical seeds, resources, station/market IDs,
+  trajectories/snapshots or mutable history. Parent/anchor names must agree with
+  ID-resolved preferred names; old saved IDs and system-qualified lookup remain
+  authoritative.
+- Motivations above are sufficient initial lightweight hooks. No artifacts,
+  missions, resource finds, settlement/faction history or tech-tree edits.
+  Unsupported public/persisted hook fields require contract review.
+- Provide exact commands/results for alias collisions, name/anchor parity,
+  >=200 km threshold boundaries, epoch-stable identity and P2/P3/history
+  preservation. This proposal does not mark P4 complete.
+
+### 14.6 Approved pairings and implemented offline P4 checkpoint
+
+Owner subsequently selected **"Approve all 18 exact pairings, accepting the five
+provisional language sketches for offline use"**. This supersedes the proposal
+stop in Sections 14.3-14.4 for these exact pairings only. The five glosses remain
+unverified sketches, explicitly accepted for offline editorial use; no cultural,
+linguistic or legal certification is claimed.
+
+Implemented:
+
+- [Separate body-name manifest](../data/copper-vale-body-naming-manifest-v1.json):
+  exact ID-keyed assignments, owner/profile evidence, accepted P3 input digest,
+  profile/candidate-bank source digest, eligibility and lane quotas. The active
+  system-naming manifest and source catalog snapshots are unchanged.
+- [Offline P4 naming layer](../src/model/non-sol-p4-preview.js):
+  18 names, meaningful old-label aliases, authored provenance/motivations,
+  system-qualified name/alias/ID lookup, normalized collision checks and
+  deterministic replay validation. Minimal naming motivations supply the scoped
+  fictional hooks; no new persisted/public annotation contract is invented.
+- [Opt-in CLI](../scripts/non-sol-p4-preview.js):
+  `npm run seed:non-sol:p4-preview`, with optional `--json` / `--out path`.
+  Output publication reuses exclusive immutable-report semantics; reruns cannot
+  overwrite different reviewed evidence.
+- [Existing alias-deduplication helper](../src/model/system-naming.js) is exported
+  for reuse, without changing system-naming behavior.
+
+Actual counts remain **4 named planets and 14 named moons**, **11 inherited /
+7 narrative**, **37 systematic-only generated labels**, **2 protected existing
+bodies**. Cultural language counts: **English 13**, Mandarin/Russian/Spanish/
+Arabic/Hindi **1 each**. All 57 Copper Vale celestial bodies have preserved
+identities. Systematic-only labels remain the existing labels, including the
+two smaller moons. The station's own name is unchanged; its trajectory
+`anchorBodyName` now reads **Hearthward** in the P4 layer. Host ID, trajectory
+numbers, snapshot and resources/economy remain unchanged.
+
+The four blocked pilots are reported unchanged, with preserved P2 digests and
+named blockers. Neither their bodies nor Copper Vale's default P2/P3 generation
+are renamed by runtime dispatch. The P4 manifest is explicitly runtime-disabled.
+
+Validation commands/results:
+
+| Command / check | Result |
+| --- | --- |
+| `node --test --test-concurrency=1 test\non-sol-p4-preview.test.js test\non-sol-p4.mongo.integration.test.js test\non-sol-p3-preview.test.js test\system-naming.test.js` | **21 passed, 0 failed** |
+| `npm run typecheck` | **Passed** |
+| `npx --no-install eslint src\model\non-sol-p4-preview.js src\model\system-naming.js scripts\non-sol-p4-preview.js test\non-sol-p4-preview.test.js test\non-sol-p4.mongo.integration.test.js` | **Passed** |
+| `npx --no-install prettier --check data\copper-vale-body-naming-manifest-v1.json src\model\non-sol-p4-preview.js scripts\non-sol-p4-preview.js test\non-sol-p4-preview.test.js test\non-sol-p4.mongo.integration.test.js src\model\system-naming.js package.json` | **Passed** after scoped phase-completion write; no repository-wide formatting |
+| `npm run seed:non-sol:preservation` | **Passed**, all 4,844 targets and Sol outputs preserved |
+| `npm run seed:non-sol:progress` | **Passed**, all 4,844 rollout stages remain pending |
+| Saved P4 JSON readback/replay and exclusive identical rerun | **Passed** |
+| Complete saved P2 and P3 report comparisons | **Exactly unchanged** |
+| `git diff --check` | **Passed** |
+
+Tests verify exact eligibility including **199.999998 / 200 / 200.000002 km**
+diameter boundary examples, no quota double-counting, provisional language
+status, collisions/protected-body failures, ID/old-alias lookup, epoch/order
+independence, idempotent name application and tamper rejection. The isolated
+Mongo test applies P4 to P3 records, verifies fresh canonical body-list/get and
+station reads, retains aliases and resource profiles, and preserves destruction,
+composition/scan history and station price/stock on reruns. No owner/development/
+live database is used.
+
+Saved report digest:
+`5e580149a6df92a50495fe1fca0c1de02df714c4194ddb3b44ebaa3d933dda04`.
+P3 remains
+`cd60edffe10a2b8c14707e0b0776d16251006d769eb6fc8dbb3315dee4ed004a`;
+the complete five-system P2 report remains
+`67fa0e7f29cbb545eada7a22ab2ee41670bf0ceccb178928ba0298442de76b8d`.
+
+**Owner validation now:**
+
+```powershell
+npm run seed:non-sol:p4-preview
+node --test --test-concurrency=1 test\non-sol-p4-preview.test.js test\non-sol-p4.mongo.integration.test.js test\non-sol-p3-preview.test.js test\system-naming.test.js
+npm run typecheck
+```
+
+Expect 18 cultural names, 11/7 lanes, 37 systematic labels, two protected
+existing bodies, station host **Hearthward**, 21 passing tests and typecheck
+success. Confirm the native-script names display as approved and old labels
+remain aliases in the JSON output (`npm run seed:non-sol:p4-preview -- --json`).
+No server restart or Nova/live visibility check is needed for this offline
+checkpoint. No runtime activation, live rename, commit or push occurred.
+P5 authorization/rollout remains a separate future gate after owner P4 acceptance.
+
+### 14.7 P4 acceptance and future cultural variation
+
+Owner: **"P4 is validated and green"** on 2026-11-07. The scoped Copper Vale
+checkpoint is accepted; its approved names, aliases and provisional-language
+disclosures remain unchanged. This does not activate runtime naming or authorize
+persistent rollout.
+
+Additional owner direction: settled fictional systems may contain many cultures,
+be predominantly monocultural, or have one culture completely override others.
+Future generation must assess system-specific cultural/naming regimes rather
+than force the same mixed 60/40 pattern into every system.
+
+The follow-up form clarified **naming dominance only**: all newly assigned
+cultural names in a selected system may use one tradition. System-specific
+regimes may override 60/40, including 100% one tradition; the owner directed
+**"assume 1 in 50 may do this"**. Record **2% as the provisional selection
+frequency for this complete naming-dominance exception**, not a measured
+demographic frequency or a frequency for every predominantly monocultural case.
+Multicultural and predominantly monocultural regime proportions remain unspecified.
+
+Do not infer populations, ethnicity,
+ownership or cultural displacement from language/name spelling. Existing
+protected names and saved identities remain preserved unless separately reviewed.
+No cultural displacement, settlement history or population metadata is authorized
+by this naming-only rule.
+
+This is a future design requirement, not an implemented distribution or a
+retroactive change to Copper Vale. A future implementation must separately record
+the selected naming regime, the 60/40 override and actual naming-language counts.
+One-tradition naming does not itself establish inherited/narrative motivation
+counts. The exact alternative lane allocation, deterministic selection mechanism,
+rounding across a frozen scope, tradition selection and any metadata/contract
+requirements still need design review. Do not force one exception into every
+small preview batch or treat 2% as an exact per-batch quota.
+Normal runtime activation remains unauthorized. P5 has started only for the
+isolated Copper Vale slice described below.
+
+## 15. P5 isolated Copper Vale pilot - accepted scoped checkpoint
+
+The owner selected Copper Vale end-to-end first, with the other four assessed
+systems still blocked. The provisional 2% naming-dominance rule is deferred.
+No owner/development database writes, normal runtime activation, commits, pushes,
+or bulk rollout are authorized. This slice does not satisfy the full 20-30-system
+representative pilot gate.
+
+### 15.1 Isolation and startup
+
+The owner selected separate backend and Nova frontend ports, keeping normal
+Forge on 3000 and Nova on 4200 running unchanged.
+
+- Run `npm run pilot:copper-vale -- --isolated` in Forge. The launcher creates
+  its own temporary loopback Mongo process and a backend on an OS-assigned port;
+  caller-supplied database URIs and port overrides are rejected.
+- The backend worker receives the temporary URI through parent IPC, uses a
+  sanitized environment and an empty temporary working directory, and connects
+  without a database fallback. Contract startup preflight remains enabled.
+- Only the accepted P4 Copper Vale preview is persisted: 57 bodies and
+  `copper-vale-asteroid-exchange`, through canonical database/market services.
+  Readback checks every supplied physical/resource/naming value, aliases and
+  station placement. Canonical schema-added optional null fields are allowed.
+- The readback digests remain P3
+  `cd60edffe10a2b8c14707e0b0776d16251006d769eb6fc8dbb3315dee4ed004a`
+  and P4
+  `5e580149a6df92a50495fe1fca0c1de02df714c4194ddb3b44ebaa3d933dda04`.
+- In the adjacent Nova checkout, run `npm run start:pilot:copper-vale`.
+  Open `http://127.0.0.1:4201/(left:registration)?pilotApiPort=PORT`,
+  replacing `PORT` with the launcher's reported backend port.
+  This opt-in build rejects port 3000, non-loopback pages and absent/invalid
+  endpoints rather than connecting to the normal database. The selected port
+  persists only in this frontend tab's session storage for navigation/refresh.
+  Production and normal development endpoint configuration are unchanged.
+- Register a temporary pilot account through the normal UI; existing account
+  credentials/session state are not copied. Closing the browser does not stop
+  the services. Stop the launcher with Ctrl+C for graceful backend/Mongo cleanup,
+  then stop the separate Nova process. The temporary data is not a deployment.
+
+### 15.2 Verification recorded on 2026-11-07
+
+- **Passed, 11 tests:** `node --test --test-concurrency=1 test\copper-vale-isolated-pilot.test.js test\non-sol-p4-preview.test.js test\non-sol-p4.mongo.integration.test.js`.
+  Covers opt-in refusal, isolated persistence/readback, real health/Socket.IO
+  readiness, shutdown, P4 naming/physical preservation and Mongo history.
+- **Passed:** `npm run typecheck` in Forge.
+- **Passed, no warnings:** `npx --no-install eslint scripts\copper-vale-isolated-pilot.js scripts\copper-vale-isolated-worker.js src\model\copper-vale-isolated-pilot.js test\copper-vale-isolated-pilot.test.js`.
+- **Passed:** `npm run seed:non-sol:preservation`, all 4,844 accepted P0 targets.
+- **Passed, 8 tests:** `npm run test:vitest -- src\environments\pilot-api-url.vitest.ts`
+  in Nova; **passed:** `npm run typecheck:app`.
+- **Passed:** `npx --no-install ng build --configuration copper-vale-pilot`;
+  **passed:** `npx --no-install eslint src\environments\environment.pilot.ts src\environments\pilot-api-url.ts src\environments\pilot-api-url.vitest.ts`.
+- **Browser startup verified:** registration UI loads in a separate browser
+  context; the real Socket.IO WebSocket connects to the temporary backend.
+  Normal Forge/Nova listener PIDs remained unchanged.
+- Prettier has not run: P5 is not at major-phase completion.
+
+### 15.3 Remaining owner/UI gates
+
+- [x] Persist and read back the accepted Copper Vale preview in isolated Mongo.
+- [x] Start a separately configured Nova and verify its actual backend connection.
+- [x] Register/login and create a temporary character through normal UI in the
+      isolated context.
+- [x] Inspect Copper Vale as a destination, its body table, all 18 approved
+      names and its station.
+- [ ] Inspect resource/scan views and resolve the destination-list count
+      discrepancy recorded below.
+- [ ] Verify mining/inventory/trading through real UI and fresh backend reads,
+      preserving earlier P3 balance and the known lack of docking enforcement.
+- [ ] Record scoped owner acceptance; separately select/approve further systems.
+
+Normal character creation currently starts ships in Sol. Do not report Copper
+Vale gameplay validation merely because the pilot database and registration page
+are ready. Determine the supported destination/ship-location path during UI
+validation, and explicitly review any required pilot-only setup.
+
+### 15.4 First real Nova inspection
+
+The owner registered and created a temporary pilot character and completed the
+initial screens. Using the operations menu's **Viewer**, searching **Copper Vale**
+and selecting the result successfully opened the system detail table and 3D
+viewer. The detail table contains **58 rows: 57 bodies plus one station**.
+All 18 owner-approved preferred names are present, including the five
+provisional non-English spellings. Detail type groups show star 1, planets 5
+(rocky 2, super-Earth 1, sub-Neptune 1, gas giant 1), moons 16, asteroids 26,
+TNOs 7, comets 2 and station 1. The station's displayed site name is
+**Copper Vale Inner Planet Orbital Station**; its market ID remains
+`copper-vale-asteroid-exchange`.
+
+Two findings remain explicit:
+
+1. The **destination list** displays catalog planet/moon counts (1/0), while the
+   **detail table** correctly displays the augmented 5/16. Live asteroid/market
+   counts already display 26/1. `SolarSystemListMessageHandler` currently enriches
+   only asteroid/market counts; planets/moons come from the frozen registry.
+   Resolve this live-versus-catalog distinction, including `minPlanetCount`
+   filtering, before claiming consistent P5 destination counts.
+2. The temporary starter ship is in **Sol**, so Copper Vale detail targeting is
+   not a Copper Vale mining/trading verification. No ship has been moved and no
+   Copper Vale asteroid has been mined by this inspection. Review a pilot-only
+   staging setup or a supported travel path before completing the gameplay gate.
+
+A direct deep-link navigation without the existing character navigation state
+showed `missing-session`. Returning to the original game history and using the
+normal menu resolved the inspection without another login. Owner validation
+should use **Viewer -> search Copper Vale -> select result**, not a bare details
+URL as evidence of a successful normal navigation flow.
+
+### 15.5 Count correction and market review
+
+The owner selected **fix counts only; defer ship staging**. No temporary ship was
+moved, and no market expansion is authorized by this selection.
+
+The count correction is implemented in normal list and get response paths:
+live planets/moons now contribute to destination counts alongside asteroids,
+without reducing frozen catalog baselines for unseeded/partially materialized
+systems. `minPlanetCount` uses enriched counts before paging, so Copper Vale
+matches 5 and does not match 6. The get response summary also reports 5 planets,
+16 moons and 26 asteroids. The registry's source counts remain unchanged.
+
+- **Passed, 20 tests:** `node --test --test-concurrency=1 test\solar-system-list-message-handler.test.js test\solar-system-get-message-handler.test.js test\solar-system-pilot-counts.mongo.integration.test.js test\copper-vale-isolated-pilot.test.js`.
+- **Passed:** `npm run typecheck`, scoped ESLint for the changed handlers/tests,
+  `git diff --check`, and `npm run seed:non-sol:preservation`.
+- The currently running temporary backend predates this correction. It was left
+  running to preserve the owner's current review/account. Restarting the launcher
+  loads the corrected code but creates a new temporary database/backend port;
+  register/create a fresh pilot character afterward. Reopen Nova with the new
+  `pilotApiPort`, then validate through **Viewer -> Copper Vale**: card counts
+  must be **5 planets, 16 moons, 26 asteroids, 1 market**, agreeing with detail
+  groups. Browser confirmation of the corrected card remains pending restart.
+
+The owner noted Copper Vale feels short on markets. **There is exactly one
+seeded market for the entire Copper Vale system in this approved pilot.**
+P3 supplied the minimum usable station, not a calibrated settlement/economic
+density or a claim that one market is sufficient for a developed system.
+Additional stations/markets, their roles, physical placements and system-specific
+settlement intensity need a reviewed proposal before altering the accepted
+P3/P4 preview. No extra markets have been generated yet.
+
+The separate [market-density feature handoff](seed-market-density-2026-11-07.md)
+captures the baseline, open owner decisions, implementation surfaces, progress
+tracker and validation gates for continuation in another session.
+
+### 15.6 Owner acceptance
+
+On 2026-11-07 the owner stated: **"P5 is green and accepted"** and reported
+committing the changes without pushing them.
+
+Record acceptance for the reviewed Copper Vale slice: isolated Mongo/backend
+startup and readback, separate Nova connection, normal registration/character
+creation, destination/detail inspection, all 18 preferred names and the
+implemented count correction with its automated verification.
+
+This acceptance does not turn deferred checks into completed evidence:
+corrected destination-card browser confirmation remains pending restart;
+ship staging and Copper Vale mining/trading UI validation remain deferred.
+Market-density expansion is a separate planning feature. The four blocked
+systems and broader 20-30-system representative pilot requirements remain
+unresolved. No owner-database writes, bulk activation, P6 implementation or
+push is authorized by this acceptance.
+
+The owner-reported commit is not identifiable from this checkout at acceptance
+time: local HEAD still shows `cc05f60` and P4/P5 files remain modified/untracked.
+Do not discard these files or assume they are safely committed; reconcile the
+checkout/commit location before later publishing.

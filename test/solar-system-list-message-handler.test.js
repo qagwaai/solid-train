@@ -169,13 +169,34 @@ test('SolarSystemListMessageHandler populates count fields when celestial bodies
   assert.equal(response.success, true);
   const solSystem = response.solarSystems.find((s) => s.id === 'sol');
   assert.ok(solSystem);
-  // D55: planet and moon counts are catalog counts precomputed in the registry;
-  // asteroid and market counts are live, so seeded discoveries show up.
+  // Partial materialization never reduces the catalog planet/moon baseline.
   const registrySol = getSolarSystemById('sol');
   assert.equal(solSystem.planetCount, registrySol.planetCount);
   assert.equal(solSystem.moonCount, registrySol.moonCount);
   assert.equal(solSystem.asteroidCount, 1);
   assert.equal(solSystem.marketCount, 2);
+});
+
+test('augmented Copper Vale counts and minPlanetCount filtering use live bodies without changing registry facts', async () => {
+  const { previewCopperValeP4 } = require('../src/model/non-sol-p4-preview');
+  const preview = previewCopperValeP4();
+  const context = createTestContext({ seedDefaults: false });
+  seedPlayer(context, { playerName: 'PilotOne', sessionKey: 'session-1' });
+  seedCelestialBodies(context, [...preview.baseBodies, ...preview.generatedBodies]);
+  const handler = new SolarSystemListMessageHandler(context);
+  const payload = { playerName: 'PilotOne', sessionKey: 'session-1', search: 'Copper Vale' };
+  const response = await handler.buildResponse({ ...payload, minPlanetCount: 5 });
+  assert.equal(response.success, true);
+  assert.equal(response.total, 1);
+  assert.equal(response.solarSystems.length, 1);
+  assert.equal(response.solarSystems[0].planetCount, 5);
+  assert.equal(response.solarSystems[0].moonCount, 16);
+  assert.equal(response.solarSystems[0].asteroidCount, 26);
+  const excluded = await handler.buildResponse({ ...payload, minPlanetCount: 6 });
+  assert.equal(excluded.total, 0);
+  assert.deepEqual(excluded.solarSystems, []);
+  assert.equal(getSolarSystemById(preview.systemId).planetCount, 1);
+  assert.equal(getSolarSystemById(preview.systemId).moonCount, 0);
 });
 
 test('SolarSystemListMessageHandler lists exoplanet-catalog systems with catalog counts', async () => {

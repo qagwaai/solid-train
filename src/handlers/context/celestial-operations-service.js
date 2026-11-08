@@ -217,21 +217,26 @@ function countBy(values, keyOf) {
 
 /**
  * Live per-system counts for solar-system-list (D51, D55): markets and
- * asteroids (catalog plus character discoveries), each from one grouped DB
+ * planets, moons and asteroids (catalog plus generated/discovered bodies), from grouped DB
  * query, or from the in-memory caches when no database is configured.
- * @returns {Promise<{ marketCounts: Map<string, number>, asteroidCounts: Map<string, number> }>}
+ * @returns {Promise<{ marketCounts: Map<string, number>, asteroidCounts: Map<string, number>, planetCounts: Map<string, number>, moonCounts: Map<string, number> }>}
  */
 async function getSolarSystemLiveCountsAsync(ctx) {
   const fromDb = await ctx.withDbOrNull(
-    'counting solar system markets and asteroids',
-    async (db) =>
-      typeof db.getMarketCountsBySolarSystem === 'function' &&
-      typeof db.getCelestialBodyCountsBySolarSystem === 'function'
-        ? {
-            marketCounts: await db.getMarketCountsBySolarSystem(),
-            asteroidCounts: await db.getCelestialBodyCountsBySolarSystem('asteroid'),
-          }
-        : null
+    'counting solar system markets and celestial bodies',
+    async (db) => {
+      if (
+        typeof db.getMarketCountsBySolarSystem !== 'function' ||
+        typeof db.getCelestialBodyCountsBySolarSystem !== 'function'
+      ) return null;
+      const [marketCounts, asteroidCounts, planetCounts, moonCounts] = await Promise.all([
+        db.getMarketCountsBySolarSystem(),
+        db.getCelestialBodyCountsBySolarSystem('asteroid'),
+        db.getCelestialBodyCountsBySolarSystem('planet'),
+        db.getCelestialBodyCountsBySolarSystem('moon'),
+      ]);
+      return { marketCounts, asteroidCounts, planetCounts, moonCounts };
+    }
   );
   if (fromDb) {
     return fromDb;
@@ -242,6 +247,12 @@ async function getSolarSystemLiveCountsAsync(ctx) {
     ),
     asteroidCounts: countBy(ctx.celestialBodiesById.values(), (body) =>
       body?.bodyType === 'asteroid' ? body.spatial?.solarSystemId : null
+    ),
+    planetCounts: countBy(ctx.celestialBodiesById.values(), (body) =>
+      body?.bodyType === 'planet' ? body.spatial?.solarSystemId : null
+    ),
+    moonCounts: countBy(ctx.celestialBodiesById.values(), (body) =>
+      body?.bodyType === 'moon' ? body.spatial?.solarSystemId : null
     ),
   };
 }
