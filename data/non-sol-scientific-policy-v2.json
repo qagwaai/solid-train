@@ -1,0 +1,90 @@
+{
+  "version": "non-sol-science-v2-pilot",
+  "epoch": "2000-01-01T12:00:00.000Z",
+  "scope": ["alpha-centauri", "barnards-star", "exo-gj-9066", "cygnus-x1", "exo-hr-8799"],
+  "samplingInterpretation": "Owner-approved provisional addressable sample envelopes. Log-uniform candidate mass/axis and uniform count draws are authored exploration, not fitted occurrence frequencies. Unsupported or uncalibrated families remain explicit blockers; no whole-universe calibration or rollout approval.",
+  "sources": {
+    "massRadius": "https://arxiv.org/abs/1603.08614",
+    "smallPlanetOccurrence": "https://arxiv.org/abs/1501.01623",
+    "giantOccurrence": "https://arxiv.org/abs/1307.5849",
+    "knownGiant": "https://science.nasa.gov/exoplanet-catalog/gj-9066-c/",
+    "hill": "https://en.wikipedia.org/wiki/Hill_sphere",
+    "roche": "https://en.wikipedia.org/wiki/Roche_limit",
+    "thermal": "https://en.wikipedia.org/wiki/Planetary_equilibrium_temperature",
+    "binary": "https://arxiv.org/abs/astro-ph/9809315",
+    "classification": "https://arxiv.org/abs/1507.06300",
+    "outerAnalogy": "https://science.nasa.gov/solar-system/kuiper-belt/"
+  },
+  "systemExclusions": {
+    "alpha-centauri": {
+      "code": "MULTIPLE_STAR_MODEL_REQUIRED",
+      "reason": "Triple hierarchy, binary stability and irradiation require reviewed modeling."
+    },
+    "barnards-star": {
+      "code": "STELLAR_SOURCE_RECONCILIATION_REQUIRED",
+      "reason": "Procedural M4Ve stellar inputs include 5778 K and estimated mass/radius. Reconcile physical source constraints before expanded generation; do not rewrite catalog bodies."
+    },
+    "cygnus-x1": {
+      "code": "COMPACT_REMNANT_MODEL_REQUIRED",
+      "reason": "Missing binary phase/geometry, irradiation and jet/survival model; no safe generated fallback."
+    },
+    "exo-hr-8799": {
+      "code": "CORRELATED_ORBIT_THERMAL_MODEL_REQUIRED",
+      "reason": "Independent catalog orbital envelopes overlap; a consistent correlated orbital solution and young-giant temperature interpretation are required."
+    }
+  },
+  "budgets": {
+    "planets": [0, 4],
+    "additionalGiants": 1,
+    "asteroids": [12, 50],
+    "comets": [0, 15],
+    "outerMinorBodies": [0, 12],
+    "dwarfSubset": 2,
+    "moonsPerGiant": [0, 12],
+    "moonsPerOtherHost": [0, 4],
+    "attemptsPerSlot": 32
+  },
+  "bounds": {
+    "maxStellarOrbitAu": 100,
+    "minStellarOrbitAu": 0.05,
+    "stellarMassSolar": [0.08, 3],
+    "stellarRadiusSolar": [0.05, 5],
+    "stellarClearanceRadii": 5,
+    "moonHillFraction": 0.3,
+    "ringHillFraction": 0.1,
+    "rocheClearanceFactor": 1.1,
+    "satelliteMassFraction": 0.0001,
+    "ringMassFraction": 0.000001,
+    "maxMoonTemperatureK": 700,
+    "maxIceTemperatureK": 170,
+    "solidTemperatureK": [10, 700],
+    "bondAlbedo": 0.1,
+    "planetMassEarth": [0.3, 300],
+    "planetRadiusScatter": [0.85, 1.15],
+    "planetDensityKgM3": [100, 15000],
+    "giantMinMassEarth": 60,
+    "giantMaxAxisAu": 20,
+    "outerMinAxisAu": 10,
+    "tnoRadiusKm": [1, 500]
+  },
+  "familyBlockers": {
+    "hot-neptune": "NEPTUNE_DESERT_EVOLUTION_CALIBRATION_REQUIRED",
+    "hot-jupiter": "MIGRATION_TIDAL_OCCURRENCE_CALIBRATION_REQUIRED",
+    "super-jupiter": "HIGH_MASS_AGE_CLASSIFICATION_REQUIRED",
+    "lava-planet": "SURFACE_TIDAL_ATMOSPHERE_MODEL_REQUIRED",
+    "ocean-planet": "COMPOSITION_ATMOSPHERE_MODEL_REQUIRED",
+    "heated-moon": "TIDAL_HEATING_MODEL_REQUIRED",
+    "captured-moon": "CAPTURE_RETROGRADE_STABILITY_REQUIRED",
+    "submoon": "NESTED_TIDAL_SURVIVAL_MODEL_REQUIRED",
+    "asteroid-belt": "SOURCE_CONSTRAINED_BELT_MODEL_REQUIRED",
+    "trojan": "LIBRATION_EVALUATOR_REQUIRED",
+    "distant-comet-cloud": "RETENTION_EXTENT_TRAJECTORY_MODEL_REQUIRED",
+    "rocky-dust-ring": "MATERIAL_LIFETIME_MODEL_REQUIRED",
+    "rogue-planet": "UNBOUND_TRAJECTORY_MEMBERSHIP_REQUIRED",
+    "brown-dwarf": "SUBSTELLAR_CLASSIFICATION_CONTRACT_REQUIRED",
+    "stellar-companion": "COMPANION_EVIDENCE_HIERARCHY_REQUIRED",
+    "white-dwarf": "REMNANT_CLASSIFICATION_CONTRACT_REQUIRED",
+    "neutron-star": "REMNANT_CLASSIFICATION_CONTRACT_REQUIRED",
+    "black-hole-environment": "REMNANT_GEOMETRY_RADIATION_REQUIRED"
+  }
+}

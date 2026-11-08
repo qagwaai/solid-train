@@ -26,6 +26,7 @@
     "seed:non-sol:check": "node scripts/non-sol-celestial-inventory.js --check",
     "seed:non-sol:preservation": "node scripts/non-sol-celestial-inventory.js --check-preservation",
     "seed:non-sol:progress": "node scripts/non-sol-celestial-inventory.js --progress",
+    "seed:non-sol:preview": "node scripts/non-sol-celestial-preview.js",
     "perf:exoplanet:baseline": "node scripts/perf-exoplanet-baseline.js",
     "typecheck": "tsc --noEmit -p tsconfig.checkjs.json",
     "contract:artifact": "node scripts/sw08/generate-contract-artifact.js --out api/artifacts/contracts/contract-artifact.json",

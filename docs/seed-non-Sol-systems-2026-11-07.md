@@ -2,7 +2,7 @@
 
 Date: 2026-11-07
 
-Status: **P0 accepted; P1 implemented and awaiting owner validation.** P2-P7 remain
+Status: **P0 and P1 accepted; P2 reopened for full body-family assessment.** P3-P7 remain
 planning-only. The direction below incorporates the initial user question forms
 and implementation-startup decisions. P1 adds optional backend contracts and
 ownership safeguards, not new bodies, names, stations, or deployment records.
@@ -32,6 +32,10 @@ never the owner's live/development data.
 - Consider planets, moons, dwarf planets, asteroid populations and representative
   asteroids, comet populations and representative comets, and rings. Inclusion in
   scope does **not** require every system to contain every category.
+- Assess all planet subclasses and additional body/population families in
+  Section 12, including giant planets, substellar/stellar companions and remnant
+  environments. Inclusion must follow source-backed occurrence and system
+  eligibility, not equal-probability selection or mandatory category coverage.
 - Every system needs at least one station and at least a sparse mineable asteroid
   population. Abundance, composition, accessibility, hazards, and economic value
   may vary widely. An asteroid population need not form a conspicuous belt.
@@ -333,19 +337,54 @@ limits and classification/appearance pairs stay valid.
 
 Depends on P0 and P1.
 
-- [ ] Document source-backed population assumptions, survey selection effects,
+**Startup decisions:** P1 accepted by the owner. P2 runs only offline previews
+and isolated tests; runtime activation waits for pilot approval. Use published
+public scientific sources with citations, uncertainty, survey-selection caveats,
+and explicit gameplay exceptions. Owner preview systems are Alpha Centauri,
+Barnard's Star, Copper Vale (`exo-gj-9066`), and Cygnus X-1.
+Do not push the owner's committed changes.
+
+**Historical first-slice budget, superseded for future assessment:** The owner
+initially selected "Approve the proposed bounded ranges", then reopened the scope
+to include all Section 12 families and reassess budgets by family. Existing v1
+previews retain these limits for reproducibility; they are not the revised target.
+These are software
+sampling limits, not inferred astronomical occurrence rates or total population
+counts. Scientific placement constraints may reduce any optional category to zero.
+
+| Category           | Proposed offline limit                                  | Notes                                                                            |
+| ------------------ | ------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Asteroids          | Sparse 1-4; moderate 5-12; rich 13-24 per system        | Required coverage is at least one valid representative; otherwise report blocked |
+| Comets             | 0-6 per system                                          | Distinct sampled nuclei/orbits, not an entire reservoir                          |
+| Moons              | 0-4 per suitable planet/dwarf host; 16 total per system | Hill/Roche/thermal/mass-budget checks may exclude all                            |
+| Additional planets | 0-2 per system                                          | Optional; no addition when catalog constraints cannot be screened                |
+| Dwarf planets      | 0-2 per system                                          | Optional; documented classification and plausible outer population required      |
+| New rings          | 0-1 descriptor per suitable host                        | Preserve all pre-existing rings; physical constraints take precedence            |
+| Candidate attempts | At most 32 per stable slot                              | Explicit rejection reasons; no unbounded retries or invalid coverage fallback    |
+
+Cygnus X-1 receives an explicit blocked augmentation report unless a separately
+reviewed compact-remnant placement model passes; P2 does not invent a safe mining
+region or resolve the P3 station exception. Missing binary geometry or stellar
+facts similarly produce honest exclusions/blockers, not measured-looking defaults.
+
+- [x] Document source-backed population assumptions, survey selection effects,
       uncertainty, numeric orbital/thermal/density bounds, and versioned policies.
-- [ ] Reuse existing RNG/orbital helpers where correct; extract shared logic rather
+- [x] Reuse existing RNG/orbital helpers where correct; extract shared logic rather
       than duplicate it. Add per-system/per-parent/per-purpose generation streams.
-- [ ] Implement category-aware augmentation after existing catalog resolution,
+- [x] Implement category-aware augmentation after existing catalog resolution,
       including curated non-Sol paths and HYG/exoplanet hybrid paths.
-- [ ] Implement plausibility checks and bounded placement with explicit rejection
+- [x] Implement plausibility checks and bounded placement with explicit rejection
       reports; generate population descriptors and representative small bodies.
-- [ ] Preserve catalog discoveries, existing rings/IDs, and unrelated seeded fields.
+- [x] Preserve catalog discoveries, existing rings/IDs, and unrelated seeded fields.
 
 **Gate:** deterministic fixed-epoch dry runs pass structural and scientific
 checks, optional categories can be zero, diversity is measurable, and invalid
 mandatory coverage is reported as blocked.
+
+**Reopened gate:** The checked items above describe the restricted v1 slice,
+not completion of the expanded requirement. Section 12 tracks the pending
+assessment, contract implications, family-specific policy and revised preview
+validation. P2 cannot be accepted on the old counts or tests alone.
 
 ### P3 - Add mineable resources and station coverage
 
@@ -451,17 +490,17 @@ consumer, with reproducible evidence.
 Maintain this table and the checkboxes above during implementation. The manifest
 is authoritative for per-system progress; this table summarizes milestones.
 
-| Phase                              | Depends on | Status                                 | Completion evidence                                                              |
-| ---------------------------------- | ---------- | -------------------------------------- | -------------------------------------------------------------------------------- |
-| Direction and source investigation | None       | Complete                               | User forms and read-only inventory in this document                              |
-| P0 scope and manifest              | None       | Accepted by owner                      | Owner: "P0 is green and accepted"; frozen baseline and Section 9                 |
-| P1 ownership/contracts             | P0         | Implemented; awaiting owner validation | Optional contracts, ownership/trajectory guards, 84 checkpoint tests; Section 10 |
-| P2 scientific generation           | P0, P1     | Not started                            | Pending                                                                          |
-| P3 mining/stations                 | P2         | Not started                            | Pending                                                                          |
-| P4 body naming/hooks               | P0, P1, P2 | Not started                            | Pending                                                                          |
-| P5 pilot/authorization             | P3, P4     | Not started                            | Pending                                                                          |
-| P6 persistent rollout              | P5         | Not started                            | Pending                                                                          |
-| P7 final handoff                   | P6         | Not started                            | Pending                                                                          |
+| Phase                              | Depends on | Status                                 | Completion evidence                                                  |
+| ---------------------------------- | ---------- | -------------------------------------- | -------------------------------------------------------------------- |
+| Direction and source investigation | None       | Complete                               | User forms and read-only inventory in this document                  |
+| P0 scope and manifest              | None       | Accepted by owner                      | Owner: "P0 is green and accepted"; frozen baseline and Section 9     |
+| P1 ownership/contracts             | P0         | Accepted by owner                      | Owner: "P1 is green and accepted"; Section 10 evidence               |
+| P2 scientific generation           | P0, P1     | Reopened; supported offline slice for review | Restricted v1 evidence in Section 11; expanded scope/gates in Section 12; [five-system assessment and counts](./seed-non-Sol-systems-2026-11-07-five-system-review.md) |
+| P3 mining/stations                 | P2         | Not started                            | Pending                                                              |
+| P4 body naming/hooks               | P0, P1, P2 | Not started                            | Pending                                                              |
+| P5 pilot/authorization             | P3, P4     | Not started                            | Pending                                                              |
+| P6 persistent rollout              | P5         | Not started                            | Pending                                                              |
+| P7 final handoff                   | P6         | Not started                            | Pending                                                              |
 
 ### 6.2 Machine-readable manifest
 
@@ -578,9 +617,9 @@ The rollout is complete only when:
 9. Owner approvals, validation evidence, manifest/journal hashes, and Nova
    verification are recorded. No pending release-blocking exceptions remain.
 
-**Current stop:** P0 was accepted by the owner. P1 is implemented and awaits the
-Section 10 owner checkpoint. No new celestial generation, body naming, or
-live database seeding has occurred. P2 requires explicit P1 acceptance.
+**Current stop:** P0 and P1 were accepted by the owner. P2 has been reopened:
+Section 12 supersedes the restricted family scope and future sampling budgets.
+No live database seeding or runtime augmentation is authorized; P3 is paused.
 
 ## 9. P0 owner validation checkpoint
 
@@ -823,5 +862,374 @@ All passed: zero reported compatibility issues, no bypass approval. These gates
 check schema compatibility; the dereferenced parity tests independently verify the
 new optional fields and constraints. No full suite or deployment was run.
 
-P1 is ready for owner validation A-C. No new universe content, live database writes,
-or deployment were performed. P2 starts only after explicit acceptance.
+**Owner decision:** "P1 is green and accepted." The owner committed the changes
+without pushing and authorized P2 preparation. No new universe content, live
+database writes, or deployment were performed during P1.
+
+## 11. P2 scientific policy and offline owner checkpoint
+
+**Historical restricted v1 checkpoint:** Retained for traceability. The owner
+did not accept P2 and expanded the assessment in Section 12. The commands and
+results below still describe the existing offline implementation, not coverage
+of every requested class or acceptance of the expanded P2.
+
+The versioned [numeric policy](../data/non-sol-scientific-policy-v1.json) and
+[pure augmentation module](../src/model/non-sol-augmentation.js) are used only by
+the [offline preview command](../scripts/non-sol-celestial-preview.js).
+The runtime catalog resolver, socket handlers, seed versions, databases, and P0
+manifest are not augmented. This phase generates preview evidence, not deployment
+or system approval records. No flag enables these previews in the runtime.
+
+### Scientific basis and declared limitations
+
+| Public reference                                                                                                                                                | Use and limitations                                                                                                                                                                                                                                                                                                                              |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [NASA Exoplanet Archive occurrence-rate bibliography](https://exoplanetarchive.ipac.caltech.edu/docs/occurrence_rate_papers.html)                               | Detection catalogs are not complete population censuses; inferred occurrence requires survey selection/completeness analysis. The preview does not fit occurrence rates from raw catalog counts.                                                                                                                                                 |
+| [Hill-sphere formulation](https://en.wikipedia.org/wiki/Hill_sphere)                                                                                            | Periapsis Hill radius `a(1-e) [m/(3(M+m))]^(1/3)` screens satellites and planetary encounter clearance. Restricted, approximate gravitational dominance, not long-term stability.                                                                                                                                                                |
+| [Classical Roche limit and exceptions](https://en.wikipedia.org/wiki/Roche_limit) and [NASA solid-body study](https://ntrs.nasa.gov/citations/19740055720)      | Fluid estimate `2.44 R (rhoHost/rhoSatellite)^(1/3)` is deliberately conservative for moon clearance. Strength, elasticity, rotation and ring resonances matter; the estimate is not a universal disruption boundary.                                                                                                                            |
+| [Radiative equilibrium formulation](https://en.wikipedia.org/wiki/Planetary_equilibrium_temperature)                                                            | `278.3296 K [Lsolar (1-A)]^(1/4) / sqrt(distanceAU)` estimates periapsis heating and apoapsis cooling. Uniform reradiation, emissivity one, Bond albedo 0.1; no greenhouse, tidal/internal heating, activity, atmospheric or habitability claim. Temperatures are evidence estimates, not measured mean surface temperatures.                    |
+| [Holman & Wiegert 1999](https://arxiv.org/abs/astro-ph/9809315), DOI `10.1086/300695`                                                                           | Binary test-particle fits have finite eccentricity/mass-ratio domains and integrations of 10,000 binary periods. P2 does not extrapolate those fits to an arbitrary hierarchy or compact remnant. Multi-star systems remain blocked pending a reviewed model.                                                                                    |
+| [Margot 2015](https://arxiv.org/abs/1507.06300), DOI `10.1088/0004-6256/150/6/185`; [formula summary](https://en.wikipedia.org/wiki/Clearing_the_neighbourhood) | Clearing proxy `Pi = 807 mEarth / (Msolar^2.5 aAU^1.125)` uses a main-sequence-lifetime model and circular-orbit approximation. Hypothetical planets require Pi >=10; dwarf candidates require Pi <0.1, with low eccentricity and a modeled cold outer population. This is a disclosed classification model, not an IAU discovery determination. |
+| [NASA/ESA Hubble Sirius B evidence](https://esahubble.org/news/heic0516/)                                                                                       | The small HYG fixture has only Sirius A, but Sirius B is a known white-dwarf companion. A source-backed exclusion blocks augmentation without inserting or altering catalog bodies.                                                                                                                                                              |
+
+All probability/count choices, density/size ranges, clearances, thermal cutoffs,
+and safety margins are **authored screening policies**, not numerical occurrence
+rates derived from those references. Each abundance class is sampled equally as a
+diversity choice. Additional planet/dwarf/comet counts are uniformly sampled within
+the approved budgets; ring presence is sampled at 25% before checks; moon counts
+are independently sampled per host. A missing category is normal.
+
+Numeric rules in v1:
+
+- Single-star preview domain: mass 0.08-3 solar masses and radius 0.05-5 solar
+  radii; explicitly evolved/subgiant/white-dwarf spectra are excluded. This is
+  a conservative modeling domain, not proof of stellar age/evolutionary state.
+  Positive source mass, radius and luminosity are required. Unknown facts never
+  become solar values. Circumbinary/unresolved planetary anchors remain blocked.
+- Stellar candidate axes span a log-uniform authored region from the maximum of
+  0.05 AU, five stellar radii, and `0.3 sqrt(Lsolar)` AU to 100 AU.
+  Apoapsis must remain within 100 AU; periapsis must clear five stellar radii.
+  Dwarf candidates begin no closer than `5 sqrt(Lsolar)` AU. Optional failed slots
+  are not retried indefinitely or substituted with invalid bodies.
+- Large neighbors must have non-overlapping periapsis/apoapsis envelopes separated
+  by more than eight mutual Hill radii. Asteroid/comet representatives stay more
+  than five neighbor apoapsis Hill radii away from those envelopes. Reservoir
+  representatives may overlap each other as low-mass samples; they are not
+  mutually stable planet systems. Existing catalog configurations are preserved,
+  not retroactively rejected or repaired.
+- Generated planet/dwarf/moon eccentricities are 0-0.08; asteroids 0-0.15;
+  comet nuclei 0.2-0.85. inclinations are 0-15 degrees with seeded phases/nodes.
+  No binary phase, observed resonance, Trojan stability, or Oort-cloud census is
+  invented. v1 uses scattered-asteroid and comet-reservoir descriptors only.
+- Radius ranges in km: asteroid 0.2-80, comet 0.5-30, moon 20-1,500,
+  rocky planet 2,000-7,500, dwarf candidate 600-1,000. Densities in kg/m3:
+  rock 1,800-5,500, ice 500-1,800. Mass is derived from spherical volume and
+  density, not independently randomized. Large icy dwarf candidates are modeled
+  as rounded; hydrostatic shape and clearing are assumptions/screens, not
+  measured classifications.
+- Temperature screens: all stellar representatives 10-1,800 K; icy bodies
+  no hotter than 170 K at periapsis. Moons require host-periapsis equilibrium
+  temperature <=700 K, or <=170 K for modeled icy moons. Flare erosion,
+  tidal survival and long-term evolution still require later review.
+- Moon periapsis clears the physical surface plus moon radius, 1.1 times fluid
+  Roche distance, and any existing/proposed ring. Apoapsis lies strictly inside
+  0.3 of the host's periapsis Hill radius. Sum of modeled moon masses <=0.0001
+  host mass. Moon siblings use the same eight-mutual-Hill separation screen.
+- A cold icy ring proposal begins at 1.2 host radii and ends within both 0.9
+  fluid Roche radii (particle density 1,000 kg/m3) and 0.1 Hill radius.
+  Ring mass is bounded at 0.000001 host mass. Proposals are separate host-property
+  records; no catalog rings/hosts are overwritten and no belt body type is added.
+- Kepler periods use the existing helper with **parent plus generated body mass**.
+  Density and period validation use relative tolerance 1e-8; propagated
+  parent-relative positions must match snapshots within 0.0001 km.
+  Candidate slots receive at most 32 attempts and report rejection counts/reasons.
+
+Independent seeded RNG streams use system, parent and purpose/stable slot.
+Names, epochs and policy versions do not alter durable slot IDs. Physical
+families/element phases are fixed at J2000; a requested later UTC epoch changes
+snapshots, not generated identities. Source and policy SHA-256 values plus an
+output digest identify each preview. Changing a policy may change acceptance and
+requires new review evidence even when surviving slot identities remain stable.
+
+Every generated body is explicitly hypothetical with field-level
+seeded/estimated/authored provenance. Labels are systematic placeholders/complete
+preferred labels, not P4 cultural naming. Population total sizes remain unknown
+(`estimatedTotalCount: null`). Composition is a placeholder compatible with the
+existing canonical shape; P3 calibrates extraction/resources/stations. A
+`preview-valid` system means the analytic screen found at least one representative
+asteroid, **not** verified mining, safe docking, persistence, or release approval.
+
+### Owner validation commands
+
+Run from the repository root:
+
+```powershell
+npm run seed:non-sol:preview
+node --test test\non-sol-augmentation.test.js test\non-sol-celestial-manifest.test.js test\solar-system-celestial-seed.test.js
+npm run typecheck
+npm run seed:non-sol:preservation
+npm run seed:non-sol:progress
+```
+
+Expected: all tests/type checks/preservation pass; P0 remains 4,844 pending and
+no runtime universe changes appear. Previews deliberately report Alpha Centauri
+as blocked by multi-star modeling and Cygnus X-1 as blocked by compact-remnant
+modeling. Barnard's Star and Copper Vale should have valid offline samples.
+Confirm these limitations and the authored budgets, rather than approving the
+blocked systems as playable. No Nova validation is required: no new P2 content
+should appear in the existing backend.
+
+To save and inspect reproducible evidence:
+
+```powershell
+npm run seed:non-sol:preview -- --out "$env:TEMP\non-sol-p2-owner-preview.json"
+$preview = Get-Content -Raw "$env:TEMP\non-sol-p2-owner-preview.json" | ConvertFrom-Json
+$preview.summary | Format-Table systemId, status, abundance, counts, ringProposals
+$preview.details | Where-Object systemId -eq 'exo-gj-9066' | Select-Object -ExpandProperty generatedBodies
+npm run seed:non-sol:preview -- --all --out "$env:TEMP\non-sol-p2-owner-all.json"
+```
+
+The output is exclusive/atomic; an identical rerun leaves it untouched, and a
+different report requires a new filename. `--all` produces compact evidence for
+exactly the frozen 4,844 targets, not a replacement P0 manifest or DB rollout.
+Review provenance, bound checks, null reservoir totals, optional absences, and
+explicit failed candidate slots. Do not treat output generation as pilot approval.
+
+### P2 results and acceptance evidence
+
+Default four-system preview:
+
+| System                      | Result                                                   | Generated offline bodies                  | New ring proposals |
+| --------------------------- | -------------------------------------------------------- | ----------------------------------------- | ------------------ |
+| Alpha Centauri              | Blocked: reviewed hierarchical multi-star model required | None                                      | 0                  |
+| Barnard's Star              | Analytic preview valid                                   | 2 planets, 5 asteroids, 4 comets, 3 moons | 1                  |
+| Copper Vale (`exo-gj-9066`) | Analytic preview valid                                   | 2 planets, 2 asteroids, 4 comets, 4 moons | 0                  |
+| Cygnus X-1                  | Blocked: reviewed compact-remnant model required         | None                                      | 0                  |
+
+Whole frozen scope: **4,844 accounted for exactly once**, **4,220 analytic previews
+valid**, **624 blocked**. Blockers: 433 multi-star models, one compact-remnant model,
+one unresolved known Sirius companion, 167 stellar-evolution/domain exclusions,
+and 22 bounded asteroid-placement
+failures. These are explicit unresolved coverage requirements, not released or
+verified systems. An owner acceptance of P2 approves the offline method and its
+honest exception queue, not those systems' playable readiness.
+
+Hypothetical preview totals: 4,213 additional planets, 4,103 dwarf candidates,
+41,722 asteroid representatives, 12,170 comet representatives, 12,688 moons, and
+1,604 ring proposals. All categories show optional absences; samples exercise
+all three abundance classes and different sizes/counts/orbits. These are software
+outputs, not claims about how many objects astronomers have found.
+Use `--system <canonical-id>` to regenerate detailed evidence for any compact
+all-scope report row, including per-slot rejection counts.
+
+Implementation checks on 2026-11-08:
+
+| Exact command                                                                                                                                                                                                                            | Result                                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `node --test test\non-sol-augmentation.test.js test\non-sol-celestial-manifest.test.js test\solar-system-celestial-seed.test.js`                                                                                                         | Passed after formatting: 25 tests, zero failures/skips; includes all 4,844 targets and the Sirius source-gap regression |
+| `npm run typecheck`                                                                                                                                                                                                                      | Passed                                                                                                                  |
+| `npx --no-install eslint src\model\non-sol-augmentation.js scripts\non-sol-celestial-preview.js test\non-sol-augmentation.test.js`                                                                                                       | Passed                                                                                                                  |
+| `npx --no-install prettier --write data\non-sol-scientific-policy-v1.json src\model\non-sol-augmentation.js scripts\non-sol-celestial-preview.js test\non-sol-augmentation.test.js package.json docs\seed-non-Sol-systems-2026-11-07.md` | Passed at major-phase completion only                                                                                   |
+| `npm run seed:non-sol:preservation`                                                                                                                                                                                                      | Passed: all accepted catalog outputs and Sol unchanged                                                                  |
+| `npm run seed:non-sol:progress`                                                                                                                                                                                                          | Passed: 4,844 pending; zero rollout generation/persistence/verification                                                 |
+
+Saved session evidence can be reproduced with:
+
+```powershell
+$p2files = 'C:\Users\Peter Girard\.copilot\session-state\b9915c8a-419b-44ac-a67d-821335268ecb\files'
+npm run seed:non-sol:preview -- --out "$p2files\p2-owner-reviewed-v2.json"
+npm run seed:non-sol:preview -- --all --out "$p2files\p2-scope-reviewed-v2.json"
+```
+
+Both commands passed; identical reruns preserve the files. Report digests:
+
+- Four owner previews: `271fb97ecfafd29f0df058a25774b556ecb2468510ea22b789b2fa0292929836`.
+- All-scope summary: `fbe0385c16eac73ca60d09381b6f5df6757c2ecac1fbd24bdcd883a8d5aaf13a`.
+
+These v2 report files supersede the initial v1 preview evidence following the
+Sirius companion source check; the four selected pilot counts did not change.
+No accepted P0 catalog or snapshot was rewritten.
+
+The [Nova intro-page attribution prompt](./seed-non-Sol-systems-2026-11-07-Nova-prompt.md)
+collects catalog credits, required license/acknowledgment guidance, scientific
+references, and fictional-content disclosures for the separate Nova UI.
+
+No full suite, Mongo tests, Nova interaction, deployment, commit, or push was
+performed in P2. Public API contracts were not changed, so no contract artifact
+regeneration was needed. The unrelated NPC plan was left untouched.
+
+**Pause:** P2 remains unaccepted and requires the expanded Section 12 work.
+P3 begins only after the owner accepts the revised P2 checkpoint.
+
+## 12. Reopened P2: complete celestial-family assessment
+
+### 12.1 Owner decision and corrected interpretation
+
+The owner selected **all** planet classes and other body/population options in
+the clarification form, with scientific occurrence driving whether they appear.
+Assess every selected family, including difficult contract/evaluator cases.
+Reassess representative budgets by family; do not impose the old 0-2 additional
+planet limit before assessment.
+
+The first P2 implementation generated only rocky additional planets. Existing
+catalog gas/ice giants were preserved, but that did not satisfy the intended
+assessment of plausible new system diversity. This was an incomplete scope
+interpretation, not a missing scientific reason to exclude giants.
+
+Assessment inclusion is not permission to generate every family in every system.
+No additional stars, remnants, rogue systems, or black holes are authorized for
+publication by this decision. Existing protected facts/IDs, Sol exclusion,
+offline-only operation, and pilot/bulk approval gates remain intact. The limit of
+one separately approved additional black-hole system still applies.
+
+### 12.2 Family checklist and current gaps
+
+Every row below is **selected for assessment**. Status describes v1 augmentation,
+not whether the universe already contains a catalog example.
+
+| Family | Current augmentation status | Assessment and implementation implications |
+| --- | --- | --- |
+| Rocky/terrestrial planets | Generated | Retain; reassess occurrence, count distribution, mass-radius-density and architecture constraints alongside all other planets. |
+| Gas giants / cold Jupiter-like planets | Not generated | Use `bodyType: planet`, `gas-giant` appearance. Assess envelope composition, mass-radius relations, formation/occurrence, irradiation, spacing, and satellite/ring capacity. |
+| Ice giants / Uranus-Neptune analogues | Not generated | Planet category with `ice-giant` appearance. Distinguish physical composition regime from a blue texture or arbitrary orbital-distance threshold. |
+| Super-Earths | Not generated | Planet category; radius/mass regime does not prove rocky composition or habitability. Assess overlaps with volatile-rich planets. |
+| Sub-Neptunes | Not generated | Planet category; model uncertain envelope/rock fractions and irradiated mass-radius regimes, not a uniform scaled-down gas giant. |
+| Hot Neptunes | Not generated | Planet category; assess irradiation, atmospheric loss and detection-conditioned occurrence, including suppression/desert regions. |
+| Hot Jupiters | Not generated | Planet category; assess rare close-in architecture, tidal/thermal evolution and suppression of stable large moon populations. |
+| Super-Jupiters | Not generated | Planet category; assess high-mass giant regime and uncertain planet/brown-dwarf classification. Do not classify solely by size or renderer archetype. |
+| Lava planets | Not generated | Existing `lava` planet appearance; assess irradiation/tides and disclose modeled surface state, not confirmed global lava coverage. |
+| Ocean/water-rich planets | Not generated | Existing `ocean` appearance; require hypothetical composition/atmosphere interpretation. Equilibrium temperature alone cannot establish an ocean. |
+| Dwarf planets | Generated candidates | Reassess rounding/clearing criteria, outer population context and applicability of stellar-lifetime proxies. |
+| Trans-Neptunian analogues / outer minor bodies | Not generated | Existing `tno` category; assess outer planetesimal populations, resonant/scattered/detached families. A non-Sol analogue need not literally orbit beyond Neptune. |
+| Rocky and icy moons | Generated | Reassess counts/total mass by host family, radius distribution, Hill/Roche/thermal constraints and unresolved tidal evolution. |
+| Lava / strongly tidally heated moons | Not generated | Existing moon `lava` appearance; require an explicit tidal/thermal model rather than choosing a hot texture randomly. |
+| Captured irregular moons | Not generated | Same moon category, distinct origin/orbit distribution. Assess eccentric/inclined/retrograde capture, survival and host-dependent prevalence. |
+| Submoons | Not generated | Nested moon parentage needs stability/tidal/age assessment and correct recursive snapshot/reference handling; ordinary moon support is not proof of submoon survival. |
+| Scattered/sparse asteroids | Generated representatives | Retain mandatory mining minimum as a disclosed gameplay requirement; assess reservoir architecture and evidence separately from addressable sample count. |
+| Organized asteroid belts | Not generated as distinct populations | Existing population descriptor category; assess debris/belt evidence, radial extent and depletion without introducing a belt `bodyType`. |
+| Trojan / co-orbital asteroids | Not generated | Existing population descriptor category is not a co-orbital dynamics evaluator. Assess mass ratios, resonances, libration and required motion representation. |
+| Comet nuclei / reservoir representatives | Generated within 100 AU | Reassess orbital and survival distributions, host environments and distinctions between observed comets and hypothetical reservoirs. |
+| Distant comet-cloud analogues | Not modeled beyond 100 AU | Assess formation/ejection, stellar encounters, Galactic tides and retention. Revisit coordinate extent, long-period trajectories and representative loading without assuming every star has a Solar Oort cloud. |
+| Cold icy rings | Separate proposals generated | Reassess host-family occurrence, particulate survival and ring lifetime. Existing rings must remain unchanged unless separately reviewed. |
+| Rocky/dust ring variants | Not generated | Rings remain host properties; assess material/temperature/strength/resonance dependence. Distinguish circumplanetary rings from circumstellar debris disks, belts and transient dust. |
+| Rogue / unbound planets | Not generated | No elliptic-orbit fiction: assess hyperbolic/free-motion trajectories, system membership, discovery and reference frames. Do not silently create new registry targets. |
+| Brown dwarfs / substellar companions | Not generated | Assess formation/classification and occurrence; current scientific category contract lacks an explicit brown-dwarf type. Do not disguise them as ordinary stars or super-Jupiters. |
+| Uncatalogued stellar companions | Not generated | Existing star category does not authorize fabricating an observed companion. Assess source constraints, incompleteness, binary hierarchy, luminosity and barycentric dynamics; retain hypothetical provenance. |
+| White dwarfs | Not generated | Assess catalog-backed/explicitly hypothetical stellar-remnant classifications, post-main-sequence mass loss and surviving/reformed populations; contract/appearance review needed. |
+| Neutron stars | Not generated | Explicit compact-remnant scientific/appearance representation requires contract assessment; assess source evidence, natal kicks, radiation and planetary survival. Never reuse `black-hole` as a fallback type. |
+| Black-hole environments | Existing Cygnus preserved; augmentation blocked | Assess existing hazardous-system architecture and safe alternatives; any additional black-hole identity remains a separately approved exception, not random occurrence sampling. |
+
+Planet subclass names describe existing appearance/physical-family distinctions,
+not nine new top-level body types. Determine physical class independently from
+appearance and use existing classification pairs where valid. Belts, reservoirs
+and rings are structures, while their individually addressable representatives
+retain canonical body types. Unknown remnant/substellar classifications and
+unsupported trajectories must receive explicit designs, not enum casts or aliases.
+
+### 12.3 Assessment evidence required before implementation
+
+For each family, produce a reviewable row containing:
+
+1. Public source/paper links, publication/version date, sample definition,
+   host-property coverage and the specific inference supported. Update the
+   [Nova attribution handoff](./seed-non-Sol-systems-2026-11-07-Nova-prompt.md)
+   with sources actually adopted, distinguishing data licenses from paper citations.
+2. Occurrence evidence, selection/completeness corrections, uncertainty and
+   conditions for zero occurrence. Separate measured frequencies, theoretical
+   predictions, Solar-system extrapolations and authored gameplay choices.
+3. Eligible system/host conditions: mass, luminosity, metallicity/age if known,
+   multiplicity/evolutionary state, known architecture, irradiation and debris.
+   Missing required facts imply an explicit estimate with provenance or a blocker.
+4. Physical distributions and numeric bounds with units: mass/radius/density,
+   composition, orbital elements/spacing, temperature, tidal/retention/survival
+   assumptions and limits of analytic versus numerical screening.
+5. Formation/history dependencies and correlations. Do not independently roll
+   every family in ways that produce implausible combinations or count a planet
+   twice because physical classes overlap.
+6. Distinct population inference and rendering/gameplay sampling policy. Counts
+   of addressable bodies are not reservoir totals or observed discoveries.
+7. Canonical category/appearance mapping, provenance, stable identity,
+   parent/reference-frame design, supported trajectory, API/persistence/Nova
+   changes, and migration compatibility where needed.
+8. Assessment outcome: `eligible`, `ineligible`, `insufficient-evidence`,
+   `contract-required`, or `evaluator-required`, plus a reason and next action.
+   These are assessment states, not P0 rollout stages or claims of release readiness.
+
+Evidence may support only a conservative subset or no reliable frequency. In
+that case retain uncertainty, propose a disclosed artistic policy for owner
+review, or leave the family blocked. Do not invent precise scientific probabilities.
+Rare families remain rare when evidence supports rarity; selection for assessment
+does not mean equal weights or guaranteed appearance.
+
+### 12.4 Revised steps and dependencies
+
+| Step | Depends on | Status | Required output / gate |
+| --- | --- | --- | --- |
+| P2-A family/contract assessment | Accepted P0/P1 and this scope decision | In progress; first five-system review prepared | [Preliminary review](./seed-non-Sol-systems-2026-11-07-five-system-review.md) covers every selected family, existing contents, proposed sample ranges, sources and blockers. Whole-universe evidence/contract assessment remains incomplete. |
+| P2-B occurrence and physical calibration | P2-A | Pending | Source-backed conditional distributions, correlations, bounds and uncertainty per family; no uniform all-types template. |
+| P2-C sampling-budget review | P2-B | Pending | Proposed per-system/per-host counts by family and architecture; owner selection before implementation. Revisit old planet/moon caps and 100 AU domain, without performance optimization by assumption. |
+| P2-D contract/evaluator amendments | P2-A, P2-B | Pending | Implement only reviewed required additions through validators, Mongo, normalizers, API, snapshots, IDs and Nova handoff; isolated tests preserve legacy behavior. P1 acceptance remains historical, not a claim these new surfaces already exist. |
+| P2-E offline family generation | P2-B, P2-C, P2-D where applicable | Partial supported pilot slice implemented | Owner authorized provisional five-system exploration with blockers; shared physical helpers, expanded planet/moon/outer-body support and deterministic reports. Full conditional occurrence work remains pending; see Section 12.6. |
+| P2-F expanded owner checkpoint | P2-E | Partial slice prepared for review | Actual five-system counts, preserved catalog and named family/model blockers in the review document; whole-phase acceptance remains pending. |
+
+P2-D changes that are not needed for supported families must not block independent
+offline work; unsupported families stay visible in the assessment rather than
+being silently dropped. Significant new classifications/trajectory designs get a
+selectable owner checkpoint before implementation. No phase is complete merely
+because its selected family has a texture or appears in a source catalog.
+
+### 12.5 Revised validation and acceptance
+
+- Report **existing catalog**, **generated additions**, and **combined totals**
+  separately by scientific category and planet physical/appearance family.
+  The UI/report must make preserved gas giants distinguishable from new ones.
+- Validate each selected family with a representative eligible case or a named
+  evidence/contract/evaluator blocker. Mark unavailable frequencies and estimates
+  explicitly; no success-shaped fallback for unimplemented families.
+- Demonstrate multiple planetary architectures, variable giant/terrestrial/moon
+  populations, optional absences and rare-family treatment. Do not require all
+  families in the four original systems or in every system.
+- Test actual family-specific numeric thresholds, shape/type parity, nested
+  anchors, frame/trajectory correctness, source provenance, source/policy digest
+  changes, identity stability, deterministic reruns and bounded rejection.
+- Reconcile all 4,844 frozen targets without mutating catalog bodies, known
+  companions, protected names, rings, Sol, or accepted P0 evidence.
+- Record new exact test commands/results and replacement preview digests.
+  Preserve restricted-v1 reports as historical evidence; never overwrite them
+  to conceal the scope change.
+- Provide an explicit owner validation checklist after the revised major phase.
+  Runtime activation, new registry scope, mining/station verification and
+  additional black-hole approval remain separate gates.
+
+**At the initial assessment checkpoint:** The [first expanded five-system assessment](./seed-non-Sol-systems-2026-11-07-five-system-review.md)
+is prepared for owner review: Alpha Centauri, Barnard's Star, Copper Vale, Cygnus
+X-1 and Toivonranta (HR 8799), selected as the known-giant fifth example. It
+separates existing contents from hypothetical additions and proposed count
+envelopes, covers every selected family, and records evidence/contract blockers.
+The envelopes are discussion proposals, not adopted limits or occurrence rates.
+No new family generation, numeric policy changes, public contract changes or
+runtime activation has been implemented. P2-A remains in progress; P2-B/C
+calibration/budget selection and P3-P7 remain pending their actual prerequisites
+and owner approval.
+
+### 12.6 Owner-authorized supported offline preview slice
+
+After the first five-system assessment the owner selected expanded supported-family
+generation, provisional Section 4 sampling envelopes after calibration, and
+preserved contents/explicit blockers rather than inventing missing models.
+The [actual preview counts and validation checklist](./seed-non-Sol-systems-2026-11-07-five-system-review.md#8-subsequent-owner-authorized-expanded-offline-preview)
+record this slice: 55 hypothetical additions in Copper Vale; 75 combined bodies
+across five pilots; Alpha Centauri, Barnard's Star, Cygnus X-1 and HR 8799 blocked.
+
+The [v2 pilot policy](../data/non-sol-scientific-policy-v2.json) is opt-in through
+`npm run seed:non-sol:preview -- --expanded`; restricted v1 and prior reports
+remain reproducible. No catalogs, contracts, database contents or runtime seeders
+are changed. Physical screens/qualitative evidence are calibrated and tested;
+sampling frequencies/scatter remain authored and explicitly not a fitted
+occurrence model. New reference: [Montet et al. 2014](https://arxiv.org/abs/1307.5849),
+with survey-domain and conditional-inference limitations in the review/Nova handoff.
+
+This is a partial P2-E/F offline checkpoint, not completed P2-A/B/C/D or P2
+acceptance. Unsupported families remain visible; the full occurrence/contract
+assessment and four system model/source gaps remain open. P3-P7 and rollout stay
+paused pending their prerequisites and owner approval.
