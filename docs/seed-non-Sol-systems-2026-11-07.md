@@ -2,8 +2,11 @@
 
 Date: 2026-11-07
 
-Status: **P0 and P1 accepted; P2 reopened for full body-family assessment.** P3-P7 remain
-planning-only. The direction below incorporates the initial user question forms
+Status: **P0, P1 and P2 accepted; Copper Vale-only P3 offline checkpoint implemented.**
+The other four expanded pilots remain blocked. P2 acceptance includes its
+explicitly blocked cases, not resolution of missing models or runtime activation.
+P4-P7 remain planning-only.
+The direction below incorporates the initial user question forms
 and implementation-startup decisions. P1 adds optional backend contracts and
 ownership safeguards, not new bodies, names, stations, or deployment records.
 The offline P0 manifest is explicitly pending
@@ -495,8 +498,8 @@ is authoritative for per-system progress; this table summarizes milestones.
 | Direction and source investigation | None       | Complete                               | User forms and read-only inventory in this document                  |
 | P0 scope and manifest              | None       | Accepted by owner                      | Owner: "P0 is green and accepted"; frozen baseline and Section 9     |
 | P1 ownership/contracts             | P0         | Accepted by owner                      | Owner: "P1 is green and accepted"; Section 10 evidence               |
-| P2 scientific generation           | P0, P1     | Reopened; supported offline slice for review | Restricted v1 evidence in Section 11; expanded scope/gates in Section 12; [five-system assessment and counts](./seed-non-Sol-systems-2026-11-07-five-system-review.md) |
-| P3 mining/stations                 | P2         | Not started                            | Pending                                                              |
+| P2 scientific generation           | P0, P1     | Accepted by owner, known blockers retained | Owner: "P2 is green and accepted"; [five-system assessment and counts](./seed-non-Sol-systems-2026-11-07-five-system-review.md); Section 13 records transition |
+| P3 mining/stations                 | P2         | Copper Vale offline checkpoint implemented; four pilots blocked | Section 13.6; no runtime activation or persistent rollout |
 | P4 body naming/hooks               | P0, P1, P2 | Not started                            | Pending                                                              |
 | P5 pilot/authorization             | P3, P4     | Not started                            | Pending                                                              |
 | P6 persistent rollout              | P5         | Not started                            | Pending                                                              |
@@ -1233,3 +1236,262 @@ This is a partial P2-E/F offline checkpoint, not completed P2-A/B/C/D or P2
 acceptance. Unsupported families remain visible; the full occurrence/contract
 assessment and four system model/source gaps remain open. P3-P7 and rollout stay
 paused pending their prerequisites and owner approval.
+
+## 13. P2 acceptance and P3 Copper Vale policy checkpoint
+
+### 13.1 Accepted transition and scope
+
+Owner: **"P2 is green and accepted"** on 2026-11-07. Owner committed the work;
+observed commit `70ce35c` and clean worktree before P3 investigation. No push was
+performed by this session. Earlier P2 reopen/pause statements are historical
+checkpoints superseded by this acceptance, not rewritten scientific evidence.
+
+Accepted P2 output remains 55 additions in Copper Vale and four blocked systems.
+Acceptance does not supply missing orbital/thermal/source models, fit occurrence
+probabilities, certify station/mining access, or deploy bodies. Those limitations
+remain explicitly recorded.
+
+The P3 startup form selected and owner-approved:
+
+- **Copper Vale end-to-end first**, other four pilots remain explicitly blocked.
+- **Offline preview and isolated database integration tests only**; no runtime
+  activation and no writes to owner/development/live databases.
+- Use canonical materials, recipes and equipment; the 26-asteroid distribution
+  in 13.3 is approved for the Copper Vale preview.
+- Retain usable existing stations; add **one usable station where needed**.
+- Keep Prettier out of the edit/test cycle until major-phase completion; provide
+  explicit owner validation directions at checkpoints.
+
+### 13.2 Existing behavior that constrains the proposal
+
+| Finding | Authoritative backend evidence | Consequence |
+| --- | --- | --- |
+| Copper Vale has 26 generated asteroids, currently `silicate`/Common | [Expanded generator](../src/model/non-sol-expanded-augmentation.js), accepted P2 report | All currently map to `silicon` under the existing yield alias. P3 may assign seed-owned resource profiles but must preserve P2 mass/orbits/identity and mutable state on reruns. |
+| Canonical mineral IDs differ from generic composition labels | [Canonical item types](../src/model/canonical-item-type-registry.js), [item definitions](../src/model/canonical-items.js), [market catalog](../src/model/market-catalog.js) | Use `iron`, not `raw-material-iron`; resource profiles reference actual raw-material IDs, not arbitrary ore strings. |
+| Active extraction is the expendable dart drone's launch/destruction/debris path | [Launch handler](../src/handlers/launch-item-message-handler.js) | Preserve the working tool/quantity/inventory chain. Catalog text about lasers/drills is not proof that tiered extraction tools are enforced by this path. Do not silently introduce tier enforcement. |
+| All 26 current asteroid masses yield 100 units under existing extraction | [Yield formula](../src/handlers/launch-item-message-handler.js), read-only Copper Vale calculation | Quantity is mass-derived and capped at 100. Resource diversity will not imply varied extraction quantities. No P2 mass/radius rewrite or mining-balance change is proposed. |
+| Equipment definitions include an iron requirement for expendable dart drones | [Canonical definitions](../src/model/canonical-items.js) | Retain existing recipe semantics. Do not promise that all recipe definitions already have a complete fabrication route; validate supported chains only. |
+| No existing seeded Copper Vale market/station | [Market seed dispatch](../src/model/solar-system-market-seed.js) | Query durable records as well as seed definitions before adding one; preserve usable existing IDs/economy state if present. |
+| Active placement supports body/stellar orbital elements | [Placement validator](../src/model/station-placement.js) | Use an actual host and Kepler period; no fake Lagrange/deep-space ellipse. Placement activation is separate from runtime pilot activation. |
+| Default market inventory uses 1,200 units for Common materials, 8% restock per interval | [Market service](../src/handlers/context/market-service.js) | Reuse market buy/sell flags, pricing, stock and restocking; no new abundance-based pricing or stock policy in this first slice. |
+
+Resource abundances below are authored gameplay deposits. Spectroscopy has not
+measured Copper Vale asteroid composition, and the game system name does not
+justify a scientific claim of copper enrichment.
+
+### 13.3 Owner-approved resource distribution
+
+**Owner-approved for this bounded preview on 2026-11-07.** For the accepted
+**26 representative asteroids**, use a stable deterministic
+allocation, all **Common**:
+
+| Canonical yielded material | Proposed representatives | Purpose |
+| --- | --- | --- |
+| `silicon` | 10 | Retain silicate-rich mining and circuitry vocabulary |
+| `iron` | 8 | Structural materials and the existing dart-drone ingredient |
+| `carbon` | 4 | Common structural material diversity |
+| `nickel` | 2 | Common metallic material diversity |
+| `copper` | 2 | Wiring/conduit vocabulary, not inferred system-name abundance |
+| **Total** | **26** | All use existing canonical item and market IDs |
+
+Proposal rules:
+
+- One primary yielded material per representative, matching the existing
+  extraction path; no invented multi-material yield or new item type.
+- Stable body IDs, independent resource-policy seed/version, documented
+  deterministic allocation. Naming and epoch do not alter assignment.
+- Record a canonical `resourceProfile` with hypothetical/authored provenance.
+  Keep physical silicate/ice estimates distinguishable from gameplay deposit
+  material; do not claim a whole asteroid is pure refined iron/copper.
+- Leave uncommon/rare/exotic deposits at zero for the first slice. They require
+  explicit equipment/access/balance assessment; catalog tiers alone are not
+  enforced extraction rules.
+- Do not make the 2 comets, 7 outer analogues, planets/moons or ring proposal into
+  extra required mining targets; do not map `ice` to a nonexistent tradable
+  water item by fallback.
+- Initial resource allocation can populate new preview/test records. Existing
+  durable discovery, destruction/debris, inventory and depletion/composition
+  history must not be reset by reapplying the resource seed.
+- Preserve the current yield rule: successful launches yield 100 units for these
+  bodies. Validate unsupported materials fail before consuming the tool, and
+  already destroyed/retired targets cannot deliver duplicate resources.
+
+This fixed 26-body proposal is scoped to the accepted Copper Vale preview, not
+global abundance percentages or authority to redistribute owner-held bodies.
+
+#### Initial samples versus future regional expansion
+
+Owner clarification: **26 is the initial addressable seed sample**, not Copper
+Vale's estimated total physical asteroid population, a universal system count,
+or a permanent ceiling. The current Copper Vale sampling envelope is 12-50;
+future batches require their own reviewed budgets rather than silently exceeding
+the current policy. Real reservoir counts remain unknown.
+
+Keep P3 focused on these initial 26. Preserve future **explicit generation
+batches with stable new IDs**, but do not implement automatic exploration spawning
+or replenishment after mining at this checkpoint. The ability to extend the
+population is a future design requirement, not an already implemented batch API.
+
+Future rules must identify physically eligible generation regions and their
+population evidence/models before allocating additional representatives:
+
+- A ship orbiting a planet is not, by itself, a reason to create asteroids nearby.
+  Mere ship presence must not be treated as a reservoir or formation mechanism.
+- A modeled asteroid belt may justify additional representatives within its
+  reviewed extent and orbital/encounter constraints. Copper Vale currently has
+  scattered representatives, not an approved organized belt; do not infer a belt
+  solely to enable more generation.
+- Define regional eligibility, budgets, batch identity, duplicate prevention and
+  placement validation in a future selectable checkpoint. Retain existing body
+  identities, physical trajectories, resources, depletion/destruction history
+  and player inventories; additional batches must not revive mined bodies or
+  reroll the initial resource allocation.
+
+No specific regional spawning rule set or implementation is approved here.
+This clarification does not approve the material/station proposals below or
+expand the current P3 implementation scope.
+
+### 13.4 Owner-approved station/service policy
+
+First inspect existing durable Copper Vale stations. Retain a usable one if
+present; otherwise propose exactly one stable station identity with
+`siteType: station`, active body-orbit placement metadata, canonical trajectory,
+and project-authored provenance. Do not publish it through runtime seed dispatch.
+
+Preferred candidate host:
+`exo-gj-9066-generated-planet-d569077cea00ac968d730c15`, the inner generated rocky
+planet. Current accepted radius is approximately 6,262.75 km, orbital semimajor
+axis 0.123985 AU and periapsis Hill radius approximately 303,906.72 km. It has no
+ring proposal; closest sampled moon periapsis is approximately 23,936.48 km.
+
+Propose a circular station orbit at **2 host radii** (approximately 12,525.51 km
+from host center), with a minimum **1,000 km surface clearance**, within **0.1
+periapsis Hill radius**, and with a **1,000 km radial clearance** from ring/moon
+envelopes. Derive period from host mass, resolve the parent's actual barycentric
+snapshot and epoch, and reject if any exact constraint fails. This is an analytic
+gameplay screen, not a long-term trajectory or environmental safety proof.
+Do not choose the outer rocky planet without considering its ring proposal.
+
+Services:
+
+- Existing market buy/sell, quote, inventory and ledger surfaces, existing
+  canonical material catalog and stock/restock rules.
+- Existing station descriptor, location search and access/docking behavior.
+  Trace the actual access surface before claiming docking is implemented.
+- Verify dart-drone availability/acquisition through supported existing paths;
+  no new equipment, recipe, station service or free provisioning invented merely
+  to make an integration test green.
+- Preserve station ID, stock, prices where mutable, transactions and player
+  inventories on deterministic reruns, including fresh-service reads.
+
+### 13.5 Owner approval and implementation bounds
+
+The owner approved all four review items: the distribution, the 100-unit yield
+cap, one screened body-orbit station using existing services, and the offline
+Copper Vale-only boundary. This does not authorize runtime seed dispatch,
+owner/live database writes, or work on the four blocked systems.
+
+Review:
+
+1. The 26-body material allocation above, Common-only and single-material yields.
+2. Keeping the current 100-unit yield cap rather than changing mining balance.
+3. One body-orbit station using the stated clearance checks, existing market
+   services, no new extraction equipment/tier enforcement.
+4. Keeping the other four systems blocked and the whole slice offline.
+
+### 13.6 Copper Vale P3 offline checkpoint
+
+Added `src/model/non-sol-p3-preview.js` and opt-in
+`scripts/non-sol-p3-preview.js` / `npm run seed:non-sol:p3-preview`. It layers
+versioned, deterministic resource assignments over—not into—the accepted P2
+output. The initial 26 asteroids receive one Common canonical material each:
+silicon 10, iron 8, carbon 4, nickel 2, copper 2. Physical estimates, IDs,
+orbits, other generated bodies and P2 preview digests remain unchanged. The
+P3 report digest is `cd60edffe10a2b8c14707e0b0776d16251006d769eb6fc8dbb3315dee4ed004a`.
+
+The sole offline station candidate is `copper-vale-asteroid-exchange`, a
+`siteType: station` body-orbit record anchored to
+`exo-gj-9066-generated-planet-d569077cea00ac968d730c15`. The circular radius is
+12,525.508295 km (2 host radii); surface clearance is 6,262.754148 km; host
+periapsis Hill radius is 303,906.724201 km (station radius 0.04121498 Hill); the
+closest moon-envelope clearance is 11,410.975157 km; the Kepler period is
+16,283.757054 sec. The epoch is `2000-01-01T12:00:00.000Z` (snapshot
+`946728000000` ms); the station snapshot resolves against the host's canonical
+barycentric snapshot. Placement activation is metadata only, not runtime
+activation. Repository seed definitions contain no Copper Vale market. No
+owner/live database was read or written; an existing live station, if any,
+remains an explicit pre-rollout check.
+
+The existing dart-drone acquisition path is `CharacterAddMessageHandler`,
+which persists an intact `expendable-dart-drone` in a new Scavenger Pod's ship
+inventory. Its canonical definition lists an Iron ingredient, but there is no
+crafting handler in the current backend; P3 adds no recipe or free provisioning.
+The isolated Mongo test exercises that existing character-add path, then uses
+the existing launch, item-upsert inventory, market quote/trade, station
+materialization and location-descriptor surfaces. It verifies a 100-unit
+dart-drone yield, debris/destruction persistence, station descriptor/snapshot
+and undocked buy/sell behavior, no second yield from a destroyed target, and
+rerun retention of composition, observability, destruction/debris, resource
+profile, player ship items/credits, market stock, ledger and mutable price
+multiplier. An incidental Mongo integration defect was fixed surgically:
+`DatabaseService.addCharacter` now maps normalized ship `name` to the required
+persisted `shipName`, allowing this acquisition-to-launch path to complete.
+The launch guard added here rejects already-destroyed targets before consuming
+a tool; existing retired-target and unsupported-material checks continue to
+prove failures do not consume tools.
+
+Validation:
+
+- `node --test test/non-sol-p3-preview.test.js test/non-sol-p3.mongo.integration.test.js test/launch-item-message-handler.test.js test/non-sol-expanded-augmentation.test.js test/db-service-extended.test.js` — **34/34 pass**.
+- `npm run typecheck` — **pass**.
+- Scoped ESLint over the eight changed JS files — **pass**.
+- Scoped Prettier over the changed JS/package files — **pass**; no repository-wide formatting or Markdown rewrite.
+- `npm run seed:non-sol:p3-preview` — **pass**, 26 asteroids and approved distribution; station and clearance values above.
+- `npm run seed:non-sol:preservation` — **pass**, 4,844 targets.
+- `npm run seed:non-sol:progress` — **pass**, historical P0 snapshot unchanged.
+- `node scripts/non-sol-celestial-preview.js --expanded --system exo-gj-9066` — P2 remains 55 additions (`4 planets, 26 asteroids, 2 comets, 7 TNOs, 16 moons`), digest `7e55a5cb10a0f35886e44f80ac93272cdf94fd0a3513f6d53998fb763dee6da3`.
+- `npm test` — contract validation passed; **856/857 tests pass**. The sole failure is the existing `test/exoplanet-catalog-runtime.test.js` assertion that `scripts/non-sol-celestial-inventory.js` must not mention `exoplanet-names`; that unchanged script (same at `HEAD`) contains references at lines 47 and 310. This failure is outside P3 scope.
+- Runtime `http://localhost:3000/openapi.yaml` returned 200 and normalized contents match `api/openapi.yaml`; no API schemas/endpoints changed.
+
+Bounded status: Copper Vale's offline P3 implementation and isolated preview
+chain are delivered. The four blocked systems remain untouched. This does not
+claim live durable-station reconciliation, runtime activation, five-system or
+global mining coverage, automatic asteroid batches, or persistent rollout.
+
+### 13.7 Owner validation for the delivered Copper Vale slice
+
+Run from the backend repository in PowerShell:
+
+```powershell
+npm run seed:non-sol:p3-preview
+node --test test\non-sol-p3-preview.test.js test\non-sol-p3.mongo.integration.test.js test\launch-item-message-handler.test.js test\non-sol-expanded-augmentation.test.js test\db-service-extended.test.js
+npm run typecheck
+```
+
+Expected: the approved 26-material allocation, exactly one station candidate
+`copper-vale-asteroid-exchange`, orbit approximately 12,525.51 km and period
+16,283.76 seconds; **34 tests pass**, zero failures, and typecheck passes.
+The Mongo suite uses its isolated test harness, not the owner's development or
+live database. It checks the existing acquisition/mining/debris/inventory/trade
+chain, duplicate-mining rejection before tool consumption, fresh station reads,
+descriptors and reruns retaining player/economy/history state.
+
+The station is usable through existing market paths, but **docking is not
+enforced by the current buy/sell handlers**: the integration test explicitly
+reports `isDocked: false` while trades succeed. P3 does not introduce docking
+enforcement or certify a new physical travel/arrival mechanic.
+
+The saved P3 report was read back and compared to a deterministic rerun:
+**passed**. The entire five-system P2 report also remains exactly unchanged,
+digest `67fa0e7f29cbb545eada7a22ab2ee41670bf0ceccb178928ba0298442de76b8d`.
+
+No server restart is needed for these CLI/test checks. A restart (or existing
+watch reload) is needed to load the two coupled runtime fixes into an already
+running server: destroyed-target rejection and normalized starter-ship
+persistence. Restarting does not seed Copper Vale or enable this offline feature.
+Do not use live mining or Nova station visibility as validation for this
+unactivated slice.
+
+Request owner acceptance of **Copper Vale's scoped P3 checkpoint**, not global
+coverage. The unrelated full-suite names-file assertion above remains reported;
+the other four pilot systems retain their explicit blockers.

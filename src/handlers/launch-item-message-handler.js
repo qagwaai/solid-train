@@ -486,6 +486,13 @@ class LaunchItemMessageHandler {
         characterId,
       };
     }
+    if (targetCelestialBody.state === ITEM_STATE.DESTROYED || targetCelestialBody.destroyedAt) {
+      return {
+        error: 'Target celestial body is already destroyed and cannot be mined',
+        playerName: player.playerName,
+        characterId,
+      };
+    }
 
     return {
       player,

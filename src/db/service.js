@@ -281,7 +281,12 @@ class DatabaseService {
    * @returns {Promise<Object|null>}
    */
   async addCharacter(playerName, characterData) {
-    return playerCharacterService.addCharacter(this, Player, playerName, characterData);
+    return playerCharacterService.addCharacter(
+      this,
+      Player,
+      playerName,
+      this.normalizeCharacterUpdatesForPersistence(characterData)
+    );
   }
 
   /**

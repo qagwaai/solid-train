@@ -158,6 +158,22 @@ test('retired generated targets reject mining before consuming the dart or chang
   assert.equal(unconsumed.state, 'contained');
 });
 
+test('already-destroyed targets reject mining before consuming the dart or yielding again', async () => {
+  const context = createTestContext();
+  seedLaunchScenario(context);
+  const target = context.getCelestialBody('cb-1');
+  target.state = ITEM_STATE.DESTROYED;
+  target.destroyedAt = '2026-11-07T00:00:00.000Z';
+  const handler = new LaunchItemMessageHandler(context);
+  const originalItemCount = context.itemsById.size;
+  const response = await handler.handle(createMockSocket(), createLaunchPayload());
+  assert.equal(response.success, false);
+  assert.match(response.message, /already destroyed/);
+  assert.equal(context.itemsById.size, originalItemCount);
+  const [unconsumed] = await context.getItemsByIdsAsync(['item-1']);
+  assert.equal(unconsumed.state, 'contained');
+});
+
 function seedLaunchScenario(context) {
   seedPlayer(context, {
     playerName: 'PilotOne',
