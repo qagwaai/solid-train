@@ -83,6 +83,7 @@ const {
   marketInventoryEntrySchema,
   marketLedgerEntrySchema,
   marketOrbitSchema,
+  stationPlacementSchema,
 } = createMarketModelArtifacts({
   mongoose,
   spatialStateSchema,
@@ -125,6 +126,7 @@ module.exports = {
   marketInventoryEntrySchema,
   marketLedgerEntrySchema,
   marketOrbitSchema,
+  stationPlacementSchema,
   GameStateDocument,
   gameStateDocumentSchema,
   Player,

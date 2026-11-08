@@ -479,6 +479,13 @@ class LaunchItemMessageHandler {
         characterId,
       };
     }
+    if (targetCelestialBody.universeMetadata?.lifecycle?.status === 'retired') {
+      return {
+        error: 'Target celestial body is retired and cannot be mined',
+        playerName: player.playerName,
+        characterId,
+      };
+    }
 
     return {
       player,

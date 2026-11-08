@@ -91,6 +91,7 @@ class MarketListMessageHandler {
         isStarterMarket: Boolean(market.isStarterMarket),
         spatial: market.spatial || null,
         trajectory: market.trajectory || null,
+        ...(market.stationPlacement ? { stationPlacement: market.stationPlacement } : {}),
         distanceAu,
         priceMultiplier: market.priceMultiplier,
         driftPercentPerHour: market.driftPercentPerHour,

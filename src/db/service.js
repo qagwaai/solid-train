@@ -697,8 +697,13 @@ class DatabaseService {
    * @param {Object} celestialBodyData
    * @returns {Promise<Object>}
    */
-  async addOrUpdateCelestialBody(celestialBodyData) {
-    return celestialWriteService.addOrUpdateCelestialBody(this, CelestialBody, celestialBodyData);
+  async addOrUpdateCelestialBody(celestialBodyData, options = {}) {
+    return celestialWriteService.addOrUpdateCelestialBody(
+      this,
+      CelestialBody,
+      celestialBodyData,
+      options
+    );
   }
 
   /**
@@ -772,7 +777,7 @@ class DatabaseService {
   }
 
   async upsertMarket(marketData) {
-    return marketWriteService.upsertMarket(this, Market, marketData);
+    return marketWriteService.upsertMarket(this, Market, CelestialBody, marketData);
   }
 
   async getMarkets(query = {}) {

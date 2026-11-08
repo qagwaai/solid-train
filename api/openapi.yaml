@@ -129,7 +129,15 @@ x-catalog-identity:
     - namespace: cygnus-x1
       registry:
         - { key: black-hole, catalogId: cygnus-x1-black-hole, bodyType: black-hole, seeded: true }
-        - { key: hd226868, catalogId: cygnus-x1-hd226868, bodyType: star, seeded: true, hygId: '97987', hipId: '98298', hdId: '226868' }
+        - {
+            key: hd226868,
+            catalogId: cygnus-x1-hd226868,
+            bodyType: star,
+            seeded: true,
+            hygId: '97987',
+            hipId: '98298',
+            hdId: '226868',
+          }
   canonicalBodyExamples:
     - id: cygnus-x1-black-hole
       catalogId: cygnus-x1-black-hole
@@ -347,6 +355,8 @@ components:
   schemas:
     CatalogIdentity:
       $ref: './schemas/catalog-identity.schema.json'
+    CelestialUniverseMetadata:
+      $ref: './schemas/celestial-universe-metadata.schema.json'
     BlackHoleProperties:
       $ref: './schemas/black-hole-properties.schema.json'
     SpatialState:
@@ -483,6 +493,8 @@ components:
       $ref: './openapi/market/openapi.yaml#/components/schemas/MarketListByLocationRequest'
     MarketListByLocationResponse:
       $ref: './openapi/market/openapi.yaml#/components/schemas/MarketListByLocationResponse'
+    StationPlacement:
+      $ref: './schemas/station-placement.schema.json'
     MarketListRequest:
       $ref: './openapi/market/openapi.yaml#/components/schemas/MarketListRequest'
     MarketListResponse:

@@ -215,7 +215,7 @@ for (const [name, change] of [
 
 test('list, location and route feed copy the same canonical host-epoch snapshot', async () => {
   const ctx = context();
-  station(ctx, 'sol-moon-orbit', true);
+  const market = station(ctx, 'sol-moon-orbit', true);
   seedPlayer(ctx, { playerName: 'SnapshotPilot' });
   const payload = {
     playerName: 'SnapshotPilot',
@@ -224,12 +224,31 @@ test('list, location and route feed copy the same canonical host-epoch snapshot'
     distanceAu: 2,
     locationTypes: ['station'],
   };
+  const legacyList = await new MarketListMessageHandler(ctx).buildResponse(payload);
+  const legacyLocal = await new MarketListByLocationMessageHandler(ctx).buildResponse(payload);
+  assert.equal(Object.hasOwn(legacyList.markets[0], 'stationPlacement'), false);
+  assert.equal(Object.hasOwn(legacyLocal.markets[0], 'stationPlacement'), false);
+  assert.equal(Object.hasOwn(legacyLocal.markets[0].route.stations[0], 'stationPlacement'), false);
+
+  const stationPlacement = {
+    kind: 'body-orbit',
+    primaryBodyId: 'sol-luna',
+    activation: 'active',
+    stationKeeping: true,
+    provenance: 'curated',
+    reason: 'Existing authored lunar station orbit',
+  };
+  market.stationPlacement = stationPlacement;
+  ctx.cacheMarket(market);
   const list = await new MarketListMessageHandler(ctx).buildResponse(payload);
   const local = await new MarketListByLocationMessageHandler(ctx).buildResponse(payload);
   assert.equal(list.success, true);
   assert.equal(local.success, true);
   assert.deepEqual(local.markets[0].spatial, list.markets[0].spatial);
   assert.deepEqual(local.markets[0].route.stations[0].spatial, list.markets[0].spatial);
+  assert.deepEqual(list.markets[0].stationPlacement, stationPlacement);
+  assert.deepEqual(local.markets[0].stationPlacement, stationPlacement);
+  assert.deepEqual(local.markets[0].route.stations[0].stationPlacement, stationPlacement);
 });
 
 test('unresolved persisted legacy anchor returns explicit failure in both market handlers', async () => {
@@ -346,3 +365,206 @@ for (const [system, marketId, hostId, a, e, period] of [
     });
   });
 }
+
+test('station placement metadata survives normalization and serialization without changing orbit math', async () => {
+  const ctx = context();
+  const market = station(ctx, 'sol-moon-orbit', true);
+  const expectedPosition = (await materializeStationSnapshotAsync(ctx, market)).spatial.positionKm;
+  market.stationPlacement = {
+    kind: 'body-orbit',
+    primaryBodyId: 'sol-luna',
+    activation: 'active',
+    stationKeeping: false,
+    provenance: 'curated',
+    reason: 'Existing authored lunar station orbit',
+  };
+
+  const normalized = ctx.cacheMarket(market);
+  assert.deepEqual(normalized.stationPlacement, market.stationPlacement);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(normalized)).stationPlacement,
+    market.stationPlacement
+  );
+  assert.deepEqual(
+    (await materializeStationSnapshotAsync(ctx, normalized)).spatial.positionKm,
+    expectedPosition
+  );
+});
+
+test('inactive Lagrange metadata is preserved without treating its stored snapshot as an orbit', async () => {
+  const ctx = context();
+  const market = station(ctx, 'sol-moon-orbit');
+  const authoredSpatial = structuredClone(market.spatial);
+  delete market.trajectory;
+  market.stationPlacement = {
+    kind: 'lagrange-region',
+    primaryBodyId: 'sol-earth',
+    secondaryBodyId: 'sol-luna',
+    region: 'L1',
+    activation: 'metadata-only',
+    stationKeeping: true,
+    provenance: 'curated',
+    reason: 'Declared placement only; no Lagrange evaluator is implemented',
+  };
+
+  const normalized = ctx.cacheMarket(market);
+  assert.deepEqual(normalized.stationPlacement, market.stationPlacement);
+  assert.deepEqual(
+    (await materializeStationSnapshotAsync(ctx, normalized)).spatial,
+    authoredSpatial
+  );
+});
+
+test('station placement validation rejects unsupported activation and malformed metadata explicitly', () => {
+  const ctx = context();
+  const base = station(ctx, 'sol-moon-orbit');
+  const placement = {
+    kind: 'lagrange-region',
+    primaryBodyId: 'sol-earth',
+    secondaryBodyId: 'sol-luna',
+    region: 'L1',
+    activation: 'active',
+    stationKeeping: true,
+    provenance: 'curated',
+    reason: 'Not supported by an actual evaluator',
+  };
+  assert.throws(() => ctx.normalizeMarket({ ...base, stationPlacement: placement }), {
+    code: 'MARKET_PLACEMENT_UNSUPPORTED',
+  });
+  assert.throws(
+    () =>
+      ctx.normalizeMarket({
+        ...base,
+        stationPlacement: { ...placement, stationKeeping: undefined },
+      }),
+    { code: 'MARKET_PLACEMENT_INVALID' }
+  );
+  assert.throws(
+    () =>
+      ctx.normalizeMarket({
+        ...base,
+        stationPlacement: { ...placement, activation: 'auto' },
+      }),
+    { code: 'MARKET_PLACEMENT_INVALID' }
+  );
+  assert.throws(
+    () =>
+      ctx.normalizeMarket({
+        ...base,
+        stationPlacement: { ...placement, stationKeeping: false, region: 'L6' },
+      }),
+    { code: 'MARKET_PLACEMENT_INVALID' }
+  );
+  assert.throws(
+    () =>
+      ctx.normalizeMarket({
+        ...base,
+        stationPlacement: {
+          kind: 'body-orbit',
+          primaryBodyId: 'other-body',
+          activation: 'active',
+          stationKeeping: true,
+          provenance: 'curated',
+          reason: 'Anchor does not match the evaluator',
+        },
+      }),
+    { code: 'MARKET_PLACEMENT_UNSUPPORTED' }
+  );
+});
+
+test('legacy markets without station placement retain their original normalized shape', () => {
+  const ctx = context();
+  const market = station(ctx, 'sol-moon-orbit');
+  assert.equal(Object.prototype.hasOwnProperty.call(market, 'stationPlacement'), false);
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(ctx.normalizeMarket(market), 'stationPlacement'),
+    false
+  );
+});
+
+test('all declared station placement kinds normalize as metadata when inactive', () => {
+  const ctx = context();
+  const trajectory = { kind: 'static' };
+  const descriptors = [
+    { kind: 'body-orbit', primaryBodyId: 'body-a' },
+    { kind: 'stellar-orbit', primaryBodyId: 'star-a' },
+    {
+      kind: 'lagrange-region',
+      primaryBodyId: 'body-a',
+      secondaryBodyId: 'body-b',
+      region: 'L5',
+    },
+    { kind: 'deep-space' },
+  ];
+
+  for (const descriptor of descriptors) {
+    const placement = {
+      ...descriptor,
+      activation: 'metadata-only',
+      stationKeeping: false,
+      provenance: 'curated',
+      reason: 'Descriptive placement metadata only',
+    };
+    const market = {
+      ...station(ctx, 'sol-moon-orbit'),
+      trajectory,
+      stationPlacement: placement,
+    };
+    assert.deepEqual(ctx.normalizeMarket(market).stationPlacement, placement);
+  }
+});
+
+test('Lagrange and deep-space placements reject orbital-elements even when metadata-only', () => {
+  const ctx = context();
+  const base = station(ctx, 'sol-moon-orbit');
+  for (const kind of ['lagrange-region', 'deep-space']) {
+    const stationPlacement = {
+      kind,
+      ...(kind === 'lagrange-region'
+        ? { primaryBodyId: 'sol-earth', secondaryBodyId: 'sol-luna', region: 'L1' }
+        : {}),
+      activation: 'metadata-only',
+      stationKeeping: false,
+      provenance: 'curated',
+      reason: 'No matching evaluator exists',
+    };
+    assert.throws(() => ctx.normalizeMarket({ ...base, stationPlacement }), {
+      code: 'MARKET_PLACEMENT_UNSUPPORTED',
+    });
+  }
+});
+
+test('market placement response schemas share the station-placement contract across all read surfaces', async () => {
+  const contract = await Parser.dereference(path.resolve(__dirname, '../api/openapi.yaml'));
+  const listSchema =
+    contract.paths['/socket/market-list'].post.responses['200'].content['application/json'].schema;
+  const locationSchema =
+    contract.paths['/socket/market-list-by-location'].post.responses['200'].content[
+      'application/json'
+    ].schema;
+  const placementSchema = contract.components.schemas.StationPlacement;
+  const marketListPlacement = listSchema.properties.markets.items.properties.stationPlacement;
+  const locationMarketPlacement =
+    locationSchema.properties.markets.items.properties.stationPlacement;
+  const routeStationPlacement =
+    locationSchema.definitions.routeFeedStation.properties.stationPlacement;
+
+  assert.deepEqual(marketListPlacement, placementSchema);
+  assert.deepEqual(locationMarketPlacement, placementSchema);
+  assert.deepEqual(routeStationPlacement, placementSchema);
+
+  const validate = createSchemaValidator({ allErrors: true }).compile(placementSchema);
+  const valid = {
+    kind: 'lagrange-region',
+    primaryBodyId: 'body-a',
+    secondaryBodyId: 'body-b',
+    region: 'L1',
+    activation: 'metadata-only',
+    stationKeeping: true,
+    provenance: 'curated',
+    reason: 'Declared placement only',
+  };
+  assert.equal(validate(valid), true, JSON.stringify(validate.errors));
+  assert.equal(validate({ ...valid, region: 'L6' }), false);
+  assert.equal(validate({ ...valid, activation: 'automatic' }), false);
+});

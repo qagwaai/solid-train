@@ -8,6 +8,15 @@ const {
 const { validateOrbitalElements } = require('../../model/celestial-orbital-elements');
 const { validateCelestialBody } = require('../../model/celestial-body-validation');
 const { assertCatalogIdentity, CatalogIdentityError } = require('../../model/catalog-identity');
+const {
+  assertUniverseMetadata,
+  assertUniverseRelationships,
+} = require('../../model/celestial-universe-metadata');
+const {
+  mergeCelestialSeed,
+  seedMongoUpdate,
+  assertUniverseTransition,
+} = require('../../model/celestial-seed-ownership');
 
 async function reserveCatalogIdentity(CelestialBody, body) {
   assertCatalogIdentity(body);
@@ -41,7 +50,7 @@ async function reserveCatalogIdentity(CelestialBody, body) {
  * @param {Object} celestialBodyData
  * @returns {Promise<Object|null>}
  */
-async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData) {
+async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData, options = {}) {
   try {
     if (
       !SURFACE_ARCHETYPE_VALUES.includes(ctx.toNonEmptyString(celestialBodyData?.surfaceArchetype))
@@ -93,6 +102,26 @@ async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData) {
         `Invalid canonical celestial body: ${JSON.stringify(validateCelestialBody.errors)}`
       );
     }
+    const previousBody = await CelestialBody.findOne(upsertQuery).lean();
+    if (options.preserveGameplay === true) {
+      if (celestialBodyData.spatial.solarSystemId === 'sol') {
+        throw new Error('Non-Sol seed ownership mode cannot modify Sol');
+      }
+      celestialBodyData = mergeCelestialSeed(previousBody, celestialBodyData);
+    } else if (celestialBodyData.universeMetadata === undefined && previousBody?.universeMetadata) {
+      celestialBodyData = { ...celestialBodyData, universeMetadata: previousBody.universeMetadata };
+    }
+    assertUniverseMetadata(celestialBodyData);
+    assertUniverseTransition(previousBody, celestialBodyData);
+    if (celestialBodyData.universeMetadata) {
+      const existingBodies = await CelestialBody.find({
+        'spatial.solarSystemId': celestialBodyData.spatial.solarSystemId,
+      }).lean();
+      assertUniverseRelationships([
+        ...existingBodies.filter((body) => body.id !== celestialBodyData.id),
+        celestialBodyData,
+      ]);
+    }
     if (celestialBodyData.catalogIdentity === undefined) {
       const previous = await CelestialBody.findOne(upsertQuery).lean();
       if (previous?.catalogIdentity !== undefined) {
@@ -100,7 +129,9 @@ async function addOrUpdateCelestialBody(ctx, CelestialBody, celestialBodyData) {
       }
     }
     await reserveCatalogIdentity(CelestialBody, celestialBodyData);
-    const celestialBody = await CelestialBody.findOneAndUpdate(upsertQuery, celestialBodyData, {
+    const update =
+      options.preserveGameplay === true ? seedMongoUpdate(celestialBodyData) : celestialBodyData;
+    const celestialBody = await CelestialBody.findOneAndUpdate(upsertQuery, update, {
       upsert: true,
       returnDocument: 'after',
       setDefaultsOnInsert: true,

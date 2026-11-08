@@ -75,6 +75,130 @@ test('isolated Mongo roundtrip and fresh service reads retain canonical host epo
   assert.deepEqual(await harness.databaseService.getMarkets({ solarSystemId: 'sol' }), before);
 });
 
+test('isolated Mongo placement metadata write/read and market paths preserve the descriptor', async () => {
+  const ctx = freshContext();
+  assert.equal(
+    (await ctx.seedSolarSystemMarketsAsync({ solarSystemId: 'sol', asOf: EPOCH })).success,
+    true
+  );
+  const market = (await harness.databaseService.getMarkets({ solarSystemId: 'sol' })).find(
+    (entry) => entry.marketId === 'sol-moon-orbit'
+  );
+  market.stationPlacement = {
+    kind: 'body-orbit',
+    primaryBodyId: 'sol-luna',
+    activation: 'active',
+    stationKeeping: false,
+    provenance: 'curated',
+    reason: 'Existing authored lunar station orbit',
+  };
+  await harness.databaseService.upsertMarket(market);
+
+  const stored = (await harness.databaseService.getMarkets({ solarSystemId: 'sol' })).find(
+    (entry) => entry.marketId === market.marketId
+  );
+  assert.deepEqual(stored.stationPlacement, market.stationPlacement);
+
+  await assert.rejects(
+    harness.databaseService.upsertMarket({
+      ...market,
+      trajectory: {
+        ...market.trajectory,
+        orbit: { ...market.trajectory.orbit, anchorBodyId: 'missing-host' },
+      },
+      stationPlacement: {
+        ...market.stationPlacement,
+        primaryBodyId: 'missing-host',
+      },
+    }),
+    { code: 'MARKET_PLACEMENT_HOST_INVALID' }
+  );
+  await assert.rejects(
+    harness.databaseService.upsertMarket({
+      ...market,
+      stationPlacement: {
+        ...market.stationPlacement,
+        kind: 'stellar-orbit',
+        primaryBodyId: 'sol-luna',
+      },
+    }),
+    { code: 'MARKET_PLACEMENT_HOST_INVALID' }
+  );
+  await assert.rejects(
+    harness.databaseService.upsertMarket({
+      ...market,
+      trajectory: { kind: 'static' },
+      stationPlacement: {
+        kind: 'lagrange-region',
+        primaryBodyId: 'sol-earth',
+        secondaryBodyId: 'sol-earth',
+        region: 'L1',
+        activation: 'metadata-only',
+        stationKeeping: false,
+        provenance: 'curated',
+        reason: 'Invalid duplicate primaries',
+      },
+    }),
+    { code: 'MARKET_PLACEMENT_INVALID' }
+  );
+  const foreignSystemStar = buildSeededCelestialBodiesForSolarSystem('alpha-centauri', EPOCH).find(
+    (body) => body.bodyType === 'star'
+  );
+  assert.ok(foreignSystemStar, 'fixture must contain a real Alpha Centauri star');
+  await harness.databaseService.addOrUpdateCelestialBody(foreignSystemStar);
+  await assert.rejects(
+    harness.databaseService.upsertMarket({
+      ...market,
+      trajectory: { kind: 'static' },
+      stationPlacement: {
+        kind: 'lagrange-region',
+        primaryBodyId: 'sol-earth',
+        secondaryBodyId: foreignSystemStar.id,
+        region: 'L1',
+        activation: 'metadata-only',
+        stationKeeping: false,
+        provenance: 'curated',
+        reason: 'Hosts must be in the market system',
+      },
+    }),
+    { code: 'MARKET_PLACEMENT_HOST_INVALID' }
+  );
+
+  const reader = freshContext();
+  const list = await reader.getMarketsAsync({ solarSystemId: 'sol', asOf: EPOCH });
+  assert.deepEqual(
+    list.find((entry) => entry.marketId === market.marketId).stationPlacement,
+    market.stationPlacement
+  );
+  const local = await reader.getMarketsByLocationAsync({
+    solarSystemId: 'sol',
+    positionKm: { x: 0, y: 0, z: 0 },
+    distanceAu: 2,
+    locationTypes: ['station'],
+    asOf: EPOCH,
+  });
+  assert.deepEqual(
+    local.find((entry) => entry.marketId === market.marketId).stationPlacement,
+    market.stationPlacement
+  );
+  const invalid = {
+    ...market,
+    stationPlacement: {
+      ...market.stationPlacement,
+      kind: 'lagrange-region',
+      secondaryBodyId: 'sol-earth',
+      region: 'L1',
+    },
+  };
+  await assert.rejects(harness.databaseService.upsertMarket(invalid), {
+    code: 'MARKET_PLACEMENT_UNSUPPORTED',
+  });
+  const afterRejectedWrite = (
+    await harness.databaseService.getMarkets({ solarSystemId: 'sol' })
+  ).find((entry) => entry.marketId === market.marketId);
+  assert.deepEqual(afterRejectedWrite.stationPlacement, market.stationPlacement);
+});
+
 test('old revision is blocked without writes; approved force repair preserves economy data and station ID', async () => {
   const ctx = freshContext();
   const seed = buildSeededMarketsForSolarSystem('sol', EPOCH).find(

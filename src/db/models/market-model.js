@@ -1,6 +1,47 @@
 'use strict';
 
 function createMarketModelArtifacts({ mongoose, spatialStateSchema }) {
+  const stationPlacementSchema = new mongoose.Schema(
+    {
+      kind: {
+        type: String,
+        enum: ['body-orbit', 'stellar-orbit', 'lagrange-region', 'deep-space'],
+        required: true,
+      },
+      primaryBodyId: {
+        type: String,
+        default: undefined,
+      },
+      secondaryBodyId: {
+        type: String,
+        default: undefined,
+      },
+      region: {
+        type: String,
+        enum: ['L1', 'L2', 'L3', 'L4', 'L5'],
+        default: undefined,
+      },
+      activation: {
+        type: String,
+        enum: ['metadata-only', 'active'],
+        required: true,
+      },
+      stationKeeping: {
+        type: Boolean,
+        required: true,
+      },
+      provenance: {
+        type: String,
+        required: true,
+      },
+      reason: {
+        type: String,
+        required: true,
+      },
+    },
+    { _id: false }
+  );
+
   const marketInventoryEntrySchema = new mongoose.Schema(
     {
       itemId: {
@@ -274,6 +315,10 @@ function createMarketModelArtifacts({ mongoose, spatialStateSchema }) {
         },
         _id: false,
       },
+      stationPlacement: {
+        type: stationPlacementSchema,
+        default: undefined,
+      },
       isStarterMarket: {
         type: Boolean,
         required: true,
@@ -331,6 +376,7 @@ function createMarketModelArtifacts({ mongoose, spatialStateSchema }) {
     marketInventoryEntrySchema,
     marketLedgerEntrySchema,
     marketOrbitSchema,
+    stationPlacementSchema,
   };
 }
 

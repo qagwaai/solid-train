@@ -51,6 +51,11 @@
         },
         "catalogId": { "type": "string", "pattern": "\\S" },
         "catalogIdentity": { "$ref": "./catalog-identity.schema.json" },
+        "universeMetadata": { "$ref": "./celestial-universe-metadata.schema.json" },
+        "isCatalogBody": {
+          "type": "boolean",
+          "description": "Seed-owned body marker; does not mean a generated body is an observed discovery."
+        },
         "sourceScanId": { "type": "string", "pattern": "\\S" },
         "createdByCharacterId": { "type": "string", "pattern": "\\S" },
         "missionId": { "type": ["string", "null"] },
@@ -132,7 +137,16 @@
         },
         "bodyType": {
           "type": "string",
-          "enum": ["star", "black-hole", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
+          "enum": [
+            "star",
+            "black-hole",
+            "planet",
+            "dwarf-planet",
+            "moon",
+            "asteroid",
+            "tno",
+            "comet"
+          ]
         },
         "spectralClass": {
           "type": ["string", "null"],

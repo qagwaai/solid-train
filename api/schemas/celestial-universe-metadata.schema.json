@@ -1,0 +1,162 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CelestialUniverseMetadata",
+  "description": "Optional additive universe metadata. Absence makes no claim about provenance, naming, resource abundance or retirement. Population descriptors describe reservoirs, not new celestial body types.",
+  "type": ["object", "null"],
+  "additionalProperties": false,
+  "required": ["schemaVersion", "provenance"],
+  "properties": {
+    "schemaVersion": { "const": "non-sol-universe-v1" },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "sourceReferences", "fieldSources"],
+      "properties": {
+        "origin": { "enum": ["catalog", "hypothetical", "gameplay-exception"] },
+        "sourceReferences": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "\\S" }
+        },
+        "fieldSources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["field", "derivation", "reference"],
+            "properties": {
+              "field": { "type": "string", "pattern": "\\S" },
+              "derivation": { "enum": ["observed", "estimated", "seeded", "authored"] },
+              "reference": { "type": ["string", "null"], "pattern": "\\S" },
+              "uncertainty": { "type": ["string", "null"], "pattern": "\\S" }
+            },
+            "allOf": [
+              {
+                "if": { "properties": { "derivation": { "const": "observed" } } },
+                "then": { "properties": { "reference": { "type": "string", "pattern": "\\S" } } }
+              }
+            ]
+          }
+        },
+        "rationale": { "type": ["string", "null"], "pattern": "\\S" }
+      }
+    },
+    "generation": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["generatorVersion", "seedKey", "sourceSha256"],
+      "properties": {
+        "generatorVersion": { "type": "string", "pattern": "\\S" },
+        "seedKey": { "type": "string", "pattern": "\\S" },
+        "sourceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "naming": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["preferredName", "aliases", "lane", "language", "motivation", "policyVersion"],
+      "properties": {
+        "preferredName": { "type": "string", "pattern": "\\S" },
+        "aliases": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "\\S" }
+        },
+        "lane": { "enum": ["protected", "systematic", "inherited", "narrative"] },
+        "language": { "type": ["string", "null"], "pattern": "\\S" },
+        "motivation": { "type": ["string", "null"], "pattern": "\\S" },
+        "policyVersion": { "type": "string", "pattern": "\\S" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "lane": { "enum": ["inherited", "narrative"] } } },
+          "then": {
+            "properties": {
+              "language": { "type": "string", "pattern": "\\S" },
+              "motivation": { "type": "string", "pattern": "\\S" }
+            }
+          }
+        }
+      ]
+    },
+    "lifecycle": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["status", "retiredAt", "reason"],
+      "properties": {
+        "status": { "enum": ["active", "retired"] },
+        "retiredAt": { "type": ["string", "null"], "format": "date-time" },
+        "reason": { "type": ["string", "null"], "pattern": "\\S" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "retired" } } },
+          "then": {
+            "properties": {
+              "retiredAt": { "type": "string", "format": "date-time" },
+              "reason": { "type": "string", "pattern": "\\S" }
+            }
+          },
+          "else": {
+            "properties": { "retiredAt": { "type": "null" }, "reason": { "type": "null" } }
+          }
+        }
+      ]
+    },
+    "resourceProfile": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["materialItemTypes", "abundance", "accessibility", "policyVersion"],
+      "properties": {
+        "materialItemTypes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "\\S" }
+        },
+        "abundance": { "enum": ["sparse", "moderate", "rich"] },
+        "accessibility": { "enum": ["accessible", "difficult", "hazardous"] },
+        "policyVersion": { "type": "string", "pattern": "\\S" }
+      }
+    },
+    "population": {
+      "type": ["object", "null"],
+      "description": "Membership and descriptive reservoir metadata carried by a representative body. id is a stable descriptor identity, not a celestial body ID. All members of a population must agree on its descriptor.",
+      "additionalProperties": false,
+      "required": ["id", "kind", "hostBodyId", "abundance", "estimatedTotalCount", "policyVersion"],
+      "properties": {
+        "id": { "type": "string", "pattern": "\\S" },
+        "kind": { "enum": ["asteroid-belt", "trojan", "scattered-asteroids", "comet-reservoir"] },
+        "hostBodyId": { "type": "string", "pattern": "\\S" },
+        "abundance": { "enum": ["sparse", "moderate", "rich"] },
+        "estimatedTotalCount": { "type": ["integer", "null"], "minimum": 1 },
+        "policyVersion": { "type": "string", "pattern": "\\S" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "provenance": {
+            "type": "object",
+            "properties": {
+              "origin": { "enum": ["hypothetical", "gameplay-exception"] }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": ["generation"],
+        "properties": {
+          "generation": { "type": "object" },
+          "provenance": {
+            "type": "object",
+            "required": ["rationale"],
+            "properties": { "rationale": { "type": "string", "pattern": "\\S" } }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 'use strict';
 const { hasValidBodyClassification } = require('../../model/celestial-body-upsert');
 const { assertCatalogIdentity } = require('../../model/catalog-identity');
+const { createUniverseMetadataSchema } = require('./celestial-universe-metadata');
 
 function createCelestialModelArtifacts({
   mongoose,
@@ -430,6 +431,7 @@ function createCelestialModelArtifacts({
         type: String,
         default: null,
       },
+      universeMetadata: { type: createUniverseMetadataSchema(mongoose), default: undefined },
       spectralClass: { type: String, default: null },
       luminositySolar: { type: Number, min: 0, default: null },
       parentBodyId: {

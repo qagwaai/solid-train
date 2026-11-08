@@ -58,7 +58,19 @@ class SolarSystemGetMessageHandler {
     }
 
     // Seed on demand if the system has not been materialized yet (idempotent).
-    await this.context.seedSolarSystemCelestialBodiesAsync({ solarSystemId, asOf });
+    const seeded = await this.context.seedSolarSystemCelestialBodiesAsync({ solarSystemId, asOf });
+    if (seeded?.success === false) {
+      return attachRequestId(
+        {
+          success: false,
+          message: seeded.message || 'Solar system celestial seeding failed',
+          reason: seeded.reason,
+          playerName: player.playerName,
+          solarSystemId,
+        },
+        payload
+      );
+    }
 
     // Canonical reads preserve stored classification, catalog provenance and
     // estimates. Viewer defaults and scalar selection belong to the consumer.

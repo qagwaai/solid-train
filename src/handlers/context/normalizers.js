@@ -14,6 +14,8 @@ const {
 } = require('../../model/celestial-body-upsert');
 const { validateOrbitalElements } = require('../../model/celestial-orbital-elements');
 const { assertCatalogIdentity } = require('../../model/catalog-identity');
+const { pickUniverseMetadata } = require('../../model/celestial-universe-metadata');
+const { normalizeStationPlacement } = require('../../model/station-placement');
 
 const ALWAYS_LAUNCHABLE_ITEM_TYPES = new Set(['expendable-dart-drone']);
 
@@ -395,6 +397,7 @@ function normalizeMarket(ctx, market) {
   const solarSystemId = toNonEmptyString(ctx, source.solarSystemId).toLowerCase();
   const spatial = normalizeSpatialState(ctx, source.spatial);
   const trajectory = normalizeTrajectoryDescriptor(ctx, source.trajectory);
+  const stationPlacement = normalizeStationPlacement(source.stationPlacement, trajectory);
   const rawInventory = Array.isArray(source.inventory)
     ? source.inventory
     : MARKET_CATALOG.map((catalogEntry) => getDefaultInventoryEntry(catalogEntry));
@@ -441,6 +444,10 @@ function normalizeMarket(ctx, market) {
 
   if (trajectory) {
     result.trajectory = trajectory;
+  }
+
+  if (stationPlacement) {
+    result.stationPlacement = stationPlacement;
   }
 
   return result;
@@ -823,6 +830,7 @@ function normalizeCelestialBody(ctx, celestialBody) {
     id: toNonEmptyString(ctx, source.id),
     surfaceArchetype,
     catalogId: toNonEmptyString(ctx, source.catalogId),
+    ...pickUniverseMetadata(source),
     ...(source.catalogIdentity !== undefined
       ? { catalogIdentity: source.catalogIdentity === null ? null : { ...source.catalogIdentity } }
       : {}),
