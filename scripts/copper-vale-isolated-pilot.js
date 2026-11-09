@@ -48,10 +48,10 @@ async function launchIsolatedPilot(args) {
   try {
     // No URI is accepted from callers. MongoMemoryServer owns the local process.
     mongo = await MongoMemoryServer.create({
-      instance: { ip: '127.0.0.1', port: 0, dbName: 'copper-vale-p5' },
+      instance: { ip: '127.0.0.1', port: 0, dbName: 'copper-vale-p6' },
     });
     if (stopping) throw new Error('Pilot stopped during Mongo startup');
-    workerDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'copper-vale-p5-worker-'));
+    workerDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'copper-vale-p6-worker-'));
     child = fork(path.join(__dirname, 'copper-vale-isolated-worker.js'), [], {
       cwd: workerDirectory,
       env: childEnvironment(),
@@ -75,7 +75,7 @@ async function launchIsolatedPilot(args) {
           resolve(message);
         }
       });
-      child.send({ type: 'start', uri: mongo.getUri('copper-vale-p5') });
+      child.send({ type: 'start', uri: mongo.getUri('copper-vale-p6') });
     });
     const baseUrl = `http://127.0.0.1:${ready.port}`;
     const health = await fetch(`${baseUrl}/health`, { signal: AbortSignal.timeout(10000) });
@@ -85,11 +85,34 @@ async function launchIsolatedPilot(args) {
       signal: AbortSignal.timeout(10000),
     });
     if (!transport.ok || !(await transport.text()).startsWith('0{')) throw new Error('Socket.IO readiness failed');
+    let lifecycleRequestId = 0;
+    const runSeedLifecycle = (action) => {
+      if (!['dry-run', 'apply', 'resume', 'readback', 'rollback'].includes(action)) {
+        return Promise.reject(new Error(`Unsupported Copper Vale lifecycle action: ${action}`));
+      }
+      const requestId = `copper-vale-p6-${++lifecycleRequestId}`;
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          child.removeListener('message', onMessage);
+          reject(new Error(`Copper Vale lifecycle '${action}' timed out`));
+        }, 30000);
+        const onMessage = (message) => {
+          if (message.type !== 'seed-lifecycle-result' || message.requestId !== requestId) return;
+          clearTimeout(timer);
+          child.removeListener('message', onMessage);
+          if (message.error) reject(new Error(message.error));
+          else resolve(message.result);
+        };
+        child.on('message', onMessage);
+        child.send({ type: 'seed-lifecycle', action, requestId });
+      });
+    };
     return {
       ...ready,
       baseUrl,
       backendPid: child.pid,
       mongoPid: mongo.instanceInfo.instance.mongodProcess.pid,
+      runSeedLifecycle,
       stop: async () => {
         await stop();
         process.removeListener('SIGINT', onSignal);
@@ -106,7 +129,7 @@ async function launchIsolatedPilot(args) {
 
 if (require.main === module) {
   launchIsolatedPilot(process.argv.slice(2)).then((pilot) => {
-    console.log(`COPPER_VALE_P5_READY ${JSON.stringify({
+    console.log(`COPPER_VALE_P6_READY ${JSON.stringify({
       baseUrl: pilot.baseUrl,
       health: `${pilot.baseUrl}/health`,
       contract: `${pilot.baseUrl}/openapi.yaml`,
@@ -119,7 +142,7 @@ if (require.main === module) {
     })}`);
     console.log('Use normal UI registration, then login. No preseeded account or credentials. Ctrl+C stops only this pilot and deletes its Mongo.');
   }).catch((error) => {
-    console.error(`[copper-vale-p5] ${error.message}`);
+    console.error(`[copper-vale-p6] ${error.message}`);
     process.exitCode = 1;
   });
 }

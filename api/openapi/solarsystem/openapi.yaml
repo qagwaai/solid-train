@@ -19,6 +19,30 @@ paths:
         coordinates. No orbital orientation or phase is asserted.
         Positions are persisted seed-time barycentric snapshots at spatial.epochMs,
         not recalculated on each read. Orbital elements retain their reference epoch.
+        For Copper Vale (exo-gj-9066), a durable approved P6 checkpoint takes precedence
+        over ordinary lazy catalog seeding, including after restart. Its full
+        augmented canonical baseline is retained; only a normal seed marker may be
+        adopted after exact approved-epoch source and seed-owned readback checks.
+        Incomplete checkpoints, changed source or seed-owned snapshot mismatches
+        return success false with reason CELESTIAL_SEED_FAILED and a review message.
+        Neither reads nor internal force catalog refresh silently repair or replace
+        approved P6 fields. A source refresh requires separate owner review.
+        Valid mutable updatedAt and gameplay changes do not invalidate the baseline.
+        Independently journaled additive markets are retained; no baseline reset.
+        Applied bulk non-Sol checkpoints also precede ordinary lazy seeding and
+        retain both pre-existing catalog snapshot epochs and generated additions.
+        An incomplete or drifted bulk checkpoint returns CELESTIAL_SEED_FAILED.
+        Internal force refresh is refused without writes. Bulk additions are
+        explicitly hypothetical, not detected catalog facts. Deployment requires
+        a full-cohort local dry-run and explicit final approval outside this API.
+        Separately journaled additive bulk density markets are allowed without
+        relaxing baseline body or initial-market verification. Their exact owned
+        identities and placements are checked; a missing completed market or
+        density identity/placement mismatch returns CELESTIAL_SEED_FAILED.
+        Inventory, stock, ledger and ship-sale state remain gameplay-owned.
+        Density v2 also verifies exact inspected legacy Alpha/Barnard market
+        identities. Existing geometry defects are preserved and disclosed, not
+        repaired or certified by additive density; Alpha receives no new markets.
         Each body requires non-null bodyType and compatible surfaceArchetype.
         Per-body spectralClass and luminositySolar include companion stars; unknown
         source data is null. Visualization color is optional and independent.

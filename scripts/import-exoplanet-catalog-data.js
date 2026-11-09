@@ -78,6 +78,13 @@ const HOST_COUNT_FIELDS = [
   ['sy_mnum', 'moonCount'],
 ];
 
+const EVIDENCE_FIELDS = [
+  ...PLANET_FIELDS,
+  ...HOST_FIELDS.filter(([column]) =>
+    ['st_teff', 'st_rad', 'st_mass', 'st_lum', 'st_met', 'st_age'].includes(column)
+  ),
+];
+
 // Reference columns; the discovery reference is always listed first.
 const REFERENCE_COLUMNS = [
   'disc_refname',
@@ -119,6 +126,11 @@ const ARCHIVE_COLUMNS = [
   ...HOST_ID_FIELDS.map(([column]) => column),
   ...HOST_COUNT_FIELDS.map(([column]) => column),
   ...REFERENCE_COLUMNS,
+  ...EVIDENCE_FIELDS.flatMap(([column]) => [
+    `${column}lim`,
+    `${column}err1`,
+    `${column}err2`,
+  ]),
 ];
 
 const NUMERIC_RANGES = {
@@ -325,6 +337,51 @@ function assignNumbers(target, row, fields) {
   return target;
 }
 
+function collectFieldEvidence(rows, fields, record) {
+  const evidence = [];
+  const seen = new Set();
+  for (const [column, field] of fields) {
+    if (!Number.isFinite(record[field])) continue;
+    for (const row of rows) {
+      const sourceValue = toNumber(row[column]);
+      const value = field === 'argumentOfPeriapsisDeg' && Number.isFinite(sourceValue)
+        ? roundSignificant(((sourceValue % 360) + 360) % 360, 12)
+        : sourceValue;
+      if (value !== record[field]) continue;
+      const entry = { field, value };
+      const flag = toNumber(row[`${column}lim`]);
+      if (flag !== null) {
+        if (![0, 1, -1].includes(flag)) {
+          throw new Error(`${record.id}: invalid ${column}lim=${flag}`);
+        }
+        entry.limit = flag === 1 ? 'upper' : flag === -1 ? 'lower' : 'none';
+      }
+      for (const [suffix, key] of [['err1', 'errorUpper'], ['err2', 'errorLower']]) {
+        const error = toNumber(row[`${column}${suffix}`]);
+        if (error !== null) {
+          if (
+            !Number.isFinite(error) ||
+            (suffix === 'err1' && error < 0) || (suffix === 'err2' && error > 0)
+          ) {
+            throw new Error(`${record.id}: invalid ${column}${suffix}=${error}`);
+          }
+          entry[key] = error;
+        }
+      }
+      const reference = parseReferenceAnchor(row[`${column}_reflink`]);
+      if (reference) entry.reference = reference;
+      if (Object.keys(entry).length === 2) continue;
+      if (sourceValue !== value) entry.sourceValue = sourceValue;
+      const signature = JSON.stringify(entry);
+      if (!seen.has(signature)) {
+        seen.add(signature);
+        evidence.push(entry);
+      }
+    }
+  }
+  return evidence;
+}
+
 function normalizePlanet(row, refIndexes = []) {
   const name = cleanText(row.pl_name);
   const hostName = cleanText(row.hostname);
@@ -373,6 +430,8 @@ function normalizePlanet(row, refIndexes = []) {
   if (refIndexes.length) {
     planet.refs = refIndexes;
   }
+  const fieldEvidence = collectFieldEvidence([row], PLANET_FIELDS, planet);
+  if (fieldEvidence.length) planet.fieldEvidence = fieldEvidence;
   return deriveOrbit(planet, toNumber(row.st_mass));
 }
 
@@ -443,6 +502,12 @@ function normalizeHosts(rows) {
       }
     }
     host.planetIds = hostRows.map((row) => planetIdFor(cleanText(row.pl_name))).sort();
+    const fieldEvidence = collectFieldEvidence(
+      hostRows,
+      EVIDENCE_FIELDS.filter(([column]) => column.startsWith('st_')),
+      host
+    );
+    if (fieldEvidence.length) host.fieldEvidence = fieldEvidence;
     hosts.push(host);
   }
 

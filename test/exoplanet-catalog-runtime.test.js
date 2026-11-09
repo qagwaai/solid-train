@@ -86,8 +86,11 @@ test('EX-5.4a names file keys resolve to catalog ids and the importer never writ
   for (const starId of Object.keys(names.stars)) {
     assert.ok(starIds.has(starId), `unknown star ${starId}`);
   }
-  // The refresh report may read the names file to flag orphaned keys; no script may write it.
-  const readOnlyConsumers = new Set(['exoplanet-refresh-report.js']);
+  // Reports and preservation inventories may read names; refresh scripts must not write them.
+  const readOnlyConsumers = new Set([
+    'exoplanet-refresh-report.js',
+    'non-sol-celestial-inventory.js',
+  ]);
   for (const script of fs.readdirSync(path.join(ROOT, 'scripts'), { recursive: true })) {
     if (!String(script).endsWith('.js')) continue;
     const text = fs.readFileSync(path.join(ROOT, 'scripts', script), 'utf8');

@@ -22,6 +22,12 @@ test('isolated pilot verifies durable P4 data, serves real transport, and cleans
     assert.match(pilot.p4OutputSha256, /^[a-f0-9]{64}$/);
     assert.match(pilot.baseUrl, /^http:\/\/127\.0\.0\.1:\d+$/);
     assert.notEqual(pilot.port, 3000);
+    const dryRun = await pilot.runSeedLifecycle('dry-run');
+    assert.equal(dryRun.writes, false);
+    assert.equal(dryRun.expectedBodyCount, 57);
+    const readback = await pilot.runSeedLifecycle('readback');
+    assert.equal(readback.status, 'complete');
+    assert.equal(readback.verifiedBodyIds.length, 57);
     const health = await fetch(`${pilot.baseUrl}/health`);
     assert.equal((await health.json()).status, 'ok');
   } finally {

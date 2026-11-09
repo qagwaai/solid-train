@@ -22,6 +22,7 @@ const marketSeedStateService = require('./service/market-seed-state-service');
 const celestialWriteService = require('./service/celestial-write-service');
 const celestialQueryService = require('./service/celestial-query-service');
 const celestialSeedStateService = require('./service/celestial-seed-state-service');
+const copperValeSeedLifecycleStateService = require('./service/copper-vale-seed-lifecycle-state-service');
 const npcSeedStateService = require('./service/npc-seed-state-service');
 const jumpGateQueryService = require('./service/jump-gate-query-service');
 const starService = require('./service/star-service');
@@ -826,6 +827,35 @@ class DatabaseService {
       solarSystemId,
       seedVersion,
       seededAt
+    );
+  }
+
+  async getCopperValeSeedLifecycleState() {
+    return copperValeSeedLifecycleStateService.getCopperValeSeedLifecycleState(
+      this,
+      GameStateDocument
+    );
+  }
+
+  async getNonSolBulkSeedState(solarSystemId) {
+    const state = await GameStateDocument.findOne({
+      key: `non-sol-bulk-seed:${solarSystemId}`,
+    }).lean();
+    return state?.value || null;
+  }
+
+  async getNonSolMarketDensityState(solarSystemId) {
+    const state = await GameStateDocument.findOne({
+      key: `non-sol-market-density:${solarSystemId}`,
+    }).lean();
+    return state?.value || null;
+  }
+
+  async setCopperValeSeedLifecycleState(value) {
+    return copperValeSeedLifecycleStateService.setCopperValeSeedLifecycleState(
+      this,
+      GameStateDocument,
+      value
     );
   }
 

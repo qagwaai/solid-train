@@ -11,6 +11,21 @@ info:
     fields, shared orbital elements, and physical provenance/selection semantics
     are documented in the Celestial and SolarSystem modules and
     docs/celestial-body-contract.md. Catalog positions are seed-time snapshots.
+    Copper Vale's approved durable P6 baseline takes precedence over ordinary
+    lazy catalog seeding: reads preserve its canonical snapshot epoch and augmented
+    physical, naming and resource data. Source/checkpoint or seed-owned mismatches
+    fail with CELESTIAL_SEED_FAILED pending owner review, never automatic repair.
+    Applied non-Sol bulk seeds likewise take precedence over lazy catalog seeding.
+    Incomplete or drifted bulk checkpoints fail closed; reads and internal force
+    refresh cannot overwrite bulk additions, catalog snapshots or gameplay fields.
+    Bulk preparation is offline hypothetical gameplay generation, with one initial
+    screened market per successful system; it adds no socket operations or density mechanics.
+    Separately approved additive market-density plans retain that baseline and all
+    existing stock/gameplay fields. Exact checkpoint-owned market identities and
+    placements are verified on bulk system reads; density drift fails closed.
+    Role labels are descriptive only; ordinary inventory and ship listings remain.
+    Density v2 counts exact inspected legacy Alpha/Barnard markets toward totals,
+    preserving their data and reporting pre-existing geometry defects without repair.
     Spatial payloads use api/schemas/spatial-state.schema.json; barycentric labels
     do not identify a physical axis orientation or guarantee producer normalization.
     Station snapshot fix: canonical anchor lookup (Luna is sol-luna; station identity

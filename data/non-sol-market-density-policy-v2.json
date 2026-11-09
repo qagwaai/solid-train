@@ -1,0 +1,24 @@
+{
+  "version": "non-sol-market-density-v2",
+  "allocationSeedVersion": "non-sol-market-density-v1",
+  "overrides": {
+    "alpha-centauri": {
+      "profile": "developing",
+      "target": 3,
+      "existingMarketIds": ["ac-belt-01", "ac-proxima-station", "alpha-centauri-bulk-initial-exchange"],
+      "reason": "Owner-approved promotion: preserve all three existing markets, count toward total; zero additions."
+    },
+    "barnards-star": {
+      "profile": "established",
+      "target": 8,
+      "existingMarketIds": ["barnards-star-bulk-initial-exchange", "bs-main-station"],
+      "reason": "Owner-approved existing baseline count two: six additions, not seven."
+    }
+  },
+  "assumptions": [
+    "Retain v1 Hamilton assignment/hash seed for every system except the explicit Alpha promotion; do not reshuffle the cohort on a version change.",
+    "Legacy existing markets are immutable preservation constraints, not certified valid orbits. Existing defects are reported separately and never repaired by density.",
+    "Zero-addition Alpha preserves unknown existing geometry without asserting it is screened; no new Alpha placement is approved.",
+    "Every new station must clear all baseline and earlier added station envelopes; elliptical peer radial ranges include both apses. Unknown peer geometry blocks any addition."
+  ]
+}

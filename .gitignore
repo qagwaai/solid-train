@@ -12,3 +12,7 @@ unit-coverage.txt
 unit-coverage.lcov
 exoplanet-coverage.txt
 exoplanet-coverage.lcov
+__pycache__/
+artifacts/non-sol-bulk-*/
+artifacts/non-sol-market-density-*/
+delivery-manifest.json
