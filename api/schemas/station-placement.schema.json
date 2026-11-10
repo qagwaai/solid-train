@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "station-placement",
+  "description": "Optional station placement metadata. metadata-only preserves the authored spatial snapshot. Active evaluation currently supports only body-orbit or stellar-orbit paired with an orbital-elements trajectory anchored to primaryBodyId. stationKeeping describes maintenance behavior and does not activate evaluation. Lagrange-region and deep-space dynamics are not implemented.",
+  "type": "object",
+  "required": ["kind", "activation", "stationKeeping", "provenance", "reason"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["body-orbit", "stellar-orbit", "lagrange-region", "deep-space"]
+    },
+    "primaryBodyId": { "type": "string", "minLength": 1 },
+    "secondaryBodyId": { "type": "string", "minLength": 1 },
+    "region": { "type": "string", "enum": ["L1", "L2", "L3", "L4", "L5"] },
+    "activation": { "type": "string", "enum": ["metadata-only", "active"] },
+    "stationKeeping": { "type": "boolean" },
+    "provenance": { "type": "string", "minLength": 1 },
+    "reason": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "enum": ["body-orbit", "stellar-orbit"] } } },
+      "then": { "required": ["primaryBodyId"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "lagrange-region" } } },
+      "then": { "required": ["primaryBodyId", "secondaryBodyId", "region"] }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["body-orbit", "stellar-orbit", "deep-space"] } } },
+      "then": { "not": { "required": ["region"] } }
+    }
+  ],
+  "additionalProperties": false
+}

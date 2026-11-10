@@ -136,6 +136,44 @@ function createSeedTarget(overrides = {}) {
   };
 }
 
+test('retired generated targets reject mining before consuming the dart or changing history', async () => {
+  const context = createTestContext();
+  seedLaunchScenario(context);
+  const { universeBody } = require('../test-support/universe-metadata-test-helpers');
+  const target = universeBody({ id: 'cb-1', catalogId: 'cb-1' });
+  target.universeMetadata.lifecycle = {
+    status: 'retired',
+    retiredAt: '2026-11-07T00:00:00.000Z',
+    reason: 'Policy retirement',
+  };
+  seedCelestialBodies(context, [target]);
+  const response = await new LaunchItemMessageHandler(context).handle(
+    createMockSocket(),
+    createLaunchPayload()
+  );
+  assert.equal(response.success, false);
+  assert.match(response.message, /retired/);
+  assert.equal(context.celestialBodiesById.get(target.id).state, target.state);
+  const [unconsumed] = await context.getItemsByIdsAsync(['item-1']);
+  assert.equal(unconsumed.state, 'contained');
+});
+
+test('already-destroyed targets reject mining before consuming the dart or yielding again', async () => {
+  const context = createTestContext();
+  seedLaunchScenario(context);
+  const target = context.getCelestialBody('cb-1');
+  target.state = ITEM_STATE.DESTROYED;
+  target.destroyedAt = '2026-11-07T00:00:00.000Z';
+  const handler = new LaunchItemMessageHandler(context);
+  const originalItemCount = context.itemsById.size;
+  const response = await handler.handle(createMockSocket(), createLaunchPayload());
+  assert.equal(response.success, false);
+  assert.match(response.message, /already destroyed/);
+  assert.equal(context.itemsById.size, originalItemCount);
+  const [unconsumed] = await context.getItemsByIdsAsync(['item-1']);
+  assert.equal(unconsumed.state, 'contained');
+});
+
 function seedLaunchScenario(context) {
   seedPlayer(context, {
     playerName: 'PilotOne',

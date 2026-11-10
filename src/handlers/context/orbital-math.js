@@ -1,5 +1,7 @@
 'use strict';
 
+const { normalizeStationPlacement } = require('../../model/station-placement');
+
 const FALLBACK_ANCHOR_POSITION_KM = {
   'sol-sun': { x: 0, y: 0, z: 0 },
   'sol-mercury': { x: 57_909_227, y: 0, z: 0 },
@@ -150,6 +152,12 @@ function stationAnchorError(market, anchorBodyId) {
 
 async function materializeStationSnapshotAsync(ctx, market) {
   if (ctx.inferMarketSiteType(market) !== 'station') {
+    return market;
+  }
+
+  const placement = normalizeStationPlacement(market?.stationPlacement, market?.trajectory);
+  if (placement && placement.activation !== 'active') {
+    // Inactive placement metadata does not activate a trajectory evaluator.
     return market;
   }
 

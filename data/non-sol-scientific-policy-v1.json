@@ -1,0 +1,59 @@
+{
+  "version": "non-sol-science-v1",
+  "epoch": "2000-01-01T12:00:00.000Z",
+  "sources": {
+    "hill": "https://en.wikipedia.org/wiki/Hill_sphere",
+    "roche": "https://en.wikipedia.org/wiki/Roche_limit",
+    "thermal": "https://en.wikipedia.org/wiki/Planetary_equilibrium_temperature",
+    "binary": "https://arxiv.org/abs/astro-ph/9809315",
+    "classification": "https://arxiv.org/abs/1507.06300",
+    "selection": "https://exoplanetarchive.ipac.caltech.edu/docs/occurrence_rate_papers.html"
+  },
+  "systemExclusions": {
+    "sirius": {
+      "code": "KNOWN_COMPANION_MODEL_REQUIRED",
+      "source": "https://esahubble.org/news/heic0516/",
+      "reason": "The small HYG fixture contains only Sirius A; the known Sirius B white-dwarf companion prevents treating this as a complete single-star model."
+    }
+  },
+  "budgets": {
+    "asteroids": { "sparse": [1, 4], "moderate": [5, 12], "rich": [13, 24] },
+    "comets": [0, 6],
+    "moonsPerHost": [0, 4],
+    "moonsPerSystem": 16,
+    "planets": [0, 2],
+    "dwarfPlanets": [0, 2],
+    "ringsPerHost": 1,
+    "attemptsPerSlot": 32
+  },
+  "bounds": {
+    "maxStellarOrbitAu": 100,
+    "minStellarOrbitAu": 0.05,
+    "stellarMassSolar": [0.08, 3],
+    "stellarRadiusSolar": [0.05, 5],
+    "stellarClearanceRadii": 5,
+    "moonHillFraction": 0.3,
+    "ringHillFraction": 0.1,
+    "rocheClearanceFactor": 1.1,
+    "planetMutualHillSpacing": 8,
+    "testParticleHillSpacing": 5,
+    "satelliteMassFraction": 0.0001,
+    "ringMassFraction": 0.000001,
+    "maxMoonTemperatureK": 700,
+    "maxIceTemperatureK": 170,
+    "solidTemperatureK": [10, 1800],
+    "bondAlbedo": 0.1,
+    "periodRelativeTolerance": 0.00000001,
+    "densityRelativeTolerance": 0.00000001,
+    "asteroidRadiusKm": [0.2, 80],
+    "cometRadiusKm": [0.5, 30],
+    "moonRadiusKm": [20, 1500],
+    "planetRadiusKm": [2000, 7500],
+    "dwarfPlanetRadiusKm": [600, 1000],
+    "rockDensityKgM3": [1800, 5500],
+    "iceDensityKgM3": [500, 1800],
+    "asteroidEccentricity": [0, 0.15],
+    "cometEccentricity": [0.2, 0.85],
+    "solidEccentricity": [0, 0.08]
+  }
+}

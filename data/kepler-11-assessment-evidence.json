@@ -1,0 +1,52 @@
+{
+  "systemId": "exo-kepler-116",
+  "retrievedAt": "2026-11-08",
+  "sourceTable": "pscomppars",
+  "sourceUrl": "https://exoplanetarchive.ipac.caltech.edu/TAP/sync",
+  "primarySource": "https://arxiv.org/html/1303.0227v2",
+  "purpose": "Offline assessment only; not a catalog override or joint fitted architecture",
+  "records": [
+    {
+      "id": "exo-kepler-11-b", "massEarth": 1.9, "massProvenance": "Mass", "eccentricity": 0.045,
+      "fieldEvidence": [
+        { "field": "massEarth", "value": 1.9, "limit": "none", "errorUpper": 1.4, "errorLower": -1, "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] },
+        { "field": "eccentricity", "value": 0.045, "limit": "none", "errorUpper": 0.068, "errorLower": -0.042, "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] }
+      ]
+    },
+    {
+      "id": "exo-kepler-11-c", "massEarth": 2.9, "massProvenance": "Mass", "eccentricity": 0.026,
+      "fieldEvidence": [
+        { "field": "massEarth", "value": 2.9, "limit": "none", "errorUpper": 2.9, "errorLower": -1.6, "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] },
+        { "field": "eccentricity", "value": 0.026, "limit": "none", "errorUpper": 0.063, "errorLower": -0.013, "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] }
+      ]
+    },
+    {
+      "id": "exo-kepler-11-d", "massEarth": 7.3, "massProvenance": "Mass", "eccentricity": 0.004,
+      "fieldEvidence": [
+        { "field": "massEarth", "value": 7.3, "limit": "none", "errorUpper": 0.8, "errorLower": -1.5, "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] },
+        { "field": "eccentricity", "value": 0.004, "limit": "none", "errorUpper": 0.007, "errorLower": -0.002, "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] }
+      ]
+    },
+    {
+      "id": "exo-kepler-11-e", "massEarth": 8, "massProvenance": "Mass", "eccentricity": 0.012,
+      "fieldEvidence": [
+        { "field": "massEarth", "value": 8, "limit": "none", "errorUpper": 1.5, "errorLower": -2.1, "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] },
+        { "field": "eccentricity", "value": 0.012, "limit": "none", "errorUpper": 0.006, "errorLower": -0.006, "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] }
+      ]
+    },
+    {
+      "id": "exo-kepler-11-f", "massEarth": 2, "massProvenance": "Mass", "eccentricity": 0.013,
+      "fieldEvidence": [
+        { "field": "massEarth", "value": 2, "limit": "none", "errorUpper": 0.8, "errorLower": -0.9, "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] },
+        { "field": "eccentricity", "value": 0.013, "limit": "none", "errorUpper": 0.011, "errorLower": -0.009, "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] }
+      ]
+    },
+    {
+      "id": "exo-kepler-11-g", "massEarth": 25, "massProvenance": "Mass", "eccentricity": 0.15,
+      "fieldEvidence": [
+        { "field": "massEarth", "value": 25, "limit": "upper", "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] },
+        { "field": "eccentricity", "value": 0.15, "limit": "upper", "reference": ["2013ApJ...770..131L", "Lissauer et al. 2013"] }
+      ]
+    }
+  ]
+}

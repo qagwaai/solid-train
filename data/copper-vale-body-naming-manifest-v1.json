@@ -1,0 +1,153 @@
+{
+  "version": "copper-vale-body-naming-v1",
+  "systemId": "exo-gj-9066",
+  "runtimeEnabled": false,
+  "epoch": "2000-01-01T12:00:00.000Z",
+  "p3InputSha256": "cd60edffe10a2b8c14707e0b0776d16251006d769eb6fc8dbb3315dee4ed004a",
+  "profileSourceSha256": "e496e48fa268d4dde6ba72f36ff8e4383e5092e7a5fd1d1da9f3baa0119dfea5",
+  "approval": {
+    "status": "owner-approved",
+    "date": "2026-11-07",
+    "scope": "18 exact Copper Vale generated-body pairings; offline only",
+    "decision": "Approve all 18 exact pairings, accepting the five provisional language sketches for offline use",
+    "linguisticCertification": "not-performed",
+    "rightsStatus": "editorial-approval-not-legal-clearance"
+  },
+  "profile": {
+    "language": "English",
+    "candidateId": "original-english-01",
+    "theme": "landscape/navigation metaphors",
+    "evidence": [
+      "data/system-naming-manifest.json#approvedAssignments/exo-gj-9066",
+      "data/system-naming-weighted-batch-v1.json#rows/slot-1",
+      "Owner form: English landscape/navigation metaphors, with no claimed settlement history"
+    ],
+    "historyInference": "none"
+  },
+  "eligibility": {
+    "moonMinimumDiameterKm": 200,
+    "storyImportantBodyIds": [],
+    "inherited": 11,
+    "narrative": 7
+  },
+  "assignments": {
+    "exo-gj-9066-generated-planet-0ec42578e1833c74c9b54d32": {
+      "preferredName": "Stillglass Reach",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Landscape/navigation metaphor, not an observed lake or settlement."
+    },
+    "exo-gj-9066-generated-planet-4ec2528f0ada1e4684410f30": {
+      "preferredName": "Far Compass",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Navigation metaphor, not an observed magnetic property."
+    },
+    "exo-gj-9066-generated-planet-d569077cea00ac968d730c15": {
+      "preferredName": "Hearthward",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Welcome/direction metaphor, not habitation or safety certification."
+    },
+    "exo-gj-9066-generated-planet-77b0fe14208b827c13f50157": {
+      "preferredName": "Long Horizon",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Distance/landscape metaphor, not surface evidence."
+    },
+    "exo-gj-9066-generated-moon-0f518a6f67c3ac5f5ca94549": {
+      "preferredName": "Cairnlight",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Wayfinding marker metaphor, not a constructed cairn."
+    },
+    "exo-gj-9066-generated-moon-8af923eda324135ab968a759": {
+      "preferredName": "Quiet Bearing",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Navigation metaphor, not guaranteed dynamical stability."
+    },
+    "exo-gj-9066-generated-moon-fef4929e856700bfa496edee": {
+      "preferredName": "Frostward",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Association with modeled ice, not observed surface frost."
+    },
+    "exo-gj-9066-generated-moon-ac255a0452d20436c427cdbc": {
+      "preferredName": "Pale Crossing",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Passage metaphor, not a safe route."
+    },
+    "exo-gj-9066-generated-moon-be58ceaa180146f00e39222f": {
+      "preferredName": "Lantern Shelf",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Landscape/wayfinding metaphor, not mapped topography."
+    },
+    "exo-gj-9066-generated-moon-1a0c12ffd85268685cdda7cd": {
+      "preferredName": "Northwake",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Navigation metaphor, not a new reference frame."
+    },
+    "exo-gj-9066-generated-moon-6c87552a1096a74ebd8321ea": {
+      "preferredName": "Silver Traverse",
+      "lane": "inherited",
+      "language": "English",
+      "motivation": "Landscape metaphor, not a silver deposit."
+    },
+    "exo-gj-9066-generated-moon-c43c40daff1abf911da3bbb6": {
+      "preferredName": "Patient Signal",
+      "lane": "narrative",
+      "language": "English",
+      "motivation": "Optional fictional survey naming motif, not actual survey history."
+    },
+    "exo-gj-9066-generated-moon-d79aed44b8d45f9dea8c5da4": {
+      "preferredName": "Common Promise",
+      "lane": "narrative",
+      "language": "English",
+      "motivation": "Fictional cooperation/remembrance motif, no population inference."
+    },
+    "exo-gj-9066-generated-moon-81376b1ddfdb059355012eda": {
+      "preferredName": "星港",
+      "lane": "narrative",
+      "language": "Mandarin",
+      "motivation": "Provisional star-harbor metaphor, not an actual harbor.",
+      "bankLanguage": "Chinese",
+      "provisionalGloss": "star harbor (lexical sketch)"
+    },
+    "exo-gj-9066-generated-moon-a250c3bd19412ec8730af24c": {
+      "preferredName": "Заря",
+      "lane": "narrative",
+      "language": "Russian",
+      "motivation": "Provisional dawn motif, not physical lighting evidence.",
+      "bankLanguage": "Russian",
+      "provisionalGloss": "dawn"
+    },
+    "exo-gj-9066-generated-moon-7e52693aa9008cb87b13cc01": {
+      "preferredName": "Encuentro",
+      "lane": "narrative",
+      "language": "Spanish",
+      "motivation": "Provisional meeting/encounter motif, not an authored event.",
+      "bankLanguage": "Spanish",
+      "provisionalGloss": "meeting / encounter"
+    },
+    "exo-gj-9066-generated-moon-e080baa131323de51a933b38": {
+      "preferredName": "أمل",
+      "lane": "narrative",
+      "language": "Arabic",
+      "motivation": "Provisional hope motif, no demographic inference.",
+      "bankLanguage": "Arabic",
+      "provisionalGloss": "hope"
+    },
+    "exo-gj-9066-generated-moon-531101df2ea49c84a4f46b4b": {
+      "preferredName": "आशा",
+      "lane": "narrative",
+      "language": "Hindi",
+      "motivation": "Provisional hope motif, no demographic inference.",
+      "bankLanguage": "Hindi",
+      "provisionalGloss": "hope"
+    }
+  }
+}

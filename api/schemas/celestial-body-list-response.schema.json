@@ -79,6 +79,7 @@
           "description": "Durable canonical identity and deterministic appearance-generator input."
         },
         "catalogIdentity": { "$ref": "./catalog-identity.schema.json" },
+        "universeMetadata": { "$ref": "./celestial-universe-metadata.schema.json" },
         "surfaceArchetype": {
           "type": "string",
           "enum": [
@@ -124,7 +125,16 @@
         },
         "bodyType": {
           "type": "string",
-          "enum": ["star", "black-hole", "planet", "dwarf-planet", "moon", "asteroid", "tno", "comet"]
+          "enum": [
+            "star",
+            "black-hole",
+            "planet",
+            "dwarf-planet",
+            "moon",
+            "asteroid",
+            "tno",
+            "comet"
+          ]
         },
         "spectralClass": {
           "type": ["string", "null"],

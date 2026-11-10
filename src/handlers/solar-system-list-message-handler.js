@@ -104,27 +104,26 @@ class SolarSystemListMessageHandler {
         (entry) => entry.distanceParsec !== null && entry.distanceParsec <= maxDistanceParsec
       );
     }
-    if (minPlanetCount) {
-      filtered = filtered.filter((entry) => (entry.planetCount || 0) >= minPlanetCount);
-    }
     if (spectralClass) {
       filtered = filtered.filter(
         (entry) => (entry.primaryStar?.spectralClass || '').toUpperCase() === spectralClass
       );
     }
+    filtered = await this.enrichSystemsWithCounts(filtered);
+    if (minPlanetCount) {
+      filtered = filtered.filter((entry) => (entry.planetCount || 0) >= minPlanetCount);
+    }
     filtered.sort(SORTERS[sort]);
     const { items, page } = pageItems(filtered, paging);
-
-    const enrichedSystems = await this.enrichSystemsWithCounts(items);
 
     return attachRequestId(
       {
         success: true,
-        message: enrichedSystems.length
+        message: items.length
           ? 'Solar system list retrieved successfully'
           : 'No solar systems matched the query',
         playerName: player.playerName,
-        solarSystems: enrichedSystems,
+        solarSystems: items,
         ...page,
       },
       payload
@@ -132,10 +131,8 @@ class SolarSystemListMessageHandler {
   }
 
   /**
-   * Add count fields. Planet and moon counts are precomputed in the registry;
-   * asteroid and market counts come from one live grouped query each (D51,
-   * D55). The asteroid count never drops below the registry's catalog count,
-   * so unseeded systems still report their catalog asteroids.
+   * Include live generated/discovered bodies without dropping below frozen
+   * catalog counts for unseeded or partially materialized systems.
    * @param {Object[]} systems
    * @returns {Promise<Object[]>}
    */
@@ -149,6 +146,14 @@ class SolarSystemListMessageHandler {
     return systems.map((system) => {
       const enriched = { ...system };
       if (live) {
+        enriched.planetCount = Math.max(
+          system.planetCount || 0,
+          live.planetCounts.get(system.id) || 0
+        );
+        enriched.moonCount = Math.max(
+          system.moonCount || 0,
+          live.moonCounts.get(system.id) || 0
+        );
         enriched.asteroidCount = Math.max(
           system.asteroidCount || 0,
           live.asteroidCounts.get(system.id) || 0

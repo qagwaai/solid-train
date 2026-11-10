@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "non-sol-market-density-baseline-v2",
+  "inspectionAt": "2026-11-09T00:15:10.127Z",
+  "target": "mongodb://localhost:27017/solid-train",
+  "readOnly": true,
+  "rawMarketHashes": {
+    "ac-belt-01": "08f3faadf149a541dca74b90b212d229c9621feb3a6c1a7a52bdd7f732c3f511",
+    "ac-proxima-station": "cbad114fef9972299bd7e25510bb91481d2b302272f3339a9405866149179ae6",
+    "alpha-centauri-bulk-initial-exchange": "8acc5d2eebd0ce9b5b2292a879fdf156a5a3a84da7580617e588f709b0ef3fe2",
+    "barnards-star-bulk-initial-exchange": "fbba5475a48d17efc1aa0e98a97b007eaee18fbae85011394f36f68ab60367ef",
+    "bs-main-station": "6f898d0c7564de5caad114ed81ed602c383d8c69af9d026ec2daa03b1f893959"
+  },
+  "markets": [
+    {
+      "marketId": "ac-belt-01", "solarSystemId": "alpha-centauri",
+      "marketName": "Centauri Drift Depot", "siteName": "Centauri Dust Belt 01", "siteType": "free-floating",
+      "trajectory": {"kind":"orbital-elements","orbit":{"anchorBodyId":"ac-dust-belt","anchorBodyName":"Centauri Dust Belt","orbitType":"elliptical","semiMajorAxisKm":5500,"eccentricity":0.14,"inclinationDeg":4,"longitudeOfAscendingNodeDeg":0,"argumentOfPeriapsisDeg":60,"meanAnomalyAtEpochDeg":0,"orbitalPeriodSec":130000,"epoch":"2026-11-08T15:06:28.059Z"}},
+      "spatial":{"solarSystemId":"alpha-centauri","frame":"barycentric","positionKm":{"x":5500,"y":0,"z":0},"epochMs":1794150388059}
+    },
+    {
+      "marketId":"ac-proxima-station","solarSystemId":"alpha-centauri",
+      "marketName":"Proxima Gateway Market","siteName":"Proxima Centauri Orbital Market","siteType":"station",
+      "trajectory":{"kind":"orbital-elements","orbit":{"anchorBodyId":"alpha-centauri-star-tertiary","anchorBodyName":"Proxima Centauri","orbitType":"elliptical","semiMajorAxisKm":3200,"eccentricity":0.02,"inclinationDeg":0,"longitudeOfAscendingNodeDeg":0,"argumentOfPeriapsisDeg":0,"meanAnomalyAtEpochDeg":0,"orbitalPeriodSec":95000,"epoch":"2026-01-01T00:00:00.000Z"}},
+      "spatial":{"solarSystemId":"alpha-centauri","frame":"barycentric","positionKm":{"x":35800360193.17929,"y":269747326928.84497,"z":591127226598.5691},"epochMs":1794150387959}
+    },
+    {
+      "marketId":"bs-main-station","solarSystemId":"barnards-star",
+      "marketName":"Barnard Frontier Outpost","siteName":"Barnard b Orbital Market","siteType":"station",
+      "trajectory":{"kind":"orbital-elements","orbit":{"anchorBodyId":"exo-barnard-b","anchorBodyName":"Barnard b","orbitType":"elliptical","semiMajorAxisKm":2800,"eccentricity":0.03,"inclinationDeg":0,"longitudeOfAscendingNodeDeg":0,"argumentOfPeriapsisDeg":0,"meanAnomalyAtEpochDeg":0,"orbitalPeriodSec":88000,"epoch":"2026-01-01T00:00:00.000Z"}},
+      "spatial":{"solarSystemId":"barnards-star","frame":"barycentric","positionKm":{"x":-3132783.7516305037,"y":-1250135.595434296,"z":-120248.81727593286},"epochMs":1794150387974}
+    }
+  ],
+  "observedNonBulkSupply": {"markets":3,"inventoryRows":63,"stockUnits":35760,"maxStockUnits":35760,"restockUnitsPerHour":2853,"shipListingRows":3,"shipsAvailable":3,"shipStarterInventoryUnits":18},
+  "legacyGeometryFindings": [
+    {"marketId":"ac-belt-01","status":"unresolved-existing-only","anchorBodyId":"ac-dust-belt","reason":"No persisted celestial body with this ID; unknown station envelope/overlap. Alpha adds zero stations; no geometry certification or repair."},
+    {"marketId":"ac-proxima-station","status":"invalid-existing-only","hostRadiusKm":107276.94,"periapsisKm":3136,"apoapsisKm":3264,"surfaceClearanceAtPeriapsisKm":-104140.94,"reason":"Existing star-anchored orbit lies within stellar surface; preserve unchanged, no Alpha additions."},
+    {"marketId":"bs-main-station","status":"invalid-existing-only","hostRadiusKm":4587.12,"periapsisKm":2716,"apoapsisKm":2884,"surfaceClearanceAtPeriapsisKm":-1871.12,"reason":"Existing planet-anchored orbit lies within host surface. New Barnard stations must clear its full elliptical envelope via primary-centered all-phase bounds; no repair."}
+  ]
+}

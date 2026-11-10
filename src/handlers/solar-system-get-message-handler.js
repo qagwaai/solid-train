@@ -58,12 +58,30 @@ class SolarSystemGetMessageHandler {
     }
 
     // Seed on demand if the system has not been materialized yet (idempotent).
-    await this.context.seedSolarSystemCelestialBodiesAsync({ solarSystemId, asOf });
+    const seeded = await this.context.seedSolarSystemCelestialBodiesAsync({ solarSystemId, asOf });
+    if (seeded?.success === false) {
+      return attachRequestId(
+        {
+          success: false,
+          message: seeded.message || 'Solar system celestial seeding failed',
+          reason: seeded.reason,
+          playerName: player.playerName,
+          solarSystemId,
+        },
+        payload
+      );
+    }
 
     // Canonical reads preserve stored classification, catalog provenance and
     // estimates. Viewer defaults and scalar selection belong to the consumer.
     const bodies = await this.context.getCelestialBodiesAsync({ solarSystemId });
     const stars = bodies.filter((body) => body.bodyType === 'star');
+    const materializedSummary = {
+      ...summary,
+      planetCount: Math.max(summary.planetCount || 0, bodies.filter((body) => body.bodyType === 'planet').length),
+      moonCount: Math.max(summary.moonCount || 0, bodies.filter((body) => body.bodyType === 'moon').length),
+      asteroidCount: Math.max(summary.asteroidCount || 0, bodies.filter((body) => body.bodyType === 'asteroid').length),
+    };
 
     return attachRequestId(
       {
@@ -71,7 +89,7 @@ class SolarSystemGetMessageHandler {
         message: 'Solar system retrieved successfully',
         playerName: player.playerName,
         solarSystemId,
-        solarSystem: summary,
+        solarSystem: materializedSummary,
         stars,
         bodies,
       },

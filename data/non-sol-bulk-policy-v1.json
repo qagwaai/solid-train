@@ -1,0 +1,30 @@
+{
+  "version": "non-sol-bulk-hypothetical-v1",
+  "epoch": "2000-01-01T12:00:00.000Z",
+  "attemptsPerSlot": 128,
+  "budgets": {"planet": 4, "dwarf-planet": 1, "asteroid": 4, "comet": 2, "tno": 2, "moon": 2},
+  "sources": {
+    "physical": "non-sol-scientific-policy-v2",
+    "naming": "system-naming-weight-policy-v2",
+    "resources": "existing Common market-catalog materials",
+    "station": "non-sol-p3-preview analytic clearance and Hill screening"
+  },
+  "assumptions": [
+    "All additions are hypothetical gameplay representatives, not discoveries or calibrated occurrence draws.",
+    "Catalog documents, protected names and accepted Copper Vale P3/P4/P6 are immutable.",
+    "Missing luminosity uses the Stefan-Boltzmann radius/temperature estimate when available; otherwise missing positive stellar constraints use a solar analog only in a screening clone. Catalog values are never replaced.",
+    "Unknown companion separation assumes a distant companion for circumprimary screening; known companion radial envelopes restrict additions to a tenth of closest separation.",
+    "Evolved stars use current instantaneous luminosity and clearance; survival history and long-term stability are not claimed.",
+    "Known planet constraints are screened as provided; an incomplete planet constraint uses a conservative screening-only Earth analog and its available orbit.",
+    "Close binaries also attempt a distant aggregate Kepler orbit using the existing catalog anchor and supported circumbinary orbital metadata. Effective mass/luminosity are screening-only sums; the anchored trajectory is approximate, not a moving barycenter simulation.",
+    "Bulk stellar extent is luminosity-adaptive rather than the immutable pilot 100 AU limit; compact stars may use orbits inside the pilot 0.05 AU floor subject to the same five-radius and thermal screens.",
+    "Planet is a supported gameplay family, not a claim of measured dynamical clearing; the pilot clearing discriminant is not a bulk occurrence/taxonomy blocker.",
+    "Catalog planet-family companions above one percent of primary mass are treated as companions in screening, never reclassified in the catalog. This is a conservative authored screening threshold, not an occurrence calibration.",
+    "Cold outer worlds remain supported: the bulk thermal screen has no artificial 10 K floor; ambient background heating is assumed and no liquid-water or habitable climate claim is made.",
+    "If the standard domain is exhausted, a bounded extended outer game-world reservoir up to fifty times the largest catalog planetary apoapsis is attempted with the same clearance, separation and temperature screens. Galactic tides, encounters and long-term population survival are uncertain, not runtime representation blockers.",
+    "Temperature, Roche, Hill, radial separation and mass-budget screens are analytic approximations, not N-body certification.",
+    "Software budgets ensure planet/moon/minor-body attempts, not actual population estimates.",
+    "One initial station only; no density expansion, station-keeping simulation or runtime unlock mechanics.",
+    "Naming uses cumulative rounded 60/40 inherited/narrative quotas across eligible generated larger bodies, accepted Hamilton language weights in 100-slot narrative blocks and for unprofiled system inheritance, existing provisional language-bank sketches and unique systematic qualifiers."
+  ]
+}

@@ -96,7 +96,8 @@
           },
           "additionalProperties": false
         },
-        "descriptor": { "$ref": "./external-object-descriptor.schema.json" }
+        "descriptor": { "$ref": "./external-object-descriptor.schema.json" },
+        "stationPlacement": { "$ref": "./station-placement.schema.json" }
       },
       "additionalProperties": false
     },
@@ -232,6 +233,7 @@
             "additionalProperties": true,
             "description": "For stations, orbit.anchorBodyId resolves the exact canonical host. orbit.epoch is the element reference epoch; spatial.epochMs equals the host snapshot epoch. Positions include host translation once using the existing right-handed orbital helper at that epoch, not request time. Route station feeds copy that snapshot. Missing/invalid hosts fail rather than use a fallback."
           },
+          "stationPlacement": { "$ref": "./station-placement.schema.json" },
           "distanceAu": { "type": "number", "minimum": 0 },
           "route": { "$ref": "#/definitions/marketRoute" },
           "isDocked": { "type": "boolean" },

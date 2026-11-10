@@ -13,6 +13,7 @@ for (const name of [
   'external-object-descriptor',
   'catalog-identity',
   'black-hole-properties',
+  'celestial-universe-metadata',
 ]) {
   ajv.addSchema(require(`../../api/schemas/${name}.schema.json`), `${name}.schema.json`);
 }

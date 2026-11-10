@@ -31,6 +31,56 @@ Canonical reads additionally return durable `id`, mission identity (nullable),
 timestamps, state, destruction metadata (nullable), and debris. Invalid/missing
 body classification is rejected rather than inferred from texture or old data.
 
+## Optional non-Sol universe metadata (P1)
+
+`universeMetadata` is optional and nullable on canonical upsert, list, and
+solar-system-get bodies. Legacy bodies do not acquire invented provenance.
+The shared [schema](../api/schemas/celestial-universe-metadata.schema.json)
+uses `schemaVersion: non-sol-universe-v1`:
+
+- `provenance` distinguishes `catalog`, `hypothetical`, and `gameplay-exception`.
+  Per-field derivations are `observed`, `estimated`, `seeded`, or `authored`;
+  observations require a reference. Hypothetical/gameplay additions require
+  a rationale and `generation` identity, including the source SHA-256.
+- `generation.seedKey` is durable. Generated IDs depend on system, parent,
+  body type, and stable slot, not display name, epoch, or policy revision.
+  The helper rejects Sol and new black-hole generation.
+- `naming` holds a preferred name, normalized unique aliases, protected/systematic/
+  inherited/narrative lane, language, motivation, and policy version.
+  Preferred names must match `displayName`; identical systematic labels need no
+  alias. Cultural lanes require language and motivation. Name-only updates
+  preserve physical/gameplay fields. Protected labels cannot be renamed.
+  Aliases round-trip and are checked for cross-body collisions; P1 does not
+  add a public alias-search endpoint.
+- `resourceProfile` references canonical **raw-material** item IDs, with
+  abundance and accessibility annotations. This is not a measured composition
+  or a guarantee of a mining yield. Unknown IDs and craftable-item IDs fail.
+- `population` describes asteroid belts, trojans, scattered asteroids, or comet
+  reservoirs on representative canonical asteroid/comet bodies. Members must
+  agree on the descriptor and resolve a host in the same system. Rings remain
+  host properties; there is no new belt body type.
+- `lifecycle` separates `active`/`retired` seed membership from body destruction.
+  Only generated, seed-owned, non-catalog-origin bodies may retire. Retirement
+  retains IDs and gameplay history and blocks new mining launches before item
+  consumption. Retired bodies remain readable; ordinary upserts cannot reverse
+  retirement. An approved rollback executor and automated retirement selection
+  are later-phase work.
+
+Non-Sol reseeds preserve state, scan/visibility, composition/depletion, destruction,
+debris, creation/mission identity, and protected names. Mongo seed updates make
+gameplay fields insert-only rather than overwriting a concurrent gameplay write.
+Player-created bodies cannot be overwritten; database failures surface explicitly
+instead of resetting cached history and returning an in-memory success.
+
+New augmentation may use the explicit initial-discovery helper: large bodies
+start visible/scanned/active; asteroid/comet representatives start
+visible/unscanned. P1 does not activate augmentation, change existing catalog
+discovery defaults, or rename existing bodies.
+
+The executable [fixture](../test-support/universe-metadata-test-helpers.js) and
+[contract tests](../test/celestial-universe-metadata.test.js) provide a complete
+example, invalid-input cases, and canonical read/write parity.
+
 ## Body classification and appearance
 
 `bodyType` is a required non-null scientific/gameplay category. `surfaceArchetype`
@@ -610,6 +660,36 @@ from the supplied observed market position gives relative offset
 13,697,259 ms (3h 48m 17.259s). Running process provenance and persisted live
 record state beyond the user's observations remain unverified; this is a
 source fix, not a claim of live deployment or data repair.
+
+### Station placement metadata contract
+
+Market station placement is optional metadata persisted as `stationPlacement`
+and returned by market-list and market-list-by-location. Location route station
+entries expose the same optional field. The canonical source schema is
+`api/schemas/station-placement.schema.json`; the top-level response schemas
+reference it. Existing markets without the field retain their prior shape.
+
+The descriptor has a `kind` (`body-orbit`, `stellar-orbit`, `lagrange-region`,
+or `deep-space`), `activation` (`metadata-only` or `active`), explicit Boolean
+`stationKeeping`, non-empty `provenance` and `reason`, and applicable body IDs.
+Body and stellar orbit require `primaryBodyId`. Lagrange-region additionally
+requires a distinct `secondaryBodyId` and a region from `L1` through `L5`.
+`stationKeeping` describes maintenance behavior; it does not activate
+trajectory evaluation.
+
+`metadata-only` preserves the authored spatial snapshot and does not run an
+orbital evaluator. `active` currently supports only `body-orbit` and
+`stellar-orbit` paired with `orbital-elements` whose exact anchor ID equals
+`primaryBodyId`. At persistence, each referenced body must exist in the market's
+solar system; a stellar-orbit primary must have `bodyType: star`. Lagrange
+primary and secondary IDs must differ. Unsupported activation or host
+references are rejected rather than silently downgraded.
+
+Lagrange-region and deep-space dynamics are not implemented. Those kinds
+cannot be paired with `orbital-elements`, even in metadata-only mode; an
+elliptical orbit must not be interpreted as a Lagrange solution. The metadata
+schema describes shape, while evaluator pairing and celestial host/system
+identity are enforced by backend validation.
 
 ## Physical provenance, units, and selection precedence
 

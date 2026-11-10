@@ -176,6 +176,9 @@ class MarketListByLocationMessageHandler {
       spatial: {
         ...stationMarket.spatial,
       },
+      ...(stationMarket.stationPlacement
+        ? { stationPlacement: stationMarket.stationPlacement }
+        : {}),
       descriptor: cloneDescriptor(stationDescriptor),
     };
   }
@@ -503,6 +506,7 @@ class MarketListByLocationMessageHandler {
       isStarterMarket: Boolean(market.isStarterMarket),
       spatial: market.spatial || null,
       trajectory: market.trajectory || null,
+      ...(market.stationPlacement ? { stationPlacement: market.stationPlacement } : {}),
       distanceAu: market.distanceAu,
       route: this.buildRouteEntityFeeds(market.route || null, routeFeeds),
       isDocked: Boolean(docking.perMarketDocked.get(market.marketId)),

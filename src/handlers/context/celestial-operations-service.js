@@ -8,8 +8,25 @@ const {
   assertCatalogIdentityAssignments,
   CatalogIdentityError,
 } = require('../../model/catalog-identity');
+const { assertUniverseRelationships } = require('../../model/celestial-universe-metadata');
+const {
+  mergeCelestialSeed,
+  assertUniverseTransition,
+} = require('../../model/celestial-seed-ownership');
+const { previewCopperValeP4 } = require('../../model/non-sol-p4-preview');
+const { reconcileCopperValeCatalog } = require('../../model/copper-vale-catalog-reconciliation');
+const { reconcileBulkSeed } = require('../../model/non-sol-bulk-reconciliation');
+const { reconcileDensityMarkets } = require('../../model/non-sol-market-density-reconciliation');
 
 const CATALOG_PERSISTENCE_BATCH_SIZE = 50;
+
+function assertNonSolSeedReadback(solarSystemId, expected, persisted) {
+  if (solarSystemId === 'sol') return;
+  const persistedIds = new Set(persisted.map((body) => body.id));
+  if (expected.some((body) => !persistedIds.has(body.id))) {
+    throw new Error('Non-Sol seed readback is missing expected durable bodies');
+  }
+}
 
 async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
   const solarSystemId = ctx.toNonEmptyString(request?.solarSystemId).toLowerCase() || 'sol';
@@ -28,10 +45,20 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
   }
 
   if (!ctx.databaseService) {
-    for (const body of bodies) {
-      if (!force && ctx.celestialBodiesById.has(body.id)) continue;
-      const normalized = ctx.normalizeCelestialBody(body);
-      ctx.celestialBodiesById.set(normalized.id, normalized);
+    try {
+      const updates = [];
+      for (const body of bodies) {
+        if (!force && ctx.celestialBodiesById.has(body.id)) continue;
+        const ownedBody =
+          solarSystemId === 'sol'
+            ? body
+            : mergeCelestialSeed(ctx.celestialBodiesById.get(body.id), body);
+        updates.push(ctx.normalizeCelestialBody(ownedBody));
+      }
+      for (const normalized of updates) ctx.celestialBodiesById.set(normalized.id, normalized);
+    } catch (error) {
+      ctx.log(`[context] Error applying celestial seed ownership: ${error.message}`);
+      throw error;
     }
     return {
       success: true,
@@ -47,9 +74,62 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
       await ctx.databaseService.getSolarSystemCelestialSeedState(solarSystemId);
     const isCurrentVersion = existingSeedState && existingSeedState.seedVersion === seedVersion;
 
+    // Bulk checkpoints precede lazy catalog state, including force/cache hits.
+    // Incomplete or drifted deployments must fail closed without seed writes.
+    if (solarSystemId !== 'sol' && solarSystemId !== 'exo-gj-9066' &&
+        typeof ctx.databaseService.getNonSolBulkSeedState === 'function') {
+      const state = await ctx.databaseService.getNonSolBulkSeedState(solarSystemId);
+      if (state) {
+        if (force) throw new Error('Force catalog refresh of bulk seed is blocked');
+        const persisted = await ctx.databaseService.getCelestialBodies({ solarSystemId });
+        reconcileBulkSeed(state, persisted);
+        if (typeof ctx.databaseService.getNonSolMarketDensityState === 'function') {
+          const density = await ctx.databaseService.getNonSolMarketDensityState(solarSystemId);
+          if (density) reconcileDensityMarkets(density,
+            await ctx.databaseService.getMarkets({ solarSystemId }), state);
+        }
+        const normalized = persisted.map((body) => ctx.normalizeCelestialBody(body));
+        for (const [key, value] of ctx.celestialBodiesById.entries()) {
+          if (value.spatial?.solarSystemId === solarSystemId) ctx.celestialBodiesById.delete(key);
+        }
+        for (const body of normalized) ctx.celestialBodiesById.set(body.id, body);
+        return { success: true, solarSystemId, seedVersion, bodyCount: persisted.length, source: 'database-cache' };
+      }
+    }
+
+    // P6 has its own durable checkpoint, independent of the lazy catalog marker.
+    // Consult it even on cache hits/force, before ANY catalog body writes.
+    if (solarSystemId === 'exo-gj-9066' &&
+        typeof ctx.databaseService.getCopperValeSeedLifecycleState === 'function') {
+      const state = await ctx.databaseService.getCopperValeSeedLifecycleState();
+      if (state && state.status !== 'rolled-back') {
+        const preview = previewCopperValeP4();
+        const persisted = await ctx.databaseService.getCelestialBodies({ solarSystemId });
+        const approvedCatalog = buildSeededCelestialBodiesForSolarSystem(solarSystemId, preview.epoch);
+        const report = reconcileCopperValeCatalog(state, persisted, approvedCatalog, preview);
+        if (!report.matches) {
+          const changed = report.bodies.flatMap((body) =>
+            body.seedOwned.map((delta) => `${body.id}.${delta.field}`));
+          throw new Error(`Approved P6 seed-owned mismatch; owner reconciliation required: ${changed.join(', ')}`);
+        }
+        if (force) throw new Error('Force catalog refresh of approved P6 is blocked pending owner review');
+        const normalizedBodies = persisted.map((body) => ctx.normalizeCelestialBody(body));
+        if (!isCurrentVersion) {
+          await ctx.databaseService.setSolarSystemCelestialSeedState(solarSystemId, seedVersion, preview.epoch);
+        }
+        for (const [key, value] of ctx.celestialBodiesById.entries()) {
+          if (value.spatial?.solarSystemId === solarSystemId) ctx.celestialBodiesById.delete(key);
+        }
+        for (const body of normalizedBodies) ctx.celestialBodiesById.set(body.id, body);
+        return { success: true, solarSystemId, seedVersion, bodyCount: persisted.length, source: 'database-cache' };
+      }
+    }
+
     if (!force && isCurrentVersion) {
       const persisted = await ctx.databaseService.getCelestialBodies({ solarSystemId });
       if (Array.isArray(persisted) && persisted.length > 0) {
+        assertNonSolSeedReadback(solarSystemId, bodies, persisted);
+        const normalizedBodies = persisted.map((body) => ctx.normalizeCelestialBody(body));
         // Clear any stale entries for this system before caching fresh data
         for (const [key, value] of ctx.celestialBodiesById.entries()) {
           if (value.spatial?.solarSystemId === solarSystemId) {
@@ -57,8 +137,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
           }
         }
 
-        for (const body of persisted) {
-          const normalized = ctx.normalizeCelestialBody(body);
+        for (const normalized of normalizedBodies) {
           ctx.celestialBodiesById.set(normalized.id, normalized);
         }
         return {
@@ -74,16 +153,24 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
     for (let offset = 0; offset < bodies.length; offset += CATALOG_PERSISTENCE_BATCH_SIZE) {
       const batch = bodies.slice(offset, offset + CATALOG_PERSISTENCE_BATCH_SIZE);
       const results = await Promise.allSettled(
-        batch.map((body) => ctx.databaseService.addOrUpdateCelestialBody(body))
+        batch.map((body) =>
+          ctx.databaseService.addOrUpdateCelestialBody(body, {
+            preserveGameplay: solarSystemId !== 'sol',
+          })
+        )
       );
       const failed = results.find((result) => result.status === 'rejected');
       if (failed) throw failed.reason;
+      if (results.some((result) => result.status === 'fulfilled' && !result.value?.id)) {
+        throw new Error('Celestial seed persistence returned no durable body');
+      }
     }
 
-    await ctx.databaseService.setSolarSystemCelestialSeedState(solarSystemId, seedVersion, asOf);
-
     const persisted = await ctx.databaseService.getCelestialBodies({ solarSystemId });
+    assertNonSolSeedReadback(solarSystemId, bodies, persisted);
     const toCache = persisted.length > 0 ? persisted : bodies;
+    const normalizedBodies = toCache.map((body) => ctx.normalizeCelestialBody(body));
+    await ctx.databaseService.setSolarSystemCelestialSeedState(solarSystemId, seedVersion, asOf);
 
     // Clear any stale entries for this system before caching fresh data
     for (const [key, value] of ctx.celestialBodiesById.entries()) {
@@ -92,8 +179,7 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
       }
     }
 
-    for (const body of toCache) {
-      const normalized = ctx.normalizeCelestialBody(body);
+    for (const normalized of normalizedBodies) {
       ctx.celestialBodiesById.set(normalized.id, normalized);
     }
 
@@ -107,6 +193,17 @@ async function seedSolarSystemCelestialBodiesAsync(ctx, request = {}) {
   } catch (error) {
     ctx.log(`[context] Error seeding solar system celestial bodies: ${error.message}`);
     if (error instanceof CatalogIdentityError) throw error;
+    if (solarSystemId !== 'sol') {
+      return {
+        success: false,
+        reason: 'CELESTIAL_SEED_FAILED',
+        message: error.message,
+        solarSystemId,
+        seedVersion,
+        bodyCount: 0,
+        source: 'database-error',
+      };
+    }
 
     // Clear any stale entries for this system before caching fresh data
     for (const [key, value] of ctx.celestialBodiesById.entries()) {
@@ -175,21 +272,26 @@ function countBy(values, keyOf) {
 
 /**
  * Live per-system counts for solar-system-list (D51, D55): markets and
- * asteroids (catalog plus character discoveries), each from one grouped DB
+ * planets, moons and asteroids (catalog plus generated/discovered bodies), from grouped DB
  * query, or from the in-memory caches when no database is configured.
- * @returns {Promise<{ marketCounts: Map<string, number>, asteroidCounts: Map<string, number> }>}
+ * @returns {Promise<{ marketCounts: Map<string, number>, asteroidCounts: Map<string, number>, planetCounts: Map<string, number>, moonCounts: Map<string, number> }>}
  */
 async function getSolarSystemLiveCountsAsync(ctx) {
   const fromDb = await ctx.withDbOrNull(
-    'counting solar system markets and asteroids',
-    async (db) =>
-      typeof db.getMarketCountsBySolarSystem === 'function' &&
-      typeof db.getCelestialBodyCountsBySolarSystem === 'function'
-        ? {
-            marketCounts: await db.getMarketCountsBySolarSystem(),
-            asteroidCounts: await db.getCelestialBodyCountsBySolarSystem('asteroid'),
-          }
-        : null
+    'counting solar system markets and celestial bodies',
+    async (db) => {
+      if (
+        typeof db.getMarketCountsBySolarSystem !== 'function' ||
+        typeof db.getCelestialBodyCountsBySolarSystem !== 'function'
+      ) return null;
+      const [marketCounts, asteroidCounts, planetCounts, moonCounts] = await Promise.all([
+        db.getMarketCountsBySolarSystem(),
+        db.getCelestialBodyCountsBySolarSystem('asteroid'),
+        db.getCelestialBodyCountsBySolarSystem('planet'),
+        db.getCelestialBodyCountsBySolarSystem('moon'),
+      ]);
+      return { marketCounts, asteroidCounts, planetCounts, moonCounts };
+    }
   );
   if (fromDb) {
     return fromDb;
@@ -200,6 +302,12 @@ async function getSolarSystemLiveCountsAsync(ctx) {
     ),
     asteroidCounts: countBy(ctx.celestialBodiesById.values(), (body) =>
       body?.bodyType === 'asteroid' ? body.spatial?.solarSystemId : null
+    ),
+    planetCounts: countBy(ctx.celestialBodiesById.values(), (body) =>
+      body?.bodyType === 'planet' ? body.spatial?.solarSystemId : null
+    ),
+    moonCounts: countBy(ctx.celestialBodiesById.values(), (body) =>
+      body?.bodyType === 'moon' ? body.spatial?.solarSystemId : null
     ),
   };
 }
@@ -308,17 +416,33 @@ async function addOrUpdateCelestialBodyAsync(ctx, celestialBody) {
   if (celestialBody.catalogIdentity === undefined && previous?.catalogIdentity !== undefined) {
     celestialBody = { ...celestialBody, catalogIdentity: previous.catalogIdentity };
   }
+  if (celestialBody.universeMetadata === undefined && previous?.universeMetadata) {
+    celestialBody = { ...celestialBody, universeMetadata: previous.universeMetadata };
+  }
   const normalizedCelestialBody = ctx.normalizeCelestialBody(celestialBody);
+  assertUniverseTransition(previous, normalizedCelestialBody);
   assertCatalogIdentityAssignments([
     ...Array.from(ctx.celestialBodiesById.values()).filter(
       (body) => body.id !== normalizedCelestialBody.id
     ),
     normalizedCelestialBody,
   ]);
+  if (normalizedCelestialBody.universeMetadata && !ctx.databaseService) {
+    assertUniverseRelationships([
+      ...Array.from(ctx.celestialBodiesById.values()).filter(
+        (body) => body.id !== normalizedCelestialBody.id
+      ),
+      normalizedCelestialBody,
+    ]);
+  }
 
   const persisted = await ctx.withDb('adding/updating celestial body in DB', (databaseService) =>
     databaseService.addOrUpdateCelestialBody(normalizedCelestialBody)
   );
+  if (ctx.databaseService && !persisted?.id) {
+    ctx.log('[context] Celestial body persistence returned no durable body');
+    throw new Error('Celestial body persistence returned no durable body');
+  }
 
   const result = persisted ? ctx.normalizeCelestialBody(persisted) : normalizedCelestialBody;
   ctx.celestialBodiesById.set(result.id, result);

@@ -9,6 +9,7 @@ const {
 const { isFiniteNumber, isTriple } = require('./handler-utils');
 const { validateCelestialBody } = require('../model/celestial-body-validation');
 const { assertCatalogIdentity, CatalogIdentityError } = require('../model/catalog-identity');
+const { assertUniverseMetadata } = require('../model/celestial-universe-metadata');
 
 class CelestialBodyUpsertMessageHandler {
   /**
@@ -139,6 +140,12 @@ class CelestialBodyUpsertMessageHandler {
       id: normalizedId || this.createDeterministicCelestialBodyId(celestialBody),
       surfaceArchetype: this.context.toNonEmptyString(celestialBody?.surfaceArchetype),
       catalogId: this.context.toNonEmptyString(celestialBody?.catalogId),
+      ...(celestialBody?.universeMetadata !== undefined
+        ? { universeMetadata: celestialBody.universeMetadata }
+        : {}),
+      ...(celestialBody?.isCatalogBody !== undefined
+        ? { isCatalogBody: celestialBody.isCatalogBody }
+        : {}),
       ...(celestialBody?.catalogIdentity !== undefined
         ? { catalogIdentity: celestialBody.catalogIdentity }
         : {}),
@@ -266,6 +273,7 @@ class CelestialBodyUpsertMessageHandler {
     const sourceCelestialBody = payload?.celestialBody || {};
     try {
       assertCatalogIdentity(sourceCelestialBody);
+      assertUniverseMetadata(sourceCelestialBody);
     } catch (error) {
       return { success: false, message: `CelestialBodyUpsert: ${error.message}`, playerName };
     }

@@ -1,0 +1,22 @@
+{
+  "version": "non-sol-market-density-v1",
+  "epoch": "2000-01-01T12:00:00.000Z",
+  "profiles": [
+    { "id": "frontier", "percent": 40, "min": 1, "max": 2 },
+    { "id": "developing", "percent": 35, "min": 3, "max": 5 },
+    { "id": "established", "percent": 20, "min": 6, "max": 9 },
+    { "id": "major-trade-center", "percent": 5, "min": 10, "max": 16 }
+  ],
+  "clearanceKm": 1000,
+  "radiusStepKm": 1500,
+  "attemptsPerHost": 512,
+  "roles": ["General Trade Exchange", "Logistics Supply Depot", "Ship Sales Exchange", "Research Outpost"],
+  "assumptions": [
+    "Authored settlement mix, not observational inference: frontier-heavy 40/35/20/5 percent with Hamilton quotas.",
+    "Systems ranked by SHA256(version, system ID); independent hash selects an inclusive profile total.",
+    "Targets include the accepted initial bulk market. Existing unrelated markets remain untouched and are reported separately at target preflight.",
+    "Roles are descriptive only. Every addition retains full ordinary inventory, hourly restock and default ship listings; no research or repair mechanics.",
+    "Circular generated-planet orbits, then fully specified catalog-planet fallback, require 1000 km surface, moon (including radius), ring and all-phase station-envelope clearance, within 0.1 periapsis Hill radius.",
+    "Analytic Kepler envelopes are conservative screening, not N-body certification. Unknown geometry or exhausted search holds the system; never silently lower a target."
+  ]
+}

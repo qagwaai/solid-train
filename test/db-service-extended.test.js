@@ -144,6 +144,27 @@ test('DatabaseService updateCharacter maps canonical ship name to shipName befor
   }
 });
 
+test('DatabaseService addCharacter persists normalized ship name as required shipName', async () => {
+  const service = new DatabaseService();
+  const originalFindOneAndUpdate = Player.findOneAndUpdate;
+  let capturedUpdate;
+  Player.findOneAndUpdate = async (_query, update) => {
+    capturedUpdate = update;
+    return { toObject: () => ({ characters: update.$push.characters }) };
+  };
+  try {
+    await service.addCharacter('pilot', {
+      id: 'c-1',
+      characterName: 'Pilot',
+      ships: [{ id: 's-1', name: 'Starter Ship' }],
+    });
+    assert.equal(capturedUpdate.$push.characters.ships[0].name, 'Starter Ship');
+    assert.equal(capturedUpdate.$push.characters.ships[0].shipName, 'Starter Ship');
+  } finally {
+    Player.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});
+
 test('DatabaseService addShip initializes ship list and appends data', async () => {
   const service = new DatabaseService();
   const originalFindOne = Player.findOne;

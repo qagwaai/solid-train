@@ -1,0 +1,29 @@
+{
+  "systemId": "exo-kepler-116",
+  "fitId": "lissauer-2013-table-7-jr-g-fixed",
+  "reference": "2013ApJ...770..131L",
+  "sourceUrl": "https://arxiv.org/html/1303.0227v2",
+  "reviewedAt": "2026-11-08",
+  "hostTable": 3,
+  "planetTable": 7,
+  "timeOriginJd": 2454900,
+  "dynamicalEpochOffsetDays": 680,
+  "restFramePeriodFactor": 1.00019,
+  "host": {
+    "massSolar": { "value": 0.961, "errorUpper": 0.025, "errorLower": -0.025 },
+    "radiusSolar": { "value": 1.065, "errorUpper": 0.017, "errorLower": -0.022 },
+    "temperatureK": { "value": 5663, "errorUpper": 55, "errorLower": -66 },
+    "luminositySolar": { "value": 1.045, "errorUpper": 0.061, "errorLower": -0.078 },
+    "ageGyr": { "value": 8.5, "errorUpper": 1.1, "errorLower": -1.4 }
+  },
+  "columns": ["periodDays", "transitOffsetDays", "eCosOmega", "eSinOmega", "massRatioMicro"],
+  "tupleFormat": "[nominal value, symmetric marginal 1-sigma error]; null error means fixed model parameter",
+  "planets": [
+    { "id": "exo-kepler-11-b", "parameters": [[10.3039, 0.0004], [689.7391, 0.0012], [0.050, 0.019], [0.014, 0.010], [6.80, 2.16]] },
+    { "id": "exo-kepler-11-c", "parameters": [[13.0240, 0.0005], [683.3497, 0.0010], [0.033, 0.016], [0.005, 0.008], [9.25, 3.34]] },
+    { "id": "exo-kepler-11-d", "parameters": [[22.6849, 0.0005], [694.0072, 0.0007], [-0.003, 0.004], [0.004, 0.003], [23.61, 1.84]] },
+    { "id": "exo-kepler-11-e", "parameters": [[31.9999, 0.0005], [695.0756, 0.0005], [-0.007, 0.003], [-0.007, 0.003], [23.85, 2.55]] },
+    { "id": "exo-kepler-11-f", "parameters": [[46.6877, 0.0014], [718.2697, 0.0021], [0.014, 0.005], [-0.001, 0.002], [5.26, 1.21]] },
+    { "id": "exo-kepler-11-g", "parameters": [[118.3806, 0.0005], [693.8010, 0.0010], [0, null], [0, null], [25.29, null]] }
+  ]
+}
