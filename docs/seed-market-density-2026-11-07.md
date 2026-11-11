@@ -1234,6 +1234,76 @@ node scripts/non-sol-market-density.js --action=readback --version=v2 "--input=$
 node scripts/non-sol-bulk-seed.js --action=readback "--out=$bulk" "--target=$target" "--approve-source=$sourceApproval"
 ```
 
+`scripts\run-non-sol-bulk-seed.ps1` runs both the bulk and density-v2 market
+stages. It requires the already prepared/reviewed density offline artifacts
+(`offline-report.json` and `semantic-replay.json`) in the density output
+directory, defaulting to `artifacts\non-sol-market-density-v2`:
+
+```powershell
+.\scripts\run-non-sol-bulk-seed.ps1 -Target 'mongodb://localhost:27017/solid-train-dev'
+# If bulk already passed its full readback, start at the market stage:
+.\scripts\run-non-sol-bulk-seed.ps1 -Target 'mongodb://localhost:27017/solid-train-dev' -MarketsOnly
+# Optional artifact directory overrides:
+.\scripts\run-non-sol-bulk-seed.ps1 -Target 'mongodb://localhost:27017/solid-train-dev' `
+  -Bulk 'artifacts\non-sol-bulk-v1-delivery' -Density 'artifacts\non-sol-market-density-v2'
+```
+
+The runner resolves relative artifact paths from the repository root and uses
+absolute script paths, so PowerShell's process working directory cannot redirect
+them to `C:\Windows\System32`. If the archive was extracted one level too deep,
+it also detects `artifacts\artifacts\...` and reports the selected directories.
+
+If the archived density report has an older source guard, the runner preserves
+it and creates a sibling directory suffixed with `-source-<current guard>`.
+It runs exact generation semantic replay and density-v2 offline preparation
+there before target preflight. A completed offline report in that directory is
+reused and validated by the existing density CLI; a partial preparation can be
+rerun. `-MarketsOnly` skips the initial bulk deployment/readback, but density
+preflight still requires complete bulk checkpoints and the final bulk readback
+still runs. If source changes require a new migration hash, the runner displays
+the replay-verified candidate and accepts `APPLY` to supply it automatically;
+no source or target receipt hash needs to be copied.
+
+The accepted old source guard
+`6e51ce5b2abe35c19e13f5b5979c0182cd7c6d5d0bb74932132ac3a1be5705e0` is **not**
+the `--approve-source` value. The wrapper defaults to the owner-authorized migration
+hash `1ad335a985c782e2b7c6acc13e4feeea38094b6af9e6967303b08c4a6ad720fe`.
+It reads each fresh dry-run receipt and passes its hash directly to the matching
+apply command; no receipt hash needs to be copied. After reviewing the complete
+bulk report, enter `APPLY` for new bulk writes or `READBACK` if bulk is already
+complete. It then performs the density-v2 full-target market dry-run, requires
+all 4,843 results with no blocked systems, and asks separately for `APPLY` or
+`READBACK` for density markets. It finishes with density readback and a second
+bulk readback. The target must meet the Copper Vale and Alpha/Barnard baseline
+prerequisites above; a blocked or mismatched target stops before market writes.
+
+For a new environment lacking the three legacy Alpha/Barnard markets, the
+runner now invokes `scripts\non-sol-density-baseline-seed.js` before density
+preflight. It checks all three globally by exact ID/identity/placement and
+offers `APPLY` to insert only missing baseline markets. Payloads use canonical
+initial inventory, empty ledgers and default ship listings; this is not a copy
+of the other database's live economy. Existing markets and other database
+documents remain unchanged. The helper uses a fresh fingerprint-bound receipt,
+the existing local-target/source/artifact checks, stopped-writer checks and
+independent readback. No hash copying is required.
+
+Existing canonical baseline markets may have different snapshot times and
+positions in a new environment. The initial preflight accepts those snapshot
+differences only when identity, anchors, orbital dimensions and phase elements
+still match the delivered baseline. Station orbit epochs remain fixed; the
+free-floating belt's orbit epoch must match its snapshot epoch. Snapshot
+positions must be finite and epoch values valid. All-phase density clearance
+screens use the unchanged orbital envelopes, not snapshot positions.
+The density checkpoint captures the target's exact baseline identity/placement
+and subsequent readback/resume refuses any change to it. Target-receipt
+fingerprints also prevent changes between dry-run and apply.
+
+This intentionally restores the delivered legacy placements, including the
+known invalid/unknown geometry in the baseline evidence; it does not repair or
+certify them. A present but different/duplicate baseline still refuses without
+inserting any missing baseline markets. Copper Vale is still a separate
+prerequisite. Run with `-MarketsOnly` when bulk readback already succeeded.
+
 On the current already-completed bulk target, stage A needs its full dry-run
 and readback but **no bulk apply**. For genuine interruptions at either stage,
 rerun that stage's full target dry-run, review all results, obtain a **new**
@@ -1245,8 +1315,9 @@ between target URIs.
 
 **Cross-environment baseline prerequisite:** this v2 delivery expects the exact
 three inspected legacy market identity/placement snapshots (not their stocks).
-A dev DB with different lazy-seed snapshot epochs/geometry, missing legacy
-markets or additional markets will refuse. Do not rewrite live markets,
+A dev DB with different lazy-seed snapshot epochs/geometry or additional
+markets will refuse. The runner can insert missing legacy markets from the
+exact delivered snapshots as described above. Do not rewrite live markets,
 baseline JSON or old accepted artifacts to force a match. Capture focused
 read-only evidence there, prepare a **new versioned, owner-reviewed baseline
 snapshot/density revision**, then obtain its source migration and target

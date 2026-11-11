@@ -8,10 +8,10 @@ const { buildDensityPlan } = require('./non-sol-market-density-plan');
 
 const stateKey = (id) => `non-sol-market-density:${id}`;
 
-function checkpoint(plan, sourceGuard, status) {
+function checkpoint(plan, sourceGuard, status, preservedMarkets = plan.preservedMarkets) {
   const payload = { schemaVersion: plan.schemaVersion, systemId: plan.systemId,
     baselinePlanSha256: plan.baselinePlanSha256, planSha256: plan.planSha256, sourceGuard, status,
-    ...(plan.schemaVersion === 'non-sol-market-density-v2' ? { preservedMarkets: plan.preservedMarkets } : {}),
+    ...(plan.schemaVersion === 'non-sol-market-density-v2' ? { preservedMarkets } : {}),
     markets: plan.markets.map(densityMarketIdentity) };
   return { ...payload, checkpointSha256: sha256(payload) };
 }
@@ -64,8 +64,13 @@ async function applyDensity(db, base, plan, baselineGuard, densityGuard, options
   const before = await preflightDensity(db, base, plan, baselineGuard, densityGuard);
   if (before.status === 'complete') return before;
   const key = stateKey(plan.systemId);
+  const preservedMarkets = [];
+  for (const expected of plan.preservedMarkets || []) {
+    preservedMarkets.push(densityMarketIdentity(await db.collection(COLLECTIONS.markets)
+      .findOne({ marketId: expected.marketId })));
+  }
   await db.collection(COLLECTIONS.state).updateOne({ _id: key },
-    { $setOnInsert: { key, value: checkpoint(plan, densityGuard, 'applying') } }, { upsert: true });
+    { $setOnInsert: { key, value: checkpoint(plan, densityGuard, 'applying', preservedMarkets) } }, { upsert: true });
   await preflightDensity(db, base, plan, baselineGuard, densityGuard);
   for (const market of plan.markets) {
     await db.collection(COLLECTIONS.markets).updateOne({ marketId: market.marketId },
@@ -76,7 +81,7 @@ async function applyDensity(db, base, plan, baselineGuard, densityGuard, options
   assert.equal(checked.missing.length, 0, 'Density missing after insertion');
   const changed = await db.collection(COLLECTIONS.state).updateOne({ _id: key,
     'value.planSha256': plan.planSha256, 'value.sourceGuard': densityGuard },
-  { $set: { value: checkpoint(plan, densityGuard, 'complete') } });
+  { $set: { value: checkpoint(plan, densityGuard, 'complete', preservedMarkets) } });
   assert.equal(changed.matchedCount, 1, 'Density checkpoint changed concurrently');
   return preflightDensity(db, base, plan, baselineGuard, densityGuard);
 }

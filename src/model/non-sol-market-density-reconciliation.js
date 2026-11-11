@@ -11,16 +11,46 @@ function densityMarketIdentity(market) {
     .map((field) => [field, market[field]]));
 }
 
+/** @param {any} actual @param {any} expected */
+function assertBaselineSnapshot(actual, expected) {
+  const stable = (market) => {
+    const value = JSON.parse(JSON.stringify(densityMarketIdentity(market)));
+    delete value.spatial.positionKm;
+    delete value.spatial.epochMs;
+    if (value.siteType === 'free-floating') delete value.trajectory.orbit.epoch;
+    return value;
+  };
+  assert.deepEqual(stable(actual), stable(expected), `Baseline orbital geometry drift: ${expected.marketId}`);
+  assert.ok(Number.isSafeInteger(actual.spatial.epochMs), 'Invalid baseline snapshot epoch');
+  assert.ok(['x', 'y', 'z'].every((axis) => Number.isFinite(actual.spatial.positionKm[axis])),
+    'Invalid baseline snapshot position');
+  if (actual.siteType === 'free-floating') {
+    assert.equal(Date.parse(actual.trajectory.orbit.epoch), actual.spatial.epochMs,
+      'Free-floating baseline orbit/snapshot epochs differ');
+  }
+  if (actual.spatial.epochMs === expected.spatial.epochMs) {
+    assert.deepEqual(actual.spatial, expected.spatial, 'Baseline position changed without a new snapshot epoch');
+  }
+}
+
 /** @param {any} state @param {any[]} markets */
 function reconcilePreservedDensityMarkets(state, markets) {
   const isV2 = state.schemaVersion === 'non-sol-market-density-v2';
   const expected = isV2 ? require('../../data/non-sol-market-density-baseline-v2.json').markets
     .filter((m) => m.solarSystemId === state.systemId) : [];
-  assert.deepEqual(state.preservedMarkets || [], expected, 'Density preserved baseline evidence drift');
-  for (const e of expected) {
+  const preserved = state.preservedMarkets || [];
+  assert.deepEqual(preserved.map((m) => m.marketId), expected.map((m) => m.marketId),
+    'Density preserved baseline evidence drift');
+  for (const [index, e] of expected.entries()) {
+    assertBaselineSnapshot(preserved[index], e);
     const matches = markets.filter((m) => m.marketId === e.marketId);
     assert.equal(matches.length, 1, `Preserved density baseline missing/duplicate: ${e.marketId}`);
-    assert.deepEqual(densityMarketIdentity(matches[0]), e, `Preserved density baseline identity/geometry drift: ${e.marketId}`);
+    const actual = densityMarketIdentity(matches[0]);
+    if (['applying', 'complete'].includes(state.status)) {
+      assert.deepEqual(actual, preserved[index], `Preserved density baseline identity/geometry drift: ${e.marketId}`);
+    } else {
+      assertBaselineSnapshot(actual, e);
+    }
   }
 }
 
@@ -59,4 +89,4 @@ function reconcileDensityMarkets(state, markets, bulkState) {
   }
 }
 
-module.exports = { densityMarketIdentity, reconcileDensityMarkets, reconcilePreservedDensityMarkets };
+module.exports = { densityMarketIdentity, assertBaselineSnapshot, reconcileDensityMarkets, reconcilePreservedDensityMarkets };
