@@ -113,7 +113,7 @@ function buildStation(systemId, row, bodies, star) {
   return null;
 }
 
-function generateBulkSystem(row, options = {}) {
+async function generateBulkSystem(row, options = {}) {
   assert.notEqual(row.id, 'sol');
   assert.notEqual(row.id, 'exo-gj-9066');
   const baseBodies = buildSeededCelestialBodiesForSolarSystem(row.id, policy.epoch);
@@ -126,15 +126,15 @@ function generateBulkSystem(row, options = {}) {
       (b.bodyType === 'planet' && b.physicalCatalog.massKg > star.physicalCatalog.massKg * 0.01))) : [];
   const rejected = [];
   const generated = [];
-  const blocked = (reason, kind = 'no-viable-screened-proposal') => {
+  const blocked = async (reason, kind = 'no-viable-screened-proposal') => {
     if (!options.aggregate && companions.length) {
-      const alternative = generateBulkSystem(row, { ...options, aggregate: true });
+      const alternative = await generateBulkSystem(row, { ...options, aggregate: true });
       if (alternative.status === 'ready') return alternative;
       alternative.assumptions.unshift(`Circumprimary attempt exhausted: ${reason}`);
       return alternative;
     }
     if (!options.extended) {
-      const alternative = generateBulkSystem(row, { ...options, extended: true });
+      const alternative = await generateBulkSystem(row, { ...options, extended: true });
       if (alternative.status === 'ready') return alternative;
       alternative.assumptions.unshift(`Standard-domain attempt exhausted: ${reason}`);
       return alternative;
@@ -251,9 +251,9 @@ function generateBulkSystem(row, options = {}) {
   assertUniverseRelationships(bodies);
   for (const body of bodies) {
     assert.ok(validateCelestialBody(body), JSON.stringify(validateCelestialBody.errors));
-    assert.ifError(new CelestialBody(body).validateSync());
+    await new CelestialBody(body).validate();
   }
-  assert.ifError(new Market(market).validateSync());
+  await new Market(market).validate();
   const result = { schemaVersion: policy.version, systemId: row.id, status: 'ready',
     scientificStatus: 'hypothetical-uncertain', runtimeCompatible: true, sourceSha256,
     baseSha256: sha256(baseBodies), assumptions, rejected, naming: named.counts,

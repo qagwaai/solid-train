@@ -30,7 +30,7 @@ async function replay(input, out) {
       const accepted = readAccepted(input, record);
       if (accepted.status !== 'ready') continue;
       const row = manifest.systems.find((s) => s.id === accepted.systemId);
-      const actual = generateBulkSystem(row, { namingOffset, narrativeOffset });
+      const actual = await generateBulkSystem(row, { namingOffset, narrativeOffset });
       assert.equal(actual.planSha256, accepted.planSha256, `Semantic generation replay mismatch: ${row.id}`);
       assert.deepEqual(actual, accepted, `Exact semantic payload changed: ${row.id}`);
       rows.push({ systemId: row.id, planSha256: actual.planSha256,

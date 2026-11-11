@@ -15,13 +15,14 @@ const { sha256 } = require('../src/model/copper-vale-catalog-reconciliation');
 const { buildSeededCelestialBodiesForSolarSystem } = require('../src/model/solar-system-celestial-seed');
 const { previewCopperValeP4 } = require('../src/model/non-sol-p4-preview');
 const { seedSolarSystemCelestialBodiesAsync } = require('../src/handlers/context/celestial-operations-service');
+const { CelestialBody, Market } = require('../src/db/models');
 
 const row = (id) => manifest.systems.find((s) => s.id === id);
 const plan = () => generateBulkSystem(row('exo-kepler-11'));
 
-test('deterministic complete hypothetical families preserve catalog and supported runtime shape', () => {
-  const first = plan();
-  assert.deepEqual(plan(), first);
+test('deterministic complete hypothetical families preserve catalog and supported runtime shape', async () => {
+  const first = await plan();
+  assert.deepEqual(await plan(), first);
   assert.equal(first.status, 'ready');
   assert.equal(first.runtimeCompatible, true);
   assert.deepEqual(first.baseBodies, buildSeededCelestialBodiesForSolarSystem(first.systemId, policy.epoch));
@@ -32,28 +33,39 @@ test('deterministic complete hypothetical families preserve catalog and supporte
     b.universeMetadata.resourceProfile.accessibility === 'accessible'));
 });
 
-test('close binary, evolved and compact domains are attempted without literature/occurrence gates', () => {
+test('bulk generation awaits model validation and propagates failures', async (t) => {
+  for (const model of [CelestialBody, Market]) {
+    const validation = t.mock.method(model.prototype, 'validate', async () => {
+      throw new Error('validation failed');
+    });
+    await assert.rejects(plan(), /validation failed/);
+    assert.ok(validation.mock.callCount() > 0);
+    validation.mock.restore();
+  }
+});
+
+test('close binary, evolved and compact domains are attempted without literature/occurrence gates', async () => {
   for (const id of ['cygnus-x1', 'exo-kepler-16', 'exo-11-com', 'exo-2mass-j01225093-2439505', 'exo-hd-4113', 'exo-cd-35-2722']) {
-    const result = generateBulkSystem(row(id));
+    const result = await generateBulkSystem(row(id));
     assert.equal(result.status, 'ready', `${id}: ${result.reason}`);
     assert.equal(result.scientificStatus, 'hypothetical-uncertain');
     assert.ok(result.generatedBodies.some((b) => b.bodyType === 'moon'), `${id}: no moon`);
   }
 });
 
-test('Sol and accepted Copper Vale cannot enter the bulk generator; accepted P4 remains fixed', () => {
-  assert.throws(() => generateBulkSystem(row('exo-gj-9066')));
-  assert.throws(() => generateBulkSystem({ id: 'sol' }));
+test('Sol and accepted Copper Vale cannot enter the bulk generator; accepted P4 remains fixed', async () => {
+  await assert.rejects(generateBulkSystem(row('exo-gj-9066')));
+  await assert.rejects(generateBulkSystem({ id: 'sol' }));
   const frozen = require('../data/copper-vale-body-naming-manifest-v1.json');
   assert.equal(previewCopperValeP4().p3InputSha256, frozen.p3InputSha256);
 });
 
-test('cumulative naming allocation honors rounded global 60/40 and all weighted languages', () => {
+test('cumulative naming allocation honors rounded global 60/40 and all weighted languages', async () => {
   let offset = 0;
   let narrative = 0;
   const languages = new Set();
   for (let i = 0; i < 20; i++) {
-    const p = generateBulkSystem(row('exo-kepler-11'), { namingOffset: offset, narrativeOffset: narrative });
+    const p = await generateBulkSystem(row('exo-kepler-11'), { namingOffset: offset, narrativeOffset: narrative });
     offset += p.naming.inherited + p.naming.narrative;
     narrative += p.naming.narrative;
     Object.keys(p.naming.languages).forEach((l) => languages.add(l));
@@ -127,7 +139,7 @@ test('journal and artifact corruption fail closed, and live-worker locks are not
 });
 
 test('bulk lazy seed precedence verifies complete checkpoint on cache miss and refuses force/incomplete/drift', async () => {
-  const p = plan();
+  const p = await plan();
   const bodies = [...p.baseBodies, ...p.generatedBodies];
   const complete = checkpoint(p, 'guard', 'complete');
   let writes = 0;

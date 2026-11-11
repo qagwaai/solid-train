@@ -2,13 +2,12 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
+const { bulkFixture } = require('../test-support/non-sol-bulk-fixture');
 const { allocationsV2, buildDensityPlanV2, evidence } = require('../scripts/lib/non-sol-market-density-v2');
 const { allocations, peerClearanceEvidence, supply } = require('../scripts/lib/non-sol-market-density-plan');
 const { sha256 } = require('../src/model/copper-vale-catalog-reconciliation');
 const manifest = require('../data/non-sol-celestial-generation-manifest-v1.json');
 const { parseArguments } = require('../scripts/non-sol-market-density');
-const base = (id) => JSON.parse(fs.readFileSync(`artifacts/non-sol-bulk-v1-delivery/${id}.json`, 'utf8'));
 
 test('v2 overrides Alpha only for profile allocation; Barnard stays eight and all other hash assignments are stable', () => {
   const ids = manifest.systems.filter((s) => s.id !== 'exo-gj-9066').map((s) => s.id);
@@ -19,10 +18,10 @@ test('v2 overrides Alpha only for profile allocation; Barnard stays eight and al
   for (const id of ids.filter((id) => id !== 'alpha-centauri')) assert.deepEqual(current.get(id), old.get(id), id);
 });
 
-test('Alpha preserves exactly three baseline markets, zero additions and explicitly unresolved existing geometry', () => {
-  const b = base('alpha-centauri');
+test('Alpha preserves exactly three baseline markets, zero additions and explicitly unresolved existing geometry', async () => {
+  const b = await bulkFixture('alpha-centauri');
   const before = sha256(b);
-  const plan = buildDensityPlanV2(b, { profile: 'developing', target: 3 });
+  const plan = await buildDensityPlanV2(b, { profile: 'developing', target: 3 });
   assert.equal(plan.status, 'ready');
   assert.equal(plan.existingMarketCount, 3);
   assert.equal(plan.markets.length, 0);
@@ -32,12 +31,12 @@ test('Alpha preserves exactly three baseline markets, zero additions and explici
   assert.equal(plan.legacyGeometryFindings[0].status, 'unresolved-existing-only');
   assert.equal(plan.legacyGeometryFindings[1].surfaceClearanceAtPeriapsisKm, -104140.94);
   assert.equal(sha256(b), before);
-  assert.throws(() => buildDensityPlanV2(b, { profile: 'frontier', target: 2 }), /override/);
+  await assert.rejects(buildDensityPlanV2(b, { profile: 'frontier', target: 2 }), /override/);
 });
 
-test('Barnard counts both baselines and screens all six additions against the legacy elliptical station', () => {
-  const b = base('barnards-star');
-  const plan = buildDensityPlanV2(b, { profile: 'established', target: 8 });
+test('Barnard counts both baselines and screens all six additions against the legacy elliptical station', async () => {
+  const b = await bulkFixture('barnards-star');
+  const plan = await buildDensityPlanV2(b, { profile: 'established', target: 8 });
   assert.equal(plan.status, 'ready');
   assert.equal(plan.existingMarketCount, 2);
   assert.equal(plan.markets.length, 6);

@@ -3,14 +3,19 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { bulkFixture } = require('../test-support/non-sol-bulk-fixture');
 const { allocations, buildDensityPlan, supply, policy } = require('../scripts/lib/non-sol-market-density-plan');
 const { parseArguments } = require('../scripts/non-sol-market-density');
 const { verifyArtifacts } = require('../scripts/lib/non-sol-bulk-artifacts');
 const { sha256 } = require('../src/model/copper-vale-catalog-reconciliation');
 const { reconcileDensityMarkets } = require('../src/model/non-sol-market-density-reconciliation');
 const { checkpoint } = require('../scripts/lib/non-sol-market-density-lifecycle');
+const { Market } = require('../src/db/models');
 const input = 'artifacts/non-sol-bulk-v1-delivery';
-const base = JSON.parse(fs.readFileSync(`${input}/exo-kepler-11.json`, 'utf8'));
+let base;
+test.before(async () => { base = await bulkFixture('exo-kepler-11'); });
 
 test('Hamilton full cohort mix is deterministic, complete and within accepted profile ranges', () => {
   const ids = Array.from({ length: 4843 }, (_, i) => `system-${i}`);
@@ -25,10 +30,10 @@ test('Hamilton full cohort mix is deterministic, complete and within accepted pr
   assert.deepEqual(counts, { frontier: 1937, developing: 1695, established: 969, 'major-trade-center': 242 });
 });
 
-test('16-market target is additive, canonical and physically screened without changing baseline', () => {
+test('16-market target is additive, canonical and physically screened without changing baseline', async () => {
   const original = sha256(base);
-  const p = buildDensityPlan(base, { profile: 'major-trade-center', target: 16 });
-  assert.deepEqual(p, buildDensityPlan(base, { profile: p.profile, target: p.target }));
+  const p = await buildDensityPlan(base, { profile: 'major-trade-center', target: 16 });
+  assert.deepEqual(p, await buildDensityPlan(base, { profile: p.profile, target: p.target }));
   assert.equal(p.status, 'ready');
   assert.equal(p.markets.length, 15);
   assert.equal(sha256(base), original);
@@ -46,14 +51,24 @@ test('16-market target is additive, canonical and physically screened without ch
   assert.ok(p.markets.every((m) => m.inventory.length === 21 && m.shipListings.length === 1));
 });
 
-test('frontier one adds nothing; impossible placement reports explicit hold, never clamps target', () => {
-  assert.equal(buildDensityPlan(base, { profile: 'frontier', target: 1 }).markets.length, 0);
+test('frontier one adds nothing; impossible placement reports explicit hold, never clamps target', async () => {
+  assert.equal((await buildDensityPlan(base, { profile: 'frontier', target: 1 })).markets.length, 0);
   const noHosts = { ...base, generatedBodies: [], baseBodies: base.baseBodies.filter((b) => b.bodyType === 'star') };
-  const p = buildDensityPlan(noHosts, { profile: 'major-trade-center', target: 16 });
+  const p = await buildDensityPlan(noHosts, { profile: 'major-trade-center', target: 16 });
   assert.equal(p.status, 'hold');
   assert.equal(p.shortfall, 15);
   assert.equal(p.target, 16);
-  assert.throws(() => buildDensityPlan({ ...base, systemId: 'exo-gj-9066' }, { target: 2 }));
+  await assert.rejects(buildDensityPlan({ ...base, systemId: 'exo-gj-9066' }, { target: 2 }));
+});
+
+test('density planning awaits market validation and records a rejected placement', async (t) => {
+  const validation = t.mock.method(Market.prototype, 'validate', async () => {
+    throw new Error('validation failed');
+  });
+  const plan = await buildDensityPlan(base, { profile: 'developing', target: 3 });
+  assert.ok(validation.mock.callCount() > 0);
+  assert.equal(plan.status, 'hold');
+  assert.ok(plan.rejected['unknown-geometry:validation failed'] > 0);
 });
 
 test('guarded CLI refuses remote/default write targets, absent receipts and input overwrite', () => {
@@ -63,12 +78,20 @@ test('guarded CLI refuses remote/default write targets, absent receipts and inpu
     ['--target=mongodb://localhost:27017/solid-train', '--action=apply'],
     [`--out=${input}`], ['--unknown=true'], ['--action=prepare', '--approve=' + 'a'.repeat(64)],
   ]) assert.throws(() => parseArguments(args));
-  assert.throws(() => verifyArtifacts(input), /Source guard drift/);
-  assert.throws(() => verifyArtifacts(input, 'a'.repeat(64)), /Source guard drift/);
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'density-guard-'));
+  try {
+    fs.writeFileSync(path.join(out, 'header.json'), JSON.stringify({ sourceGuard: 'outdated' }));
+    const record = { systemId: 'fixture', previous: null };
+    fs.writeFileSync(path.join(out, 'progress.jsonl'), JSON.stringify({ ...record, recordSha256: sha256(record) }) + '\n');
+    assert.throws(() => verifyArtifacts(out), /Source guard drift/);
+    assert.throws(() => verifyArtifacts(out, 'a'.repeat(64)), /Source guard drift/);
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
 });
 
-test('density reconciliation is exact checkpoint identity, not a prefix whitelist', () => {
-  const p = buildDensityPlan(base, { profile: 'developing', target: 3 });
+test('density reconciliation is exact checkpoint identity, not a prefix whitelist', async () => {
+  const p = await buildDensityPlan(base, { profile: 'developing', target: 3 });
   const state = checkpoint(p, 'guard', 'complete');
   const all = [...p.markets, base.market];
   assert.doesNotThrow(() => reconcileDensityMarkets(state, all, base));

@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
+const { bulkFixture } = require('../test-support/non-sol-bulk-fixture');
 const mongoose = require('mongoose');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
 const { baselinePreflight, seedBaseline } = require('../scripts/non-sol-density-baseline-seed');
@@ -22,9 +22,9 @@ test('insert-only baseline restore unblocks Alpha/Barnard density without changi
   for (const [id, profile, target] of [
     ['alpha-centauri', 'developing', 3], ['barnards-star', 'established', 8],
   ]) {
-    const base = JSON.parse(fs.readFileSync(`artifacts/non-sol-bulk-v1-delivery/${id}.json`, 'utf8'));
+    const base = await bulkFixture(id);
     await applySystem(db, base, 'bulk-guard');
-    bases.push({ base, plan: buildDensityPlanV2(base, { profile, target }), target });
+    bases.push({ base, plan: await buildDensityPlanV2(base, { profile, target }), target });
   }
   const before = await protectedFingerprint(db);
   assert.ok((await baselinePreflight(db)).every((row) => row.status === 'missing'));
@@ -75,7 +75,7 @@ test('different geometry or cross-system collision refuses before inserting any 
 });
 
 test('new environment snapshot epochs are accepted initially and then bound exactly to the density checkpoint', async () => {
-  const base = JSON.parse(fs.readFileSync('artifacts/non-sol-bulk-v1-delivery/barnards-star.json', 'utf8'));
+  const base = await bulkFixture('barnards-star');
   await applySystem(db, base, 'bulk-guard');
   await seedBaseline(db);
   const snapshotEpoch = Date.parse('2026-11-10T20:27:38.558Z');
@@ -85,7 +85,7 @@ test('new environment snapshot epochs are accepted initially and then bound exac
     { $set: { 'spatial.epochMs': snapshotEpoch, 'trajectory.orbit.epoch': new Date(snapshotEpoch).toISOString() } });
   assert.ok((await baselinePreflight(db)).every((row) => row.status === 'existing'));
   const existing = await db.collection(COLLECTIONS.markets).findOne({ marketId: 'bs-main-station' });
-  const plan = buildDensityPlanV2(base, { profile: 'established', target: 8 });
+  const plan = await buildDensityPlanV2(base, { profile: 'established', target: 8 });
   await applyDensity(db, base, plan, 'bulk-guard', 'density-guard');
   assert.deepEqual(await db.collection(COLLECTIONS.markets).findOne({ marketId: existing.marketId }), existing);
   await preflightDensity(db, base, plan, 'bulk-guard', 'density-guard');

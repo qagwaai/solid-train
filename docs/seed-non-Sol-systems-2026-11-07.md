@@ -3949,6 +3949,13 @@ Offline report hash:
 Source guard:
 `6e51ce5b2abe35c19e13f5b5979c0182cd7c6d5d0bb74932132ac3a1be5705e0`.
 
+The bulk generator and density planners now use asynchronous Mongoose model
+validation. Their exported generation/planning functions must be awaited.
+This changes source-guarded files; before a future delivery or deployment,
+perform the existing semantic replay and obtain a new source-migration approval
+and target-specific preflight. Previously accepted plans and approvals are not
+silently replaced.
+
 ## Final appendix: fully blocked systems for the bulk track
 
 **None in the accepted bulk deployment (`blocked: []` in the offline report).**

@@ -14,7 +14,7 @@ function allocationsV2(ids) {
   return result;
 }
 
-function buildDensityPlanV2(base, allocation) {
+async function buildDensityPlanV2(base, allocation) {
   const existing = evidence.markets.filter((m) => m.solarSystemId === base.systemId);
   const override = policy.overrides[base.systemId];
   if (override) {

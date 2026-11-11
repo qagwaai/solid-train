@@ -3,7 +3,7 @@
     "errors": [
       "Exception metadata requires approvals.backendLead=true and approvals.frontendLead=true"
     ],
-    "path": "C:\\Development\\Projects\\Github\\solid-train\\test\\fixtures\\sw08\\missing-approval-exception.json"
+    "path": "D:\\at-template\\solid-train\\test\\fixtures\\sw08\\missing-approval-exception.json"
   },
   "issues": [
     {

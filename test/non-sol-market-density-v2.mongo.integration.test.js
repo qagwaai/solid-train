@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
+const { bulkFixture } = require('../test-support/non-sol-bulk-fixture');
 const mongoose = require('mongoose');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
 const { buildDensityPlanV2 } = require('../scripts/lib/non-sol-market-density-v2');
@@ -17,9 +17,9 @@ test.after(async () => { if (harness) await harness.teardown(); });
 test.beforeEach(async () => { await harness.clearDatabase(); });
 
 async function fixture(id, profile, target) {
-  const base = JSON.parse(fs.readFileSync(`artifacts/non-sol-bulk-v1-delivery/${id}.json`, 'utf8'));
+  const base = await bulkFixture(id);
   await applySystem(db, base, 'accepted-guard');
-  const plan = buildDensityPlanV2(base, { profile, target });
+  const plan = await buildDensityPlanV2(base, { profile, target });
   const context = new MessageHandlerContext({ databaseService: {}, log: () => {} });
   for (const m of plan.preservedMarkets) {
     const seed = createSeedMarketPayload(context, m, '2000-01-01T12:00:00.000Z');

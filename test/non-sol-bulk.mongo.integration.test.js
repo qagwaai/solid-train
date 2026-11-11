@@ -17,7 +17,7 @@ let db;
 test.before(async () => {
   harness = await createMongoTestHarness();
   db = mongoose.connection.db;
-  p = generateBulkSystem(manifest.systems.find((s) => s.id === 'exo-kepler-11'));
+  p = await generateBulkSystem(manifest.systems.find((s) => s.id === 'exo-kepler-11'));
 });
 test.after(async () => { if (harness) await harness.teardown(); });
 test.beforeEach(async () => {
@@ -69,7 +69,7 @@ test('unowned IDs, player bodies, catalog identities and changed source plans bl
   await db.collection(COLLECTIONS.markets).insertOne(structuredClone(p.market));
   await assert.rejects(applySystem(db, p, 'guard'), /Unowned market ID/);
   await db.collection(COLLECTIONS.markets).deleteMany({});
-  const curated = generateBulkSystem(manifest.systems.find((s) => s.id === 'cygnus-x1'));
+  const curated = await generateBulkSystem(manifest.systems.find((s) => s.id === 'cygnus-x1'));
   assert.ok(curated.baseBodies[0].catalogIdentity);
   await db.collection(COLLECTIONS.bodies).insertOne({ ...curated.baseBodies[0], id: 'different-id' });
   await assert.rejects(applySystem(db, curated, 'guard'), /Catalog identity collision/);

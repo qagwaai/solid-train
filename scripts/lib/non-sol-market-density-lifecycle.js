@@ -20,7 +20,7 @@ async function preflightDensity(db, base, plan, baselineGuard, densityGuard) {
   const { planSha256, ...payload } = plan;
   assert.equal(sha256(payload), planSha256, 'Density plan checksum mismatch');
   const build = plan.schemaVersion === 'non-sol-market-density-v2' ? require('./non-sol-market-density-v2').buildDensityPlanV2 : buildDensityPlan;
-  assert.deepEqual(plan, build(base, { profile: plan.profile, target: plan.target }), 'Density plan screening drift');
+  assert.deepEqual(plan, await build(base, { profile: plan.profile, target: plan.target }), 'Density plan screening drift');
   assert.equal(plan.status, 'ready', 'Density shortfall hold');
   assert.equal(plan.baselinePlanSha256, base.planSha256);
   const baseline = await preflightSystem(db, base, baselineGuard);

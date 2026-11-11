@@ -2,17 +2,20 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
+const { bulkFixture } = require('../test-support/non-sol-bulk-fixture');
 const mongoose = require('mongoose');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
 const { buildDensityPlan } = require('../scripts/lib/non-sol-market-density-plan');
 const { preflightDensity, applyDensity, stateKey } = require('../scripts/lib/non-sol-market-density-lifecycle');
 const { applySystem, readbackSystem, protectedFingerprint, COLLECTIONS } = require('../scripts/lib/non-sol-bulk-lifecycle');
 const { seedSolarSystemCelestialBodiesAsync } = require('../src/handlers/context/celestial-operations-service');
-const base = JSON.parse(fs.readFileSync('artifacts/non-sol-bulk-v1-delivery/exo-kepler-11.json', 'utf8'));
-const plan = buildDensityPlan(base, { profile: 'major-trade-center', target: 16 });
+let base; let plan;
 let harness; let db;
-test.before(async () => { harness = await createMongoTestHarness(); db = mongoose.connection.db; });
+test.before(async () => {
+  base = await bulkFixture('exo-kepler-11');
+  plan = await buildDensityPlan(base, { profile: 'major-trade-center', target: 16 });
+  harness = await createMongoTestHarness(); db = mongoose.connection.db;
+});
 test.after(async () => { if (harness) await harness.teardown(); });
 test.beforeEach(async () => {
   await harness.clearDatabase();

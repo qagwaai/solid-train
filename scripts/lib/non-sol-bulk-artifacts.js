@@ -117,7 +117,7 @@ async function prepare(out, options = {}) {
         continue;
       }
       const plan = row.id === 'exo-gj-9066' ? { systemId: row.id, status: 'protected', ...header.preservation } :
-        generateBulkSystem(row, { namingOffset, narrativeOffset });
+        await generateBulkSystem(row, { namingOffset, narrativeOffset });
       namingOffset += (plan.naming?.inherited || 0) + (plan.naming?.narrative || 0);
       narrativeOffset += plan.naming?.narrative || 0;
       atomicWrite(path.join(out, `${row.id}.json`), plan);

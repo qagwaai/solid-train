@@ -65,7 +65,7 @@ function peerClearanceEvidence(host, radius, peers, bodies) {
   });
 }
 
-function buildDensityPlan(base, allocation, options = {}) {
+async function buildDensityPlan(base, allocation, options = {}) {
   assert.equal(base.status, 'ready');
   assert.ok(!['sol', 'exo-gj-9066'].includes(base.systemId));
   const profile = policy.profiles.find((p) => p.id === allocation.profile);
@@ -111,7 +111,7 @@ function buildDensityPlan(base, allocation, options = {}) {
             reason: 'Screened hypothetical density station; descriptive role only.' },
           trajectory: { kind: 'orbital-elements', orbit: screen.orbit }, spatial: screen.spatial };
         const market = createSeedMarketPayload(context, station, policy.epoch);
-        assert.ifError(new Market(market).validateSync());
+        await new Market(market).validate();
         markets.push(market);
         peers.push(market);
         screens.push({ marketId: market.marketId, ...screen.clearance, peerMarketIds: peers.slice(0, -1).map((m) => m.marketId),
@@ -224,7 +224,7 @@ async function prepareDensity(input, out, options = {}) {
     for (const record of records) {
       const base = readAccepted(input, record);
       if (base.status !== 'ready') continue;
-      const plan = (v2 ? v2.buildDensityPlanV2 : buildDensityPlan)(base, allocation.get(base.systemId));
+      const plan = await (v2 ? v2.buildDensityPlanV2 : buildDensityPlan)(base, allocation.get(base.systemId));
       const file = path.join(out, `${base.systemId}.json`);
       if (fs.existsSync(file)) assert.deepEqual(JSON.parse(fs.readFileSync(file, 'utf8')), plan, 'Density resume source drift');
       else atomicWrite(file, plan);
