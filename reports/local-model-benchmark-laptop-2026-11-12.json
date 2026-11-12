@@ -1,0 +1,146 @@
+{
+  "capturedAt": "2026-11-12T18:45:28.104Z",
+  "hardware": {
+    "platform": "win32 10.0.26200",
+    "architecture": "x64",
+    "cpu": {
+      "model": "Intel(R) Core(TM) i7-10850H CPU @ 2.70GHz",
+      "logicalProcessors": 12
+    },
+    "memory": {
+      "totalBytes": 68334764032,
+      "totalGiB": 63.64
+    },
+    "gpu": {
+      "status": "available",
+      "devices": [
+        {
+          "name": "Quadro RTX 3000",
+          "memoryTotalMiB": 6144,
+          "driverVersion": "596.71"
+        }
+      ]
+    }
+  },
+  "runner": {
+    "name": "LM Studio OpenAI-compatible local API",
+    "baseUrl": "http://127.0.0.1:1234",
+    "availableModelIds": [
+      "qwen_qwen3.5-4b",
+      "qwen_qwen3.5-9b",
+      "text-embedding-nomic-embed-text-v1.5"
+    ],
+    "loadSettings": "Existing LM Studio model load settings; not changed by this test."
+  },
+  "benchmark": {
+    "measuredRequestsPerModel": 3,
+    "warmupRequestsPerModel": 1,
+    "prompt": "You are the market manager at a space station. Give a friendly greeting in 2-3 sentences and report current inventory: 1,200 iron, 640 titanium, and 80 platinum. Do not invent prices or offers.",
+    "reasoningEffort": "none",
+    "maxOutputTokens": 128,
+    "outputTokensPerSecondFormula": "output tokens / (total response time - time to first generated text)",
+    "resourceScope": "System-wide samples at 500 ms intervals; not isolated to the model process."
+  },
+  "results": [
+    {
+      "modelId": "qwen_qwen3.5-4b",
+      "warmup": {
+        "totalResponseMs": 5134.09,
+        "outputTokens": 73
+      },
+      "summary": {
+        "measuredRuns": 3,
+        "medianTimeToFirstTextMs": 235.33,
+        "medianTotalResponseMs": 1862.21,
+        "medianOutputTokens": 62,
+        "medianOutputTokensPerSecond": 36.82
+      },
+      "resourcePeaks": {
+        "scope": "system-wide",
+        "sampleIntervalMs": 500,
+        "sampleCount": 14,
+        "peakCpuUtilizationPercent": 95.15,
+        "peakSystemMemoryUsedGiB": 36.38,
+        "peakSystemMemoryUsedPercent": 57.16,
+        "gpuTelemetryStatus": "available",
+        "peakNvidiaGpuUtilizationPercent": 75,
+        "peakNvidiaVramUsedMiB": 5507,
+        "nvidiaVramTotalMiB": 6144,
+        "errors": []
+      },
+      "samples": [
+        {
+          "totalResponseMs": 2566.49,
+          "timeToFirstTextMs": 301.16,
+          "outputTokens": 75,
+          "outputTokensPerSecond": 33.11,
+          "outputText": "Greetings, crew! It's great to see everyone settled in for another day of exploration on the station. Our current stockpile stands at 1,200 units of iron, 640 units of titanium, and a limited reserve of 80 platinum. Please let me know if you need any specific materials moved or organized before we head out to work."
+        },
+        {
+          "totalResponseMs": 1862.21,
+          "timeToFirstTextMs": 235.33,
+          "outputTokens": 62,
+          "outputTokensPerSecond": 38.11,
+          "outputText": "Greetings, crew! Welcome aboard the station; I hope your day has been as smooth as a zero-g drift. Our current stockpile stands at 1,200 units of iron, 640 units of titanium, and 80 units of platinum for any immediate needs you might have."
+        },
+        {
+          "totalResponseMs": 1754.82,
+          "timeToFirstTextMs": 179.54,
+          "outputTokens": 58,
+          "outputTokensPerSecond": 36.82,
+          "outputText": "Greetings, crew! It's wonderful to see everyone settled in as we continue our mission beyond the atmosphere. Our current stockpile stands at 1,200 units of iron, 640 units of titanium, and a limited reserve of 80 platinum for specialized repairs."
+        }
+      ]
+    },
+    {
+      "modelId": "qwen_qwen3.5-9b",
+      "warmup": {
+        "totalResponseMs": 55903.65,
+        "outputTokens": 56
+      },
+      "summary": {
+        "measuredRuns": 3,
+        "medianTimeToFirstTextMs": 1482.82,
+        "medianTotalResponseMs": 42881.93,
+        "medianOutputTokens": 56,
+        "medianOutputTokensPerSecond": 1.35
+      },
+      "resourcePeaks": {
+        "scope": "system-wide",
+        "sampleIntervalMs": 500,
+        "sampleCount": 257,
+        "peakCpuUtilizationPercent": 100,
+        "peakSystemMemoryUsedGiB": 43.07,
+        "peakSystemMemoryUsedPercent": 67.68,
+        "gpuTelemetryStatus": "available",
+        "peakNvidiaGpuUtilizationPercent": 40,
+        "peakNvidiaVramUsedMiB": 5878,
+        "nvidiaVramTotalMiB": 6144,
+        "errors": []
+      },
+      "samples": [
+        {
+          "totalResponseMs": 35749.45,
+          "timeToFirstTextMs": 1371.16,
+          "outputTokens": 56,
+          "outputTokensPerSecond": 1.63,
+          "outputText": "Welcome aboard! As your market manager, I'm happy to share that our current stock includes 1,200 units of iron, 640 units of titanium, and 80 units of platinum. Please feel free to browse the available items at your leisure."
+        },
+        {
+          "totalResponseMs": 54187.28,
+          "timeToFirstTextMs": 1517.56,
+          "outputTokens": 56,
+          "outputTokensPerSecond": 1.06,
+          "outputText": "Welcome aboard! As your market manager, I'm happy to share that our current stock includes 1,200 units of iron, 640 units of titanium, and 80 units of platinum. Please feel free to browse the available items at your leisure."
+        },
+        {
+          "totalResponseMs": 42881.93,
+          "timeToFirstTextMs": 1482.82,
+          "outputTokens": 56,
+          "outputTokensPerSecond": 1.35,
+          "outputText": "Welcome aboard! As your market manager, I'm happy to share that our current stock includes 1,200 units of iron, 640 units of titanium, and 80 units of platinum. Please feel free to browse the available items at your leisure."
+        }
+      ]
+    }
+  ]
+}

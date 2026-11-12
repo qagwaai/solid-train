@@ -1,0 +1,372 @@
+{
+  "capturedAt": "2026-11-12T20:05:20.191Z",
+  "hardware": {
+    "platform": "win32 10.0.26200",
+    "architecture": "x64",
+    "cpu": {
+      "model": "Intel(R) Core(TM) i7-10850H CPU @ 2.70GHz",
+      "logicalProcessors": 12
+    },
+    "memory": {
+      "totalBytes": 68334764032,
+      "totalGiB": 63.64
+    },
+    "gpu": {
+      "status": "available",
+      "devices": [
+        {
+          "name": "Quadro RTX 3000",
+          "memoryTotalMiB": 6144,
+          "driverVersion": "596.71"
+        }
+      ]
+    }
+  },
+  "runner": {
+    "name": "LM Studio OpenAI-compatible local API",
+    "baseUrl": "http://127.0.0.1:1234",
+    "availableModelIds": [
+      "local-benchmark-1",
+      "qwen_qwen3.5-9b",
+      "qwen_qwen3.5-4b",
+      "text-embedding-nomic-embed-text-v1.5"
+    ],
+    "loadSettings": "lms load with ordinary default placement/settings; exact loaded-model metadata recorded per model."
+  },
+  "benchmark": {
+    "selectedModelIds": [
+      "qwen_qwen3.5-4b",
+      "qwen_qwen3.5-9b"
+    ],
+    "skippedModels": [
+      {
+        "type": "embedding",
+        "modelKey": "text-embedding-nomic-embed-text-v1.5",
+        "format": "gguf",
+        "displayName": "Nomic Embed Text v1.5",
+        "publisher": "nomic-ai",
+        "path": "nomic-ai/nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q4_K_M.gguf",
+        "sizeBytes": 84106624,
+        "indexedModelIdentifier": "nomic-ai/nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q4_K_M.gguf",
+        "deviceIdentifier": null,
+        "architecture": "nomic-bert",
+        "quantization": {
+          "name": "Q4_K_M",
+          "bits": 4
+        },
+        "maxContextLength": 2048,
+        "skipReason": "Not a chat model; generation benchmark only."
+      }
+    ],
+    "quietPolicy": {
+      "cpuMaxPercent": 30,
+      "gpuMaxPercent": 10,
+      "sustainedMs": 5000,
+      "timeoutMs": 120000
+    },
+    "lifecycle": "Unload all and verify empty; wait for quiet; load one exact artifact; warm up and measure; unload all, including on failure.",
+    "measuredRequestsPerModel": 3,
+    "warmupRequestsPerModel": 1,
+    "prompt": "You are the market manager at a space station. Give a friendly greeting in 2-3 sentences and report current inventory: 1,200 iron, 640 titanium, and 80 platinum. Do not invent prices or offers.",
+    "reasoningEffort": "none",
+    "maxOutputTokens": 128,
+    "outputTokensPerSecondFormula": "output tokens / (total response time - time to first generated text)",
+    "resourceScope": "System-wide samples at 500 ms intervals; not isolated to the model process."
+  },
+  "results": [
+    {
+      "modelId": "qwen_qwen3.5-4b",
+      "apiIdentifier": "local-benchmark-1",
+      "artifact": {
+        "type": "llm",
+        "modelKey": "qwen_qwen3.5-4b",
+        "format": "gguf",
+        "displayName": "Qwen Qwen3.5 4B",
+        "publisher": "bartowski",
+        "path": "bartowski/Qwen_Qwen3.5-4B-GGUF/Qwen_Qwen3.5-4B-Q4_K_S.gguf",
+        "sizeBytes": 3518580256,
+        "indexedModelIdentifier": "bartowski/Qwen_Qwen3.5-4B-GGUF/Qwen_Qwen3.5-4B-Q4_K_S.gguf",
+        "deviceIdentifier": null,
+        "paramsString": "4B",
+        "architecture": "qwen35",
+        "quantization": {
+          "name": "Q4_K_S",
+          "bits": 4
+        },
+        "vision": true,
+        "trainedForToolUse": true,
+        "maxContextLength": 262144
+      },
+      "lifecycle": {
+        "unloadedBeforeLoad": {
+          "verifiedLoadedModels": [],
+          "waitedMs": 1421.47
+        },
+        "quietBeforeLoad": {
+          "waitedMs": 14065.28,
+          "sustainedQuietMs": 5348.09,
+          "finalSample": {
+            "cpuUtilizationPercent": 7.08,
+            "memoryUsedBytes": 22855106560,
+            "gpuUtilizationPercent": 1,
+            "gpuMemoryUsedMiB": 398,
+            "gpuMemoryTotalMiB": 6144
+          }
+        },
+        "load": {
+          "loadTimeMs": 11148.69,
+          "verifiedLoadedModels": [
+            {
+              "type": "llm",
+              "modelKey": "qwen_qwen3.5-4b",
+              "format": "gguf",
+              "displayName": "Qwen Qwen3.5 4B",
+              "publisher": "bartowski",
+              "path": "bartowski/Qwen_Qwen3.5-4B-GGUF/Qwen_Qwen3.5-4B-Q4_K_S.gguf",
+              "sizeBytes": 3518580256,
+              "indexedModelIdentifier": "bartowski/Qwen_Qwen3.5-4B-GGUF/Qwen_Qwen3.5-4B-Q4_K_S.gguf",
+              "deviceIdentifier": null,
+              "paramsString": "4B",
+              "architecture": "qwen35",
+              "quantization": {
+                "name": "Q4_K_S",
+                "bits": 4
+              },
+              "identifier": "local-benchmark-1",
+              "ttlMs": null,
+              "lastUsedTime": 1794513808763,
+              "vision": true,
+              "trainedForToolUse": true,
+              "maxContextLength": 262144,
+              "contextLength": 8192,
+              "status": "idle",
+              "queued": 0,
+              "parallel": 4,
+              "engineConfigFileEnabled": false
+            }
+          ]
+        },
+        "quietBeforeWarmup": {
+          "waitedMs": 10294.99,
+          "sustainedQuietMs": 5396.6,
+          "finalSample": {
+            "cpuUtilizationPercent": 14.66,
+            "memoryUsedBytes": 26342268928,
+            "gpuUtilizationPercent": 1,
+            "gpuMemoryUsedMiB": 5373,
+            "gpuMemoryTotalMiB": 6144
+          }
+        },
+        "quietBeforeMeasurements": {
+          "waitedMs": 10850.04,
+          "sustainedQuietMs": 5341.64,
+          "finalSample": {
+            "cpuUtilizationPercent": 9.18,
+            "memoryUsedBytes": 26504982528,
+            "gpuUtilizationPercent": 1,
+            "gpuMemoryUsedMiB": 5447,
+            "gpuMemoryTotalMiB": 6144
+          }
+        },
+        "unloadedAfterMeasurements": {
+          "verifiedLoadedModels": [],
+          "waitedMs": 1242.13
+        }
+      },
+      "warmup": {
+        "totalResponseMs": 1951.5,
+        "outputTokens": 61
+      },
+      "summary": {
+        "measuredRuns": 3,
+        "medianTimeToFirstTextMs": 174.08,
+        "medianTotalResponseMs": 1759.39,
+        "medianOutputTokens": 70,
+        "medianOutputTokensPerSecond": 44.54
+      },
+      "resourcePeaks": {
+        "scope": "system-wide",
+        "sampleIntervalMs": 500,
+        "sampleCount": 12,
+        "peakCpuUtilizationPercent": 62.86,
+        "peakSystemMemoryUsedGiB": 24.9,
+        "peakSystemMemoryUsedPercent": 39.12,
+        "gpuTelemetryStatus": "available",
+        "peakNvidiaGpuUtilizationPercent": 81,
+        "peakNvidiaVramUsedMiB": 5449,
+        "nvidiaVramTotalMiB": 6144,
+        "errors": []
+      },
+      "samples": [
+        {
+          "totalResponseMs": 1910.58,
+          "timeToFirstTextMs": 217.87,
+          "outputTokens": 70,
+          "outputTokensPerSecond": 41.35,
+          "outputText": "Greetings, crew! It's great to see everyone settled in as we continue our mission. Our current stockpile stands at 1,200 units of iron, 640 units of titanium, and a limited reserve of 80 platinum for critical repairs. Please let me know if you need any specific materials delivered to your quarters."
+        },
+        {
+          "totalResponseMs": 1633.35,
+          "timeToFirstTextMs": 174.08,
+          "outputTokens": 65,
+          "outputTokensPerSecond": 44.54,
+          "outputText": "Greetings, crew! It's great to see everyone doing well on the station today. Our current inventory stands at 1,200 units of iron, 640 units of titanium, and a limited supply of just 80 platinum. Please let me know if you need any specific resources for your projects."
+        },
+        {
+          "totalResponseMs": 1759.39,
+          "timeToFirstTextMs": 163.59,
+          "outputTokens": 73,
+          "outputTokensPerSecond": 45.75,
+          "outputText": "Greetings, crew! Welcome aboard the station; I hope your shift has been productive so far. Our current stockpile stands at 1,200 units of iron, 640 units of titanium, and a limited reserve of 80 platinum for high-priority needs. Please let me know if you require any specific materials for your upcoming projects."
+        }
+      ]
+    },
+    {
+      "modelId": "qwen_qwen3.5-9b",
+      "apiIdentifier": "local-benchmark-2",
+      "artifact": {
+        "type": "llm",
+        "modelKey": "qwen_qwen3.5-9b",
+        "format": "gguf",
+        "displayName": "Qwen Qwen3.5 9B",
+        "publisher": "bartowski",
+        "path": "bartowski/Qwen_Qwen3.5-9B-GGUF/Qwen_Qwen3.5-9B-Q4_K_S.gguf",
+        "sizeBytes": 6774901216,
+        "indexedModelIdentifier": "bartowski/Qwen_Qwen3.5-9B-GGUF/Qwen_Qwen3.5-9B-Q4_K_S.gguf",
+        "deviceIdentifier": null,
+        "paramsString": "9B",
+        "architecture": "qwen35",
+        "quantization": {
+          "name": "Q4_K_S",
+          "bits": 4
+        },
+        "vision": true,
+        "trainedForToolUse": true,
+        "maxContextLength": 262144
+      },
+      "lifecycle": {
+        "unloadedBeforeLoad": {
+          "verifiedLoadedModels": [],
+          "waitedMs": 1242.13
+        },
+        "quietBeforeLoad": {
+          "waitedMs": 6094.85,
+          "sustainedQuietMs": 5395.7,
+          "finalSample": {
+            "cpuUtilizationPercent": 9.07,
+            "memoryUsedBytes": 22825902080,
+            "gpuUtilizationPercent": 1,
+            "gpuMemoryUsedMiB": 461,
+            "gpuMemoryTotalMiB": 6144
+          }
+        },
+        "load": {
+          "loadTimeMs": 14738.47,
+          "verifiedLoadedModels": [
+            {
+              "type": "llm",
+              "modelKey": "qwen_qwen3.5-9b",
+              "format": "gguf",
+              "displayName": "Qwen Qwen3.5 9B",
+              "publisher": "bartowski",
+              "path": "bartowski/Qwen_Qwen3.5-9B-GGUF/Qwen_Qwen3.5-9B-Q4_K_S.gguf",
+              "sizeBytes": 6774901216,
+              "indexedModelIdentifier": "bartowski/Qwen_Qwen3.5-9B-GGUF/Qwen_Qwen3.5-9B-Q4_K_S.gguf",
+              "deviceIdentifier": null,
+              "paramsString": "9B",
+              "architecture": "qwen35",
+              "quantization": {
+                "name": "Q4_K_S",
+                "bits": 4
+              },
+              "identifier": "local-benchmark-2",
+              "ttlMs": null,
+              "lastUsedTime": 1794513864090,
+              "vision": true,
+              "trainedForToolUse": true,
+              "maxContextLength": 262144,
+              "contextLength": 8192,
+              "status": "idle",
+              "queued": 0,
+              "parallel": 4,
+              "engineConfigFileEnabled": false
+            }
+          ]
+        },
+        "quietBeforeWarmup": {
+          "waitedMs": 6089.18,
+          "sustainedQuietMs": 5353.64,
+          "finalSample": {
+            "cpuUtilizationPercent": 14.56,
+            "memoryUsedBytes": 29869035520,
+            "gpuUtilizationPercent": 1,
+            "gpuMemoryUsedMiB": 5783,
+            "gpuMemoryTotalMiB": 6144
+          }
+        },
+        "quietBeforeMeasurements": {
+          "waitedMs": 7326.26,
+          "sustainedQuietMs": 5385.79,
+          "finalSample": {
+            "cpuUtilizationPercent": 14.59,
+            "memoryUsedBytes": 30035267584,
+            "gpuUtilizationPercent": 1,
+            "gpuMemoryUsedMiB": 5852,
+            "gpuMemoryTotalMiB": 6144
+          }
+        },
+        "unloadedAfterMeasurements": {
+          "verifiedLoadedModels": [],
+          "waitedMs": 1303.55
+        }
+      },
+      "warmup": {
+        "totalResponseMs": 9272.63,
+        "outputTokens": 56
+      },
+      "summary": {
+        "measuredRuns": 3,
+        "medianTimeToFirstTextMs": 522.48,
+        "medianTotalResponseMs": 8359.05,
+        "medianOutputTokens": 56,
+        "medianOutputTokensPerSecond": 7.15
+      },
+      "resourcePeaks": {
+        "scope": "system-wide",
+        "sampleIntervalMs": 500,
+        "sampleCount": 51,
+        "peakCpuUtilizationPercent": 90.25,
+        "peakSystemMemoryUsedGiB": 28.03,
+        "peakSystemMemoryUsedPercent": 44.05,
+        "gpuTelemetryStatus": "available",
+        "peakNvidiaGpuUtilizationPercent": 54,
+        "peakNvidiaVramUsedMiB": 5853,
+        "nvidiaVramTotalMiB": 6144,
+        "errors": []
+      },
+      "samples": [
+        {
+          "totalResponseMs": 8707.1,
+          "timeToFirstTextMs": 778.91,
+          "outputTokens": 56,
+          "outputTokensPerSecond": 7.06,
+          "outputText": "Welcome aboard! As your market manager, I'm happy to share that our current stock includes 1,200 units of iron, 640 units of titanium, and 80 units of platinum. Please feel free to browse the available goods at your leisure."
+        },
+        {
+          "totalResponseMs": 8359.05,
+          "timeToFirstTextMs": 522.48,
+          "outputTokens": 56,
+          "outputTokensPerSecond": 7.15,
+          "outputText": "Welcome aboard! As your market manager, I'm happy to share that our current stock includes 1,200 units of iron, 640 units of titanium, and 80 units of platinum. Please feel free to browse the available items at your leisure."
+        },
+        {
+          "totalResponseMs": 7894.94,
+          "timeToFirstTextMs": 474.31,
+          "outputTokens": 56,
+          "outputTokensPerSecond": 7.55,
+          "outputText": "Welcome aboard! As your market manager, I'm happy to share that our current stock includes 1,200 units of iron, 640 units of titanium, and 80 units of platinum. Please feel free to browse the available items at your leisure."
+        }
+      ]
+    }
+  ]
+}
