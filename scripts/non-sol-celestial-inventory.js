@@ -35,6 +35,7 @@ const AUDITS = [
   },
   { file: 'system-naming-finalization-v1.json', rows: 'rows', name: 'name' },
 ];
+// The accepted P0 manifest stores evidence paths with Windows separators on every platform.
 const SOURCE_PATHS = [
   ...[
     'hyg-fixture.csv',
@@ -50,7 +51,7 @@ const SOURCE_PATHS = [
     'system-naming-manifest.json',
     'system-naming-weight-policy-v2.json',
     ...AUDITS.map((audit) => audit.file),
-  ].map((file) => path.join('data', file)),
+  ].map((file) => path.win32.join('data', file)),
   ...[
     'solar-system-registry.js',
     'solar-system-celestial-seed.js',
@@ -71,12 +72,12 @@ const SOURCE_PATHS = [
     'canonical-item-type-registry.js',
     'market-catalog.js',
     'celestial-body-upsert.js',
-  ].map((file) => path.join('src', 'model', file)),
-  path.join('src', 'handlers', 'launch-item-message-handler.js'),
-  path.join('src', 'handlers', 'context', 'celestial-operations-service.js'),
-  path.join('src', 'handlers', 'context', 'market-service.js'),
-  path.join('src', 'db', 'service', 'celestial-write-service.js'),
-  path.join('docs', 'Stellar notes.md'),
+  ].map((file) => path.win32.join('src', 'model', file)),
+  path.win32.join('src', 'handlers', 'launch-item-message-handler.js'),
+  path.win32.join('src', 'handlers', 'context', 'celestial-operations-service.js'),
+  path.win32.join('src', 'handlers', 'context', 'market-service.js'),
+  path.win32.join('src', 'db', 'service', 'celestial-write-service.js'),
+  path.win32.join('docs', 'Stellar notes.md'),
 ].sort();
 const OWNERSHIP = [
   {
@@ -110,7 +111,7 @@ const OWNERSHIP = [
       'A version change upserts complete canonical seeds, including active state and empty debris; this is not mutable-state-safe reseeding.',
     requiredSafeguard:
       'P1 must separate seed-owned updates from discovery/destruction/depletion and player-created body state before P6 writes.',
-    evidenceFile: path.join('src', 'handlers', 'context', 'celestial-operations-service.js'),
+    evidenceFile: path.win32.join('src', 'handlers', 'context', 'celestial-operations-service.js'),
   },
   {
     domain: 'markets-and-stations',
@@ -127,7 +128,7 @@ const OWNERSHIP = [
       'Existing markets require explicit force repair; repair materializes seeded trajectory/spatial while retaining existing economy fields.',
     requiredSafeguard:
       'Preserve inventory, trades, prices and station IDs; derive spatial snapshots through supported trajectory math.',
-    evidenceFile: path.join('src', 'handlers', 'context', 'market-service.js'),
+    evidenceFile: path.win32.join('src', 'handlers', 'context', 'market-service.js'),
   },
   {
     domain: 'items-and-character-progression',
@@ -145,7 +146,7 @@ const OWNERSHIP = [
       'Mining consumes an expendable dart, creates canonical yield items and destroys the target; catalog recipe tiers are provisional progression inputs.',
     requiredSafeguard:
       'Universe reseeding must not recreate consumed items or reset character missions, inventory or destroyed asteroid state.',
-    evidenceFile: path.join('src', 'handlers', 'launch-item-message-handler.js'),
+    evidenceFile: path.win32.join('src', 'handlers', 'launch-item-message-handler.js'),
   },
 ];
 
@@ -153,7 +154,7 @@ function sourceFiles() {
   return SOURCE_PATHS.map((relative) => ({
     path: relative,
     sha256: createHash('sha256')
-      .update(fs.readFileSync(path.join(ROOT, relative)))
+      .update(fs.readFileSync(path.join(ROOT, ...relative.split('\\'))))
       .digest('hex'),
   }));
 }
@@ -183,7 +184,7 @@ function collectProfiles(manifest = getSystemNamingManifest()) {
         language,
         policyLanguageId,
         theme: row.gloss ?? row.provisionalGloss ?? row.candidateLane ?? row.namingLane ?? null,
-        evidenceFile: path.join('data', audit.file),
+        evidenceFile: path.win32.join('data', audit.file),
         candidateId: row.candidateId,
       });
     }
@@ -257,14 +258,14 @@ function collectResources() {
     materials,
     crafting,
     techNotes: {
-      path: path.join('docs', 'Stellar notes.md'),
+      path: path.win32.join('docs', 'Stellar notes.md'),
       status: 'provisional-design-not-runtime-unlocks',
       selection:
         'First 50-level Drone-Logic hierarchy; later variants remain source notes, not adopted rules.',
       proposedLevels,
     },
     mining: {
-      evidenceFile: path.join('src', 'handlers', 'launch-item-message-handler.js'),
+      evidenceFile: path.win32.join('src', 'handlers', 'launch-item-message-handler.js'),
       executableItemType: 'expendable-dart-drone',
       materialResolution: 'Existing resolveYieldItemType method; no new aliases introduced.',
       playableChainVerified: false,

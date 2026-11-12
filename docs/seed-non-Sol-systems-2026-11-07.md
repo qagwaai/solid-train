@@ -539,6 +539,10 @@ attempts and read-back results in a separate environment-specific run journal,
 keyed to its digest; do not mix one machine's database status into universal
 checked-in generation facts.
 
+For compatibility with the accepted P0 digest, recorded source and evidence
+paths use Windows separators on every platform; filesystem access uses the
+host platform's path conventions.
+
 Minimum structure:
 
 | Level         | Required information                                                                                                                                                                                                                                                                     |
