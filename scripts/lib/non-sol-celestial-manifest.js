@@ -627,7 +627,7 @@ function assertCurrentBaseline(frozen, current) {
   );
 }
 
-function assertPreservedBaseline(frozen, current) {
+function assertPreservedBaseline(frozen, current, { sourceHashesEquivalent = () => false } = {}) {
   validateManifest(frozen);
   validateManifest(current);
   const baselineHashes = (manifest) =>
@@ -652,10 +652,17 @@ function assertPreservedBaseline(frozen, current) {
       .map(({ path, sha256 }) => ({ path, sha256 }));
   if (bodyHashesDiffer) {
     const currentSources = bodySourceFingerprints(current);
+    const frozenSources = bodySourceFingerprints(frozen);
     assert.ok(currentSources.length, 'Body source fingerprints are required for hash portability.');
     assert.deepEqual(
-      currentSources,
-      bodySourceFingerprints(frozen),
+      currentSources.map((file, index) => {
+        const previous = frozenSources[index];
+        return previous && previous.path === file.path && previous.sha256 !== file.sha256 &&
+          sourceHashesEquivalent(file.path, file.sha256, previous.sha256)
+          ? previous
+          : file;
+      }),
+      frozenSources,
       'Body hashes changed while catalog inputs or generation code also changed.'
     );
   }

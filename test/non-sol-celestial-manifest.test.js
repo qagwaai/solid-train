@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { createHash } = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const test = require('node:test');
 const {
@@ -18,6 +19,7 @@ const {
 const {
   buildCurrentManifest,
   collectResources,
+  sourceHashesEquivalent,
   writeManifest,
   parseArgs,
   renderProgress,
@@ -270,6 +272,19 @@ test('historical preservation allows reported source-file changes but never chan
   assert.throws(() => assertPreservedBaseline(frozen, reseal(changed)), /P0 catalog/);
 });
 
+test('source fingerprint equivalence accepts line endings but rejects content or snapshot changes', () => {
+  const contents = fs.readFileSync(path.join(__dirname, '..', 'data', 'exoplanet-names.json'));
+  const lf = contents.toString('utf8').replace(/\r\n/g, '\n');
+  const sha256 = (value) => createHash('sha256').update(value).digest('hex');
+  const currentHash = sha256(contents);
+  const relative = 'data\\exoplanet-names.json';
+  assert.ok(sourceHashesEquivalent(relative, currentHash, sha256(lf)));
+  assert.ok(sourceHashesEquivalent(relative, currentHash, sha256(lf.replace(/\n/g, '\r\n'))));
+  assert.equal(sourceHashesEquivalent(relative, currentHash, sha256(`${lf}changed`)), false);
+  assert.equal(sourceHashesEquivalent(relative, 'a'.repeat(64), sha256(lf)), false);
+  assert.equal(sourceHashesEquivalent('data\\unlisted.json', currentHash, sha256(lf)), false);
+});
+
 test('CLI rejects unknown, conflicting and missing arguments before writes', () => {
   assert.equal(parseArgs([]).mode, '--progress');
   assert.equal(parseArgs(['--progress', '--system', 'alpha']).systemId, 'alpha');
@@ -332,7 +347,8 @@ test('real baseline preserves all source outputs and audits authoritative provis
           'utf8'
         )
       ),
-      manifest
+      manifest,
+      { sourceHashesEquivalent }
     )
   );
   const resources = collectResources();

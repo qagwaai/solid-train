@@ -159,6 +159,17 @@ function sourceFiles() {
   }));
 }
 
+function sourceHashesEquivalent(relative, currentHash, frozenHash) {
+  if (!SOURCE_PATHS.includes(relative)) return false;
+  const contents = fs.readFileSync(path.join(ROOT, ...relative.split('\\')));
+  const hash = (value) => createHash('sha256').update(value).digest('hex');
+  if (hash(contents) !== currentHash) return false;
+  const text = contents.toString('utf8');
+  if (!Buffer.from(text, 'utf8').equals(contents)) return false;
+  const lf = text.replace(/\r\n/g, '\n');
+  return hash(lf) === frozenHash || hash(lf.replace(/\n/g, '\r\n')) === frozenHash;
+}
+
 function collectProfiles(manifest = getSystemNamingManifest()) {
   const profiles = new Map();
   for (const audit of AUDITS) {
@@ -383,7 +394,7 @@ function main(args = process.argv.slice(2)) {
     const changedSources =
       options.mode === '--check'
         ? (assertCurrentBaseline(frozen, current), [])
-        : assertPreservedBaseline(frozen, current);
+        : assertPreservedBaseline(frozen, current, { sourceHashesEquivalent });
     if (options.mode === '--check' || options.mode === '--check-preservation') {
       console.log(
         `PASS: accepted P0 IDs, names, bodies, markets and Sol output are preserved (${frozen.expectedTargetCount} targets).`
@@ -419,6 +430,7 @@ module.exports = {
   buildCurrentManifest,
   collectProfiles,
   collectResources,
+  sourceHashesEquivalent,
   writeManifest,
   parseArgs,
   renderProgress,

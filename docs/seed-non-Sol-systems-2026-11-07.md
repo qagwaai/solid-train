@@ -544,7 +544,9 @@ paths use Windows separators on every platform; filesystem access uses the
 host platform's path conventions. Exact body hashes can differ in their final
 floating-point bits across operating systems. Preservation checks tolerate
 those hash-only differences only when body-generation inputs and model sources
-are unchanged and all other summarized baseline fields still match.
+are unchanged and all other summarized baseline fields still match. Source
+fingerprints that differ only by LF versus CRLF are treated as equivalent for
+this check; the current manifest still reports the actual source-file hashes.
 
 Minimum structure:
 
