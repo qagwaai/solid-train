@@ -256,6 +256,16 @@ test('historical preservation allows reported source-file changes but never chan
   const changed = structuredClone(frozen);
   changed.sourceFiles[0].sha256 = 'a'.repeat(64);
   assert.deepEqual(assertPreservedBaseline(frozen, reseal(changed)), ['test-fixture']);
+  const changedHash = structuredClone(frozen);
+  changedHash.systems[0].baselineSha256 = 'b'.repeat(64);
+  changedHash.sourceFiles.push({
+    path: 'src\\model\\exoplanet-system-generator.js',
+    sha256: 'c'.repeat(64),
+  });
+  assert.throws(
+    () => assertPreservedBaseline(frozen, reseal(changedHash)),
+    /catalog inputs or generation code/
+  );
   changed.systems[0].bodies[0].displayName = 'Changed body';
   assert.throws(() => assertPreservedBaseline(frozen, reseal(changed)), /P0 catalog/);
 });

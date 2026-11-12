@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const { createHash } = require('node:crypto');
+const { isDeepStrictEqual } = require('node:util');
 const { createSchemaValidator } = require('../../src/model/schema-validator');
 const { BODY_TYPE_VALUES } = require('../../src/model/celestial-body-upsert');
 const { getHamiltonScopeQuotas } = require('../../src/model/system-naming-weighted-allocation');
@@ -629,10 +630,49 @@ function assertCurrentBaseline(frozen, current) {
 function assertPreservedBaseline(frozen, current) {
   validateManifest(frozen);
   validateManifest(current);
-  const preserved = ({ sourceFiles, manifestSha256, ...content }) => content;
+  const baselineHashes = (manifest) =>
+    manifest.systems.map(({ id, baselineSha256, bodies }) => ({
+      id,
+      baselineSha256,
+      bodies: bodies.map(({ id: bodyId, baselineSha256: bodyHash }) => ({
+        id: bodyId,
+        baselineSha256: bodyHash,
+      })),
+    }));
+  const bodyHashesDiffer = !isDeepStrictEqual(baselineHashes(current), baselineHashes(frozen));
+  // Names and surface-type validation are checked in the preserved summary fields.
+  const bodySourceFingerprints = (manifest) =>
+    manifest.sourceFiles
+      .filter(
+        ({ path }) =>
+          (path.startsWith('data\\') || path.startsWith('src\\model\\')) &&
+          path !== 'src\\model\\system-naming.js' &&
+          path !== 'src\\model\\celestial-body-upsert.js'
+      )
+      .map(({ path, sha256 }) => ({ path, sha256 }));
+  if (bodyHashesDiffer) {
+    const currentSources = bodySourceFingerprints(current);
+    assert.ok(currentSources.length, 'Body source fingerprints are required for hash portability.');
+    assert.deepEqual(
+      currentSources,
+      bodySourceFingerprints(frozen),
+      'Body hashes changed while catalog inputs or generation code also changed.'
+    );
+  }
+  const preserved = (manifest, omitBodyHashes) => {
+    const { sourceFiles, manifestSha256, ...content } = manifest;
+    if (!omitBodyHashes) return content;
+    return {
+      ...content,
+      systems: content.systems.map(({ baselineSha256, bodies, ...system }) => ({
+        ...system,
+        bodies: bodies.map(({ baselineSha256: bodyHash, ...body }) => body),
+      })),
+    };
+  };
   assert.deepEqual(
-    preserved(current),
-    preserved(frozen),
+    preserved(current, bodyHashesDiffer),
+    preserved(frozen, bodyHashesDiffer),
     'Accepted P0 catalog scope, bodies, names, markets, ownership inventory or Sol output changed.'
   );
   return current.sourceFiles

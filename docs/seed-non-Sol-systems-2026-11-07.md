@@ -541,7 +541,10 @@ checked-in generation facts.
 
 For compatibility with the accepted P0 digest, recorded source and evidence
 paths use Windows separators on every platform; filesystem access uses the
-host platform's path conventions.
+host platform's path conventions. Exact body hashes can differ in their final
+floating-point bits across operating systems. Preservation checks tolerate
+those hash-only differences only when body-generation inputs and model sources
+are unchanged and all other summarized baseline fields still match.
 
 Minimum structure:
 
