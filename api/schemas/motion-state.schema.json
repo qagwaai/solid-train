@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MotionState",
+  "description": "Optional velocity/angular-velocity data. Absence or null means unavailable/not asserted, not a zero vector. velocityKmPerSec is required when a motion object is present. The payload does not identify velocity's reference frame, evaluation epoch, or whether it is co-framed/co-epoch with spatial.positionKm. No independent motion epoch or general propagation contract is provided; consumers must not treat it as request-time velocity or derive position propagation from it.",
+  "type": ["object", "null"],
+  "properties": {
+    "velocityKmPerSec": {
+      "$ref": "#/definitions/vector3",
+      "description": "Velocity in km/s. The payload does not carry a separate epoch; its temporal association cannot be verified from this object."
+    },
+    "angularVelocityRadPerSec": {
+      "anyOf": [
+        { "$ref": "#/definitions/vector3" },
+        { "type": "null" }
+      ],
+      "description": "Optional angular velocity in radians/s; null or absence is unknown/unavailable, not zero."
+    }
+  },
+  "required": ["velocityKmPerSec"],
+  "definitions": {
+    "vector3": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    }
+  }
+}

@@ -31,10 +31,29 @@ paths:
         - Cargo purchases decrement market stock and add trade items to ship cargo.
         - Seeded ship purchases create a new owned ship with bundled starter inventory.
         - Character and market ledger entries are appended.
+        - Seeded ship listings are reserved atomically in the database when configured;
+          market completion is persisted before placement attestation completion.
+        - Supported Sol orbital station purchases author a NEW ship at the evaluated
+          server-selected purchase epoch and persist durable backend-only lineage.
+          No existing ship position/epoch is changed or retrospectively certified.
+        - Known invalid station mean-radius intersections are excluded from this
+          certified cohort; unsupported purchases retain ordinary behavior and
+          explicitly return purchasedShip.navigationPlacement.status unsupported.
+        - purchasedShip.navigationPlacement.status supported reports committed
+          issuance, not current navigation support, physical clearance or safety.
+          Consumers must request navigationState and check previewEligibility.
+        - Every purchasedShip requires the response-only navigationPlacement
+          supported or unsupported issuance outcome. Omission is invalid, not an
+          implicit supported result. This public outcome is not the private
+          attestation and cannot be supplied as writable ship metadata.
+        - Failed/pending purchases acquire no eligible attestation. Compensation
+          follows the existing saga; this is not a cross-document transaction.
 
         Correlation:
         - `requestId` is echoed in success and failure responses when provided.
-        - `transactionId` may be supplied by the caller; otherwise the server creates one.
+        - `transactionId` may be supplied by the caller; seeded ship purchases otherwise
+          use requestId when supplied, or create one. Repeated processed IDs fail
+          with TRANSACTION_ALREADY_PROCESSED; a claimed/sold listing cannot issue again.
       operationId: socketMarketBuy
       tags: [Market]
       requestBody:
@@ -111,7 +130,7 @@ paths:
                       characterCredits: 1970
                       marketStock: 47
                 successfulShipBuy:
-                  summary: Successful seeded ship purchase returns purchased ship metadata
+                  summary: Illustrative supported Sol purchase with required durable issuance outcome
                   value:
                     success: true
                     message: Market buy transaction completed
@@ -119,12 +138,12 @@ paths:
                     requestIdentity:
                       operation: market-buy
                       entityType: market-transaction
-                      containerId: sol-ceres-exchange
+                      containerId: sol-mars-orbit
                     requestId: buy-ship-1
                     transaction:
                       transactionId: tx-ship-1
                       requestId: buy-ship-1
-                      marketId: sol-ceres-exchange
+                      marketId: sol-mars-orbit
                       solarSystemId: sol
                       characterId: character-1
                       itemId: scavenger-pod
@@ -140,6 +159,9 @@ paths:
                         shipName: Trader Scavenger Pod
                         model: Scavenger Pod
                         tier: 1
+                        navigationPlacement:
+                          status: supported
+                          lineageId: purchase-lineage-example
                         inventory:
                           - itemId: character-1-ship-generated-1-starter-expendable-dart-drone-1
                             itemType: expendable-dart-drone
@@ -355,6 +377,12 @@ paths:
         Reads materialize station responses without persisting repairs; missing,
         invalid or cross-system hosts return success:false with
         MARKET_ANCHOR_UNRESOLVED in message and an empty markets array.
+        Returned spatial and trajectory values are typed by the market response
+        schemas. The barycentric label and system ID do not prove that host,
+        orbital-element and consumer axes share a physical basis. No common
+        position epoch across separate entities is guaranteed. Consume the
+        returned station position as-is; clients must not add the host again or
+        propagate a snapshot to request time.
 
         Preconditions:
         - Every request must include a client-generated `correlationId` (UUID v4).

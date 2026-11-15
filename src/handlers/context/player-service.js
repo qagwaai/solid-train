@@ -50,7 +50,16 @@ function cacheCharacters(ctx, playerName, characters) {
   }
 
   const clonedCharacters = Array.isArray(characters)
-    ? characters.map((character) => ctx.normalizeCharacter(character))
+    ? characters.map((character) => {
+        const normalized = ctx.normalizeCharacter(character);
+        for (const ship of normalized.ships) {
+          const original = character.ships?.find((entry) => entry.id === ship.id);
+          if (original?.navigationPlacement) {
+            ship.navigationPlacement = structuredClone(ctx.toPlainObject(original.navigationPlacement));
+          }
+        }
+        return normalized;
+      })
     : [];
 
   setCharacters(ctx, normalizedPlayerName, clonedCharacters);

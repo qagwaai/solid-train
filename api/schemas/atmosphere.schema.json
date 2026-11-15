@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atmosphere",
+  "description": "Current atmospheric contract only represents atmosphere presence, optional surface pressure and optional primary components. This object carries no source/provenance field and no atmospheric exclusion/edge altitude. surfacePressurePa null or absent means unknown/unavailable; it must not be converted into an altitude. A numeric exclusion altitude, its unknown-state encoding and provenance semantics are unsupported and require backend data/model/serialization changes before they can be contracted.",
+  "type": ["object", "null"],
+  "properties": {
+    "hasAtmosphere": {
+      "type": "boolean",
+      "description": "Current asserted presence flag; the contract does not expose an evidence/provenance field for this assertion."
+    },
+    "surfacePressurePa": {
+      "type": ["number", "null"],
+      "description": "Surface pressure in pascals. Null/absent is unknown, not zero; it does not imply an atmospheric boundary or exclusion altitude."
+    },
+    "primaryComponents": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Current component labels; no per-component source/provenance is represented."
+    }
+  },
+  "required": ["hasAtmosphere"],
+  "examples": [
+    {
+      "hasAtmosphere": true,
+      "surfacePressurePa": null,
+      "primaryComponents": []
+    }
+  ]
+}

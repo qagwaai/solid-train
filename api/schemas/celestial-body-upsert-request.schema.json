@@ -65,9 +65,11 @@
         "spatial": { "$ref": "./spatial-state.schema.json" },
         "motion": {
           "type": ["object", "null"],
+          "description": "Optional motion. Missing/null means unavailable, not zero. A motion object requires velocityKmPerSec; no independent motion epoch or general propagation contract is provided.",
           "properties": {
             "velocityKmPerSec": {
               "type": "object",
+              "description": "Velocity in km/s. This payload does not carry a separate epoch; its temporal association cannot be verified from this object.",
               "properties": {
                 "x": { "type": "number" },
                 "y": { "type": "number" },
@@ -77,6 +79,7 @@
             },
             "angularVelocityRadPerSec": {
               "type": ["object", "null"],
+              "description": "Optional angular velocity in radians/s; null/absence is unknown, not zero.",
               "properties": {
                 "x": { "type": "number" },
                 "y": { "type": "number" },
@@ -163,9 +166,13 @@
         "physicalCatalog": { "$ref": "./celestial-physical-catalog.schema.json" },
         "atmosphere": {
           "type": ["object", "null"],
+          "description": "Current fields have no atmospheric exclusion altitude or source-provenance field. Null/absent pressure is unknown, not zero, and must not be used to derive an altitude. Adding exclusion altitude and provenance requires backend changes.",
           "properties": {
             "hasAtmosphere": { "type": "boolean" },
-            "surfacePressurePa": { "type": ["number", "null"] },
+            "surfacePressurePa": {
+              "type": ["number", "null"],
+              "description": "Surface pressure in pascals; null/absent is unknown, not zero or an atmospheric boundary."
+            },
             "primaryComponents": { "type": "array", "items": { "type": "string" } }
           },
           "required": ["hasAtmosphere"]

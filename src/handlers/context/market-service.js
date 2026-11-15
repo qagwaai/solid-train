@@ -14,6 +14,9 @@ const {
   buildSeededMarketsForSolarSystem,
 } = require('../../model/solar-system-market-seed');
 const { SHIP_MARKET_CATALOG_BY_ID } = require('../../model/ship-market-catalog');
+const {
+  preparePurchasedNavigationPlacementAsync, commitPurchasedNavigationPlacementAsync,
+} = require('./navigation-state-service');
 
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
 const ASTRONOMICAL_UNIT_KM = 149_597_870.7;
@@ -713,6 +716,9 @@ async function addPurchasedShipToCharacterAsync(
   const starterInventory = Array.isArray(shipCatalogEntry?.starterInventory)
     ? shipCatalogEntry.starterInventory
     : [];
+  const placement = await preparePurchasedNavigationPlacementAsync(
+    ctx, player.playerName, market.marketId, market.solarSystemId, Date.parse(now)
+  );
 
   const createdItems = starterInventory.map((entry, index) => ({
     id: `${generatedShipId}-starter-${ctx.toNonEmptyString(entry.itemType)}-${index + 1}`,
@@ -757,8 +763,10 @@ async function addPurchasedShipToCharacterAsync(
       itemType: item.itemType,
     })),
     spatial: {
-      ...marketPosition,
-      epochMs: Number.isFinite(Date.parse(now)) ? Date.parse(now) : marketPosition.epochMs,
+      ...(placement.status === 'supported' ? placement.spatial : {
+        ...marketPosition,
+        epochMs: Number.isFinite(Date.parse(now)) ? Date.parse(now) : marketPosition.epochMs,
+      }),
     },
     launchable: true,
     damageProfile: null,
@@ -791,6 +799,7 @@ async function addPurchasedShipToCharacterAsync(
   return {
     ship: createdShip,
     itemIds: createdItems.map((item) => item.id),
+    placement,
   };
 }
 
@@ -815,6 +824,11 @@ async function executeShipPurchaseTransactionAsync(ctx, request = {}, player, ch
     return { success: false, reason: 'ITEM_NOT_FOUND' };
   }
 
+  const transactionId = ctx.toNonEmptyString(request.transactionId) || requestId || ctx.createId();
+  if (character.creditLedger?.some((entry) => entry.referenceId === transactionId)) {
+    return { success: false, reason: 'TRANSACTION_ALREADY_PROCESSED' };
+  }
+
   const shipListings = Array.isArray(market.shipListings) ? market.shipListings : [];
   const listing = shipListings.find(
     (entry) =>
@@ -833,7 +847,6 @@ async function executeShipPurchaseTransactionAsync(ctx, request = {}, player, ch
     return { success: false, reason: 'INSUFFICIENT_CREDITS' };
   }
 
-  const transactionId = ctx.toNonEmptyString(request.transactionId) || ctx.createId();
   const timestamp = ctx.getCurrentTimestamp();
   const characterLedgerEntry = {
     type: 'take',
@@ -861,8 +874,17 @@ async function executeShipPurchaseTransactionAsync(ctx, request = {}, player, ch
   let marketLedgerApplied = false;
   let createdShip = null;
   let createdItemIds = [];
+  let placement;
 
   try {
+    if (ctx.databaseService) {
+      const reserved = await ctx.databaseService.reserveShipListing(
+        marketId, solarSystemId, itemId, transactionId, totalPrice
+      );
+      if (!reserved) return { success: false, reason: 'ITEM_NOT_TRADEABLE' };
+      ctx.cacheMarket(reserved);
+      listingApplied = true;
+    }
     const listingUpdated = await applyMarketShipListingAvailabilityAsync(
       ctx,
       marketId,
@@ -886,19 +908,34 @@ async function executeShipPurchaseTransactionAsync(ctx, request = {}, player, ch
     );
     createdShip = shipCreation.ship;
     createdItemIds = shipCreation.itemIds;
+    placement = shipCreation.placement;
     shipApplied = true;
 
-    await appendCharacterLedgerEntryAsync(
+    const ledgerWritten = await appendCharacterLedgerEntryAsync(
       ctx,
       player.playerName,
       character.id,
       characterLedgerEntry
     );
+    if (!ledgerWritten) throw new Error('Ship purchase character ledger write failed');
     characterLedgerApplied = true;
 
-    await appendMarketLedgerEntryAsync(ctx, marketId, solarSystemId, marketLedgerEntry);
+    if (!await appendMarketLedgerEntryAsync(ctx, marketId, solarSystemId, marketLedgerEntry)) {
+      throw new Error('Ship purchase market ledger write failed');
+    }
+    if (ctx.databaseService) {
+      const completed = await ctx.databaseService.completeShipListingPurchase(
+        marketId, solarSystemId, itemId, marketLedgerEntry
+      );
+      if (!completed) throw new Error('Ship purchase persisted market completion conflicted');
+      ctx.cacheMarket(completed);
+    }
     marketLedgerApplied = true;
 
+    const navigationPlacement = placement.status === 'supported'
+      ? await commitPurchasedNavigationPlacementAsync(
+          ctx, player.playerName, character.id, createdShip, transactionId, placement)
+      : placement;
     const updatedCharacter = ctx.findCharacter(player.playerName, character.id);
     return {
       success: true,
@@ -923,18 +960,21 @@ async function executeShipPurchaseTransactionAsync(ctx, request = {}, player, ch
           tier: createdShip.tier,
           inventory: createdShip.inventory,
           ownership: createdShip.ownership,
+          navigationPlacement,
         },
       },
     };
   } catch (error) {
+    let reversal;
     if (marketLedgerApplied) {
-      await appendMarketLedgerEntryAsync(ctx, marketId, solarSystemId, {
+      reversal = {
         ...marketLedgerEntry,
         transactionId: ctx.createId(),
         direction: 'reversal',
         reversalOfTransactionId: transactionId,
         timestamp: ctx.getCurrentTimestamp(),
-      });
+      };
+      await appendMarketLedgerEntryAsync(ctx, marketId, solarSystemId, reversal);
     }
 
     if (characterLedgerApplied) {
@@ -959,6 +999,13 @@ async function executeShipPurchaseTransactionAsync(ctx, request = {}, player, ch
     }
 
     if (listingApplied) {
+      if (ctx.databaseService) {
+        const released = await ctx.databaseService.releaseShipListing(
+          marketId, solarSystemId, itemId, transactionId, reversal
+        );
+        if (!released) throw new Error('Ship purchase reservation rollback conflicted', { cause: error });
+        ctx.cacheMarket(released);
+      }
       await applyMarketShipListingAvailabilityAsync(
         ctx,
         marketId,
@@ -995,12 +1042,20 @@ async function executeMarketTransactionAsync(ctx, request = {}) {
     return { success: false, reason: 'PLAYER_NOT_REGISTERED' };
   }
 
+  const isShipPurchase = direction === 'buy' && SHIP_MARKET_CATALOG_BY_ID.has(itemId);
+  if (isShipPurchase && ctx.databaseService) {
+    try {
+      await ctx.getCharactersAsync(player.playerName, { strict: true });
+    } catch (error) {
+      ctx.log(`[context] Ship purchase character read failed: ${error.message}`);
+      return { success: false, reason: 'TRANSACTION_FAILED' };
+    }
+  }
   const character = ctx.findCharacter(player.playerName, characterId);
   if (!character) {
     return { success: false, reason: 'CHARACTER_NOT_FOUND' };
   }
 
-  const isShipPurchase = direction === 'buy' && SHIP_MARKET_CATALOG_BY_ID.has(itemId);
   if (isShipPurchase) {
     return executeShipPurchaseTransactionAsync(ctx, request, player, character);
   }

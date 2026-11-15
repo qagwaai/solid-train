@@ -47,12 +47,11 @@
           "siteType": { "type": "string" },
           "siteName": { "type": "string" },
           "isStarterMarket": { "type": "boolean" },
-          "spatial": { "type": ["object", "null"], "additionalProperties": true },
-          "trajectory": {
-            "type": ["object", "null"],
-            "additionalProperties": true,
-            "description": "For stations, orbit.anchorBodyId is the exact canonical host ID (sol-luna for sol-moon-orbit), never an alias or parentBodyId inference. orbit.epoch is the element reference epoch, distinct from spatial.epochMs. The relative Kepler/rotation vector is evaluated at the host snapshot epoch and added once to its system-origin position."
+          "spatial": {
+            "allOf": [{ "$ref": "./spatial-state.schema.json" }],
+            "description": "Position snapshot. For an actively evaluated station, the backend resolves the exact trajectory.orbit.anchorBodyId host and returns host.positionKm plus the relative orbital vector at host.epochMs. The returned epoch is the host snapshot epoch, not request time. sol-moon-orbit remains anchored to sol-luna; aliases and parentBodyId inference are not used. No read-time repair is persisted."
           },
+          "trajectory": { "$ref": "./market-trajectory.schema.json" },
           "stationPlacement": { "$ref": "./station-placement.schema.json" },
           "distanceAu": { "type": "number", "minimum": 0 },
           "priceMultiplier": { "type": "number" },

@@ -1,20 +1,29 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "station-placement",
-  "description": "Optional station placement metadata. metadata-only preserves the authored spatial snapshot. Active evaluation currently supports only body-orbit or stellar-orbit paired with an orbital-elements trajectory anchored to primaryBodyId. stationKeeping describes maintenance behavior and does not activate evaluation. Lagrange-region and deep-space dynamics are not implemented.",
+  "description": "Optional station placement intent/metadata; it does not identify a coordinate basis or establish epoch compatibility. metadata-only preserves the authored spatial snapshot and does not evaluate a trajectory. When stationPlacement is present, active evaluation is supported only for body-orbit and stellar-orbit paired with a trajectory of kind orbital-elements whose orbit.anchorBodyId exactly equals primaryBodyId. For compatibility, older station records without stationPlacement may still be evaluated from an orbital-elements trajectory and its exact anchor; absence of stationPlacement does not identify a placement kind. stationKeeping describes maintenance behavior and does not activate evaluation. lagrange-region (including L1-L5) and deep-space are valid placement kinds as metadata only; their dynamics/evaluation are not implemented. The placement kind itself is not evidence that the spatial position was measured or propagated.",
   "type": "object",
   "required": ["kind", "activation", "stationKeeping", "provenance", "reason"],
   "properties": {
     "kind": {
       "type": "string",
-      "enum": ["body-orbit", "stellar-orbit", "lagrange-region", "deep-space"]
+      "enum": ["body-orbit", "stellar-orbit", "lagrange-region", "deep-space"],
+      "description": "Declared placement kind. All four values are representable as metadata; only body-orbit and stellar-orbit currently have an active orbital evaluator."
     },
     "primaryBodyId": { "type": "string", "minLength": 1 },
     "secondaryBodyId": { "type": "string", "minLength": 1 },
     "region": { "type": "string", "enum": ["L1", "L2", "L3", "L4", "L5"] },
-    "activation": { "type": "string", "enum": ["metadata-only", "active"] },
+    "activation": {
+      "type": "string",
+      "enum": ["metadata-only", "active"],
+      "description": "active is currently accepted only for body-orbit/stellar-orbit with an orbital-elements trajectory anchored to primaryBodyId."
+    },
     "stationKeeping": { "type": "boolean" },
-    "provenance": { "type": "string", "minLength": 1 },
+    "provenance": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Authored provenance text; the API does not independently verify source authority or evidence."
+    },
     "reason": { "type": "string", "minLength": 1 }
   },
   "allOf": [

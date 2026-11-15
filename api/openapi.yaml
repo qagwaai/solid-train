@@ -26,8 +26,22 @@ info:
     Role labels are descriptive only; ordinary inventory and ship listings remain.
     Density v2 counts exact inspected legacy Alpha/Barnard markets toward totals,
     preserving their data and reporting pre-existing geometry defects without repair.
-    Spatial payloads use api/schemas/spatial-state.schema.json; barycentric labels
-    do not identify a physical axis orientation or guarantee producer normalization.
+    Spatial payloads use api/schemas/spatial-state.schema.json. Catalog-seeded
+    body records have a documented system-root game origin and producer
+    provenance; Sol heliocentric orbital elements use the J2000.0 ecliptic,
+    while parent-relative moon elements have no separate plane identifier.
+    The seeder uses a right-handed mathematical transform.
+    These are not a physical barycentric/inertial guarantee. An active station
+    inherits the exact resolved host's basis and position epoch. Ship, manual,
+    and legacy positions have no coordinateBasisId and are unsupported for
+    navigation comparison; equal solarSystemId, frame, and epochMs are not
+    sufficient. positionKm is a snapshot at epochMs; orbitalElements and market
+    trajectory orbit.epoch are separate element reference epochs, neither is
+    request time. Snapshots are not guaranteed to share an epoch; consumers must
+    not client-propagate positions. Optional motion is not a zero/default
+    substitute; its frame and epoch relationship to spatial are unspecified.
+    Atmospheric payloads expose no exclusion altitude or provenance; see
+    api/schemas/atmosphere.schema.json for current guarantees and unsupported data.
     Station snapshot fix: canonical anchor lookup (Luna is sol-luna; station identity
     remains sol-moon-orbit), host-position translation and host snapshot epoch.
     Approved station hosts: ac-proxima-station uses alpha-centauri-star-tertiary;
@@ -35,9 +49,39 @@ info:
     Unresolved station anchors fail explicitly; existing worlds require approved
     market seed repair, not automatic read-time persistence.
 
+    Read-only navigation positions: solar-system-get may opt in with navigation
+    shipId, destinationMarketId and zero/one candidateBodyId. This branch does not
+    seed or refresh presence. navigationState separately evaluates supported Sol
+    catalog bodies and bundled orbital stations at a trusted owned ship's unchanged
+    stored position epoch. Its coordinateBasisId identifies a numeric game basis,
+    not a physical ephemeris. New supported Sol station purchases generate the
+    new ship at one evaluated server-selected epoch and persist server-controlled
+    lineage only after credit and market completion. Fresh processes validate
+    that persisted lineage without runtime proofs. Starter creation and ordinary
+    existing ships remain uncertified. Reads verify source model/positions and reject
+    changing snapshots, unknown lineage, invalid models, and unsupported hosts.
+    Ordinary spatial reads remain unchanged and do not emit coordinateBasisId;
+    the prior global SpatialState property remains an unimplemented proposal.
+    Only a supported navigationState permits position comparison; its separate
+    previewEligibility blocks known host-profile intersections (including Earth)
+    or permits only an explicitly clearance-unverified geometric preview. Motion,
+    clearance, transfers and gravity assists remain explicitly unsupported.
+    Preview route points come exclusively from supported navigationState positions
+    at its epochMs. Ordinary Viewer meshes/stored positions stay unchanged and
+    unsynchronized. Destination and optional candidate use visibly distinct
+    preview-only projected markers keyed by system and marketId/bodyId and labeled
+    with the navigation epoch. The route ends at the projected destination marker,
+    not a differently positioned ordinary station mesh; any candidate waypoint
+    likewise uses its projected marker. This is geometric-only, not a safety,
+    velocity-compatibility, transfer-feasibility or gravity-assist claim.
+    Navigation reads perform no ship/client propagation, world mutation, repair,
+    or reseed. Approved purchases create new assets and persist normal economic
+    writes; they do not repair or certify old ships or station placements.
+    Real local evidence and remaining physics limits are in docs/spatial-model.md.
+
     Market contract explicit notes (3.1.2):
     - `/socket/market-buy` supports canonical cargo purchases and seeded ship listing purchases.
-    - Seeded ship purchases require `quantity: 1` and return `transaction.purchasedShip` metadata.
+    - Seeded ship purchases require `quantity: 1` and return `transaction.purchasedShip` metadata with a required response-only navigationPlacement supported/unsupported issuance outcome.
     - Seeded ship purchases create a new owned ship with bundled starter inventory.
 
     Credit ledger contract (4.0.0): typed movements with stable IDs, authoritative

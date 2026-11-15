@@ -19,6 +19,44 @@ paths:
         coordinates. No orbital orientation or phase is asserted.
         Positions are persisted seed-time barycentric snapshots at spatial.epochMs,
         not recalculated on each read. Orbital elements retain their reference epoch.
+        Optional navigation selects an owned ship, destinationMarketId, and at most
+        one candidateBodyId. This read-only branch bypasses seeding and presence
+        refresh; asOf does not select its epoch. navigationState evaluates supported
+        Sol catalog dependencies and exact bundled station anchors at the verified
+        ship position epoch while stars/bodies remain stored snapshots. The ship is
+        never propagated or retimestamped. The initial numeric game basis is
+        stellar:sol:catalog-cartesian:v1, model sol-catalog-kepler-position-v1.
+        Source/ship position epochs must be integer milliseconds in [2000,2100).
+        Sources must match the bundled elliptical model and their stored positions
+        within 0.001 km Euclidean distance; this is not physical accuracy.
+        Comet/custom evaluators and non-Sol systems are unsupported. All selected
+        dependencies, including an optional candidate, must pass or the whole
+        navigationState is unsupported. Supported new Sol station purchases now
+        persist backend-controlled placement lineage after purchase completion.
+        The new ship is authored at the evaluated purchase epoch, never copied
+        from an old position and retimestamped. This lineage survives restart;
+        inventory/economy changes preserve it, spatial/ownership changes revoke it.
+        There is no public certification API. Legacy ships and unchanged starter
+        creation without trusted lineage return BASIS_UNKNOWN. Legacy orbital
+        stations may qualify by exact verified anchor, with null placementKind.
+        Metadata-only, Lagrange and deep-space placements are unsupported.
+        Motion, clearance and gravityAssist have explicit unsupported status even
+        when position comparison is supported. No safe flyby or transfer is claimed.
+        previewEligibility is independent of numeric position support:
+        ineligible blocks known source/destination station intersections with
+        the versioned catalog mean-radius profile (including Earth's station);
+        eligible-with-warnings means CLEARANCE_UNVERIFIED, not physical safety.
+        Preview routes use exclusively supported navigationState positions at its
+        epochMs. Ordinary Viewer body/station meshes and stored positions remain
+        unchanged and unsynchronized. Destination and optional candidate must have
+        visibly distinct preview-only markers at their evaluated positions, keyed
+        by solarSystemId plus marketId/bodyId and labeled as projected at epochMs.
+        A route terminates at the projected destination marker, not an ordinary
+        station mesh at a different position; any candidate waypoint likewise
+        uses its projected marker. This presentation is geometric-only, not a
+        gravity-assist trajectory, safety, velocity-compatibility or transfer claim.
+        Marker presentation is a consumer contract, not additional response fields;
+        see docs/spatial-model.md for the actual local purchase/restart example.
         For Copper Vale (exo-gj-9066), a durable approved P6 checkpoint takes precedence
         over ordinary lazy catalog seeding, including after restart. Its full
         augmented canonical baseline is retained; only a normal seed marker may be
@@ -66,6 +104,8 @@ paths:
         - Every body includes a required `surfaceArchetype`; this is separate from `planetType`.
         - Mission-generated asteroids are normalized into canonical asteroid viewer shape.
         - Failure responses omit `solarSystem`, `stars`, and `bodies`.
+        - A successful system lookup does not imply navigation support: inspect navigationState.status.
+        - NAVIGATION_READ_FAILED returns success false and an explicit unsupported navigationState.
       operationId: socketSolarSystemGet
       tags: [SolarSystem]
       requestBody:
@@ -75,6 +115,21 @@ paths:
             schema:
               $ref: '#/components/schemas/SolarSystemGetRequest'
             examples:
+              navigationPositions:
+                summary: Request read-only positions; unverified owned ships fail closed
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                  requestIdentity:
+                    operation: solar-system-get
+                    entityType: solar-system
+                    containerId: sol
+                  solarSystemId: sol
+                  navigation:
+                    shipId: owned-ship-id
+                    destinationMarketId: sol-pluto-orbit
+                    candidateBodyId: sol-luna
               getSystem:
                 summary: Retrieve a solar system snapshot with correlation metadata
                 value:

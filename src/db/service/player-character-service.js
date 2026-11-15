@@ -1,5 +1,7 @@
 'use strict';
 
+const { preserveNavigationPlacements } = require('../../model/navigation-placement');
+
 const { isCanonicalMissionStatus, MISSION_STATUS_VALUES } = require('../../model/mission');
 
 /**
@@ -89,11 +91,29 @@ async function updatePlayer(ctx, Player, playerName, updates) {
       return null;
     }
 
+    let query = playerNameQuery;
+    let write = { ...updates, updatedAt: new Date() };
+    if (Array.isArray(updates.characters)) {
+      const original = await Player.findOne(playerNameQuery).lean();
+      if (!original) throw new Error('Player character replacement target was not found');
+      const previous = new Map(original.characters.map((character) => [character.id, character]));
+      const { __v: _untrustedVersion, ...fields } = updates;
+      query = { ...playerNameQuery, __v: original.__v };
+      write = {
+        $set: { ...fields, updatedAt: new Date(), characters: updates.characters.map((character) => ({
+          ...character, ships: preserveNavigationPlacements(previous.get(character.id)?.ships, character.ships || []),
+        })) },
+        $inc: { __v: 1 },
+      };
+    }
     const player = await Player.findOneAndUpdate(
-      playerNameQuery,
-      { ...updates, updatedAt: new Date() },
+      query,
+      write,
       { returnDocument: 'after' }
     );
+    if (!player && Array.isArray(updates.characters)) {
+      throw new Error('Player character replacement conflicted with persisted state');
+    }
     return player ? player.toObject() : null;
   } catch (error) {
     ctx.log(`[db-service] Error updating player: ${error.message}`);
@@ -111,7 +131,8 @@ async function addCharacter(ctx, Player, playerName, characterData) {
     const player = await Player.findOneAndUpdate(
       playerNameQuery,
       {
-        $push: { characters: characterData },
+        $push: { characters: { ...characterData,
+          ships: preserveNavigationPlacements([], characterData.ships || []) } },
         updatedAt: new Date(),
       },
       { returnDocument: 'after' }
@@ -179,7 +200,11 @@ async function updateCharacter(ctx, Player, playerName, characterId, updates) {
     }
 
     // Normalize embedded ship naming before persisting mixed legacy/current payloads.
-    Object.assign(character, ctx.normalizeCharacterUpdatesForPersistence(updates));
+    const normalized = ctx.normalizeCharacterUpdatesForPersistence(updates);
+    if (Array.isArray(normalized.ships)) {
+      normalized.ships = preserveNavigationPlacements(character.toObject().ships, normalized.ships);
+    }
+    Object.assign(character, normalized);
     player.updatedAt = new Date();
     await player.save();
     return player.toObject();
@@ -187,6 +212,36 @@ async function updateCharacter(ctx, Player, playerName, characterId, updates) {
     ctx.log(`[db-service] Error updating character: ${error.message}`);
     throw error;
   }
+}
+
+async function commitNavigationPlacement(ctx, Player, playerName, characterId, ship, attestation) {
+  const spatial = ship.spatial;
+  const owner = ship.ownership;
+  const match = {
+    id: ship.id, 'spatial.solarSystemId': spatial.solarSystemId,
+    'spatial.frame': spatial.frame, 'spatial.epochMs': spatial.epochMs,
+    'spatial.positionKm.x': spatial.positionKm.x, 'spatial.positionKm.y': spatial.positionKm.y,
+    'spatial.positionKm.z': spatial.positionKm.z, 'ownership.ownerType': owner.ownerType,
+    'ownership.playerId': owner.playerId, 'ownership.characterId': owner.characterId,
+    'ownership.npcId': owner.npcId || null, 'ownership.factionId': owner.factionId || null,
+    navigationPlacement: { $exists: false },
+  };
+  const result = await Player.findOneAndUpdate({
+    ...ctx.buildPlayerNameQuery(playerName),
+    characters: { $elemMatch: {
+      id: characterId, ships: { $elemMatch: match },
+      creditLedger: { $elemMatch: { type: 'take', referenceId: attestation.transactionId } },
+    } },
+  }, {
+    $inc: { __v: 1 },
+    $set: { 'characters.$[character].ships.$[ship].navigationPlacement': attestation,
+      updatedAt: new Date() },
+  }, {
+    arrayFilters: [{ 'character.id': characterId },
+      Object.fromEntries(Object.entries(match).map(([key, value]) => [`ship.${key}`, value]))],
+    returnDocument: 'after', runValidators: true,
+  });
+  return result ? result.toObject() : null;
 }
 
 async function upsertCharacterBust(ctx, Player, playerName, characterId, descriptor) {
@@ -257,7 +312,7 @@ async function addShip(ctx, Player, playerName, characterId, shipData) {
     if (!character.ships) {
       character.ships = [];
     }
-    character.ships.push(shipData);
+    character.ships.push(preserveNavigationPlacements([], [shipData])[0]);
     player.updatedAt = new Date();
     await player.save();
     return player.toObject();
@@ -371,6 +426,7 @@ module.exports = {
   getCharacters,
   deleteCharacter,
   updateCharacter,
+  commitNavigationPlacement,
   addShip,
   upsertCharacterBust,
   getCharacterBust,

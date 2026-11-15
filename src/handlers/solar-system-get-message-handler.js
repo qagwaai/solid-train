@@ -3,6 +3,7 @@
 const { SOLAR_SYSTEM_GET_RESPONSE_EVENT } = require('../model/solar-system-get');
 const { getSolarSystemById } = require('../model/solar-system-registry');
 const { attachRequestId } = require('./handler-utils');
+const { getNavigationStateAsync } = require('./context/navigation-state-service');
 
 class SolarSystemGetMessageHandler {
   constructor(context) {
@@ -57,6 +58,32 @@ class SolarSystemGetMessageHandler {
       );
     }
 
+    if (Object.prototype.hasOwnProperty.call(payload, 'navigation')) {
+      try {
+        const projection = await getNavigationStateAsync(
+          this.context, playerName, solarSystemId, payload.navigation
+        );
+        const bodies = projection.bodies.map((body) => this.context.normalizeCelestialBody(body));
+        return attachRequestId({
+          success: true,
+          message: projection.navigationState.status === 'supported'
+            ? 'Solar system navigation positions evaluated'
+            : 'Solar system navigation positions are unsupported',
+          playerName: player.playerName, solarSystemId, solarSystem: summary,
+          stars: bodies.filter((body) => body.bodyType === 'star'), bodies,
+          navigationState: projection.navigationState,
+        }, payload);
+      } catch (error) {
+        this.context.log(`[solar-system-get] Navigation read failed: ${error.message}`);
+        return attachRequestId({
+          success: false, message: 'Navigation source read failed',
+          reason: 'NAVIGATION_READ_FAILED', playerName: player.playerName, solarSystemId,
+          navigationState: { status: 'unsupported', reason: 'NAVIGATION_READ_FAILED',
+            message: 'Navigation source read failed' },
+        }, payload);
+      }
+    }
+
     // Seed on demand if the system has not been materialized yet (idempotent).
     const seeded = await this.context.seedSolarSystemCelestialBodiesAsync({ solarSystemId, asOf });
     if (seeded?.success === false) {
@@ -102,7 +129,9 @@ class SolarSystemGetMessageHandler {
       level: 'debug',
     });
 
-    this.context.refreshCharacterPresence(payload);
+    if (!Object.prototype.hasOwnProperty.call(payload, 'navigation')) {
+      this.context.refreshCharacterPresence(payload);
+    }
 
     const response = await this.buildResponse(payload);
     socket.emit(SOLAR_SYSTEM_GET_RESPONSE_EVENT, response);

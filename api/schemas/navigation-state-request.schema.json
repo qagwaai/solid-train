@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NavigationPositionSelectors",
+  "description": "Opt-in read-only position projection on solar-system-get. The ship must be owned by the authenticated player and have valid durable, backend-controlled persisted purchase lineage. Runtime-only placement proofs are test-only, not a production issuance path. Legacy/starter ships without valid backend-issued lineage remain unsupported. Target epoch comes exclusively from the verified unchanged ship position epoch. No client basis assertion, client propagation, seeding, or world repair. At most one planet/moon candidate. A geometric preview uses only supported navigationState positions at its epochMs, with distinct preview-only destination/candidate markers rather than ordinary stored Viewer meshes.",
+  "type": "object",
+  "required": ["shipId", "destinationMarketId"],
+  "properties": {
+    "shipId": { "type": "string", "pattern": "\\S" },
+    "destinationMarketId": { "type": "string", "pattern": "\\S" },
+    "candidateBodyId": { "type": "string", "pattern": "\\S" }
+  },
+  "additionalProperties": false
+}

@@ -320,6 +320,42 @@ class DatabaseService {
     return playerCharacterService.updateCharacter(this, Player, playerName, characterId, updates);
   }
 
+  async commitNavigationPlacement(playerName, characterId, ship, attestation) {
+    return playerCharacterService.commitNavigationPlacement(this, Player, playerName, characterId, ship, attestation);
+  }
+
+  async reserveShipListing(marketId, solarSystemId, itemId, transactionId, unitPrice) {
+    const result = await Market.findOneAndUpdate({
+      marketId, solarSystemId,
+      shipListings: { $elemMatch: { itemId, status: 'available', quantityAvailable: 1, unitPrice,
+        purchaseTransactionId: { $exists: false } } },
+    }, { $set: { 'shipListings.$.status': 'sold', 'shipListings.$.quantityAvailable': 0,
+      'shipListings.$.purchaseTransactionId': transactionId } },
+    { returnDocument: 'after', runValidators: true });
+    return result ? result.toObject() : null;
+  }
+
+  async completeShipListingPurchase(marketId, solarSystemId, itemId, entry) {
+    const result = await Market.findOneAndUpdate({
+      marketId, solarSystemId,
+      shipListings: { $elemMatch: { itemId, purchaseTransactionId: entry.transactionId } },
+      ledger: { $not: { $elemMatch: { transactionId: entry.transactionId } } },
+    }, { $push: { ledger: entry } }, { returnDocument: 'after', runValidators: true });
+    return result ? result.toObject() : null;
+  }
+
+  async releaseShipListing(marketId, solarSystemId, itemId, transactionId, reversal) {
+    const result = await Market.findOneAndUpdate({
+      marketId, solarSystemId,
+      shipListings: { $elemMatch: { itemId, purchaseTransactionId: transactionId } },
+    }, {
+      $set: { 'shipListings.$.status': 'available', 'shipListings.$.quantityAvailable': 1 },
+      $unset: { 'shipListings.$.purchaseTransactionId': '' },
+      ...(reversal ? { $push: { ledger: reversal } } : {}),
+    }, { returnDocument: 'after', runValidators: true });
+    return result ? result.toObject() : null;
+  }
+
   /**
    * Add a ship to a character
    * @param {string} playerName

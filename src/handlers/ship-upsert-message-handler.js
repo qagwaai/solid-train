@@ -331,6 +331,11 @@ class ShipUpsertMessageHandler {
       };
     }
 
+    if (Object.prototype.hasOwnProperty.call(payload.ship, 'navigationPlacement')) {
+      return this.buildOwnershipFailure('NAVIGATION_PLACEMENT_READ_ONLY',
+        'Ship navigation placement lineage is server-controlled', playerName, characterId);
+    }
+
     if (payload?.ship?.location !== undefined) {
       return {
         success: false,

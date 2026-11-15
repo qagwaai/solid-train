@@ -23,7 +23,7 @@
     "solarSystemId": { "type": "string" },
     "positionKm": {
       "type": "object",
-      "description": "Cartesian query point in km in the selected system's spatial coordinates. The server compares it directly with stored spatial.positionKm; it does not apply a display transform. Required only for radius queries. Omit together with distanceKm for whole-system listing mode.",
+      "description": "Cartesian query point in km, intended to use the selected system's stored spatial coordinates. The server compares it directly with stored spatial.positionKm; it does not transform axes, check coordinate-basis identity, or align epochs. This request has no basis identifier or epoch, so radius results do not prove temporal or physical coordinate compatibility. Required only for radius queries. Omit together with distanceKm for whole-system listing mode.",
       "properties": {
         "x": { "type": "number" },
         "y": { "type": "number" },

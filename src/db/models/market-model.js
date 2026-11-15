@@ -197,6 +197,7 @@ function createMarketModelArtifacts({ mongoose, spatialStateSchema }) {
         min: 0,
         default: 0,
       },
+      purchaseTransactionId: { type: String, default: undefined },
       status: {
         type: String,
         enum: ['available', 'sold'],

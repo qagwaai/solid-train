@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NavigationPositionState",
+  "description": "Supported certifies numeric game-coordinate position comparison only. A geometric preview must use exclusively this envelope's departure, destination and optional candidate positions at epochMs. Ordinary Viewer body/station meshes and stored positions remain unchanged, are not synchronized, and must not supply route points. Render destination/candidate positions as visibly distinct preview-only markers identified by solarSystemId plus marketId/bodyId and labeled as projected at epochMs (UTC or exact milliseconds), not as ordinary object positions. The route ends at destination.positionKm's projected marker, never at a different stored station mesh; any candidate waypoint uses its projected marker too. Respect previewEligibility: ineligible blocks the preview, eligible-with-warnings requires CLEARANCE_UNVERIFIED disclosure. No velocity compatibility, safety, clearance, transfer feasibility, or gravity-assist guarantee. Missing trusted ship lineage fails closed; no existing ships are backfilled. See docs/spatial-model.md for the presentation contract and actual local purchase/restart example; this contract does not add marker fields to the API.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["status", "reason", "message"],
+      "properties": {
+        "status": { "const": "unsupported" },
+        "reason": {
+          "type": "string",
+          "enum": ["NAVIGATION_REQUEST_INVALID", "SYSTEM_UNSUPPORTED", "SYSTEM_MISMATCH", "SHIP_NOT_OWNED", "BASIS_UNKNOWN", "POSITION_EPOCH_UNSUPPORTED", "POSITION_INVALID", "EVALUATION_UNSUPPORTED", "SOURCE_UNVERIFIED", "STATION_HOST_UNVERIFIED", "STATION_PLACEMENT_UNSUPPORTED", "SOURCES_CHANGED", "NAVIGATION_READ_FAILED"]
+        },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["status", "solarSystemId", "coordinateBasisId", "epochMs", "departure", "destination", "candidates", "provenance", "previewEligibility", "motion", "clearance", "gravityAssist"],
+      "properties": {
+        "status": { "const": "supported" },
+        "solarSystemId": { "const": "sol" },
+        "coordinateBasisId": {
+          "const": "stellar:sol:catalog-cartesian:v1",
+          "description": "Numeric Sol catalog game basis: sol-sun root at zero, right-handed existing Cartesian seeder axes and parent-vector summation, X cross Y = Z. At zero orientation periapsis is +X, advancing anomaly moves toward +Y, and zero inclination lies in XY. Heliocentric source elements reference the J2000.0 ecliptic; satellite source planes are not independently normalized. Not physical barycentric coordinates or a new inertial/ephemeris guarantee."
+        },
+        "epochMs": {
+          "type": "integer",
+          "minimum": 946684800000,
+          "maximum": 4102444799999,
+          "description": "Verified unchanged ship position epoch. Every navigation position, including departure, destination, hostPositionKm and candidates, uses this common epoch, not request time, orbital-element reference epoch or older stored source epoch. Preview-only marker labels must identify this projection epoch."
+        },
+        "departure": {
+          "type": "object",
+          "required": ["shipId", "positionKm", "provenance"],
+          "properties": {
+            "shipId": { "type": "string" },
+            "positionKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" },
+            "provenance": {
+              "type": "object",
+              "required": ["kind", "sourceMarketId", "offsetKm", "shipRevision"],
+              "properties": {
+                "kind": { "enum": ["trusted-runtime-placement", "trusted-persisted-placement"], "description": "Production uses durable backend-controlled persisted purchase lineage. trusted-runtime-placement is test-only and does not establish a production issuance path." },
+                "lineageId": { "type": "string", "description": "Stable committed purchase lineage identity, required for persisted placement." },
+                "sourceMarketId": { "type": "string" },
+                "offsetKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" },
+                "shipRevision": { "$ref": "#/definitions/revision" }
+              },
+              "if": { "properties": { "kind": { "const": "trusted-persisted-placement" } } },
+              "then": { "required": ["lineageId"] },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "destination": {
+          "type": "object",
+          "required": ["marketId", "hostBodyId", "positionKm", "hostPositionKm", "hostSourceEpochMs", "orbitalReferenceEpoch", "placementKind", "association"],
+          "properties": {
+            "marketId": { "type": "string", "description": "Station identity within solarSystemId; associates the preview-only projected destination marker with the ordinary station without moving it. The route terminates at the projected positionKm, not its stored mesh." },
+            "hostBodyId": { "type": "string", "description": "Exact verified host identity, not a substitute route endpoint or station position." },
+            "positionKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" },
+            "hostPositionKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" },
+            "hostSourceEpochMs": { "type": "integer", "description": "Stored host position epoch, distinct from the common evaluated epochMs." },
+            "orbitalReferenceEpoch": { "type": "string", "format": "date-time" },
+            "placementKind": { "enum": ["body-orbit", "stellar-orbit", null], "description": "Null preserves unknown placement kind for verified legacy orbital stations without metadata." },
+            "association": { "const": "verified-exact-anchor" }
+          },
+          "additionalProperties": false
+        },
+        "candidates": {
+          "type": "array",
+          "maxItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["bodyId", "positionKm", "sourceEpochMs"],
+            "properties": {
+              "bodyId": { "type": "string", "description": "Body identity within solarSystemId for a distinct preview-only marker at this candidate's positionKm and envelope epochMs. Any candidate waypoint uses that marker, not the ordinary stored body mesh. This is not a validated assist." },
+              "positionKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" },
+              "sourceEpochMs": { "type": "integer" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "required": ["evaluationModelId", "sourceRevision", "positionToleranceKm"],
+          "properties": {
+            "evaluationModelId": { "const": "sol-catalog-kepler-position-v1" },
+            "sourceRevision": { "$ref": "#/definitions/revision" },
+            "positionToleranceKm": { "const": 0.001, "description": "Maximum Euclidean km discrepancy in source-position and trusted-placement checks; not a physical-accuracy claim." }
+          },
+          "additionalProperties": false
+        },
+        "motion": { "$ref": "#/definitions/unsupportedCapability" },
+        "previewEligibility": {
+          "description": "Separate from numeric position support. Known host-profile intersection blocks a route preview; eligible-with-warnings certifies no physical clearance.",
+          "oneOf": [
+            { "type": "object", "required": ["status", "reason"], "additionalProperties": false,
+              "properties": { "status": { "const": "ineligible" },
+                "reason": { "enum": ["KNOWN_INVALID_DESTINATION", "KNOWN_INVALID_SOURCE"] } } },
+            { "type": "object", "required": ["status", "reason"], "additionalProperties": false,
+              "properties": { "status": { "const": "eligible-with-warnings" },
+                "reason": { "const": "CLEARANCE_UNVERIFIED" } } }
+          ]
+        },
+        "clearance": { "$ref": "#/definitions/unsupportedCapability" },
+        "gravityAssist": { "$ref": "#/definitions/unsupportedCapability" }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "revision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "unsupportedCapability": {
+      "type": "object",
+      "required": ["status"],
+      "properties": { "status": { "const": "unsupported" } },
+      "additionalProperties": false
+    }
+  }
+}

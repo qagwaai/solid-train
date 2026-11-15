@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MarketTrajectory",
+  "description": "Typed market trajectory descriptor. kind is static or orbital-elements. For orbital-elements, orbit.epoch is the element reference epoch, distinct from spatial.epochMs and request time. The schema does not establish coordinate-basis compatibility. Active station responses use the backend-materialized spatial snapshot at the resolved host's spatial.epochMs; clients must not re-evaluate the station orbit or add the host again. Non-station trajectory evaluation behavior is not a guarantee of this response shape.",
+  "type": ["object", "null"],
+  "properties": {
+    "kind": { "type": "string", "enum": ["static", "orbital-elements"] },
+    "orbit": {
+      "type": "object",
+      "properties": {
+        "anchorBodyId": { "type": "string" },
+        "anchorBodyName": { "type": "string" },
+        "orbitType": { "type": "string" },
+        "semiMajorAxisKm": { "type": "number" },
+        "eccentricity": { "type": "number" },
+        "inclinationDeg": { "type": "number" },
+        "longitudeOfAscendingNodeDeg": { "type": "number" },
+        "argumentOfPeriapsisDeg": { "type": "number" },
+        "meanAnomalyAtEpochDeg": { "type": "number" },
+        "orbitalPeriodSec": { "type": "number" },
+        "epoch": {
+          "type": "string",
+          "format": "date-time",
+          "description": "UTC element reference epoch, not the returned station spatial snapshot epoch."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["kind"],
+  "additionalProperties": true
+}

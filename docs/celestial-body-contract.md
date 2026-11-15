@@ -412,11 +412,32 @@ The sign is not applied a second time. This fixes the previous negative-period
 clamp to one second without rewriting catalog periods.
 
 `spatial.positionKm` is computed/materialized at seed time and stored with
-`spatial.epochMs`. Reads return that snapshot; they do not propagate orbital
+`spatial.epochMs`. Ordinary reads return that snapshot; they do not propagate orbital
 elements to the current time. `orbitalElements.epoch` is a separate reference
 epoch, not the snapshot timestamp. Reseeding can deliberately materialize a new
 snapshot. The seed revision is `2026-10-canonical-star-orbit-v3`; it performs
 upserts, not collection deletion.
+
+### Opt-in navigation evaluation
+
+The authenticated `solar-system-get` operation can separately request a
+read-only navigation position projection. This does not change ordinary stored
+`stars`/`bodies` snapshots or normal market responses. The projection preserves
+a trusted owned ship's position and position epoch, and evaluates supported Sol
+catalog dependencies and the exact-host station at that ship epoch in one
+certified numeric game basis. It must not seed, repair, persist, or silently
+convert records.
+
+Existing ship positions do not gain certification from matching system/frame
+labels, source metadata supplied by a caller, or equal timestamps. Unknown
+placement lineage and unsupported source models fail closed. The supported
+position projection is not a velocity, encounter-time, atmospheric-clearance,
+transfer-feasibility, or gravity-assist guarantee.
+
+The [spatial contract](spatial-model.md#read-only-navigation-position-projection)
+defines the request scope, certification and epoch policy, consumer boundary,
+and unchanged real local rejection example. Creation/purchase placement changes
+and existing-world certification or repair remain separately approvable work.
 
 ## Coordinate basis and producer audit
 

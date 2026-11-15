@@ -1,9 +1,16 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "SpatialState",
-  "description": "Canonical spatial snapshot in km with a Unix-millisecond snapshot epoch. The frame enum is currently barycentric, but this field does not identify the orientation, reference plane, or external inertial alignment of x/y/z, and some current producers do not place coordinates at a computed physical barycenter. The celestial orbital seeder uses a right-handed Cartesian transform (X cross Y = Z), with zero-inclination orbits in XY and positive inclination rotating +Y toward +Z. That mathematical convention does not prove all producer snapshots share the same physical basis; see docs/celestial-body-contract.md. Celestial reads preserve snapshots without propagation. Station market reads materialize exact-anchor host.positionKm plus the relative orbital vector in this implementation basis at host.epochMs; station epochMs equals host epochMs, not request time. They neither propagate the host nor add its parent, and do not persist read-time repairs. Unresolved station anchors fail explicitly.",
+  "description": "Canonical position snapshot in km; epochMs is the Unix-millisecond position snapshot epoch, not an orbital-elements reference epoch or request/response time. frame=barycentric is only a broad label, and solarSystemId is only a game-system scope; neither identifies a coordinate basis. Bundled catalog-seeded celestial records marked isCatalogBody=true, sourceScanId=catalog, and createdByCharacterId=system-catalog use a system-root game origin (a root body's position is zero), not a guaranteed physical barycenter. The catalog transform is mathematical right-handed Cartesian (X cross Y = Z), zero-inclination orbits lie in XY, and positive inclination tips +Y toward +Z. Sol heliocentric catalog elements use the J2000.0 ecliptic as their reference plane; parent-relative moon elements do not expose a separate plane identifier. No producer promises absolute inertial alignment or cross-system axis alignment. Catalog body records with this producer provenance are directly comparable only within one solarSystemId and exact equal epochMs. An active station with an exact orbital anchor inherits that host snapshot's coordinate basis and epoch; its returned position is host.positionKm plus the backend-evaluated relative orbital vector, so it is directly comparable to that exact host snapshot. Ship positions and manually authored, legacy, or otherwise unverified records have no coordinate-basis identity and are unsupported for navigation comparison, even if solarSystemId, frame, and epochMs happen to match. No coordinateBasisId is currently provided. Reads preserve celestial snapshots without propagation; station evaluation does not propagate the host or add its parent, and unresolved anchors fail explicitly. Clients must fail closed for unsupported combinations and must not propagate snapshots to request time. See docs/spatial-model.md and docs/celestial-body-contract.md.",
   "type": "object",
   "definitions": {
+    "proposedCoordinateBasisId": {
+      "title": "Reserved global SpatialState coordinateBasisId (not emitted by ordinary reads)",
+      "description": "Design-only global field, outside live SpatialState properties. The implemented opt-in solar-system-get navigationState instead identifies stellar:sol:catalog-cartesian:v1 on its supported envelope; see navigation-state-response.schema.json. That projection validates server-controlled committed purchase lineage (or volatile runtime test proofs) and sources, preserves the ship position/epoch, and evaluates supported sources at that epoch without world writes. Supported future Sol station purchases persist internal lineage; ordinary ship/spatial reads do not emit this global property. Omission/null or an unsupported basis must never be filled from labels or caller metadata. Existing-world certification or adding this property to ordinary reads still needs separate approval.",
+      "type": ["string", "null"],
+      "minLength": 1,
+      "readOnly": true
+    },
     "vector3": {
       "type": "object",
       "properties": {
@@ -15,10 +22,24 @@
     }
   },
   "properties": {
-    "solarSystemId": { "type": "string", "pattern": "\\S" },
-    "frame": { "type": "string", "enum": ["barycentric"] },
-    "positionKm": { "$ref": "#/definitions/vector3" },
-    "epochMs": { "type": "number" }
+    "solarSystemId": {
+      "type": "string",
+      "pattern": "\\S",
+      "description": "Game-system namespace only; it does not identify or prove compatibility of coordinate bases."
+    },
+    "frame": {
+      "type": "string",
+      "enum": ["barycentric"],
+      "description": "Current broad frame label. It is not a complete coordinate-basis identifier."
+    },
+    "positionKm": {
+      "$ref": "#/definitions/vector3",
+      "description": "Snapshot position in km. Axis orientation/reference plane and cross-producer compatibility are not specified by this field."
+    },
+    "epochMs": {
+      "type": "number",
+      "description": "Unix time in milliseconds of this position snapshot. Not the orbital-elements epoch and not an assertion that the position is current at request time."
+    }
   },
   "required": ["solarSystemId", "frame", "positionKm", "epochMs"]
 }

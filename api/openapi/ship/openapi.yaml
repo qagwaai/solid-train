@@ -41,6 +41,18 @@ paths:
         `ships[].spatial` uses the shared spatial-state schema. The list handler
         returns the persisted ship snapshot without converting its axes; the
         `barycentric` label does not identify a physical reference plane.
+        No currently emitted field certifies ship/catalog basis compatibility.
+        The shared schema's `definitions.proposedCoordinateBasisId` documents an
+        unimplemented global SpatialState field. The separate optional
+        solar-system-get navigationState projection now identifies a certified
+        numeric basis and evaluates supported sources at a verified owned ship
+        epoch. Supported new Sol station purchases persist server-controlled
+        lineage that survives restart; runtime test proofs remain volatile.
+        Internal attestations are not exposed as writable ship metadata and
+        are neither supplied nor issued by ship-list/upsert requests. Spatial
+        or ownership changes revoke them; unrelated inventory edits preserve them.
+        Legacy ships
+        remain unsupported; this list does not synchronize or certify them.
       operationId: socketShipList
       tags: [Ship]
       requestBody:

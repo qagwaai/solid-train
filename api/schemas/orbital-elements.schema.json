@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "OrbitalElements",
-  "description": "Persisted elliptic Keplerian elements, not recomputed on read. Distances are km, angles degrees, period seconds, eccentricity dimensionless. epoch is the UTC element reference epoch, independent of spatial.epochMs. The seeder solves Kepler's equation, forms perifocal (xp, yp)=(a(cos(E)-e), a*sqrt(1-e^2)*sin(E)), then applies the active right-handed rotation Rz(longitudeOfAscendingNodeDeg) Rx(inclinationDeg) Rz(argumentOfPeriapsisDeg); +X cross +Y = +Z. Thus a circular zero-inclination orbit lies in XY; at zero argument/node, +X at mean anomaly 0 advances to +Y at 90 degrees, and positive inclination tips +Y toward +Z. The formula defines implementation math, not an external inertial alignment. Source elements do not all declare or normalize a common physical reference plane. anchorBodyId identifies a non-star orbital origin; absent/null means the stellar/system origin. Signed nonzero periods preserve curated retrograde source conventions: propagation uses absolute period duration; inclination defines orientation, so the sign is not applied twice.",
+  "description": "Persisted elliptic Keplerian elements. Distances are km, angles degrees, period seconds, eccentricity dimensionless. epoch is the UTC element reference epoch and is independent of spatial.epochMs (the stored position snapshot time) and request/response time. This schema does not guarantee that the elements' reference plane/basis matches any spatial snapshot or other producer. The seeder solves Kepler's equation, forms perifocal (xp, yp)=(a(cos(E)-e), a*sqrt(1-e^2)*sin(E)), then applies Rz(longitudeOfAscendingNodeDeg) Rx(inclinationDeg) Rz(argumentOfPeriapsisDeg); this implementation math is right-handed (+X cross +Y = +Z), with a circular zero-inclination orbit in XY and positive inclination tipping +Y toward +Z. This math is not an external inertial alignment. Source elements do not all declare or normalize a common physical reference plane. Ordinary celestial reads preserve stored position snapshots and do not propagate them. The backend's active station materializer is a special case: it evaluates the station's relative orbit at the exact host spatial.epochMs and returns that position snapshot; clients must consume that returned spatial value rather than independently propagate or add a host. No general client-side propagation contract is provided. anchorBodyId identifies a non-star orbital origin; absent/null means the stellar/system origin. Signed nonzero periods preserve curated retrograde source conventions: propagation uses absolute period duration; inclination defines orientation, so the sign is not applied twice.",
   "type": ["object", "null"],
   "properties": {
     "semiMajorAxisKm": { "type": "number", "minimum": 0, "description": "Semi-major axis in km." },
@@ -15,7 +15,11 @@
       "anyOf": [{ "minimum": 1 }, { "maximum": -1 }],
       "description": "Signed catalog period in seconds; absolute duration must be at least one second."
     },
-    "epoch": { "type": "string", "format": "date-time" },
+    "epoch": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC reference epoch for these elements, not the spatial position snapshot epoch or API request time."
+    },
     "anchorBodyId": { "type": ["string", "null"], "minLength": 1 }
   },
   "required": [

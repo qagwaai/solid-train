@@ -62,13 +62,23 @@
         "marketStock": { "type": ["integer", "null"] },
         "purchasedShip": {
           "type": "object",
-          "description": "Present when the purchase creates a ship from a seeded market ship listing.",
-          "required": ["id", "shipName", "model", "tier", "inventory", "ownership"],
+          "description": "Present when the purchase creates a ship from a seeded market ship listing. Every purchasedShip must include its response-only supported or unsupported navigationPlacement issuance outcome; omission is invalid, not an unknown or supported result.",
+          "required": ["id", "shipName", "model", "tier", "inventory", "ownership", "navigationPlacement"],
           "properties": {
             "id": { "type": "string" },
             "shipName": { "type": "string" },
             "model": { "type": "string" },
             "tier": { "type": "integer", "minimum": 1 },
+            "navigationPlacement": {
+              "description": "Response-only issuance outcome. Supported means a new committed purchase has durable lineage; request a navigation projection to establish current position support and preview eligibility. Unsupported purchases retain ordinary placement behavior, without certification.",
+              "oneOf": [
+                { "type": "object", "required": ["status", "lineageId"], "additionalProperties": false,
+                  "properties": { "status": { "const": "supported" }, "lineageId": { "type": "string" } } },
+                { "type": "object", "required": ["status", "reason", "message"], "additionalProperties": false,
+                  "properties": { "status": { "const": "unsupported" }, "reason": { "type": "string" },
+                    "message": { "type": "string" } } }
+              ]
+            },
             "inventory": {
               "type": "array",
               "items": {

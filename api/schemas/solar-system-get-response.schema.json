@@ -123,16 +123,7 @@
     "spatialState": {
       "$ref": "./spatial-state.schema.json"
     },
-    "motionState": {
-      "type": ["object", "null"],
-      "properties": {
-        "velocityKmPerSec": { "$ref": "#/definitions/vector3" },
-        "angularVelocityRadPerSec": {
-          "anyOf": [{ "$ref": "#/definitions/vector3" }, { "type": "null" }]
-        }
-      },
-      "required": ["velocityKmPerSec"]
-    },
+    "motionState": { "$ref": "./motion-state.schema.json" },
     "physicalState": {
       "$ref": "./celestial-physical-estimates.schema.json"
     },
@@ -258,7 +249,7 @@
         "orbitalElements": { "$ref": "./orbital-elements.schema.json" },
         "physicalCatalog": { "$ref": "#/definitions/physicalCatalog" },
         "blackHoleProperties": { "$ref": "./black-hole-properties.schema.json" },
-        "atmosphere": { "type": ["object", "null"], "additionalProperties": true },
+        "atmosphere": { "$ref": "./atmosphere.schema.json" },
         "discovery": { "type": ["object", "null"], "additionalProperties": true },
         "magnitudes": { "type": ["object", "null"], "additionalProperties": true },
         "planetType": { "type": ["string", "null"] },
@@ -355,6 +346,7 @@
     },
     "playerName": { "type": "string" },
     "solarSystemId": { "type": "string" },
+    "navigationState": { "$ref": "./navigation-state-response.schema.json" },
     "solarSystem": {
       "$ref": "#/definitions/solarSystemSummary",
       "description": "Present on successful solar system lookup responses."

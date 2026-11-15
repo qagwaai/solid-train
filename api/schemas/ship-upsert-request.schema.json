@@ -30,7 +30,8 @@
     },
     "ship": {
       "type": "object",
-      "description": "Partial ship patch object. Nested patch intent is determined by property presence. When ship.inventory is present, the server applies the provided inventory patch. When ship.inventory is omitted, the server preserves existing ship inventory references.",
+      "description": "Partial ship patch object. Nested patch intent is determined by property presence. When ship.inventory is present, the server applies the provided inventory patch. When ship.inventory is omitted, the server preserves existing ship inventory references. navigationPlacement is backend-controlled and forbidden in requests; the handler rejects it with NAVIGATION_PLACEMENT_READ_ONLY.",
+      "not": { "required": ["navigationPlacement"] },
       "properties": {
         "inventory": {
           "type": "array",

@@ -33,6 +33,8 @@ class MarketBuyMessageHandler {
    */
   messageForReason(reason) {
     switch (reason) {
+      case MARKET_BUY_FAILURE_REASONS.TRANSACTION_ALREADY_PROCESSED:
+        return 'This ship purchase transaction was already processed';
       case MARKET_BUY_FAILURE_REASONS.PLAYER_NOT_REGISTERED:
         return 'Player is not registered';
       case MARKET_BUY_FAILURE_REASONS.CHARACTER_NOT_FOUND:
