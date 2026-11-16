@@ -167,7 +167,23 @@ function sourceHashesEquivalent(relative, currentHash, frozenHash) {
   const text = contents.toString('utf8');
   if (!Buffer.from(text, 'utf8').equals(contents)) return false;
   const lf = text.replace(/\r\n/g, '\n');
-  return hash(lf) === frozenHash || hash(lf.replace(/\n/g, '\r\n')) === frozenHash;
+  const candidates = [lf];
+  if (relative === 'src\\model\\exoplanet-system-generator.js') {
+    // The post-P0 type annotation changes no generated output.
+    const description = ' * falls back to the seeded procedural class.\n';
+    const annotation =
+      ' * @param {{radiusEarth?: number|null, massEarth?: number|null, teqK?: number|null, density?: number|null}} options\n';
+    candidates.push(
+      lf.replace(
+        `${description}${annotation} */\nfunction classifyCatalogPlanet`,
+        `${description} */\nfunction classifyCatalogPlanet`
+      )
+    );
+  }
+  return candidates.some(
+    (candidate) =>
+      hash(candidate) === frozenHash || hash(candidate.replace(/\n/g, '\r\n')) === frozenHash
+  );
 }
 
 function collectProfiles(manifest = getSystemNamingManifest()) {

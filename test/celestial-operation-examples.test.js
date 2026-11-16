@@ -8,7 +8,7 @@ const Parser = require('@apidevtools/swagger-parser');
 
 for (const [moduleName, operationFilter, expectedCount] of [
   ['celestial', null, 9],
-  ['solarsystem', null, 7],
+  ['solarsystem', null, 13],
   ['items', '/socket/launch-item', 4],
 ]) {
   test(`${moduleName}${operationFilter || ''}: every affected request and response example validates against fully resolved schemas`, async (t) => {

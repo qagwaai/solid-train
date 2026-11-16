@@ -18,10 +18,14 @@ function createCtx(overrides = {}) {
     toNonEmptyString(value) {
       return typeof value === 'string' ? value.trim() : '';
     },
+    toPlainObject(value) {
+      return value;
+    },
     normalizeCharacter(character) {
       return {
         ...character,
         id: typeof character?.id === 'string' ? character.id : '',
+        ships: (character?.ships || []).map(({ navigationPlacement, ...ship }) => ship),
       };
     },
     ...overrides,
@@ -72,10 +76,16 @@ test('setCharacters/getCharacters round-trip by normalized key', () => {
 test('cacheCharacters normalizes and stores under normalized player name', () => {
   const ctx = createCtx();
 
-  const cached = playerService.cacheCharacters(ctx, 'PilotOne', [{ id: 'c-1' }, { id: 'c-2' }]);
+  const placement = { status: 'committed', details: { epoch: 1 } };
+  const cached = playerService.cacheCharacters(ctx, 'PilotOne', [
+    { id: 'c-1', ships: [{ id: 's-1', navigationPlacement: placement }] },
+    { id: 'c-2' },
+  ]);
 
   assert.equal(cached.length, 2);
   assert.equal(playerService.getCharacters(ctx, 'pilotone').length, 2);
+  assert.deepEqual(cached[0].ships[0].navigationPlacement, placement);
+  assert.notStrictEqual(cached[0].ships[0].navigationPlacement.details, placement.details);
 });
 
 test('hasValidSession requires matching player session key', () => {

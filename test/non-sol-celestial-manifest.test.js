@@ -285,6 +285,32 @@ test('source fingerprint equivalence accepts line endings but rejects content or
   assert.equal(sourceHashesEquivalent('data\\unlisted.json', currentHash, sha256(lf)), false);
 });
 
+test('generator fingerprint accepts the post-baseline type annotation but not code changes', () => {
+  const relative = 'src\\model\\exoplanet-system-generator.js';
+  const contents = fs.readFileSync(path.join(__dirname, '..', ...relative.split('\\')));
+  const sha256 = (value) => createHash('sha256').update(value).digest('hex');
+  const lf = contents.toString('utf8').replace(/\r\n/g, '\n');
+  const annotation =
+    ' * @param {{radiusEarth?: number|null, massEarth?: number|null, teqK?: number|null, density?: number|null}} options\n';
+  assert.ok(lf.includes(annotation));
+  const baseline = lf.replace(annotation, '');
+  const currentHash = sha256(contents);
+  assert.ok(sourceHashesEquivalent(relative, currentHash, sha256(baseline)));
+  assert.ok(sourceHashesEquivalent(relative, currentHash, sha256(baseline.replace(/\n/g, '\r\n'))));
+  assert.equal(sourceHashesEquivalent(relative, currentHash, sha256(`${baseline}changed`)), false);
+  assert.equal(sourceHashesEquivalent(relative, 'a'.repeat(64), sha256(baseline)), false);
+
+  const frozen = buildManifest(inputs());
+  const current = structuredClone(frozen);
+  frozen.sourceFiles = [{ path: relative, sha256: sha256(baseline) }];
+  current.sourceFiles = [{ path: relative, sha256: currentHash }];
+  current.systems[0].baselineSha256 = 'b'.repeat(64);
+  assert.deepEqual(
+    assertPreservedBaseline(reseal(frozen), reseal(current), { sourceHashesEquivalent }),
+    [relative]
+  );
+});
+
 test('CLI rejects unknown, conflicting and missing arguments before writes', () => {
   assert.equal(parseArgs([]).mode, '--progress');
   assert.equal(parseArgs(['--progress', '--system', 'alpha']).systemId, 'alpha');

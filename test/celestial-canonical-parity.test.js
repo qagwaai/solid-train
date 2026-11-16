@@ -424,7 +424,7 @@ test('pre-release contract versions and shared schema references remain consiste
   );
   const spatialState = read('spatial-state');
   assert.ok(spatialState.description.includes('right-handed Cartesian'));
-  assert.ok(spatialState.description.includes('does not identify'));
+  assert.ok(spatialState.description.includes('neither identifies a coordinate basis'));
   assert.equal(spatialState.properties.frame.enum[0], 'barycentric');
   assert.equal(spatialState.properties.basisId, undefined);
   assert.equal(

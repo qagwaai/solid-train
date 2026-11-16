@@ -123,7 +123,16 @@ test('DatabaseService updateCharacter maps canonical ship name to shipName befor
   const originalFindOne = Player.findOne;
 
   const player = {
-    characters: [{ id: 'c-1', characterName: 'Pilot', ships: [] }],
+    characters: [
+      {
+        id: 'c-1',
+        characterName: 'Pilot',
+        ships: [],
+        toObject() {
+          return { id: this.id, characterName: this.characterName, ships: this.ships };
+        },
+      },
+    ],
     async save() {},
     toObject() {
       return { characters: this.characters };
