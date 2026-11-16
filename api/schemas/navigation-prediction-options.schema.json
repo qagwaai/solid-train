@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NavigationPredictionOptions",
+  "description": "Intentionally unconstrained transport value: invalid prediction options must reach the handler, not reject the outer request or remove navigationState. The handler requires an object containing only scenarioCruiseSpeedKmPerSec, with an explicit finite number in [120, 10000] km/s, and a valid navigation selection with candidateBodyId. Wrong shape/extra keys return nested NAVIGATION_REQUEST_INVALID; missing/invalid speed returns SCENARIO_SPEED_INVALID; absent candidate returns CANDIDATE_REQUIRED. No default, coercion, caller epoch, endpoint or token. Existing navigation-selector schema validation is unchanged.",
+  "definitions": {
+    "validSpeed": {
+      "type": "number",
+      "minimum": 120,
+      "maximum": 10000,
+      "description": "Required player-supplied planning assumption in km/s with no default. Not ship capability or measured speed. Finite, inclusive [120, 10000]; both analytic target speed bounds must independently satisfy Vbound / speed <= 0.5."
+    }
+  }
+}

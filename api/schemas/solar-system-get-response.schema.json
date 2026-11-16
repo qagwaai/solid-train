@@ -348,6 +348,7 @@
     "solarSystemId": { "type": "string" },
     "navigationState": { "$ref": "./navigation-state-response.schema.json" },
     "navigationEstimate": { "$ref": "./navigation-paired-estimate.schema.json" },
+    "navigationPrediction": { "$ref": "./navigation-paired-prediction.schema.json" },
     "solarSystem": {
       "$ref": "#/definitions/solarSystemSummary",
       "description": "Present on successful solar system lookup responses."
@@ -390,6 +391,35 @@
               "previewEligibility": {
                 "properties": { "status": { "const": "eligible-with-warnings" } }
               }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["navigationPrediction"],
+        "properties": {
+          "navigationPrediction": {
+            "type": "object",
+            "required": ["success"],
+            "properties": { "success": { "const": true } }
+          }
+        }
+      },
+      "then": {
+        "required": ["navigationState"],
+        "properties": {
+          "success": { "const": true },
+          "navigationState": {
+            "type": "object",
+            "properties": {
+              "status": { "const": "supported" },
+              "previewEligibility": {
+                "type": "object",
+                "properties": { "status": { "const": "eligible-with-warnings" } }
+              },
+              "candidates": { "type": "array", "minItems": 1 }
             }
           }
         }

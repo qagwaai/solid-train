@@ -23,8 +23,11 @@
     "solarSystemId": { "type": "string" },
     "navigation": { "$ref": "./navigation-state-request.schema.json" },
     "navigationEstimate": { "$ref": "./navigation-estimate-options.schema.json" },
+    "navigationPrediction": { "$ref": "./navigation-prediction-options.schema.json" },
     "asOf": { "type": "string", "format": "date-time", "description": "Existing ordinary lazy-seed timestamp. Ignored when navigation is supplied: the read-only projection uses only the verified ship position epoch and never seeds." },
     "requestId": { "type": "string" }
   },
-  "dependencies": { "navigationEstimate": ["navigation"] }
+  "dependencies": {
+    "navigationEstimate": ["navigation"]
+  }
 }

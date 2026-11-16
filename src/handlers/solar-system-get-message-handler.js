@@ -5,6 +5,9 @@ const { getSolarSystemById } = require('../model/solar-system-registry');
 const { attachRequestId } = require('./handler-utils');
 const { getNavigationStateAsync } = require('./context/navigation-state-service');
 const { estimateFromNavigationState } = require('./context/navigation-route-estimate-service');
+const {
+  validatePredictionRequest, predictionFromNavigationState,
+} = require('./context/navigation-prediction-service');
 
 class SolarSystemGetMessageHandler {
   constructor(context) {
@@ -12,25 +15,37 @@ class SolarSystemGetMessageHandler {
   }
 
   async buildResponse(payload) {
-    if (!Object.prototype.hasOwnProperty.call(payload, 'navigationEstimate')) {
+    const hasEstimate = Object.prototype.hasOwnProperty.call(payload, 'navigationEstimate');
+    const hasPrediction = Object.prototype.hasOwnProperty.call(payload, 'navigationPrediction');
+    if (!hasEstimate && !hasPrediction) {
       return this.buildSystemResponse(payload);
     }
+    const predictionError = hasPrediction
+      ? validatePredictionRequest(payload.navigationPrediction, payload.navigation) : null;
     const response = Object.prototype.hasOwnProperty.call(payload, 'navigation')
-      ? await this.buildSystemResponse(payload)
+      ? await this.buildSystemResponse(payload, hasPrediction && !predictionError
+          ? { prediction: payload.navigationPrediction } : undefined)
       : attachRequestId({
-          success: false, message: 'navigationEstimate requires navigation',
+          success: false, message: hasEstimate
+            ? 'navigationEstimate requires navigation' : 'navigationPrediction requires navigation',
           playerName: this.context.toNonEmptyString(payload?.playerName),
           solarSystemId: this.context.toNonEmptyString(payload?.solarSystemId).toLowerCase(),
         }, payload);
     const state = response.navigationState || (response.reason === 'NAVIGATION_READ_FAILED'
       ? { status: 'unsupported', reason: response.reason, message: response.message } : undefined);
-    return {
-      ...response,
-      navigationEstimate: {
+    if (hasEstimate) {
+      response.navigationEstimate = {
         ...estimateFromNavigationState(this.context, state, payload.navigationEstimate),
         association: 'same-response-direct-endpoints',
-      },
-    };
+      };
+    }
+    if (hasPrediction) {
+      response.navigationPrediction = {
+        ...predictionFromNavigationState(this.context, state, predictionError, response.navigationPrediction),
+        association: 'same-response-navigation-sources',
+      };
+    }
+    return response;
   }
 
   /**
@@ -38,7 +53,7 @@ class SolarSystemGetMessageHandler {
    * registry summary and all celestial bodies (split into stars + bodies for
    * convenience to UI clients).
    */
-  async buildSystemResponse(payload) {
+  async buildSystemResponse(payload, options) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId).toLowerCase();
     const asOf = this.context.toNonEmptyString(payload?.asOf);
@@ -84,7 +99,7 @@ class SolarSystemGetMessageHandler {
     if (Object.prototype.hasOwnProperty.call(payload, 'navigation')) {
       try {
         const projection = await getNavigationStateAsync(
-          this.context, playerName, solarSystemId, payload.navigation
+          this.context, playerName, solarSystemId, payload.navigation, options
         );
         const bodies = projection.bodies.map((body) => this.context.normalizeCelestialBody(body));
         return attachRequestId({
@@ -95,6 +110,7 @@ class SolarSystemGetMessageHandler {
           playerName: player.playerName, solarSystemId, solarSystem: summary,
           stars: bodies.filter((body) => body.bodyType === 'star'), bodies,
           navigationState: projection.navigationState,
+          ...('predictionResult' in projection ? { navigationPrediction: projection.predictionResult } : {}),
         }, payload);
       } catch (error) {
         this.context.log(`[solar-system-get] Navigation read failed: ${error.message}`);
@@ -153,7 +169,8 @@ class SolarSystemGetMessageHandler {
     });
 
     if (!Object.prototype.hasOwnProperty.call(payload, 'navigation') &&
-        !Object.prototype.hasOwnProperty.call(payload, 'navigationEstimate')) {
+        !Object.prototype.hasOwnProperty.call(payload, 'navigationEstimate') &&
+        !Object.prototype.hasOwnProperty.call(payload, 'navigationPrediction')) {
       this.context.refreshCharacterPresence(payload);
     }
 

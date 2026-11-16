@@ -93,6 +93,27 @@ info:
     Non-opt-in behavior remains unchanged. Standalone estimates are not associated
     with displayed preview geometry; candidate/curve length is never measured.
 
+    Phase 2 illustrative prediction: solar-system-get may also opt in with
+    navigationPrediction and a required player scenarioCruiseSpeedKmPerSec in
+    [120, 10000] km/s alongside navigation with one candidateBodyId. Inside the
+    same source capture pair as navigationState, it returns departure, candidate
+    encounter and destination arrival positions at integer epochs found by bounded
+    constant-speed straight-leg fixed points against Kepler-moving targets, with
+    association same-response-navigation-sources and equal sourceRevision. Epochs
+    use authoritative uniform POSIX/game milliseconds. ISO-8601 Z strings are
+    calendar renderings only, not conversions to physical UTC, TT or TDB.
+    Prediction-only input validation is deferred to the handler: bad/missing speed
+    or an absent candidate rejects only prediction, preserving a valid preview.
+    Each target bound is the sum of full-orbit Kepler periapsis speed maxima
+    along its verified parent chain (including the destination station offset);
+    both must be <= half the scenario speed before iteration. No sampled proof.
+    Arrival station position is the future host position plus the verified orbital
+    offset at that same epoch, all in the declared catalog basis.
+    Results are illustrative-not-eta: no ETA, duration, trajectory,
+    clearance, assist benefit, ranking, fuel or travel execution. Every failure is
+    an explicit typed rejection without partial positions or epochs.
+    navigationState and navigationEstimate are unchanged with or without it.
+
     Market contract explicit notes (3.1.2):
     - `/socket/market-buy` supports canonical cargo purchases and seeded ship listing purchases.
     - Seeded ship purchases require `quantity: 1` and return `transaction.purchasedShip` metadata with a required response-only navigationPlacement supported/unsupported issuance outcome.

@@ -287,6 +287,45 @@ curves, fuel or travel execution are implemented.
 Schemas: [options](../api/schemas/navigation-estimate-options.schema.json) and
 [paired result](../api/schemas/navigation-paired-estimate.schema.json).
 
+### Phase 2 single-candidate prediction
+
+The owner approved full Phase 2B implementation on 2026-11-16 after Nova's
+contract review. Runtime prediction, contract corrections and focused tests are
+implemented for Nova review. The complete specification, decisions, validation
+evidence and progress tracker are in
+[Ship Navigation Phase 2](ship-navigation-2026-11-16.md).
+
+The opt-in sibling is `navigationPrediction: { scenarioCruiseSpeedKmPerSec }` on
+`solar-system-get-request`. For success the handler requires `navigation.candidateBodyId`
+and an explicit finite speed within [120, 10000] km/s, with no default. The wire
+schema intentionally passes invalid prediction options and a missing candidate
+to the handler: only prediction is rejected, retaining a valid navigation preview.
+Existing selector/estimate schema rules remain unchanged. It is not a ship
+capability. The paired response declares `same-response-navigation-sources` and
+the exact source revision of its `navigationState`. Supported results contain
+the frozen departure and predicted candidate encounter and destination arrival
+positions at exact integer epochs, with independent convergence diagnostics.
+Rejections carry only `status`, `reason` and `message`, never partial predictions.
+
+Sequential constant-speed straight-leg fixed points provide timing only, not a
+physical trajectory. Positions use `sol-catalog-kepler-position-v1` in
+`stellar:sol:catalog-cartesian:v1`; epochs use `stellar:unix-ms-uniform:v1`, without
+UTC/TT/TDB or leap-second conversion. ISO-8601 `Z` strings are readable calendar
+renderings of game time, not physical UTC. Keep the exact integer epoch.
+Each target speed bound sums analytic full-orbit periapsis maxima along its
+verified parent chain, plus the station link for arrival. Both ratios must be
+at most 0.5 before solving. Missing/unbounded models fail explicitly, without
+partial results. No sampled positions are used to prove the bound.
+`arrival.positionKm` is the future `hostPositionKm` plus the verified orbital
+station offset evaluated and rotated in the same basis at the same epoch.
+The host already includes its parent chain. Nova may display clearly illustrative epoch
+labels, but not an ETA or duration. Nova owns the drawn geometry. Existing
+eligibility gates, the direct preview and both direct-distance operations remain
+unchanged. No clearance, assist benefit, ranking, fuel or execution is added.
+
+Schemas: [prediction options](../api/schemas/navigation-prediction-options.schema.json)
+and [paired prediction](../api/schemas/navigation-paired-prediction.schema.json).
+
 ## Read-only navigation position projection
 
 This implementation is available for Nova review. It adds no route solver,

@@ -2,6 +2,14 @@
 
 Thanks for your interest in contributing.
 
+## Text File Line Endings
+
+- Create text files with LF line endings.
+- After using file-writing tools, verify the actual on-disk line endings and
+  normalize them to LF if needed.
+- Keep `.bat`, `.cmd`, and `.ps1` files as CRLF; these are the explicit
+  Windows-script exceptions.
+
 ## Inbound Contribution Terms
 
 By submitting a pull request, patch, issue attachment, or any other

@@ -9,7 +9,10 @@ const {
 } = require('../../model/solar-system-celestial-seed');
 const { buildSeededMarketsForSolarSystem } = require('../../model/solar-system-market-seed');
 const { normalizeStationPlacement } = require('../../model/station-placement');
-const { computeRelativeOrbitPositionKm } = require('./orbital-math');
+const { computeRelativeOrbitPositionKm, computeRelativeOrbitPositionAtEpochMs } = require('./orbital-math');
+const {
+  PredictionError, keplerSpeedBound, keplerChainSpeedBound, predictNavigation,
+} = require('./navigation-prediction-service');
 
 const MIN_EPOCH_MS = Date.parse('2000-01-01T00:00:00.000Z');
 const MAX_EPOCH_MS = Date.parse('2100-01-01T00:00:00.000Z');
@@ -213,7 +216,54 @@ function evaluator(ctx, snapshot, targetEpochMs) {
       association: 'verified-exact-anchor',
     };
   }
-  return { bodyPosition, stationPosition, dependencies };
+  function predictionTargets(state) {
+    const allowedIds = new Set(dependencies.keys());
+    function requireDependency(id) {
+      if (!allowedIds.has(id) || !dependencies.has(id)) {
+        throw new PredictionError('failed', 'PREDICTION_SOURCE_MISMATCH',
+          'Prediction may use only the verified departure-epoch dependencies');
+      }
+      return dependencies.get(id);
+    }
+    function catalogBody(id) {
+      requireDependency(id);
+      return CATALOG.get(id);
+    }
+    const candidateId = state.candidates[0].bodyId;
+    const marketId = state.destination.marketId;
+    const orbit = requireDependency(`station:${marketId}`).trajectory.orbit;
+    const candidateBound = keplerChainSpeedBound(candidateId, catalogBody);
+    const destinationBound = keplerChainSpeedBound(orbit.anchorBodyId, catalogBody) +
+      keplerSpeedBound(orbit, true);
+    function bodyAt(id, epochMs, cache) {
+      requireDependency(id);
+      return computeAbsolutePositionKm(CATALOG.get(id), epochMs, cache, CATALOG);
+    }
+    return {
+      candidate: {
+        speedBoundKmPerSec: candidateBound,
+        atEpoch: (epochMs) => ({ bodyId: candidateId,
+          positionKm: bodyAt(candidateId, epochMs, new Map()) }),
+      },
+      destination: {
+        speedBoundKmPerSec: destinationBound,
+        atEpoch: (epochMs) => {
+          const hostPositionKm = bodyAt(orbit.anchorBodyId, epochMs, new Map());
+          const offset = computeRelativeOrbitPositionAtEpochMs(ctx, orbit, epochMs);
+          return { marketId, hostBodyId: orbit.anchorBodyId, hostPositionKm,
+            positionKm: { x: hostPositionKm.x + offset.x, y: hostPositionKm.y + offset.y,
+              z: hostPositionKm.z + offset.z } };
+        },
+      },
+      assertSources: () => {
+        if (dependencyRevision(dependencies) !== state.provenance.sourceRevision) {
+          throw new PredictionError('failed', 'PREDICTION_SOURCE_MISMATCH',
+            'Prediction dependencies changed during evaluation');
+        }
+      },
+    };
+  }
+  return { bodyPosition, stationPosition, dependencies, predictionTargets };
 }
 
 function dependencyRevision(dependencies) {
@@ -344,7 +394,7 @@ async function registerTrustedNavigationPlacementAsync(ctx, request) {
   return { coordinateBasisId: BASIS_ID, epochMs: ship.spatial.epochMs };
 }
 
-async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigation) {
+async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigation, options = {}) {
   let snapshot;
   try {
     validateSelectors(navigation);
@@ -379,14 +429,7 @@ async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigatio
     if (candidates.some((body) => !['planet', 'moon'].includes(CATALOG.get(body.bodyId)?.bodyType))) {
       reject('EVALUATION_UNSUPPORTED', 'A navigation candidate must be a supported planet or moon');
     }
-    const after = await capture(ctx, playerName);
-    if (revision(snapshot) !== revision(after)) reject('SOURCES_CHANGED', 'Navigation inputs changed during evaluation');
-    if (!durable && placements.get(ctx)?.get(placementKey(playerName, ship.id))?.proof !== proof) {
-      reject('BASIS_UNKNOWN', 'Placement lineage changed during evaluation');
-    }
-    return {
-      bodies: snapshot.bodies,
-      navigationState: {
+    const navigationState = {
         status: 'supported', solarSystemId: 'sol', coordinateBasisId: BASIS_ID,
         epochMs: ship.spatial.epochMs,
         departure: { shipId: ship.id, positionKm: ship.spatial.positionKm,
@@ -399,7 +442,19 @@ async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigatio
         previewEligibility: previewEligibility(proof.sourceMarketId, navigation.destinationMarketId),
         motion: { status: 'unsupported' }, clearance: { status: 'unsupported' },
         gravityAssist: { status: 'unsupported' },
-      },
+    };
+    const predictionResult = options.prediction
+      ? predictNavigation(ctx, navigationState, options.prediction,
+          () => evaluation.predictionTargets(navigationState))
+      : undefined;
+    const after = await capture(ctx, playerName);
+    if (revision(snapshot) !== revision(after)) reject('SOURCES_CHANGED', 'Navigation inputs changed during evaluation');
+    if (!durable && placements.get(ctx)?.get(placementKey(playerName, ship.id))?.proof !== proof) {
+      reject('BASIS_UNKNOWN', 'Placement lineage changed during evaluation');
+    }
+    return {
+      bodies: snapshot.bodies, navigationState,
+      ...(predictionResult ? { predictionResult } : {}),
     };
   } catch (error) {
     if (!(error instanceof NavigationUnsupportedError)) {

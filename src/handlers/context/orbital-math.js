@@ -83,13 +83,17 @@ function rotatePerifocalVector(_ctx, perifocalVector, orbit) {
 }
 
 function computeRelativeOrbitPositionKm(ctx, orbit, timestamp) {
-  const a = Math.max(0, orbit.semiMajorAxisKm);
-  const e = Math.max(0, Math.min(0.99, orbit.eccentricity));
-  const periodSec = Math.max(1, orbit.orbitalPeriodSec);
   const epochMs = Date.parse(orbit.epoch);
   const timestampMs = Date.parse(timestamp);
   const baselineMs = Number.isNaN(epochMs) ? timestampMs : epochMs;
   const nowMs = Number.isNaN(timestampMs) ? baselineMs : timestampMs;
+  return computeRelativeOrbitPositionAtEpochMs(ctx, orbit, nowMs, baselineMs);
+}
+
+function computeRelativeOrbitPositionAtEpochMs(ctx, orbit, nowMs, baselineMs = Date.parse(orbit.epoch)) {
+  const a = Math.max(0, orbit.semiMajorAxisKm);
+  const e = Math.max(0, Math.min(0.99, orbit.eccentricity));
+  const periodSec = Math.max(1, orbit.orbitalPeriodSec);
 
   const meanMotionRadPerSec = (Math.PI * 2) / periodSec;
   const elapsedSec = (nowMs - baselineMs) / 1000;
@@ -218,6 +222,7 @@ module.exports = {
   solveEccentricAnomaly,
   rotatePerifocalVector,
   computeRelativeOrbitPositionKm,
+  computeRelativeOrbitPositionAtEpochMs,
   resolveMarketPositionKmAsync,
   materializeStationSnapshotAsync,
   getShipPositionKm,

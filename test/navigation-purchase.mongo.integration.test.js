@@ -35,6 +35,8 @@ test.before(async () => {
       .content['application/json'].schema),
     estimate: validator.compile(api.paths['/socket/navigation-route-estimate'].post.responses['200']
       .content['application/json'].schema),
+    prediction: validator.compile(api.paths['/socket/solar-system-get'].post.responses['200']
+      .content['application/json'].schema),
   };
 });
 test.after(async () => { if (harness) await harness.teardown(); });
@@ -176,6 +178,27 @@ test('authenticated gameplay purchase persists lineage and survives a fresh cont
     assert.deepEqual(paired.navigationState.departure.positionKm, response.navigationState.departure.positionKm);
     assert.deepEqual(paired.navigationState.destination.positionKm, response.navigationState.destination.positionKm);
     assert.equal(paired.navigationEstimate.estimate.distanceKm, estimate.estimate.distanceKm);
+    const predictionRequest = {
+      solarSystemId: 'sol', navigation: { shipId, destinationMarketId: 'sol-pluto-orbit', candidateBodyId: 'sol-earth' },
+      navigationEstimate: { scenarioCruiseSpeedKmPerSec: 10 },
+      navigationPrediction: { scenarioCruiseSpeedKmPerSec: 150 },
+    };
+    const predicted = await request(context, 'solar-system-get-request', predictionRequest);
+    assert.equal(schemas.prediction(predicted), true, JSON.stringify(schemas.prediction.errors));
+    assert.equal(predicted.navigationPrediction.success, true, JSON.stringify(predicted.navigationPrediction));
+    assert.deepEqual(predicted.navigationState, response.navigationState);
+    assert.deepEqual(predicted.bodies, response.bodies);
+    assert.deepEqual(predicted.navigationEstimate, paired.navigationEstimate);
+    assert.equal(predicted.navigationPrediction.prediction.sourceRevision, response.navigationState.provenance.sourceRevision);
+    assert.deepEqual(predicted.navigationPrediction.prediction.departure, {
+      shipId, epochMs: saved.spatial.epochMs, positionKm: saved.spatial.positionKm,
+    });
+    const rejectedPrediction = await request(context, 'solar-system-get-request', {
+      ...predictionRequest, navigationPrediction: { scenarioCruiseSpeedKmPerSec: 10 },
+    });
+    assert.equal(rejectedPrediction.navigationPrediction.prediction.reason, 'SCENARIO_SPEED_INVALID');
+    assert.deepEqual(rejectedPrediction.navigationState, predicted.navigationState);
+    assert.deepEqual(rejectedPrediction.navigationEstimate, predicted.navigationEstimate);
   }
   const after = (await harness.databaseService.getCharacters(playerName))[0];
   assert.deepEqual(after.ships.find((ship) => ship.id === legacyId).spatial, before[0].ships[0].spatial);

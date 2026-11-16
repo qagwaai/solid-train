@@ -1,0 +1,227 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NavigationPairedPrediction",
+  "description": "Opt-in Phase 2 illustrative prediction bound exclusively to the navigationState returned in this same response: same captured source records, basis, evaluation model and departure epoch, with equal sourceRevision. Outer lookup success does not imply prediction success; nested success requires an outer success with supported eligible navigationState. Rejections carry no positions or epochs. Never an ETA, duration, trajectory, clearance, reachability or gravity-assist result.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["success", "association", "prediction"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "association": { "const": "same-response-navigation-sources" },
+    "prediction": {}
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "success": { "const": true } } },
+      "then": { "properties": { "prediction": { "$ref": "#/definitions/supported" } } },
+      "else": {
+        "properties": {
+          "prediction": {
+            "oneOf": [
+              { "$ref": "#/definitions/invalid" },
+              { "$ref": "#/definitions/unsupported" },
+              { "$ref": "#/definitions/ineligible" },
+              { "$ref": "#/definitions/failed" }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "epochMs": {
+      "type": "integer",
+      "minimum": 946684800000,
+      "maximum": 4102444799999,
+      "description": "Exact integer milliseconds in timeScaleId; authoritative. Display labels are derived from this value, never the reverse."
+    },
+    "convergence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iterations", "residualMs"],
+      "description": "Diagnostic only; not accuracy, uncertainty or confidence.",
+      "properties": {
+        "iterations": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "residualMs": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Absolute leg timing residual |g(epochMs) - epochMs| re-evaluated at the returned integer epoch."
+        }
+      }
+    },
+    "supported": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "solarSystemId",
+        "coordinateBasisId",
+        "positionEvaluationModelId",
+        "predictionModelId",
+        "timeScaleId",
+        "sourceRevision",
+        "classification",
+        "scenarioCruiseSpeedKmPerSec",
+        "speedProvenance",
+        "departure",
+        "encounter",
+        "arrival",
+        "assumptions",
+        "warnings"
+      ],
+      "properties": {
+        "status": { "const": "supported" },
+        "solarSystemId": { "const": "sol" },
+        "coordinateBasisId": {
+          "const": "stellar:sol:catalog-cartesian:v1",
+          "description": "Same numeric game basis as navigationState; not a physical inertial/barycentric guarantee."
+        },
+        "positionEvaluationModelId": { "const": "sol-catalog-kepler-position-v1" },
+        "predictionModelId": {
+          "const": "constant-speed-straight-legs-moving-targets-v1",
+          "description": "Analytic leg timing has a unique fixed point t = tStart + 1000 * |X(t) - P| / v from fixed start point P to moving Kepler target X. Full-orbit Vbound is the sum of a*(2*pi/period)*sqrt((1+e)/(1-e)) along the verified target chain, including the station link for arrival; fixed rotations preserve norms. No sampling proof. Both Vbound/v ratios must be <=0.5 before iteration; unbounded/unsupported models return EVALUATION_UNSUPPORTED. Leg 1: departure to candidate center. Leg 2: returned encounter to station. Limits: speed [120, 10000] km/s, 64 iterations, 0.1 ms stop, independent integer-epoch residual <=1 ms, 10 Julian-year departure-relative horizon, epochs before 2100. These are pinned to this id. Contraction describes the analytic model, not exact floating-point arithmetic or physical accuracy; numerical failure returns no partial result. Not a physical trajectory or drawn path."
+        },
+        "timeScaleId": {
+          "const": "stellar:unix-ms-uniform:v1",
+          "description": "Authoritative calculation scale for every epochMs in this response, including navigationState.epochMs: integer ECMAScript/POSIX milliseconds treated as uniform game time (86,400,000 ms per day; leap seconds not represented). Kepler propagation uses elapsed seconds = delta ms / 1000; element epochs are ISO-8601 Z calendar labels in the same scale. new Date(epochMs).toISOString() is only a readable calendar rendering, not conversion to physical UTC. Calculations are not UTC, TAI, TT or TDB. Preserve exact integer epochMs."
+        },
+        "sourceRevision": {
+          "$ref": "./navigation-state-response.schema.json#/definitions/revision",
+          "description": "Equals navigationState.provenance.sourceRevision in this same response."
+        },
+        "classification": { "const": "illustrative-not-eta" },
+        "scenarioCruiseSpeedKmPerSec": {
+          "$ref": "./navigation-prediction-options.schema.json#/definitions/validSpeed"
+        },
+        "speedProvenance": { "const": "caller-supplied-scenario" },
+        "departure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["shipId", "epochMs", "positionKm"],
+          "description": "Exact copy of navigationState departure.shipId, epochMs and departure.positionKm. The ship is not propagated.",
+          "properties": {
+            "shipId": { "type": "string", "pattern": "\\S" },
+            "epochMs": { "$ref": "#/definitions/epochMs" },
+            "positionKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" }
+          }
+        },
+        "encounter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bodyId", "epochMs", "positionKm", "convergence"],
+          "description": "Candidate body center at the illustrative encounter epoch (>= departure.epochMs). Not a flyby point, closest approach, periapsis or clearance-checked position.",
+          "properties": {
+            "bodyId": { "type": "string", "pattern": "\\S" },
+            "epochMs": { "$ref": "#/definitions/epochMs" },
+            "positionKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" },
+            "convergence": { "$ref": "#/definitions/convergence" }
+          }
+        },
+        "arrival": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["marketId", "hostBodyId", "epochMs", "positionKm", "hostPositionKm", "convergence"],
+          "description": "Destination station and host center at the same illustrative arrival epoch (>= encounter.epochMs, <= departure.epochMs + 315576000000). positionKm = hostPositionKm + the verified station trajectory.orbit offset evaluated at that epoch, rotated into stellar:sol:catalog-cartesian:v1 by its argument of periapsis, inclination and ascending node. hostPositionKm already includes the full host parent chain; never add a parent twice. The offset is not a frozen departure-epoch offset. Supports the existing bundled orbital trajectory with absent placement metadata or matching active body-orbit/stellar-orbit metadata; no new placement evaluator. hostPositionKm lets Nova distinguish station arrival from host center. Not an ETA.",
+          "properties": {
+            "marketId": { "type": "string", "pattern": "\\S" },
+            "hostBodyId": { "type": "string", "pattern": "\\S" },
+            "epochMs": { "$ref": "#/definitions/epochMs" },
+            "positionKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" },
+            "hostPositionKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" },
+            "convergence": { "$ref": "#/definitions/convergence" }
+          }
+        },
+        "assumptions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "legDistanceStraightLine",
+            "constantScenarioSpeed",
+            "accelerationBrakingOmitted",
+            "gravityAndAssistEffectsOmitted",
+            "departureFixedAtNavigationEpoch",
+            "encounterAtBodyCenter"
+          ],
+          "properties": {
+            "legDistanceStraightLine": { "const": true },
+            "constantScenarioSpeed": { "const": true },
+            "accelerationBrakingOmitted": { "const": true },
+            "gravityAndAssistEffectsOmitted": { "const": true },
+            "departureFixedAtNavigationEpoch": { "const": true },
+            "encounterAtBodyCenter": { "const": true }
+          }
+        },
+        "warnings": { "const": ["CLEARANCE_UNVERIFIED"] }
+      }
+    },
+    "invalid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "message"],
+      "properties": {
+        "status": { "const": "invalid" },
+        "reason": {
+          "enum": ["NAVIGATION_REQUEST_INVALID", "SCENARIO_SPEED_INVALID", "CANDIDATE_REQUIRED"]
+        },
+        "message": { "type": "string" }
+      }
+    },
+    "unsupported": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "message"],
+      "properties": {
+        "status": { "const": "unsupported" },
+        "reason": {
+          "enum": [
+            "SYSTEM_UNSUPPORTED",
+            "SYSTEM_MISMATCH",
+            "SHIP_NOT_OWNED",
+            "BASIS_UNKNOWN",
+            "POSITION_EPOCH_UNSUPPORTED",
+            "POSITION_INVALID",
+            "EVALUATION_UNSUPPORTED",
+            "SOURCE_UNVERIFIED",
+            "STATION_HOST_UNVERIFIED",
+            "STATION_PLACEMENT_UNSUPPORTED",
+            "SOURCES_CHANGED",
+            "SCENARIO_SPEED_BELOW_CONVERGENCE_BOUND",
+            "PREDICTION_HORIZON_EXCEEDED",
+            "PREDICTION_EPOCH_UNSUPPORTED"
+          ]
+        },
+        "message": { "type": "string" }
+      }
+    },
+    "ineligible": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "message"],
+      "properties": {
+        "status": { "const": "ineligible" },
+        "reason": { "enum": ["KNOWN_INVALID_SOURCE", "KNOWN_INVALID_DESTINATION"] },
+        "message": { "type": "string" }
+      }
+    },
+    "failed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "message"],
+      "properties": {
+        "status": { "const": "failed" },
+        "reason": {
+          "enum": [
+            "NAVIGATION_READ_FAILED",
+            "ENCOUNTER_NONCONVERGENT",
+            "ARRIVAL_NONCONVERGENT",
+            "PREDICTION_NUMERIC_INVALID",
+            "PREDICTION_SOURCE_MISMATCH",
+            "PREDICTION_EVALUATION_FAILED"
+          ]
+        },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

@@ -5,10 +5,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const Parser = require('@apidevtools/swagger-parser');
 const { createSchemaValidator } = require('../src/model/schema-validator');
-const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
-const {
-  NavigationRouteEstimateMessageHandler,
-} = require('../src/handlers/navigation-route-estimate-message-handler');
+const { navigationFixture: fixture } = require('../test-support/navigation-test-helpers');
 const {
   SolarSystemGetMessageHandler,
 } = require('../src/handlers/solar-system-get-message-handler');
@@ -16,10 +13,6 @@ const { registerSocketHandlers } = require('../src/handlers/socket-handler-regis
 const {
   registerTrustedNavigationPlacementAsync,
 } = require('../src/handlers/context/navigation-state-service');
-const {
-  buildSeededCelestialBodiesForSolarSystem,
-} = require('../src/model/solar-system-celestial-seed');
-const { buildSeededMarketsForSolarSystem } = require('../src/model/solar-system-market-seed');
 const { materializeStationSnapshotAsync } = require('../src/handlers/context/orbital-math');
 const { createMockSocket } = require('../test-support/message-handler-test-helpers');
 const {
@@ -49,80 +42,6 @@ const validators = contract.then((api) => {
     ),
   };
 });
-
-async function fixture(sourceMarketId = 'sol-mars-orbit') {
-  const logs = [];
-  const ctx = new MessageHandlerContext({ log: (message) => logs.push(message) });
-  const bodies = buildSeededCelestialBodiesForSolarSystem('sol', '2026-04-17T00:00:00.000Z');
-  const markets = buildSeededMarketsForSolarSystem('sol');
-  for (const body of bodies) ctx.celestialBodiesById.set(body.id, body);
-  for (const market of markets) ctx.marketsByKey.set(`sol:${market.marketId}`, market);
-  const evaluated = new MessageHandlerContext({
-    log: () => {},
-    celestialBodiesById: new Map(
-      buildSeededCelestialBodiesForSolarSystem('sol', '2026-11-14T00:00:00.000Z').map((body) => [
-        body.id,
-        body,
-      ])
-    ),
-  });
-  const source = markets.find((market) => market.marketId === sourceMarketId);
-  const placement = await materializeStationSnapshotAsync(evaluated, source);
-  const ship = {
-    id: 'fixture-ship',
-    model: 'Scavenger Pod',
-    inventory: [],
-    spatial: structuredClone(placement.spatial),
-    ownership: {
-      ownerType: 'player-character',
-      playerId: 'fixture-player',
-      characterId: 'fixture-character',
-      npcId: null,
-      factionId: null,
-    },
-  };
-  ctx.registeredPlayers.set('fixturepilot', {
-    playerId: 'fixture-player',
-    playerName: 'FixturePilot',
-  });
-  ctx.charactersByPlayer.set('fixturepilot', [{ id: 'fixture-character', ships: [ship] }]);
-  await registerTrustedNavigationPlacementAsync(ctx, {
-    playerName: 'FixturePilot',
-    shipId: ship.id,
-    sourceMarketId,
-    offsetKm: { x: 0, y: 0, z: 0 },
-  });
-  ctx.seedSolarSystemCelestialBodiesAsync = async () => {
-    throw new Error('Estimate must not seed');
-  };
-  ctx.refreshCharacterPresence = () => {
-    throw new Error('Estimate must not refresh presence');
-  };
-  const request = {
-    playerName: 'FixturePilot',
-    sessionKey: 'fixture-session',
-    correlationId: '36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66',
-    requestIdentity: {
-      operation: 'navigation-route-estimate',
-      entityType: 'solar-system',
-      containerId: 'sol',
-    },
-    solarSystemId: 'sol',
-    shipId: ship.id,
-    destinationMarketId: 'sol-pluto-orbit',
-  };
-  return {
-    ctx,
-    ship,
-    bodies,
-    markets,
-    source,
-    evaluated,
-    logs,
-    request,
-    handler: new NavigationRouteEstimateMessageHandler(ctx),
-  };
-}
 
 async function assertResponse(response, status) {
   const { response: validate } = await validators;
@@ -617,6 +536,30 @@ test(
     assert.equal(paired.correlationId, f.request.correlationId);
     assert.equal(paired.navigationEstimate.success, true);
     assert.equal(paired.navigationEstimate.estimate.distanceKm, response.estimate.distanceKm);
+    for (const [options, candidateBodyId, reason] of [
+      [{ scenarioCruiseSpeedKmPerSec: 150 }, 'sol-luna', undefined],
+      [{ scenarioCruiseSpeedKmPerSec: 10 }, 'sol-luna', 'SCENARIO_SPEED_INVALID'],
+      [{}, 'sol-luna', 'SCENARIO_SPEED_INVALID'],
+      [{ scenarioCruiseSpeedKmPerSec: 150 }, undefined, 'CANDIDATE_REQUIRED'],
+      [null, 'sol-luna', 'NAVIGATION_REQUEST_INVALID'],
+    ]) {
+      const predictionPromise = waitForEvent(client, 'solar-system-get-response');
+      client.emit('solar-system-get-request', {
+        ...f.request,
+        requestIdentity: { operation: 'solar-system-get', entityType: 'solar-system', containerId: 'sol' },
+        navigation: { shipId: f.ship.id, destinationMarketId: f.request.destinationMarketId,
+          ...(candidateBodyId ? { candidateBodyId } : {}) },
+        navigationEstimate: {},
+        navigationPrediction: options,
+      });
+      const predicted = await predictionPromise;
+      assert.equal(validatePaired(predicted), true, JSON.stringify(validatePaired.errors));
+      assert.equal(predicted.correlationId, f.request.correlationId);
+      assert.equal(predicted.navigationState.status, 'supported');
+      assert.deepEqual(predicted.navigationEstimate, paired.navigationEstimate);
+      assert.equal(predicted.navigationPrediction.success, reason === undefined);
+      assert.equal(predicted.navigationPrediction.prediction.reason, reason);
+    }
   }
 );
 

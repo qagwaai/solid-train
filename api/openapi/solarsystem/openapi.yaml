@@ -209,6 +209,67 @@ paths:
         not a transactional cross-collection database snapshot. Standalone estimates
         remain unassociated with preview geometry. Non-opt-in clients receive no
         new response field or behavior. No new candidate planning or UI is included.
+        Optional sibling navigationPrediction (Phase 2) is transport-unconstrained
+        so prediction-only errors reach the handler. For prediction success the
+        handler requires navigation with candidateBodyId and an options object
+        containing only scenarioCruiseSpeedKmPerSec, a finite number in [120, 10000]
+        km/s: a player planning assumption with no default or coercion, never ship
+        capability. Invalid shape/extra keys return nested NAVIGATION_REQUEST_INVALID;
+        missing/invalid speed returns SCENARIO_SPEED_INVALID; an absent candidate
+        returns CANDIDATE_REQUIRED. Existing navigation-selector schema validation
+        is unchanged (malformed/multiple selectors remain invalid outer requests).
+        Missing navigation is handled without reads/seeding/presence refresh:
+        outer success false, message "navigationPrediction requires navigation",
+        or the unchanged "navigationEstimate requires navigation" when both opt in.
+        The existing navigationEstimate request dependency remains unchanged.
+        The response sibling contains success, association:
+        same-response-navigation-sources, and prediction. It is computed inside the
+        same source capture pair as navigationState from the same verified records,
+        with no additional read; sourceRevision equals the navigationState
+        provenance sourceRevision. Departure is the exact navigationState departure
+        at epochMs; the ship is never propagated. Encounter (candidate body center)
+        and arrival (destination station) epochs are unique fixed points of
+        constant-speed straight-leg timing against Kepler-moving targets, model
+        constant-speed-straight-legs-moving-targets-v1, solved sequentially and
+        validated independently. For each verified elliptical link, the all-phase
+        speed maximum is a*(2*pi/period)*sqrt((1+e)/(1-e)), attained at periapsis.
+        Fixed catalog rotations preserve norms; parent-chain speeds add by the
+        triangle inequality. Candidate Vbound sums its chain; station Vbound sums
+        its host chain plus the verified trajectory.orbit link. Body periods use
+        max(1,abs(period)); station periods use max(1,period), with the existing
+        body e<=0.999 and station e<=0.99 gates. The Sun is the fixed origin.
+        These bounds hold over the full orbit, hence the whole prediction horizon;
+        no epoch sampling is used as proof. Current maximum bounds: 58.976 km/s
+        for candidates and 59.141 km/s for stations. At 120 km/s both ratios are
+        <0.5; increasing speed only reduces them. Both bounds are checked before
+        either leg: no finite supported bound yields EVALUATION_UNSUPPORTED;
+        Vbound/speed>0.5 yields SCENARIO_SPEED_BELOW_CONVERGENCE_BOUND.
+        Each leg starts at its start epoch and allows 64 iterations, stops at
+        delta<=0.1 ms, rounds to integer milliseconds and independently checks
+        residual<=1 ms. The contraction/unique-root claim describes the analytic
+        Kepler timing model, not exact floating-point arithmetic or physical accuracy;
+        numerical violations return explicit failures, not partial success.
+        Positions are freshly evaluated at the returned integer epochs.
+        arrival.hostPositionKm is the full future host-chain position;
+        arrival.positionKm adds the verified station orbit's future relative
+        offset, rotated by its periapsis/inclination/ascending-node angles into
+        the same catalog basis. No double-counted parent or frozen station offset.
+        Absent placement metadata and matching active body-orbit/stellar-orbit
+        metadata use this existing evaluator; other placements remain unsupported.
+        Epochs use timeScaleId stellar:unix-ms-uniform:v1: authoritative uniform
+        POSIX/game milliseconds, 86400000 per day, with no leap seconds.
+        ISO-8601 Z is only a readable calendar rendering of the exact epoch,
+        not a conversion to physical UTC; calculations are not UTC, TT or TDB.
+        Arrival must be within 10 Julian years of departure and before 2100;
+        horizon rejection precedes epoch rejection. Supported predictions require
+        supported eligible projections.
+        Invalid options, a missing candidate, and horizon, epoch, convergence or
+        numeric outcomes reject only the prediction and leave navigationState and
+        navigationEstimate unchanged. Rejections carry status/reason/message only,
+        never partial positions or epochs. classification illustrative-not-eta:
+        no ETA, duration, trajectory, clearance, assist benefit, reachability,
+        ranking, fuel or travel execution. Legs are straight only for timing; Nova
+        owns drawn geometry. Omitting the opt-in preserves existing responses.
         For Copper Vale (exo-gj-9066), a durable approved P6 checkpoint takes precedence
         over ordinary lazy catalog seeding, including after restart. Its full
         augmented canonical baseline is retained; only a normal seed marker may be
@@ -258,6 +319,7 @@ paths:
         - Failure responses omit `solarSystem`, `stars`, and `bodies`.
         - A successful system lookup does not imply navigation support: inspect navigationState.status.
         - NAVIGATION_READ_FAILED returns success false and an explicit unsupported navigationState.
+        - Outer success does not imply prediction success; nested success requires outer success and eligible navigationState.
       operationId: socketSolarSystemGet
       tags: [SolarSystem]
       requestBody:
@@ -283,6 +345,43 @@ paths:
                     destinationMarketId: sol-pluto-orbit
                   navigationEstimate:
                     scenarioCruiseSpeedKmPerSec: 10
+              pairedPrediction:
+                summary: Illustrative single-candidate prediction at an explicit scenario speed
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                  requestIdentity:
+                    operation: solar-system-get
+                    entityType: solar-system
+                    containerId: sol
+                  solarSystemId: sol
+                  navigation:
+                    shipId: owned-ship-id
+                    destinationMarketId: sol-pluto-orbit
+                    candidateBodyId: sol-luna
+                  navigationPrediction:
+                    scenarioCruiseSpeedKmPerSec: 150
+              pairedPredictionInvalidSpeed:
+                summary: Transport-valid input yields nested SCENARIO_SPEED_INVALID with the preview retained
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                  requestIdentity: { operation: solar-system-get, entityType: solar-system, containerId: sol }
+                  solarSystemId: sol
+                  navigation: { shipId: owned-ship-id, destinationMarketId: sol-pluto-orbit, candidateBodyId: sol-luna }
+                  navigationPrediction: { scenarioCruiseSpeedKmPerSec: 10 }
+              pairedPredictionMissingCandidate:
+                summary: Transport-valid input retains a zero-candidate preview and yields nested CANDIDATE_REQUIRED
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                  requestIdentity: { operation: solar-system-get, entityType: solar-system, containerId: sol }
+                  solarSystemId: sol
+                  navigation: { shipId: owned-ship-id, destinationMarketId: sol-pluto-orbit }
+                  navigationPrediction: { scenarioCruiseSpeedKmPerSec: 150 }
               navigationPositions:
                 summary: Request read-only positions; unverified owned ships fail closed
                 value:
@@ -624,6 +723,143 @@ paths:
                       containerId: not-a-system
                     solarSystemId: not-a-system
                     requestId: req-1
+                pairedPredictionSupported:
+                  summary: Supported illustrative prediction paired with its navigationState (stars/bodies omitted)
+                  value:
+                    success: true
+                    message: Solar system navigation positions evaluated
+                    playerName: PilotOne
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: solar-system-get
+                      entityType: solar-system
+                      containerId: sol
+                    solarSystemId: sol
+                    navigationState: &pairedPredictionState
+                      status: supported
+                      solarSystemId: sol
+                      coordinateBasisId: stellar:sol:catalog-cartesian:v1
+                      epochMs: 1794614400000
+                      departure: &pairedPredictionDeparture
+                        shipId: owned-ship-id
+                        positionKm: { x: -68497108.89898615, y: 230490599.55439094, z: 6513204.619689254 }
+                        provenance:
+                          kind: trusted-persisted-placement
+                          lineageId: f08d2910-b9d0-4aea-a749-a9f1cd1015d0
+                          sourceMarketId: sol-mars-orbit
+                          offsetKm: { x: 0, y: 0, z: 0 }
+                          shipRevision: c226ceb9d805b260146979f9562abb5802f98943558b8c973055e1f4af9dad2a
+                      destination: &pairedPredictionDestination
+                        marketId: sol-pluto-orbit
+                        hostBodyId: sol-pluto
+                        positionKm: { x: 2974293648.201258, y: -4397750958.234561, z: -390278339.2324666 }
+                        hostPositionKm: { x: 2974292253.685408, y: -4397752426.080326, z: -390278377.66936064 }
+                        hostSourceEpochMs: 1776384000000
+                        orbitalReferenceEpoch: '2026-01-01T00:00:00.000Z'
+                        placementKind: null
+                        association: verified-exact-anchor
+                      candidates:
+                        - bodyId: sol-luna
+                          positionKm: { x: 92713269.03814426, y: 115056805.05196837, z: 14921.888450147251 }
+                          sourceEpochMs: 1776384000000
+                      provenance:
+                        evaluationModelId: sol-catalog-kepler-position-v1
+                        sourceRevision: d41b0b0f05177509ea34d3533b81dca5f63c1d95c230a5e632a24bb8dac9e9b2
+                        positionToleranceKm: 0.001
+                      previewEligibility: { status: eligible-with-warnings, reason: CLEARANCE_UNVERIFIED }
+                      motion: { status: unsupported }
+                      clearance: { status: unsupported }
+                      gravityAssist: { status: unsupported }
+                    navigationPrediction:
+                      success: true
+                      association: same-response-navigation-sources
+                      prediction:
+                        status: supported
+                        solarSystemId: sol
+                        coordinateBasisId: stellar:sol:catalog-cartesian:v1
+                        positionEvaluationModelId: sol-catalog-kepler-position-v1
+                        predictionModelId: constant-speed-straight-legs-moving-targets-v1
+                        timeScaleId: stellar:unix-ms-uniform:v1
+                        sourceRevision: d41b0b0f05177509ea34d3533b81dca5f63c1d95c230a5e632a24bb8dac9e9b2
+                        classification: illustrative-not-eta
+                        scenarioCruiseSpeedKmPerSec: 150
+                        speedProvenance: caller-supplied-scenario
+                        departure:
+                          shipId: owned-ship-id
+                          epochMs: 1794614400000
+                          positionKm: { x: -68497108.89898615, y: 230490599.55439094, z: 6513204.619689254 }
+                        encounter:
+                          bodyId: sol-luna
+                          epochMs: 1795713802170
+                          positionKm: { x: 64474291.511722974, y: 133169650.84930696, z: -17879.967533573898 }
+                          convergence: { iterations: 16, residualMs: 0.133056640625 }
+                        arrival:
+                          marketId: sol-pluto-orbit
+                          hostBodyId: sol-pluto
+                          epochMs: 1831977600050
+                          positionKm: { x: 3146423889.109306, y: -4326655970.758481, z: -447745954.4471171 }
+                          hostPositionKm: { x: 3146424514.4662237, y: -4326653939.490068, z: -447745901.25648177 }
+                          convergence: { iterations: 7, residualMs: 0.3828125 }
+                        assumptions:
+                          legDistanceStraightLine: true
+                          constantScenarioSpeed: true
+                          accelerationBrakingOmitted: true
+                          gravityAndAssistEffectsOmitted: true
+                          departureFixedAtNavigationEpoch: true
+                          encounterAtBodyCenter: true
+                        warnings: [CLEARANCE_UNVERIFIED]
+                pairedPredictionSpeedRejected:
+                  summary: Invalid scenario speed rejects only the prediction; navigationState is unchanged
+                  value:
+                    success: true
+                    message: Solar system navigation positions evaluated
+                    playerName: PilotOne
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: solar-system-get
+                      entityType: solar-system
+                      containerId: sol
+                    solarSystemId: sol
+                    navigationState: *pairedPredictionState
+                    navigationPrediction:
+                      success: false
+                      association: same-response-navigation-sources
+                      prediction:
+                        status: invalid
+                        reason: SCENARIO_SPEED_INVALID
+                        message: scenarioCruiseSpeedKmPerSec is required and must be a finite number in [120, 10000] km/s
+                pairedPredictionCandidateRequired:
+                  summary: Missing candidate rejects only prediction; zero-candidate navigationState is retained (stars/bodies omitted)
+                  value:
+                    success: true
+                    message: Solar system navigation positions evaluated
+                    playerName: PilotOne
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity: { operation: solar-system-get, entityType: solar-system, containerId: sol }
+                    solarSystemId: sol
+                    navigationState:
+                      status: supported
+                      solarSystemId: sol
+                      coordinateBasisId: stellar:sol:catalog-cartesian:v1
+                      epochMs: 1794614400000
+                      departure: *pairedPredictionDeparture
+                      destination: *pairedPredictionDestination
+                      candidates: []
+                      provenance:
+                        evaluationModelId: sol-catalog-kepler-position-v1
+                        sourceRevision: 96bf89ea96b092e8c269fb204a8cdd3dbbd17e764a7b57ae27cc25f149f97d2b
+                        positionToleranceKm: 0.001
+                      previewEligibility: { status: eligible-with-warnings, reason: CLEARANCE_UNVERIFIED }
+                      motion: { status: unsupported }
+                      clearance: { status: unsupported }
+                      gravityAssist: { status: unsupported }
+                    navigationPrediction:
+                      success: false
+                      association: same-response-navigation-sources
+                      prediction:
+                        status: invalid
+                        reason: CANDIDATE_REQUIRED
+                        message: An explicit candidateBodyId is required
 
   /socket/solar-system-list:
     post:
