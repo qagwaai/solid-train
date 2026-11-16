@@ -84,6 +84,9 @@ const {
 } = require('./handlers/ship-list-by-npc-owner-message-handler');
 const { SolarSystemListMessageHandler } = require('./handlers/solar-system-list-message-handler');
 const { SolarSystemGetMessageHandler } = require('./handlers/solar-system-get-message-handler');
+const {
+  NavigationRouteEstimateMessageHandler,
+} = require('./handlers/navigation-route-estimate-message-handler');
 const { StarListMessageHandler } = require('./handlers/star-list-message-handler');
 const { StarGetMessageHandler } = require('./handlers/star-get-message-handler');
 const { registerSocketHandlers } = require('./handlers/socket-handler-registry');
@@ -205,6 +208,9 @@ function createServer(options = {}) {
   );
   const solarSystemListMessageHandler = new SolarSystemListMessageHandler(messageHandlerContext);
   const solarSystemGetMessageHandler = new SolarSystemGetMessageHandler(messageHandlerContext);
+  const navigationRouteEstimateMessageHandler = new NavigationRouteEstimateMessageHandler(
+    messageHandlerContext
+  );
   const starListMessageHandler = new StarListMessageHandler(messageHandlerContext);
   const starGetMessageHandler = new StarGetMessageHandler(messageHandlerContext);
 
@@ -334,6 +340,7 @@ function createServer(options = {}) {
         shipListByNpcOwnerMessageHandler,
         solarSystemListMessageHandler,
         solarSystemGetMessageHandler,
+        navigationRouteEstimateMessageHandler,
         starListMessageHandler,
         starGetMessageHandler,
       },

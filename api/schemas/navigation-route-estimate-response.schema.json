@@ -1,0 +1,236 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "navigation-route-estimate-response",
+  "description": "Isolated direct measurement, never an ETA or preview-position source. No vectors, navigationState, revision-token protocol, candidates or curve. Correlation matches a request, not world freshness. Discard stale selection responses; do not combine independent estimates as one snapshot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "success",
+    "message",
+    "playerName",
+    "solarSystemId",
+    "correlationId",
+    "requestIdentity",
+    "estimate"
+  ],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "playerName": { "type": "string" },
+    "solarSystemId": { "type": "string" },
+    "correlationId": {
+      "description": "Exact supplied value, or null if absent in a malformed request."
+    },
+    "requestIdentity": {
+      "description": "Exact supplied value, or null if absent in a malformed request."
+    },
+    "requestId": { "type": "string" },
+    "estimate": {}
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "success": { "const": true } } },
+      "then": {
+        "properties": {
+          "solarSystemId": { "const": "sol" },
+          "correlationId": {
+            "$ref": "./navigation-route-estimate-request.schema.json#/properties/correlationId"
+          },
+          "requestIdentity": {
+            "$ref": "./navigation-route-estimate-request.schema.json#/properties/requestIdentity"
+          },
+          "estimate": { "$ref": "#/definitions/supported" }
+        }
+      },
+      "else": {
+        "properties": {
+          "estimate": {
+            "oneOf": [
+              { "$ref": "#/definitions/invalid" },
+              { "$ref": "#/definitions/unsupported" },
+              { "$ref": "#/definitions/ineligible" },
+              { "$ref": "#/definitions/failed" }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "supported": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "solarSystemId",
+        "departure",
+        "destination",
+        "coordinateBasisId",
+        "referenceEpochMs",
+        "positionEvaluationModelId",
+        "estimationModelId",
+        "distanceKm",
+        "classification",
+        "assumptions",
+        "warnings",
+        "duration"
+      ],
+      "properties": {
+        "status": { "const": "supported" },
+        "solarSystemId": { "const": "sol" },
+        "departure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["shipId"],
+          "properties": { "shipId": { "type": "string", "pattern": "^\\S+$" } }
+        },
+        "destination": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["marketId"],
+          "properties": { "marketId": { "type": "string", "pattern": "^\\S+$" } }
+        },
+        "coordinateBasisId": {
+          "const": "stellar:sol:catalog-cartesian:v1",
+          "description": "Existing right-handed Sol numeric game basis, not a physical inertial/barycentric guarantee. See NavigationPositionState and docs/spatial-model.md."
+        },
+        "referenceEpochMs": {
+          "type": "integer",
+          "minimum": 946684800000,
+          "maximum": 4102444799999,
+          "description": "Verified unchanged ship position epoch in Unix milliseconds, not request time or an arrival timestamp. Both measured endpoints use this epoch."
+        },
+        "positionEvaluationModelId": { "const": "sol-catalog-kepler-position-v1" },
+        "estimationModelId": { "const": "frozen-endpoints-constant-speed-v1" },
+        "distanceKm": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Straight-line Euclidean coordinate distance in km between frozen evaluated endpoints in coordinateBasisId at referenceEpochMs. Not flown distance, route reachability, a candidate/curve length, or a safety/clearance result."
+        },
+        "classification": { "const": "hypothetical-not-eta" },
+        "assumptions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "endpointsFrozen",
+            "constantScenarioSpeed",
+            "accelerationBrakingOmitted",
+            "assistSpeedChangesOmitted",
+            "movementDuringTripOmitted"
+          ],
+          "properties": {
+            "endpointsFrozen": { "const": true },
+            "constantScenarioSpeed": { "const": true },
+            "accelerationBrakingOmitted": { "const": true },
+            "assistSpeedChangesOmitted": { "const": true },
+            "movementDuringTripOmitted": { "const": true }
+          }
+        },
+        "warnings": { "const": ["CLEARANCE_UNVERIFIED"] },
+        "duration": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "reason"],
+              "properties": {
+                "status": { "const": "unavailable" },
+                "reason": { "const": "SCENARIO_SPEED_NOT_SUPPLIED" }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "estimatedDurationSec",
+                "scenarioCruiseSpeedKmPerSec",
+                "speedProvenance"
+              ],
+              "properties": {
+                "status": { "const": "estimated" },
+                "estimatedDurationSec": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Finite distanceKm / supplied speed, in seconds. Hypothetical frozen-endpoint constant-speed estimate, never an ETA. Zero only for exactly zero distance; positive distance requires positive duration. Underflow is rejected with ESTIMATE_NUMERIC_INVALID."
+                },
+                "scenarioCruiseSpeedKmPerSec": { "type": "number", "exclusiveMinimum": 0 },
+                "speedProvenance": { "const": "caller-supplied-scenario" }
+              }
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "distanceKm": { "exclusiveMinimum": 0 } } },
+          "then": {
+            "properties": {
+              "duration": { "properties": { "estimatedDurationSec": { "exclusiveMinimum": 0 } } }
+            }
+          },
+          "else": {
+            "properties": {
+              "duration": { "properties": { "estimatedDurationSec": { "const": 0 } } }
+            }
+          }
+        }
+      ]
+    },
+    "invalid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "message"],
+      "properties": {
+        "status": { "const": "invalid" },
+        "reason": { "const": "NAVIGATION_REQUEST_INVALID" },
+        "message": { "type": "string" }
+      }
+    },
+    "unsupported": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "message"],
+      "properties": {
+        "status": { "const": "unsupported" },
+        "reason": {
+          "enum": [
+            "INVALID_SESSION",
+            "SYSTEM_UNSUPPORTED",
+            "SYSTEM_MISMATCH",
+            "SHIP_NOT_OWNED",
+            "BASIS_UNKNOWN",
+            "POSITION_EPOCH_UNSUPPORTED",
+            "POSITION_INVALID",
+            "EVALUATION_UNSUPPORTED",
+            "SOURCE_UNVERIFIED",
+            "STATION_HOST_UNVERIFIED",
+            "STATION_PLACEMENT_UNSUPPORTED",
+            "SOURCES_CHANGED"
+          ]
+        },
+        "message": { "type": "string" }
+      }
+    },
+    "ineligible": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "message"],
+      "properties": {
+        "status": { "const": "ineligible" },
+        "reason": { "enum": ["KNOWN_INVALID_SOURCE", "KNOWN_INVALID_DESTINATION"] },
+        "message": { "type": "string" }
+      }
+    },
+    "failed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "message"],
+      "properties": {
+        "status": { "const": "failed" },
+        "reason": { "enum": ["NAVIGATION_READ_FAILED", "ESTIMATE_NUMERIC_INVALID"] },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

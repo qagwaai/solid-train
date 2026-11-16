@@ -347,6 +347,7 @@
     "playerName": { "type": "string" },
     "solarSystemId": { "type": "string" },
     "navigationState": { "$ref": "./navigation-state-response.schema.json" },
+    "navigationEstimate": { "$ref": "./navigation-paired-estimate.schema.json" },
     "solarSystem": {
       "$ref": "#/definitions/solarSystemSummary",
       "description": "Present on successful solar system lookup responses."
@@ -367,5 +368,32 @@
       "type": "string",
       "description": "Echoed caller correlation id when one was supplied on the request."
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["navigationEstimate"],
+        "properties": {
+          "navigationEstimate": {
+            "required": ["success"],
+            "properties": { "success": { "const": true } }
+          }
+        }
+      },
+      "then": {
+        "required": ["navigationState"],
+        "properties": {
+          "success": { "const": true },
+          "navigationState": {
+            "properties": {
+              "status": { "const": "supported" },
+              "previewEligibility": {
+                "properties": { "status": { "const": "eligible-with-warnings" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

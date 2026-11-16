@@ -11,6 +11,7 @@ const { MessageHandlerContext } = require('../src/handlers/message-handler-conte
 const { MarketBuyMessageHandler } = require('../src/handlers/market-buy-message-handler');
 const { ShipUpsertMessageHandler } = require('../src/handlers/ship-upsert-message-handler');
 const { SolarSystemGetMessageHandler } = require('../src/handlers/solar-system-get-message-handler');
+const { NavigationRouteEstimateMessageHandler } = require('../src/handlers/navigation-route-estimate-message-handler');
 const { CharacterAddMessageHandler } = require('../src/handlers/character-add-message-handler');
 const { registerSocketHandlers } = require('../src/handlers/socket-handler-registry');
 const { createMockSocket } = require('../test-support/message-handler-test-helpers');
@@ -31,6 +32,8 @@ test.before(async () => {
     navigation: validator.compile(api.paths['/socket/solar-system-get'].post.responses['200']
       .content['application/json'].schema.properties.navigationState),
     purchase: validator.compile(api.paths['/socket/market-buy'].post.responses['200']
+      .content['application/json'].schema),
+    estimate: validator.compile(api.paths['/socket/navigation-route-estimate'].post.responses['200']
       .content['application/json'].schema),
   };
 });
@@ -80,6 +83,7 @@ async function request(ctx, event, payload) {
   registerSocketHandlers(socket, {
     marketBuyMessageHandler: new MarketBuyMessageHandler(ctx),
     solarSystemGetMessageHandler: new SolarSystemGetMessageHandler(ctx),
+    navigationRouteEstimateMessageHandler: new NavigationRouteEstimateMessageHandler(ctx),
     shipUpsertMessageHandler: new ShipUpsertMessageHandler(ctx),
   }, ctx);
   assert.ok(listeners.has(event), `Missing registry entry for ${event}`);
@@ -150,6 +154,28 @@ test('authenticated gameplay purchase persists lineage and survives a fresh cont
     });
     assert.equal(response.navigationState.clearance.status, 'unsupported');
     assert.equal(response.navigationState.gravityAssist.status, 'unsupported');
+    const estimate = await request(context, 'navigation-route-estimate-request', {
+      solarSystemId: 'sol', shipId, destinationMarketId: 'sol-pluto-orbit',
+      requestIdentity: { operation: 'navigation-route-estimate', entityType: 'solar-system', containerId: 'sol' },
+      scenarioCruiseSpeedKmPerSec: 10,
+    });
+    assert.equal(estimate.success, true, JSON.stringify(estimate));
+    assert.equal(schemas.estimate(estimate), true, JSON.stringify(schemas.estimate.errors));
+    const distanceKm = Math.hypot(...['x', 'y', 'z'].map((axis) =>
+      expectedDestination.spatial.positionKm[axis] - saved.spatial.positionKm[axis]));
+    assert.ok(Math.abs(estimate.estimate.distanceKm - distanceKm) < 0.00001);
+    assert.equal(estimate.estimate.referenceEpochMs, saved.spatial.epochMs);
+    assert.equal(estimate.estimate.duration.estimatedDurationSec, estimate.estimate.distanceKm / 10);
+    assert.equal(Object.hasOwn(estimate, 'navigationState'), false);
+    const paired = await request(context, 'solar-system-get-request', {
+      solarSystemId: 'sol', navigation: { shipId, destinationMarketId: 'sol-pluto-orbit' },
+      navigationEstimate: { scenarioCruiseSpeedKmPerSec: 10 },
+    });
+    assert.equal(paired.navigationEstimate.success, true, JSON.stringify(paired));
+    assert.equal(paired.navigationEstimate.association, 'same-response-direct-endpoints');
+    assert.deepEqual(paired.navigationState.departure.positionKm, response.navigationState.departure.positionKm);
+    assert.deepEqual(paired.navigationState.destination.positionKm, response.navigationState.destination.positionKm);
+    assert.equal(paired.navigationEstimate.estimate.distanceKm, estimate.estimate.distanceKm);
   }
   const after = (await harness.databaseService.getCharacters(playerName))[0];
   assert.deepEqual(after.ships.find((ship) => ship.id === legacyId).spatial, before[0].ships[0].spatial);

@@ -48,6 +48,11 @@ const { SHIP_PIRACY_SEIZE_REQUEST_EVENT } = require('../model/ship-piracy-seize'
 const { SHIP_LIST_BY_NPC_OWNER_REQUEST_EVENT } = require('../model/ship-list-by-npc-owner');
 const { SOLAR_SYSTEM_LIST_REQUEST_EVENT } = require('../model/solar-system-list');
 const { SOLAR_SYSTEM_GET_REQUEST_EVENT } = require('../model/solar-system-get');
+const {
+  NAVIGATION_ROUTE_ESTIMATE_REQUEST_EVENT,
+  NAVIGATION_ROUTE_ESTIMATE_RESPONSE_EVENT,
+  navigationEstimateSocketFailure,
+} = require('../model/navigation-route-estimate');
 const { STAR_LIST_REQUEST_EVENT } = require('../model/star-list');
 const { STAR_GET_REQUEST_EVENT } = require('../model/star-get');
 const {
@@ -110,6 +115,7 @@ const RESPONSE_CHANNEL_BY_OPERATION = Object.freeze({
   'ship-piracy-seize': 'ship-piracy-seize-response',
   'solar-system-list': 'solar-system-list-response',
   'solar-system-get': 'solar-system-get-response',
+  'navigation-route-estimate': NAVIGATION_ROUTE_ESTIMATE_RESPONSE_EVENT,
   'star-list': 'star-list-response',
   'star-get': 'star-get-response',
 });
@@ -495,6 +501,16 @@ const SOCKET_HANDLER_REGISTRY = [
     errorLabel: 'Solar system get',
   },
   {
+    event: NAVIGATION_ROUTE_ESTIMATE_REQUEST_EVENT,
+    handlerKey: 'navigationRouteEstimateMessageHandler',
+    errorLabel: 'Navigation route estimate',
+    canonicalOperation: 'navigation-route-estimate',
+    handlerOwnsCorrelation: true,
+    failureResponseEvent: NAVIGATION_ROUTE_ESTIMATE_RESPONSE_EVENT,
+    failureResponse: navigationEstimateSocketFailure,
+    internalErrorMessage: 'Navigation route estimate could not be evaluated',
+  },
+  {
     event: STAR_LIST_REQUEST_EVENT,
     handlerKey: 'starListMessageHandler',
     errorLabel: 'Star list',
@@ -544,7 +560,11 @@ function registerSocketHandlers(socket, handlersByKey, context) {
         if (entry.failureResponse) {
           scopedSocket.emit(
             entry.failureResponseEvent,
-            entry.failureResponse(payload, 'internal-error', 'Credit ledger could not be retrieved')
+            entry.failureResponse(
+              payload,
+              'internal-error',
+              entry.internalErrorMessage || 'Credit ledger could not be retrieved'
+            )
           );
         }
       }

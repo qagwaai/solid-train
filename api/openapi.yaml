@@ -79,6 +79,20 @@ info:
     writes; they do not repair or certify old ships or station placements.
     Real local evidence and remaining physics limits are in docs/spatial-model.md.
 
+    Separately correlated navigation-route-estimate reads measure direct distance
+    at the verified ship epoch without changing navigationState or Viewer positions.
+    Optional caller scenario speed yields only a hypothetical frozen-endpoint,
+    constant-speed duration, never an ETA or ship-capability claim. Missing speed
+    leaves duration explicitly unavailable. No default speed, candidates, assists,
+    movement prediction, curves, fuel, travel execution or UI changes are included.
+    Estimates return no coordinate vectors or public revision-token protocol.
+    To associate a direct baseline with preview endpoints, solar-system-get may
+    separately opt in with navigationEstimate alongside navigation. The response
+    pairs an estimate computed from the exact returned departure/destination vectors
+    with association same-response-direct-endpoints, not a second evaluation.
+    Non-opt-in behavior remains unchanged. Standalone estimates are not associated
+    with displayed preview geometry; candidate/curve length is never measured.
+
     Market contract explicit notes (3.1.2):
     - `/socket/market-buy` supports canonical cargo purchases and seeded ship listing purchases.
     - Seeded ship purchases require `quantity: 1` and return `transaction.purchasedShip` metadata with a required response-only navigationPlacement supported/unsupported issuance outcome.
@@ -362,6 +376,8 @@ paths:
     $ref: './openapi/context/openapi.yaml#/paths/~1socket~1context-routing'
   /socket/solar-system-get:
     $ref: './openapi/solarsystem/openapi.yaml#/paths/~1socket~1solar-system-get'
+  /socket/navigation-route-estimate:
+    $ref: './openapi/solarsystem/openapi.yaml#/paths/~1socket~1navigation-route-estimate'
   /socket/solar-system-list:
     $ref: './openapi/solarsystem/openapi.yaml#/paths/~1socket~1solar-system-list'
   /socket/star-get:
@@ -614,6 +630,10 @@ components:
       $ref: './openapi/solarsystem/openapi.yaml#/components/schemas/SolarSystemGetRequest'
     SolarSystemGetResponse:
       $ref: './openapi/solarsystem/openapi.yaml#/components/schemas/SolarSystemGetResponse'
+    NavigationRouteEstimateRequest:
+      $ref: './openapi/solarsystem/openapi.yaml#/components/schemas/NavigationRouteEstimateRequest'
+    NavigationRouteEstimateResponse:
+      $ref: './openapi/solarsystem/openapi.yaml#/components/schemas/NavigationRouteEstimateResponse'
     SolarSystemListRequest:
       $ref: './openapi/solarsystem/openapi.yaml#/components/schemas/SolarSystemListRequest'
     SolarSystemListResponse:

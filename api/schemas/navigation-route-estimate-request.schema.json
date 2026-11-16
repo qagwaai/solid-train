@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "navigation-route-estimate-request",
+  "description": "Read-only direct baseline, separate from geometric preview state. No caller epoch, coordinate assertions, candidates, default speed or ship-capability inference.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "playerName",
+    "sessionKey",
+    "correlationId",
+    "requestIdentity",
+    "solarSystemId",
+    "shipId",
+    "destinationMarketId"
+  ],
+  "properties": {
+    "playerName": { "type": "string", "pattern": "\\S" },
+    "sessionKey": { "type": "string", "pattern": "\\S" },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+      "description": "Client-generated UUID v4, echoed exactly without fallback."
+    },
+    "requestIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "entityType", "containerId"],
+      "properties": {
+        "operation": { "const": "navigation-route-estimate" },
+        "entityType": { "const": "solar-system" },
+        "containerId": {
+          "type": "string",
+          "pattern": "^\\S+$",
+          "description": "Must equal solarSystemId exactly."
+        }
+      }
+    },
+    "solarSystemId": { "type": "string", "pattern": "^\\S+$" },
+    "shipId": { "type": "string", "pattern": "^\\S+$" },
+    "destinationMarketId": { "type": "string", "pattern": "^\\S+$" },
+    "scenarioCruiseSpeedKmPerSec": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Optional finite hypothetical scenario speed in km/s, not ship capability. Omission leaves duration unavailable; null, zero and invalid values fail."
+    },
+    "requestId": { "type": "string", "pattern": "^\\S+$" }
+  }
+}

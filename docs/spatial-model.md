@@ -108,6 +108,185 @@ convention only. Origins and reference planes differ by producer/system as
 described above; physical axis alignment is unsupported/unknown. Neither
 `barycentric` nor a shared `solarSystemId` is evidence of compatibility.
 
+## Read-only direct baseline estimate
+
+The separate correlated socket operation `navigation-route-estimate-request`
+returns `navigation-route-estimate-response`, modeled as virtual OpenAPI POST
+`/socket/navigation-route-estimate`. It measures a direct baseline for a later
+planner. It does not select candidates, calculate assists, produce a curved
+route, execute travel, or require frontend/UI changes.
+
+Request example (scenario speed is optional, never a default):
+
+```json
+{
+  "playerName": "PilotOne",
+  "sessionKey": "session-123",
+  "correlationId": "36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66",
+  "requestIdentity": {
+    "operation": "navigation-route-estimate",
+    "entityType": "solar-system",
+    "containerId": "sol"
+  },
+  "solarSystemId": "sol",
+  "shipId": "owned-ship-id",
+  "destinationMarketId": "sol-pluto-orbit"
+}
+```
+
+The request schema rejects unknown fields, caller epochs/bases, candidates and
+result limits. `requestIdentity.containerId` must exactly equal `solarSystemId`;
+correlation is a client-generated UUID v4 echoed without substitution. Optional
+`requestId` follows the existing response echo convention.
+
+The endpoint reuses navigation's authenticated ownership, durable placement
+lineage, exact source/station verification, epoch and internal source-change
+checks. Production legacy/starter ships without lineage remain unsupported.
+Test-only synthetic placement proofs are not a production issuance path.
+Only supported Sol models qualify. Known-invalid source/destination station
+host-profile intersections block estimation; other results retain the mandatory
+`CLEARANCE_UNVERIFIED` warning. No safety, docking or transfer feasibility is
+certified. Reads never seed, repair, persist positions or refresh presence.
+
+### Measurement and duration semantics
+
+A supported `estimate` contains system and endpoint identities (`departure.shipId`
+and `destination.marketId`), `coordinateBasisId`, `referenceEpochMs`,
+`positionEvaluationModelId`, `estimationModelId`, `distanceKm`, `classification`,
+`assumptions`, `warnings` and `duration`.
+
+`distanceKm` is straight-line Euclidean coordinate distance between frozen evaluated
+endpoints in the named basis at the unchanged stored ship epoch. It is not flown
+distance, a reachable route, candidate/curve length or a safety/clearance result.
+It is not calculated from ordinary stored station
+snapshots. `referenceEpochMs` is Unix milliseconds in the existing supported
+`[2000,2100)` range, not request time or an orbital-element reference epoch.
+The named numeric game basis and position evaluator retain their existing
+limitations; neither is a new physical ephemeris/inertial guarantee.
+
+With no `scenarioCruiseSpeedKmPerSec`, duration is exactly
+`{ "status": "unavailable", "reason": "SCENARIO_SPEED_NOT_SUPPLIED" }`.
+Distance remains available. Supplied speed must be finite and positive; null,
+zero, negative, string and nonfinite values are invalid, not equivalent to omission.
+No drive-profile lookup, fallback speed or ship-capability inference occurs.
+
+With speed, duration contains `status: estimated`, `estimatedDurationSec`,
+the supplied `scenarioCruiseSpeedKmPerSec`, and
+`speedProvenance: caller-supplied-scenario`. Duration seconds equal
+`distanceKm / scenarioCruiseSpeedKmPerSec`. Zero distance yields zero duration.
+Nonfinite distance/duration fails explicitly, never an Infinity/null estimate.
+For positive distance, estimated duration must be strictly positive; floating-point
+underflow to zero fails with logged `ESTIMATE_NUMERIC_INVALID`, no distance/duration.
+The response schema enforces positive duration for positive distance and zero
+estimated duration for exactly zero distance.
+
+The model is `frozen-endpoints-constant-speed-v1`, classification
+`hypothetical-not-eta`: **a hypothetical frozen-endpoint, constant-speed estimate,
+not an ETA**. Both endpoints are frozen; acceleration, braking, assist speed
+changes and movement during the trip are omitted. This duration is relative to
+the stored reference snapshot, not "arrival from now". It is not proof that the
+ship has a functioning engine or can achieve the supplied speed. Docking, fuel,
+hazards and travel execution are not evaluated.
+
+### Outcomes and preview isolation
+
+| `success` | `estimate.status` | Meaning |
+| --- | --- | --- |
+| true | `supported` | Distance available; duration independently `estimated` or `unavailable` |
+| false | `invalid` | `NAVIGATION_REQUEST_INVALID`: malformed input or inconsistent request identity |
+| false | `unsupported` | Existing ownership/lineage/system/source/epoch/model rejection, or `INVALID_SESSION` |
+| false | `ineligible` | `KNOWN_INVALID_SOURCE` or `KNOWN_INVALID_DESTINATION` |
+| false | `failed` | `NAVIGATION_READ_FAILED` or `ESTIMATE_NUMERIC_INVALID` |
+
+Rejected estimates have only status, reason and message, no measurement/duration.
+The outer response also includes message, player/system identity and correlation.
+For malformed requests, supplied correlation/identity values are echoed exactly;
+absent values are null. Session rejection uses the existing central
+`invalid-session` event plus the correlated unsupported estimate response.
+There is exactly one correlated estimate response per server-handled request.
+The separate session event carries no estimate/correlation fields and cannot
+resolve the estimate request. This is not a transport exactly-once guarantee.
+Unexpected/read failures are logged and surfaced explicitly.
+
+The endpoint returns **no position vectors, `navigationState`, candidate array,
+curved path, recommendation or public revision tokens**. Existing geometric
+preview requests, responses and Viewer meshes are unchanged. This response must
+only update separate estimate state, never preview positions, markers or epoch.
+Consumers discard obsolete correlation/selection responses and request a fresh
+estimate when needed. Correlation proves request matching, not world freshness.
+Model IDs identify calculation producers; there is no cache/revision-token
+validation protocol. Separate estimates cannot be combined as one common snapshot.
+
+The proposed ten-candidate evaluation cap, independent result cap, partial
+candidate failures, ranking/ties, timing iteration budget and prediction horizon
+are later search-phase design decisions, not accepted baseline inputs or guarantees.
+Encounter prediction, gravity-assist models, A*, multiple assists, fuel
+optimization and candidate/curved-route UI remain separately reviewed work.
+
+Schemas: [request](../api/schemas/navigation-route-estimate-request.schema.json)
+and [response](../api/schemas/navigation-route-estimate-response.schema.json).
+
+### Opt-in same-response preview association
+
+To measure the exact direct endpoints returned with a preview, use
+`solar-system-get-request` with the existing `navigation` selectors and a sibling
+`navigationEstimate: {}`. Optional `scenarioCruiseSpeedKmPerSec` goes inside that
+options object. No additional selectors, token, epoch or candidate input is allowed.
+The opt-in requires `navigation`; invalid/missing selection cannot trigger ordinary
+seeding or presence refresh. Invalid estimate options reject only the estimate,
+not an otherwise supported geometric preview.
+
+The response contains existing `navigationState` plus:
+
+```json
+{
+  "navigationEstimate": {
+    "success": false,
+    "association": "same-response-direct-endpoints",
+    "estimate": {
+      "status": "invalid",
+      "reason": "NAVIGATION_REQUEST_INVALID",
+      "message": "Invalid navigation estimate options"
+    }
+  }
+}
+```
+
+This is a response fragment illustrating estimate-only rejection, not a full
+system response. For a supported estimate, the nested `estimate` uses the baseline
+measurement shape above. Nested `navigationEstimate.success` means estimate
+success; outer `success` keeps its existing system-lookup meaning. A supported
+paired estimate requires supported, eligible navigation positions. Rejected paired
+estimates carry only status/reason/message, never distance/duration. Unsupported or
+ineligible projections block estimation; `SOURCES_CHANGED` propagates explicitly,
+and read failure produces failed `NAVIGATION_READ_FAILED`.
+
+The shared calculation consumes the **exact returned** navigation departure and
+destination vectors, using the same basis/epoch and source evaluation. It performs
+no second projection or database read. The optional existing candidate does not
+contribute to distance: a candidate waypoint polyline or illustrative curve is
+not measured, nor is its travel duration estimated.
+
+Consumers retain or replace the projection/estimate pair together. An estimate
+cannot describe different-response endpoints merely because IDs, basis, epoch or
+correlation match. Changing the displayed response or endpoint geometry invalidates
+association; consumers must reject that association and obtain a new paired request.
+The standalone estimate endpoint remains separate/unassociated with preview geometry.
+
+The response is an immutable historical pair, not a live world-state promise.
+World changes do not retroactively break internal endpoint association, but obtaining
+current data requires a new pair. No TTL, token storage or database transaction is
+needed for this same-response association guarantee. Existing deep-copy and second
+capture/hash checks remain; they are not an atomic cross-collection database snapshot
+or protection against all changes after verification.
+
+Omitting `navigationEstimate` preserves old preview response shapes and behavior.
+No frontend/marker changes, new candidates, encounter timing, assist modeling,
+curves, fuel or travel execution are implemented.
+
+Schemas: [options](../api/schemas/navigation-estimate-options.schema.json) and
+[paired result](../api/schemas/navigation-paired-estimate.schema.json).
+
 ## Read-only navigation position projection
 
 This implementation is available for Nova review. It adds no route solver,

@@ -7,6 +7,136 @@ servers:
 tags:
   - name: SolarSystem
 paths:
+  /socket/navigation-route-estimate:
+    post:
+      summary: navigation-route-estimate-request
+      operationId: socketNavigationRouteEstimate
+      tags: [SolarSystem]
+      description: |
+        Isolated read-only direct baseline. Socket events are
+        navigation-route-estimate-request and navigation-route-estimate-response.
+        Requires the existing authenticated owned-ship lineage, verified Sol
+        source/basis/epoch and exact bundled station gates. Does not seed, repair,
+        persist positions or refresh presence. Existing geometric preview is unchanged.
+        Request identity must name this operation, entityType solar-system and
+        containerId exactly equal to solarSystemId. UUID v4 correlationId is echoed
+        exactly; discard responses for stale correlations or selections.
+        Measures straight-line Euclidean coordinate distanceKm between frozen
+        evaluated endpoints in the named basis at the unchanged stored ship epoch.
+        Not flown distance, a reachable route, candidate/curve length or clearance.
+        Optional finite positive scenarioCruiseSpeedKmPerSec yields distance/speed
+        in seconds: a hypothetical frozen-endpoint constant-speed estimate, NOT an
+        ETA. No acceleration, braking, assist speed changes or movement during the
+        trip is modeled. No default speed, driveProfile lookup or ship-capability
+        inference. Omitted speed leaves duration unavailable with
+        SCENARIO_SPEED_NOT_SUPPLIED; invalid speed rejects the operation.
+        Supported means distance available, with independent duration status.
+        Invalid, unsupported, ineligible and failed outcomes carry reasons/messages,
+        never distance/duration. Known source/destination host-profile intersections
+        block estimation; otherwise CLEARANCE_UNVERIFIED remains mandatory.
+        Authentication uses the central invalid-session event plus a correlated
+        unsupported INVALID_SESSION estimate response. Read failures return failed
+        NAVIGATION_READ_FAILED; nonfinite arithmetic or positive-distance duration
+        underflow to zero returns ESTIMATE_NUMERIC_INVALID. Zero duration is valid
+        only for exactly zero distance.
+        Exactly one correlated estimate response is emitted per handled request;
+        invalid-session is a separate session notification, not an estimate result
+        and cannot resolve an estimate request. No transport exactly-once guarantee.
+        No position vectors, navigationState, revisions, candidates, ranking, curve,
+        fuel or execution are returned. Never update/mix preview positions or epoch
+        from this response, or combine independent estimates as one shared snapshot.
+        Model IDs identify producers, not freshness. Internal source-change checks
+        remain; there is no public cache/revision-token revalidation protocol.
+        Candidate evaluation/result caps and assist planning remain later decisions.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NavigationRouteEstimateRequest'
+            examples:
+              distanceOnly:
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                  requestIdentity:
+                    operation: navigation-route-estimate
+                    entityType: solar-system
+                    containerId: sol
+                  solarSystemId: sol
+                  shipId: owned-ship-id
+                  destinationMarketId: sol-pluto-orbit
+              hypotheticalDuration:
+                summary: Explicit scenario speed, not certified ship capability
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                  requestIdentity:
+                    operation: navigation-route-estimate
+                    entityType: solar-system
+                    containerId: sol
+                  solarSystemId: sol
+                  shipId: owned-ship-id
+                  destinationMarketId: sol-pluto-orbit
+                  scenarioCruiseSpeedKmPerSec: 10
+      responses:
+        '200':
+          description: navigation-route-estimate-response; inspect success and estimate.status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigationRouteEstimateResponse'
+              examples:
+                distanceOnly:
+                  summary: Synthetic measurement example, not a captured world result
+                  value:
+                    success: true
+                    message: Direct baseline measured; any duration is hypothetical, not an ETA
+                    playerName: PilotOne
+                    solarSystemId: sol
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: navigation-route-estimate
+                      entityType: solar-system
+                      containerId: sol
+                    estimate:
+                      status: supported
+                      solarSystemId: sol
+                      departure: { shipId: owned-ship-id }
+                      destination: { marketId: sol-pluto-orbit }
+                      coordinateBasisId: stellar:sol:catalog-cartesian:v1
+                      referenceEpochMs: 1794614400000
+                      positionEvaluationModelId: sol-catalog-kepler-position-v1
+                      estimationModelId: frozen-endpoints-constant-speed-v1
+                      distanceKm: 1000
+                      classification: hypothetical-not-eta
+                      assumptions:
+                        endpointsFrozen: true
+                        constantScenarioSpeed: true
+                        accelerationBrakingOmitted: true
+                        assistSpeedChangesOmitted: true
+                        movementDuringTripOmitted: true
+                      warnings: [CLEARANCE_UNVERIFIED]
+                      duration:
+                        status: unavailable
+                        reason: SCENARIO_SPEED_NOT_SUPPLIED
+                unknownBasis:
+                  value:
+                    success: false
+                    message: The owned ship has no trusted server placement lineage
+                    playerName: PilotOne
+                    solarSystemId: sol
+                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                    requestIdentity:
+                      operation: navigation-route-estimate
+                      entityType: solar-system
+                      containerId: sol
+                    estimate:
+                      status: unsupported
+                      reason: BASIS_UNKNOWN
+                      message: The owned ship has no trusted server placement lineage
   /socket/solar-system-get:
     post:
       summary: solar-system-get-request
@@ -57,6 +187,28 @@ paths:
         gravity-assist trajectory, safety, velocity-compatibility or transfer claim.
         Marker presentation is a consumer contract, not additional response fields;
         see docs/spatial-model.md for the actual local purchase/restart example.
+        Optional sibling navigationEstimate requires navigation. Empty options
+        request distance only; optional scenarioCruiseSpeedKmPerSec must be positive
+        finite and is never ship capability. The opt-in response sibling contains
+        success, association: same-response-direct-endpoints, and estimate.
+        It is computed from this exact returned navigationState's departure/destination
+        vectors with no second evaluation/read. Nested success is independent of
+        outer system-lookup success. Supported estimates require supported eligible
+        projections; invalid options/numerical failures leave valid preview unchanged.
+        Rejections carry reason/message and no distance/duration. SOURCES_CHANGED
+        rejects the pair's estimate; read failures return failed NAVIGATION_READ_FAILED.
+        Duration remains hypothetical frozen-endpoint constant-speed, never an ETA.
+        Zero duration requires exactly zero distance; nonzero-distance underflow fails.
+        This is direct coordinate distance, not flown distance or the length/duration
+        of a candidate waypoint polyline or illustrative curve.
+        Retain/replace the pair together; reject frontend association to any different
+        response or different endpoints. Matching IDs, epochs or correlation alone
+        cannot associate independently requested estimates. No token or TTL is added.
+        The historical pair remains internally associated after world changes, but
+        is not a live freshness guarantee. Existing deep-copy/read-hash checks are
+        not a transactional cross-collection database snapshot. Standalone estimates
+        remain unassociated with preview geometry. Non-opt-in clients receive no
+        new response field or behavior. No new candidate planning or UI is included.
         For Copper Vale (exo-gj-9066), a durable approved P6 checkpoint takes precedence
         over ordinary lazy catalog seeding, including after restart. Its full
         augmented canonical baseline is retained; only a normal seed marker may be
@@ -115,6 +267,22 @@ paths:
             schema:
               $ref: '#/components/schemas/SolarSystemGetRequest'
             examples:
+              pairedDirectBaseline:
+                summary: Exact same-response endpoints; optional hypothetical speed
+                value:
+                  playerName: PilotOne
+                  sessionKey: session-123
+                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+                  requestIdentity:
+                    operation: solar-system-get
+                    entityType: solar-system
+                    containerId: sol
+                  solarSystemId: sol
+                  navigation:
+                    shipId: owned-ship-id
+                    destinationMarketId: sol-pluto-orbit
+                  navigationEstimate:
+                    scenarioCruiseSpeedKmPerSec: 10
               navigationPositions:
                 summary: Request read-only positions; unverified owned ships fail closed
                 value:
@@ -587,6 +755,10 @@ paths:
                     solarSystems: []
 components:
   schemas:
+    NavigationRouteEstimateRequest:
+      $ref: '../../schemas/navigation-route-estimate-request.schema.json'
+    NavigationRouteEstimateResponse:
+      $ref: '../../schemas/navigation-route-estimate-response.schema.json'
     BlackHoleProperties:
       $ref: '../../schemas/black-hole-properties.schema.json'
     SolarSystemGetRequest:

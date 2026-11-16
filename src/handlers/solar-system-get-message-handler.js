@@ -4,10 +4,33 @@ const { SOLAR_SYSTEM_GET_RESPONSE_EVENT } = require('../model/solar-system-get')
 const { getSolarSystemById } = require('../model/solar-system-registry');
 const { attachRequestId } = require('./handler-utils');
 const { getNavigationStateAsync } = require('./context/navigation-state-service');
+const { estimateFromNavigationState } = require('./context/navigation-route-estimate-service');
 
 class SolarSystemGetMessageHandler {
   constructor(context) {
     this.context = context;
+  }
+
+  async buildResponse(payload) {
+    if (!Object.prototype.hasOwnProperty.call(payload, 'navigationEstimate')) {
+      return this.buildSystemResponse(payload);
+    }
+    const response = Object.prototype.hasOwnProperty.call(payload, 'navigation')
+      ? await this.buildSystemResponse(payload)
+      : attachRequestId({
+          success: false, message: 'navigationEstimate requires navigation',
+          playerName: this.context.toNonEmptyString(payload?.playerName),
+          solarSystemId: this.context.toNonEmptyString(payload?.solarSystemId).toLowerCase(),
+        }, payload);
+    const state = response.navigationState || (response.reason === 'NAVIGATION_READ_FAILED'
+      ? { status: 'unsupported', reason: response.reason, message: response.message } : undefined);
+    return {
+      ...response,
+      navigationEstimate: {
+        ...estimateFromNavigationState(this.context, state, payload.navigationEstimate),
+        association: 'same-response-direct-endpoints',
+      },
+    };
   }
 
   /**
@@ -15,7 +38,7 @@ class SolarSystemGetMessageHandler {
    * registry summary and all celestial bodies (split into stars + bodies for
    * convenience to UI clients).
    */
-  async buildResponse(payload) {
+  async buildSystemResponse(payload) {
     const playerName = this.context.toNonEmptyString(payload?.playerName);
     const solarSystemId = this.context.toNonEmptyString(payload?.solarSystemId).toLowerCase();
     const asOf = this.context.toNonEmptyString(payload?.asOf);
@@ -129,7 +152,8 @@ class SolarSystemGetMessageHandler {
       level: 'debug',
     });
 
-    if (!Object.prototype.hasOwnProperty.call(payload, 'navigation')) {
+    if (!Object.prototype.hasOwnProperty.call(payload, 'navigation') &&
+        !Object.prototype.hasOwnProperty.call(payload, 'navigationEstimate')) {
       this.context.refreshCharacterPresence(payload);
     }
 

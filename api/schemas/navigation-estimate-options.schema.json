@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NavigationEstimateOptions",
+  "description": "Opt-in direct baseline calculated from the exact navigationState returned in the same response. Requires navigation. Empty object requests distance only; no caller endpoints, epoch, token or candidates.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "scenarioCruiseSpeedKmPerSec": {
+      "$ref": "./navigation-route-estimate-request.schema.json#/properties/scenarioCruiseSpeedKmPerSec"
+    }
+  }
+}

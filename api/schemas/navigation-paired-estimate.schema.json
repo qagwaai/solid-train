@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NavigationPairedEstimate",
+  "description": "Opt-in only. Association binds the direct baseline exclusively to the departure/destination vectors of navigationState in this same response, not to other responses, candidate waypoints or drawn curves. Retain/replace the pair together. Nested success is independent of outer system-lookup success. Rejected estimates have no measurements.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["success", "association", "estimate"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "association": { "const": "same-response-direct-endpoints" },
+    "estimate": {}
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "success": { "const": true } } },
+      "then": {
+        "properties": {
+          "estimate": {
+            "$ref": "./navigation-route-estimate-response.schema.json#/definitions/supported"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "estimate": {
+            "oneOf": [
+              { "$ref": "./navigation-route-estimate-response.schema.json#/definitions/invalid" },
+              {
+                "$ref": "./navigation-route-estimate-response.schema.json#/definitions/unsupported"
+              },
+              {
+                "$ref": "./navigation-route-estimate-response.schema.json#/definitions/ineligible"
+              },
+              { "$ref": "./navigation-route-estimate-response.schema.json#/definitions/failed" }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -161,6 +161,7 @@ function densityGcm3(massEarth, radiusEarth) {
 /**
  * D39 archetype rules. Returns null when there is no radius, so the caller
  * falls back to the seeded procedural class.
+ * @param {{radiusEarth?: number|null, massEarth?: number|null, teqK?: number|null, density?: number|null}} options
  */
 function classifyCatalogPlanet({ radiusEarth, massEarth, teqK, density }) {
   if (positive(massEarth) !== null && massEarth > SUPER_JUPITER_MASS_EARTH) {
