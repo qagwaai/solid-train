@@ -100,17 +100,21 @@ async function updatePlayer(ctx, Player, playerName, updates) {
       const { __v: _untrustedVersion, ...fields } = updates;
       query = { ...playerNameQuery, __v: original.__v };
       write = {
-        $set: { ...fields, updatedAt: new Date(), characters: updates.characters.map((character) => ({
-          ...character, ships: preserveNavigationPlacements(previous.get(character.id)?.ships, character.ships || []),
-        })) },
+        $set: {
+          ...fields,
+          updatedAt: new Date(),
+          characters: updates.characters.map((character) => ({
+            ...character,
+            ships: preserveNavigationPlacements(
+              previous.get(character.id)?.ships,
+              character.ships || []
+            ),
+          })),
+        },
         $inc: { __v: 1 },
       };
     }
-    const player = await Player.findOneAndUpdate(
-      query,
-      write,
-      { returnDocument: 'after' }
-    );
+    const player = await Player.findOneAndUpdate(query, write, { returnDocument: 'after' });
     if (!player && Array.isArray(updates.characters)) {
       throw new Error('Player character replacement conflicted with persisted state');
     }
@@ -131,8 +135,12 @@ async function addCharacter(ctx, Player, playerName, characterData) {
     const player = await Player.findOneAndUpdate(
       playerNameQuery,
       {
-        $push: { characters: { ...characterData,
-          ships: preserveNavigationPlacements([], characterData.ships || []) } },
+        $push: {
+          characters: {
+            ...characterData,
+            ships: preserveNavigationPlacements([], characterData.ships || []),
+          },
+        },
         updatedAt: new Date(),
       },
       { returnDocument: 'after' }
@@ -218,29 +226,47 @@ async function commitNavigationPlacement(ctx, Player, playerName, characterId, s
   const spatial = ship.spatial;
   const owner = ship.ownership;
   const match = {
-    id: ship.id, 'spatial.solarSystemId': spatial.solarSystemId,
-    'spatial.frame': spatial.frame, 'spatial.epochMs': spatial.epochMs,
-    'spatial.positionKm.x': spatial.positionKm.x, 'spatial.positionKm.y': spatial.positionKm.y,
-    'spatial.positionKm.z': spatial.positionKm.z, 'ownership.ownerType': owner.ownerType,
-    'ownership.playerId': owner.playerId, 'ownership.characterId': owner.characterId,
-    'ownership.npcId': owner.npcId || null, 'ownership.factionId': owner.factionId || null,
+    id: ship.id,
+    'spatial.solarSystemId': spatial.solarSystemId,
+    'spatial.frame': spatial.frame,
+    'spatial.epochMs': spatial.epochMs,
+    'spatial.positionKm.x': spatial.positionKm.x,
+    'spatial.positionKm.y': spatial.positionKm.y,
+    'spatial.positionKm.z': spatial.positionKm.z,
+    'ownership.ownerType': owner.ownerType,
+    'ownership.playerId': owner.playerId,
+    'ownership.characterId': owner.characterId,
+    'ownership.npcId': owner.npcId || null,
+    'ownership.factionId': owner.factionId || null,
     navigationPlacement: { $exists: false },
   };
-  const result = await Player.findOneAndUpdate({
-    ...ctx.buildPlayerNameQuery(playerName),
-    characters: { $elemMatch: {
-      id: characterId, ships: { $elemMatch: match },
-      creditLedger: { $elemMatch: { type: 'take', referenceId: attestation.transactionId } },
-    } },
-  }, {
-    $inc: { __v: 1 },
-    $set: { 'characters.$[character].ships.$[ship].navigationPlacement': attestation,
-      updatedAt: new Date() },
-  }, {
-    arrayFilters: [{ 'character.id': characterId },
-      Object.fromEntries(Object.entries(match).map(([key, value]) => [`ship.${key}`, value]))],
-    returnDocument: 'after', runValidators: true,
-  });
+  const result = await Player.findOneAndUpdate(
+    {
+      ...ctx.buildPlayerNameQuery(playerName),
+      characters: {
+        $elemMatch: {
+          id: characterId,
+          ships: { $elemMatch: match },
+          creditLedger: { $elemMatch: { type: 'take', referenceId: attestation.transactionId } },
+        },
+      },
+    },
+    {
+      $inc: { __v: 1 },
+      $set: {
+        'characters.$[character].ships.$[ship].navigationPlacement': attestation,
+        updatedAt: new Date(),
+      },
+    },
+    {
+      arrayFilters: [
+        { 'character.id': characterId },
+        Object.fromEntries(Object.entries(match).map(([key, value]) => [`ship.${key}`, value])),
+      ],
+      returnDocument: 'after',
+      runValidators: true,
+    }
+  );
   return result ? result.toObject() : null;
 }
 

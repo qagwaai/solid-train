@@ -78,10 +78,15 @@ test('density preview preserves accepted P3/P4 outputs and exposes six stable ma
   assert.equal(preview.databaseWrites, false);
   assert.equal(preview.proposalOnly, false);
   assert.equal(preview.ownerApprovalRequired, false);
-  const research = preview.proposedAdditions.find((entry) => entry.marketId === 'copper-vale-long-horizon-research');
+  const research = preview.proposedAdditions.find(
+    (entry) => entry.marketId === 'copper-vale-long-horizon-research'
+  );
   assert.equal(research.marketName, 'Long Horizon Research Outpost');
   assert.equal(research.siteName, 'Long Horizon Research Outpost');
-  assert.equal(preview.outputSha256, '7dbbb79542b549c19e389452def883c4ec82ee547525498d049c88d4502c5ba4');
+  assert.equal(
+    preview.outputSha256,
+    '7dbbb79542b549c19e389452def883c4ec82ee547525498d049c88d4502c5ba4'
+  );
 });
 
 test('all five additions clear host, moon/ring, and station envelopes and use consistent barycentric snapshots', () => {
@@ -141,9 +146,7 @@ test('all five additions clear host, moon/ring, and station envelopes and use co
   assert.ok(
     supply.clearance.moonAndRingGaps.some((entry) => entry.sourceType === 'p2-ring-proposal')
   );
-  assert.ok(
-    supply.trajectory.orbit.semiMajorAxisKm - ring.rings.outerRadiusKm >= MIN_CLEARANCE_KM
-  );
+  assert.ok(supply.trajectory.orbit.semiMajorAxisKm - ring.rings.outerRadiusKm >= MIN_CLEARANCE_KM);
 });
 
 test('preview is deterministic and host/envelope ordering does not affect a site screen', () => {

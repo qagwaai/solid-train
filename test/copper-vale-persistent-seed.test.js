@@ -2,7 +2,11 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { parseArguments, protectedSnapshot, assertForgeStopped } = require('../scripts/copper-vale-persistent-seed');
+const {
+  parseArguments,
+  protectedSnapshot,
+  assertForgeStopped,
+} = require('../scripts/copper-vale-persistent-seed');
 const { createMongoTestHarness } = require('../test-support/mongodb-test-helpers');
 const mongoose = require('mongoose');
 const { execFile } = require('node:child_process');
@@ -12,16 +16,22 @@ const execute = promisify(execFile);
 
 test('persistent command rejects implicit targets, remote targets, destructive actions and unconfirmed writes', () => {
   for (const args of [
-    [], ['--target=mongodb://example.com:27017/solid-train'],
+    [],
+    ['--target=mongodb://example.com:27017/solid-train'],
     ['--target=mongodb://localhost:27017/solid-train', '--action=rollback'],
     ['--target=mongodb://localhost:27017/solid-train', '--action=apply'],
     ['--target=mongodb://user:password@localhost:27017/solid-train'],
     ['--target=mongodb://localhost:27017/solid-train?x=y'],
-  ]) assert.throws(() => parseArguments(args));
-  assert.equal(parseArguments([
-    '--target=mongodb://localhost:27017/solid-train', '--action=apply',
-    '--confirm-write=exo-gj-9066',
-  ]).writes, true);
+  ])
+    assert.throws(() => parseArguments(args));
+  assert.equal(
+    parseArguments([
+      '--target=mongodb://localhost:27017/solid-train',
+      '--action=apply',
+      '--confirm-write=exo-gj-9066',
+    ]).writes,
+    true
+  );
 });
 
 test('protection snapshot excludes only Copper Vale seed scope and detects unrelated changes', async () => {
@@ -52,7 +62,9 @@ test('persistent CLI uses explicit temporary target and honors Forge stopped wri
     } catch (error) {
       assert.match(error.message, /Stop Forge/);
       await assert.rejects(run(['--action=apply', '--confirm-write=exo-gj-9066']), /Stop Forge/);
-      t.diagnostic('Forge is listening: verified write refusal; CLI apply/readback roundtrip blocked, not bypassed');
+      t.diagnostic(
+        'Forge is listening: verified write refusal; CLI apply/readback roundtrip blocked, not bypassed'
+      );
       return;
     }
     const applied = await run(['--action=apply', '--confirm-write=exo-gj-9066']);

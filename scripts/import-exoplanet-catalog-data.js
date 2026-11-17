@@ -126,11 +126,7 @@ const ARCHIVE_COLUMNS = [
   ...HOST_ID_FIELDS.map(([column]) => column),
   ...HOST_COUNT_FIELDS.map(([column]) => column),
   ...REFERENCE_COLUMNS,
-  ...EVIDENCE_FIELDS.flatMap(([column]) => [
-    `${column}lim`,
-    `${column}err1`,
-    `${column}err2`,
-  ]),
+  ...EVIDENCE_FIELDS.flatMap(([column]) => [`${column}lim`, `${column}err1`, `${column}err2`]),
 ];
 
 const NUMERIC_RANGES = {
@@ -344,9 +340,10 @@ function collectFieldEvidence(rows, fields, record) {
     if (!Number.isFinite(record[field])) continue;
     for (const row of rows) {
       const sourceValue = toNumber(row[column]);
-      const value = field === 'argumentOfPeriapsisDeg' && Number.isFinite(sourceValue)
-        ? roundSignificant(((sourceValue % 360) + 360) % 360, 12)
-        : sourceValue;
+      const value =
+        field === 'argumentOfPeriapsisDeg' && Number.isFinite(sourceValue)
+          ? roundSignificant(((sourceValue % 360) + 360) % 360, 12)
+          : sourceValue;
       if (value !== record[field]) continue;
       const entry = { field, value };
       const flag = toNumber(row[`${column}lim`]);
@@ -356,12 +353,16 @@ function collectFieldEvidence(rows, fields, record) {
         }
         entry.limit = flag === 1 ? 'upper' : flag === -1 ? 'lower' : 'none';
       }
-      for (const [suffix, key] of [['err1', 'errorUpper'], ['err2', 'errorLower']]) {
+      for (const [suffix, key] of [
+        ['err1', 'errorUpper'],
+        ['err2', 'errorLower'],
+      ]) {
         const error = toNumber(row[`${column}${suffix}`]);
         if (error !== null) {
           if (
             !Number.isFinite(error) ||
-            (suffix === 'err1' && error < 0) || (suffix === 'err2' && error > 0)
+            (suffix === 'err1' && error < 0) ||
+            (suffix === 'err2' && error > 0)
           ) {
             throw new Error(`${record.id}: invalid ${column}${suffix}=${error}`);
           }

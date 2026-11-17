@@ -15,7 +15,8 @@ const {
 } = require('../../model/solar-system-market-seed');
 const { SHIP_MARKET_CATALOG_BY_ID } = require('../../model/ship-market-catalog');
 const {
-  preparePurchasedNavigationPlacementAsync, commitPurchasedNavigationPlacementAsync,
+  preparePurchasedNavigationPlacementAsync,
+  commitPurchasedNavigationPlacementAsync,
 } = require('./navigation-state-service');
 
 const DEFAULT_RESTOCK_INTERVAL_MINUTES = 60;
@@ -717,7 +718,11 @@ async function addPurchasedShipToCharacterAsync(
     ? shipCatalogEntry.starterInventory
     : [];
   const placement = await preparePurchasedNavigationPlacementAsync(
-    ctx, player.playerName, market.marketId, market.solarSystemId, Date.parse(now)
+    ctx,
+    player.playerName,
+    market.marketId,
+    market.solarSystemId,
+    Date.parse(now)
   );
 
   const createdItems = starterInventory.map((entry, index) => ({
@@ -763,10 +768,12 @@ async function addPurchasedShipToCharacterAsync(
       itemType: item.itemType,
     })),
     spatial: {
-      ...(placement.status === 'supported' ? placement.spatial : {
-        ...marketPosition,
-        epochMs: Number.isFinite(Date.parse(now)) ? Date.parse(now) : marketPosition.epochMs,
-      }),
+      ...(placement.status === 'supported'
+        ? placement.spatial
+        : {
+            ...marketPosition,
+            epochMs: Number.isFinite(Date.parse(now)) ? Date.parse(now) : marketPosition.epochMs,
+          }),
     },
     launchable: true,
     damageProfile: null,
@@ -879,7 +886,11 @@ async function executeShipPurchaseTransactionAsync(ctx, request = {}, player, ch
   try {
     if (ctx.databaseService) {
       const reserved = await ctx.databaseService.reserveShipListing(
-        marketId, solarSystemId, itemId, transactionId, totalPrice
+        marketId,
+        solarSystemId,
+        itemId,
+        transactionId,
+        totalPrice
       );
       if (!reserved) return { success: false, reason: 'ITEM_NOT_TRADEABLE' };
       ctx.cacheMarket(reserved);
@@ -920,22 +931,32 @@ async function executeShipPurchaseTransactionAsync(ctx, request = {}, player, ch
     if (!ledgerWritten) throw new Error('Ship purchase character ledger write failed');
     characterLedgerApplied = true;
 
-    if (!await appendMarketLedgerEntryAsync(ctx, marketId, solarSystemId, marketLedgerEntry)) {
+    if (!(await appendMarketLedgerEntryAsync(ctx, marketId, solarSystemId, marketLedgerEntry))) {
       throw new Error('Ship purchase market ledger write failed');
     }
     if (ctx.databaseService) {
       const completed = await ctx.databaseService.completeShipListingPurchase(
-        marketId, solarSystemId, itemId, marketLedgerEntry
+        marketId,
+        solarSystemId,
+        itemId,
+        marketLedgerEntry
       );
       if (!completed) throw new Error('Ship purchase persisted market completion conflicted');
       ctx.cacheMarket(completed);
     }
     marketLedgerApplied = true;
 
-    const navigationPlacement = placement.status === 'supported'
-      ? await commitPurchasedNavigationPlacementAsync(
-          ctx, player.playerName, character.id, createdShip, transactionId, placement)
-      : placement;
+    const navigationPlacement =
+      placement.status === 'supported'
+        ? await commitPurchasedNavigationPlacementAsync(
+            ctx,
+            player.playerName,
+            character.id,
+            createdShip,
+            transactionId,
+            placement
+          )
+        : placement;
     const updatedCharacter = ctx.findCharacter(player.playerName, character.id);
     return {
       success: true,
@@ -1001,9 +1022,14 @@ async function executeShipPurchaseTransactionAsync(ctx, request = {}, player, ch
     if (listingApplied) {
       if (ctx.databaseService) {
         const released = await ctx.databaseService.releaseShipListing(
-          marketId, solarSystemId, itemId, transactionId, reversal
+          marketId,
+          solarSystemId,
+          itemId,
+          transactionId,
+          reversal
         );
-        if (!released) throw new Error('Ship purchase reservation rollback conflicted', { cause: error });
+        if (!released)
+          throw new Error('Ship purchase reservation rollback conflicted', { cause: error });
         ctx.cacheMarket(released);
       }
       await applyMarketShipListingAvailabilityAsync(

@@ -25,8 +25,14 @@ async function stop() {
 
 async function start(message) {
   const uri = new URL(message.uri);
-  if (uri.protocol !== 'mongodb:' || uri.hostname !== '127.0.0.1' ||
-      !uri.port || uri.username || uri.password || uri.pathname !== '/copper-vale-p6') {
+  if (
+    uri.protocol !== 'mongodb:' ||
+    uri.hostname !== '127.0.0.1' ||
+    !uri.port ||
+    uri.username ||
+    uri.password ||
+    uri.pathname !== '/copper-vale-p6'
+  ) {
     throw new Error('Worker requires an internally generated loopback pilot URI');
   }
   runContractSafetyPreflight();
@@ -64,10 +70,16 @@ if (!process.send) {
       } else if (next.type === 'seed-lifecycle' && typeof next.requestId === 'string') {
         lifecycleQueue = lifecycleQueue.then(async () => {
           try {
-            const result = await runCopperValeSeedLifecycle(databaseService, { action: next.action });
+            const result = await runCopperValeSeedLifecycle(databaseService, {
+              action: next.action,
+            });
             process.send({ type: 'seed-lifecycle-result', requestId: next.requestId, result });
           } catch (error) {
-            process.send({ type: 'seed-lifecycle-result', requestId: next.requestId, error: error.message });
+            process.send({
+              type: 'seed-lifecycle-result',
+              requestId: next.requestId,
+              error: error.message,
+            });
           }
         });
       }

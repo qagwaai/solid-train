@@ -28,13 +28,27 @@ test('dry-run is write-free; apply, exact durable readback and rerun are idempot
   assert.equal(dryRun.expectedBodyCount, 57);
   assert.equal(dryRun.state, 'absent');
   assert.equal(dryRun.readiness, 'ready');
-  assert.equal((await harness.databaseService.getCelestialBodies({ solarSystemId: 'exo-gj-9066' })).length, 0);
-  assert.equal((await harness.databaseService.getMarkets({ solarSystemId: 'exo-gj-9066' })).length, 0);
+  assert.equal(
+    (await harness.databaseService.getCelestialBodies({ solarSystemId: 'exo-gj-9066' })).length,
+    0
+  );
+  assert.equal(
+    (await harness.databaseService.getMarkets({ solarSystemId: 'exo-gj-9066' })).length,
+    0
+  );
   assert.deepEqual(Object.keys(dryRun.hashes).sort(), [
-    'namingSha256', 'physicalSha256', 'resourceSha256', 'sourceSha256', 'stationSha256',
+    'namingSha256',
+    'physicalSha256',
+    'resourceSha256',
+    'sourceSha256',
+    'stationSha256',
   ]);
   assert.deepEqual(Object.keys(dryRun.revisions).sort(), [
-    'naming', 'physical', 'resource', 'source', 'station',
+    'naming',
+    'physical',
+    'resource',
+    'source',
+    'station',
   ]);
 
   const first = await runCopperValeSeedLifecycle(harness.databaseService, { action: 'apply' });
@@ -52,8 +66,14 @@ test('dry-run is write-free; apply, exact durable readback and rerun are idempot
   assert.equal(second.status, 'complete');
   assert.equal(second.resumed, false);
   assert.deepEqual(second.expectedBodyIds, first.expectedBodyIds);
-  assert.equal((await harness.databaseService.getCelestialBodies({ solarSystemId: 'exo-gj-9066' })).length, 57);
-  assert.equal((await harness.databaseService.getMarkets({ solarSystemId: 'exo-gj-9066' })).length, 1);
+  assert.equal(
+    (await harness.databaseService.getCelestialBodies({ solarSystemId: 'exo-gj-9066' })).length,
+    57
+  );
+  assert.equal(
+    (await harness.databaseService.getMarkets({ solarSystemId: 'exo-gj-9066' })).length,
+    1
+  );
 });
 
 test('resume verifies and adopts a durable body written before its checkpoint', async () => {
@@ -71,7 +91,9 @@ test('resume verifies and adopts a durable body written before its checkpoint', 
   const interrupted = await harness.databaseService.getCopperValeSeedLifecycleState();
   assert.equal(interrupted.status, 'applying');
   assert.deepEqual(interrupted.verifiedBodyIds, []);
-  const interruptedDryRun = await runCopperValeSeedLifecycle(harness.databaseService, { action: 'dry-run' });
+  const interruptedDryRun = await runCopperValeSeedLifecycle(harness.databaseService, {
+    action: 'dry-run',
+  });
   assert.equal(interruptedDryRun.readiness, 'resumable');
   assert.deepEqual(interruptedDryRun.checkedBodyIds, [plan.bodies[0].id]);
   assert.ok(await harness.databaseService.getCelestialBodyById(plan.bodies[0].id));
@@ -114,7 +136,9 @@ test('source/catalog changes are separately hashed and block resume without muta
   await assert.rejects(
     runCopperValeSeedLifecycle(harness.databaseService, {
       action: 'apply',
-      afterBodyWrite: async () => { throw new Error('interrupt'); },
+      afterBodyWrite: async () => {
+        throw new Error('interrupt');
+      },
     }),
     /interrupt/
   );
@@ -139,7 +163,9 @@ test('resume adopts a station written before its checkpoint without resetting ga
   await assert.rejects(
     runCopperValeSeedLifecycle(harness.databaseService, {
       action: 'apply',
-      afterMarketWrite: async () => { throw new Error('station-write interruption'); },
+      afterMarketWrite: async () => {
+        throw new Error('station-write interruption');
+      },
     }),
     /station-write interruption/
   );
@@ -147,10 +173,12 @@ test('resume adopts a station written before its checkpoint without resetting ga
   assert.equal(state.status, 'applying');
   assert.equal(state.marketVerified, false);
   assert.equal(state.verifiedBodyIds.length, 57);
-  await mongoose.model('Market').updateOne(
-    { marketId: plan.station.marketId },
-    { $set: { priceMultiplier: 1.31, 'inventory.0.stock': 17 } }
-  );
+  await mongoose
+    .model('Market')
+    .updateOne(
+      { marketId: plan.station.marketId },
+      { $set: { priceMultiplier: 1.31, 'inventory.0.stock': 17 } }
+    );
   const resumed = await runCopperValeSeedLifecycle(new DatabaseService(), { action: 'resume' });
   assert.equal(resumed.status, 'complete');
   const markets = await harness.databaseService.getMarkets({ solarSystemId: plan.systemId });
@@ -171,7 +199,10 @@ test('readback refuses missing bodies, immutable tampering, and altered durable 
 
   await harness.clearDatabase();
   await runCopperValeSeedLifecycle(harness.databaseService, { action: 'apply' });
-  await CelestialBody.updateOne({ id: plan.expectedBodyIds[1] }, { $set: { displayName: 'tampered' } });
+  await CelestialBody.updateOne(
+    { id: plan.expectedBodyIds[1] },
+    { $set: { displayName: 'tampered' } }
+  );
   await assert.rejects(
     runCopperValeSeedLifecycle(new DatabaseService(), { action: 'readback' }),
     /Seed readback mismatch/
@@ -179,10 +210,9 @@ test('readback refuses missing bodies, immutable tampering, and altered durable 
 
   await harness.clearDatabase();
   await runCopperValeSeedLifecycle(harness.databaseService, { action: 'apply' });
-  await mongoose.model('Market').updateOne(
-    { marketId: plan.station.marketId },
-    { $set: { siteName: 'tampered station' } }
-  );
+  await mongoose
+    .model('Market')
+    .updateOne({ marketId: plan.station.marketId }, { $set: { siteName: 'tampered station' } });
   await assert.rejects(
     runCopperValeSeedLifecycle(new DatabaseService(), { action: 'readback' }),
     /Seed readback mismatch for station/
@@ -204,51 +234,66 @@ test('gameplay mutations survive complete reruns and durable readback', async ()
   await runCopperValeSeedLifecycle(harness.databaseService, { action: 'apply' });
   const CelestialBody = mongoose.model('CelestialBody');
   const Market = mongoose.model('Market');
-  const changedBodyId = plan.expectedBodyIds.find((id) =>
-    plan.bodies.find((body) => body.id === id).bodyType === 'asteroid'
+  const changedBodyId = plan.expectedBodyIds.find(
+    (id) => plan.bodies.find((body) => body.id === id).bodyType === 'asteroid'
   );
   await CelestialBody.updateOne(
     { id: changedBodyId },
-    { $set: { state: 'destroyed', destroyedAt: '2026-11-08T00:00:00.000Z', updatedAt: '2026-11-08T01:00:00.000Z' } }
+    {
+      $set: {
+        state: 'destroyed',
+        destroyedAt: '2026-11-08T00:00:00.000Z',
+        updatedAt: '2026-11-08T01:00:00.000Z',
+      },
+    }
   );
   await Market.updateOne(
     { marketId: plan.station.marketId },
     {
       $set: {
         'inventory.0.stock': 3,
-        ledger: [{
-          transactionId: 'pilot-trade-1',
-          requestId: null,
-          characterId: 'pilot-character',
-          itemId: 'ore',
-          direction: 'buy',
-          quantity: 1,
-          unitPrice: 1,
-          totalPrice: 1,
-          timestamp: '2026-11-08T00:00:00.000Z',
-          reversalOfTransactionId: null,
-        }],
+        ledger: [
+          {
+            transactionId: 'pilot-trade-1',
+            requestId: null,
+            characterId: 'pilot-character',
+            itemId: 'ore',
+            direction: 'buy',
+            quantity: 1,
+            unitPrice: 1,
+            totalPrice: 1,
+            timestamp: '2026-11-08T00:00:00.000Z',
+            reversalOfTransactionId: null,
+          },
+        ],
       },
     }
   );
   const bodyBefore = await harness.databaseService.getCelestialBodyById(changedBodyId);
-  const marketBefore = (await harness.databaseService.getMarkets({ solarSystemId: 'exo-gj-9066' }))
-    .find((entry) => entry.marketId === plan.station.marketId);
+  const marketBefore = (
+    await harness.databaseService.getMarkets({ solarSystemId: 'exo-gj-9066' })
+  ).find((entry) => entry.marketId === plan.station.marketId);
 
   await runCopperValeSeedLifecycle(harness.databaseService, { action: 'apply' });
   const bodyAfter = await new DatabaseService().getCelestialBodyById(changedBodyId);
-  const marketAfter = (await new DatabaseService().getMarkets({ solarSystemId: 'exo-gj-9066' }))
-    .find((entry) => entry.marketId === plan.station.marketId);
+  const marketAfter = (
+    await new DatabaseService().getMarkets({ solarSystemId: 'exo-gj-9066' })
+  ).find((entry) => entry.marketId === plan.station.marketId);
   assert.equal(bodyAfter.state, 'destroyed');
   assert.deepEqual(bodyAfter.composition, bodyBefore.composition);
   assert.equal(marketAfter.inventory[0].stock, 3);
   assert.deepEqual(marketAfter.ledger, marketBefore.ledger);
 
-  const rollback = await runCopperValeSeedLifecycle(harness.databaseService, { action: 'rollback' });
+  const rollback = await runCopperValeSeedLifecycle(harness.databaseService, {
+    action: 'rollback',
+  });
   assert.equal(rollback.status, 'refused');
   assert.match(rollback.reason, /no reviewed policy/);
   assert.ok(await harness.databaseService.getCelestialBodyById(changedBodyId));
-  assert.equal((await harness.databaseService.getMarkets({ solarSystemId: 'exo-gj-9066' })).length, 1);
+  assert.equal(
+    (await harness.databaseService.getMarkets({ solarSystemId: 'exo-gj-9066' })).length,
+    1
+  );
 });
 
 test('rollback removes only pristine journaled partial writes and refuses gameplay-used records', async () => {
@@ -256,30 +301,41 @@ test('rollback removes only pristine journaled partial writes and refuses gamepl
   await assert.rejects(
     runCopperValeSeedLifecycle(harness.databaseService, {
       action: 'apply',
-      afterBodyWrite: async () => { throw new Error('stop-after-write'); },
+      afterBodyWrite: async () => {
+        throw new Error('stop-after-write');
+      },
     }),
     /stop-after-write/
   );
   const firstId = plan.bodies[0].id;
-  const rollback = await runCopperValeSeedLifecycle(harness.databaseService, { action: 'rollback' });
+  const rollback = await runCopperValeSeedLifecycle(harness.databaseService, {
+    action: 'rollback',
+  });
   assert.equal(rollback.status, 'rolled-back');
   assert.deepEqual(rollback.deletedBodyIds, [firstId]);
   assert.equal(await harness.databaseService.getCelestialBodyById(firstId), null);
-  assert.equal((await harness.databaseService.getCelestialBodies({ solarSystemId: 'exo-gj-9066' })).length, 0);
+  assert.equal(
+    (await harness.databaseService.getCelestialBodies({ solarSystemId: 'exo-gj-9066' })).length,
+    0
+  );
 
   await harness.clearDatabase();
   await assert.rejects(
     runCopperValeSeedLifecycle(harness.databaseService, {
       action: 'apply',
-      afterBodyWrite: async () => { throw new Error('stop-after-write'); },
+      afterBodyWrite: async () => {
+        throw new Error('stop-after-write');
+      },
     }),
     /stop-after-write/
   );
   const usedId = plan.bodies[0].id;
-  await mongoose.model('CelestialBody').updateOne(
-    { id: usedId },
-    { $set: { state: 'destroyed', destroyedAt: '2026-11-08T00:00:00.000Z' } }
-  );
+  await mongoose
+    .model('CelestialBody')
+    .updateOne(
+      { id: usedId },
+      { $set: { state: 'destroyed', destroyedAt: '2026-11-08T00:00:00.000Z' } }
+    );
   const refused = await runCopperValeSeedLifecycle(harness.databaseService, { action: 'rollback' });
   assert.equal(refused.status, 'refused');
   assert.deepEqual(refused.deletedBodyIds, []);

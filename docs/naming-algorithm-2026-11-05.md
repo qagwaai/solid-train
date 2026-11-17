@@ -522,10 +522,10 @@ No live database writes were performed by the direct database checks. No pre-res
 The owner logged into the attached viewer at `http://localhost:4200` on 2026-11-06. Six normal UI search/open/detail checks passed:
 
 | Search by new name and original designation | Expected stable ID | Verified list and detail heading |
-| --- | --- | --- |
-| `Apricot Bridge` / `Kepler-1954` | `exo-kepler-1954` | `Apricot Bridge (Kepler-1954)` |
-| `晨光泉` / `Kepler-1338` | `exo-kepler-1338` | `晨光泉 (Kepler-1338)` |
-| `ميناء الفجر` / `Kepler-102` | `exo-kepler-102` | `ميناء الفجر (Kepler-102)` |
+| ------------------------------------------- | ------------------ | -------------------------------- |
+| `Apricot Bridge` / `Kepler-1954`            | `exo-kepler-1954`  | `Apricot Bridge (Kepler-1954)`   |
+| `晨光泉` / `Kepler-1338`                    | `exo-kepler-1338`  | `晨光泉 (Kepler-1338)`           |
+| `ميناء الفجر` / `Kepler-102`                | `exo-kepler-102`   | `ميناء الفجر (Kepler-102)`       |
 
 Each query returned the matching system button and opened its expected stable-ID detail route with one exact combined heading; no duplicated designation was observed. These checks exercised the served authenticated list/get/search flows, not an injected response or local mock. The Arabic heading was visible and retained its exact Unicode text; this is not a complete RTL, browser/platform, visual or assistive-technology certification.
 

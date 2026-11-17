@@ -310,7 +310,8 @@ test(
     const expansionStored = await verifySummaries(expansionOnly);
     assert.equal(expansionStored.filter((record) => record.settlementName !== null).length, 119);
     assert.equal(
-      expansionStored.filter((record, i) => record.displayName !== activeStored[i].displayName).length,
+      expansionStored.filter((record, i) => record.displayName !== activeStored[i].displayName)
+        .length,
       3906
     );
     await verifyCachePath();

@@ -90,7 +90,12 @@ function computeRelativeOrbitPositionKm(ctx, orbit, timestamp) {
   return computeRelativeOrbitPositionAtEpochMs(ctx, orbit, nowMs, baselineMs);
 }
 
-function computeRelativeOrbitPositionAtEpochMs(ctx, orbit, nowMs, baselineMs = Date.parse(orbit.epoch)) {
+function computeRelativeOrbitPositionAtEpochMs(
+  ctx,
+  orbit,
+  nowMs,
+  baselineMs = Date.parse(orbit.epoch)
+) {
   const a = Math.max(0, orbit.semiMajorAxisKm);
   const e = Math.max(0, Math.min(0.99, orbit.eccentricity));
   const periodSec = Math.max(1, orbit.orbitalPeriodSec);

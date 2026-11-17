@@ -22,36 +22,70 @@ test('reviewed evidence blocks both g limits and uncertified architecture explic
 });
 
 test('measurement evidence can pass without implying physical eligibility or a common fit', () => {
-  const report = assessEvidence({ records: reviewed.records.slice(0, 5) }, {
-    measurementFields: ['massEarth', 'eccentricity'],
-  });
+  const report = assessEvidence(
+    { records: reviewed.records.slice(0, 5) },
+    {
+      measurementFields: ['massEarth', 'eccentricity'],
+    }
+  );
   assert.deepEqual(report, {
-    status: 'measurement-evidence-accepted', physicalEligibility: 'not-assessed', blockers: [],
+    status: 'measurement-evidence-accepted',
+    physicalEligibility: 'not-assessed',
+    blockers: [],
   });
   assert.equal(assessEvidence({ records: reviewed.records.slice(0, 5) }, options).status, 'held');
 });
 
 test('imported evidence wires into guards and missing legacy metadata cannot pass', () => {
   const record = normalizePlanet({
-    pl_name: 'Example b', hostname: 'Example', pl_bmasse: 5, pl_bmasselim: 1,
+    pl_name: 'Example b',
+    hostname: 'Example',
+    pl_bmasse: 5,
+    pl_bmasselim: 1,
   });
-  assert.equal(assessEvidence({ records: [record] }, {
-    measurementFields: ['massEarth'],
-  }).status, 'held');
-  assert.match(assessEvidence({ records: [{ id: 'legacy', massEarth: 5 }] }, {
-    measurementFields: ['massEarth'],
-  }).blockers[0], /no matching/);
+  assert.equal(
+    assessEvidence(
+      { records: [record] },
+      {
+        measurementFields: ['massEarth'],
+      }
+    ).status,
+    'held'
+  );
+  assert.match(
+    assessEvidence(
+      { records: [{ id: 'legacy', massEarth: 5 }] },
+      {
+        measurementFields: ['massEarth'],
+      }
+    ).blockers[0],
+    /no matching/
+  );
 });
 
 test('mismatches, conflicting alternatives, missing errors and estimated masses stay held', () => {
   for (const mutate of [
-    (record) => { record.massEarth = 99; },
-    (record) => { record.fieldEvidence[0].errorUpper = -1; },
-    (record) => { delete record.fieldEvidence[0].reference; },
-    (record) => { delete record.massProvenance; },
-    (record) => { record.massProvenance = 'Msini'; },
-    (record) => { record.massProvenance = 'M-R relationship'; },
-    (record) => { record.fieldEvidence.push({ ...record.fieldEvidence[0], errorUpper: 4 }); },
+    (record) => {
+      record.massEarth = 99;
+    },
+    (record) => {
+      record.fieldEvidence[0].errorUpper = -1;
+    },
+    (record) => {
+      delete record.fieldEvidence[0].reference;
+    },
+    (record) => {
+      delete record.massProvenance;
+    },
+    (record) => {
+      record.massProvenance = 'Msini';
+    },
+    (record) => {
+      record.massProvenance = 'M-R relationship';
+    },
+    (record) => {
+      record.fieldEvidence.push({ ...record.fieldEvidence[0], errorUpper: 4 });
+    },
   ]) {
     const record = structuredClone(reviewed.records[0]);
     mutate(record);
@@ -63,10 +97,14 @@ test('invalid requests throw explicit errors', () => {
   assert.throws(() => assessEvidence(null, options), /requires evidence/);
   assert.throws(() => assessEvidence({ records: [] }, options), /must not be empty/);
   assert.throws(() => assessEvidence(reviewed, { measurementFields: [] }), /nonempty/);
-  assert.throws(() => assessEvidence({ records: [{ id: 'bad', fieldEvidence: {} }] }, options),
-    /must be an array/);
-  assert.throws(() => assessEvidence({ records: [reviewed.records[0], reviewed.records[0]] }, options),
-    /unique/);
+  assert.throws(
+    () => assessEvidence({ records: [{ id: 'bad', fieldEvidence: {} }] }, options),
+    /must be an array/
+  );
+  assert.throws(
+    () => assessEvidence({ records: [reviewed.records[0], reviewed.records[0]] }, options),
+    /unique/
+  );
 });
 
 test('offline CLI emits a held report and exits 2 without any write action', () => {

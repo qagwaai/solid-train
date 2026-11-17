@@ -5,9 +5,15 @@ const { MessageHandlerContext } = require('../handlers/message-handler-context')
 const { createSeedMarketPayload } = require('../handlers/context/context-bootstrap-service');
 const { previewCopperValeP4 } = require('./non-sol-p4-preview');
 const { Market } = require('../db/models');
-const { sha256, projectToExpectedShape, assertBodyMatches, REVISIONS,
-  physicalBodyFields, resourceBodyFields, namingBodyFields } =
-  require('./copper-vale-catalog-reconciliation');
+const {
+  sha256,
+  projectToExpectedShape,
+  assertBodyMatches,
+  REVISIONS,
+  physicalBodyFields,
+  resourceBodyFields,
+  namingBodyFields,
+} = require('./copper-vale-catalog-reconciliation');
 
 const SYSTEM_ID = 'exo-gj-9066';
 const STATE_SCHEMA_VERSION = 'copper-vale-seed-lifecycle-v1';
@@ -20,8 +26,16 @@ const MUTABLE_MARKET_FIELDS = Object.freeze([
 ]);
 function marketReadbackFields(market) {
   return Object.fromEntries(
-    ['marketId', 'solarSystemId', 'marketName', 'siteType', 'siteName',
-      'stationPlacement', 'trajectory', 'spatial'].map((field) => [field, market[field]])
+    [
+      'marketId',
+      'solarSystemId',
+      'marketName',
+      'siteType',
+      'siteName',
+      'stationPlacement',
+      'trajectory',
+      'spatial',
+    ].map((field) => [field, market[field]])
   );
 }
 
@@ -46,9 +60,7 @@ function buildCopperValeSeedPlan(preview = previewCopperValeP4()) {
     getCurrentTimestamp: () => preview.epoch,
   });
   const market = createSeedMarketPayload(context, station, preview.epoch);
-  const expectedBodies = Object.fromEntries(
-    bodies.map((body) => [body.id, sha256(body)])
-  );
+  const expectedBodies = Object.fromEntries(bodies.map((body) => [body.id, sha256(body)]));
   const hashes = {
     sourceSha256: preview.p3InputSha256,
     physicalSha256: sha256(bodies.map(physicalBodyFields)),
@@ -95,10 +107,7 @@ function assertMarketMatches(actual, plan) {
     throw new Error(`Seed readback mismatch for station ${plan.station.marketId}`);
   }
   for (const [field, expectedValue] of Object.entries(plan.expectedMarketSeedFields)) {
-    if (
-      MUTABLE_MARKET_FIELDS.includes(field) &&
-      !isDeepStrictEqual(actual[field], expectedValue)
-    ) {
+    if (MUTABLE_MARKET_FIELDS.includes(field) && !isDeepStrictEqual(actual[field], expectedValue)) {
       continue;
     }
     if (!isDeepStrictEqual(projectToExpectedShape(actual[field], expectedValue), expectedValue)) {
@@ -147,10 +156,14 @@ async function readback(databaseService, plan, state) {
   const markets = await databaseService.getMarkets({ solarSystemId: SYSTEM_ID });
   const actualMarket = markets.find((market) => market.marketId === plan.station.marketId);
   assertMarketMatches(actualMarket, plan);
-  if (state.status === 'complete' &&
-      (!isDeepStrictEqual([...state.verifiedBodyIds].sort(), plan.expectedBodyIds) ||
-        state.marketVerified !== true)) {
-    throw new Error('Completed checkpoint does not contain every exact body and station verification');
+  if (
+    state.status === 'complete' &&
+    (!isDeepStrictEqual([...state.verifiedBodyIds].sort(), plan.expectedBodyIds) ||
+      state.marketVerified !== true)
+  ) {
+    throw new Error(
+      'Completed checkpoint does not contain every exact body and station verification'
+    );
   }
   return {
     systemId: SYSTEM_ID,
@@ -219,7 +232,9 @@ async function runCopperValeSeedLifecycle(databaseService, options = {}) {
           }
         }
         const expectedMarket = markets.find((market) => market.marketId === plan.station.marketId);
-        const unexpectedMarkets = markets.filter((market) => market.marketId !== plan.station.marketId);
+        const unexpectedMarkets = markets.filter(
+          (market) => market.marketId !== plan.station.marketId
+        );
         // Completed P6 owns only its original station. Later additive overlays
         // have independent journals and must not invalidate baseline readback.
         if (unexpectedMarkets.length && currentState.status !== 'complete') {
@@ -265,8 +280,10 @@ async function runCopperValeSeedLifecycle(databaseService, options = {}) {
 
   if (action === 'rollback') {
     assertStateMatchesPlan(currentState, plan);
-    if (currentState.status === 'complete' ||
-        (await databaseService.getMarkets({ solarSystemId: SYSTEM_ID })).length > 0) {
+    if (
+      currentState.status === 'complete' ||
+      (await databaseService.getMarkets({ solarSystemId: SYSTEM_ID })).length > 0
+    ) {
       return {
         action,
         status: 'refused',
@@ -335,8 +352,10 @@ async function runCopperValeSeedLifecycle(databaseService, options = {}) {
 
   let state = currentState;
   const existingBodies = new Map(
-    (await databaseService.getCelestialBodies({ solarSystemId: SYSTEM_ID }))
-      .map((body) => [body.id, body])
+    (await databaseService.getCelestialBodies({ solarSystemId: SYSTEM_ID })).map((body) => [
+      body.id,
+      body,
+    ])
   );
   for (const expected of plan.bodies) {
     const existing = existingBodies.get(expected.id);
@@ -357,10 +376,12 @@ async function runCopperValeSeedLifecycle(databaseService, options = {}) {
   }
 
   const verified = await getExpectedBodies(databaseService, plan);
-  if (!isDeepStrictEqual(
-    plan.expectedBodyIds,
-    [...verified.byId.keys()].filter((id) => plan.expectedBodies[id]).sort()
-  )) {
+  if (
+    !isDeepStrictEqual(
+      plan.expectedBodyIds,
+      [...verified.byId.keys()].filter((id) => plan.expectedBodies[id]).sort()
+    )
+  ) {
     throw new Error('Durable body readback does not contain the exact expected body ID set');
   }
   if (!isDeepStrictEqual([...state.verifiedBodyIds].sort(), plan.expectedBodyIds)) {
@@ -376,8 +397,9 @@ async function runCopperValeSeedLifecycle(databaseService, options = {}) {
     if (typeof options.afterMarketWrite === 'function') {
       await options.afterMarketWrite(plan.station.marketId);
     }
-    actualMarket = (await databaseService.getMarkets({ solarSystemId: SYSTEM_ID }))
-      .find((market) => market.marketId === plan.station.marketId);
+    actualMarket = (await databaseService.getMarkets({ solarSystemId: SYSTEM_ID })).find(
+      (market) => market.marketId === plan.station.marketId
+    );
   }
   assertMarketMatches(actualMarket, plan);
   state = { ...state, marketVerified: true };
@@ -387,7 +409,12 @@ async function runCopperValeSeedLifecycle(databaseService, options = {}) {
   if (!isDeepStrictEqual(verifiedReadback.verifiedBodyIds, plan.expectedBodyIds)) {
     throw new Error('Final durable readback did not verify every expected body ID');
   }
-  state = { ...state, status: 'complete', verifiedBodyIds: plan.expectedBodyIds, marketVerified: true };
+  state = {
+    ...state,
+    status: 'complete',
+    verifiedBodyIds: plan.expectedBodyIds,
+    marketVerified: true,
+  };
   await persistState(databaseService, state);
   return {
     action,
@@ -396,7 +423,7 @@ async function runCopperValeSeedLifecycle(databaseService, options = {}) {
     bodyCount: plan.expectedBodyIds.length,
     p3InputSha256: plan.hashes.sourceSha256,
     p4OutputSha256: plan.p4OutputSha256,
-    ...await readback(databaseService, plan, state),
+    ...(await readback(databaseService, plan, state)),
   };
 }
 

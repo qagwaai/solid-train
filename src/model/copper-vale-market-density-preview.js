@@ -203,9 +203,7 @@ function screenCircularOrbit({
     });
 
   const orbitalPeriodSec =
-    2 *
-    Math.PI *
-    Math.sqrt(radiusKm ** 3 / (GRAVITATIONAL_CONSTANT_KM3_KG_S2 * hostMassKg));
+    2 * Math.PI * Math.sqrt(radiusKm ** 3 / (GRAVITATIONAL_CONSTANT_KM3_KG_S2 * hostMassKg));
   if (!finitePositive(orbitalPeriodSec)) {
     throw new Error(`Station orbit around ${host.id} has a non-finite Kepler period`);
   }
@@ -383,7 +381,10 @@ function aggregateCanonicalSupply(markets, epoch) {
       payload.shipListings.reduce(
         (shipTotal, listing) =>
           shipTotal +
-          listing.starterInventory.reduce((inventoryTotal, item) => inventoryTotal + item.quantity, 0),
+          listing.starterInventory.reduce(
+            (inventoryTotal, item) => inventoryTotal + item.quantity,
+            0
+          ),
         0
       ),
     0
@@ -401,9 +402,7 @@ function aggregateCanonicalSupply(markets, epoch) {
       (total, item) => total + item.restockPerInterval,
       0
     ),
-    perItem: [...perItem.values()].sort((left, right) =>
-      left.itemId.localeCompare(right.itemId)
-    ),
+    perItem: [...perItem.values()].sort((left, right) => left.itemId.localeCompare(right.itemId)),
     defaultShipListings,
     defaultShipUnits,
     shipStarterInventoryUnits,

@@ -121,7 +121,14 @@
         "arrival": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["marketId", "hostBodyId", "epochMs", "positionKm", "hostPositionKm", "convergence"],
+          "required": [
+            "marketId",
+            "hostBodyId",
+            "epochMs",
+            "positionKm",
+            "hostPositionKm",
+            "convergence"
+          ],
           "description": "Destination station and host center at the same illustrative arrival epoch (>= encounter.epochMs, <= departure.epochMs + 315576000000). positionKm = hostPositionKm + the verified station trajectory.orbit offset evaluated at that epoch, rotated into stellar:sol:catalog-cartesian:v1 by its argument of periapsis, inclination and ascending node. hostPositionKm already includes the full host parent chain; never add a parent twice. The offset is not a frozen departure-epoch offset. Supports the existing bundled orbital trajectory with absent placement metadata or matching active body-orbit/stellar-orbit metadata; no new placement evaluator. hostPositionKm lets Nova distinguish station arrival from host center. Not an ETA.",
           "properties": {
             "marketId": { "type": "string", "pattern": "\\S" },

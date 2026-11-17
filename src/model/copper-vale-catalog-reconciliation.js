@@ -14,9 +14,14 @@ const REVISIONS = Object.freeze({
 
 function physicalBodyFields(body) {
   return {
-    id: body.id, catalogId: body.catalogId, isCatalogBody: body.isCatalogBody,
-    spatial: body.spatial, bodyType: body.bodyType, surfaceArchetype: body.surfaceArchetype,
-    physicalCatalog: body.physicalCatalog, orbitalElements: body.orbitalElements,
+    id: body.id,
+    catalogId: body.catalogId,
+    isCatalogBody: body.isCatalogBody,
+    spatial: body.spatial,
+    bodyType: body.bodyType,
+    surfaceArchetype: body.surfaceArchetype,
+    physicalCatalog: body.physicalCatalog,
+    orbitalElements: body.orbitalElements,
     universeMetadata: {
       generation: body.universeMetadata?.generation,
       provenance: body.universeMetadata?.provenance,
@@ -26,9 +31,12 @@ function physicalBodyFields(body) {
 }
 
 function resourceBodyFields(body) {
-  return { id: body.id, composition: body.composition,
+  return {
+    id: body.id,
+    composition: body.composition,
     asteroidMaterialProfile: body.asteroidMaterialProfile,
-    physicalResources: body.physicalCatalog?.resources };
+    physicalResources: body.physicalCatalog?.resources,
+  };
 }
 
 function namingBodyFields(body) {
@@ -38,13 +46,19 @@ function namingBodyFields(body) {
 function sortedValue(value) {
   if (Array.isArray(value)) return value.map(sortedValue);
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, sortedValue(value[key])]));
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, sortedValue(value[key])])
+    );
   }
   return value;
 }
 
 function sha256(value) {
-  return createHash('sha256').update(JSON.stringify(sortedValue(value))).digest('hex');
+  return createHash('sha256')
+    .update(JSON.stringify(sortedValue(value)))
+    .digest('hex');
 }
 
 function projectToExpectedShape(actual, expected) {
@@ -54,8 +68,9 @@ function projectToExpectedShape(actual, expected) {
   }
   if (expected && typeof expected === 'object') {
     if (!actual || typeof actual !== 'object') return actual;
-    return Object.fromEntries(Object.keys(expected).map((key) =>
-      [key, projectToExpectedShape(actual[key], expected[key])]));
+    return Object.fromEntries(
+      Object.keys(expected).map((key) => [key, projectToExpectedShape(actual[key], expected[key])])
+    );
   }
   return actual;
 }
@@ -66,31 +81,59 @@ function bodyDeltas(actual, expected) {
   function compare(value, wanted, path, target) {
     const projected = projectToExpectedShape(value, wanted);
     if (isDeepStrictEqual(projected, wanted)) return;
-    if (wanted && typeof wanted === 'object' && !Array.isArray(wanted) &&
-        value && typeof value === 'object') {
-      for (const key of Object.keys(wanted)) compare(value[key], wanted[key], `${path}.${key}`, target);
+    if (
+      wanted &&
+      typeof wanted === 'object' &&
+      !Array.isArray(wanted) &&
+      value &&
+      typeof value === 'object'
+    ) {
+      for (const key of Object.keys(wanted))
+        compare(value[key], wanted[key], `${path}.${key}`, target);
     } else {
-      target.push({ field: path, expected: wanted, actual: value === undefined ? null : value,
-        ...(typeof value === 'number' && typeof wanted === 'number' ? { delta: value - wanted } : {}) });
+      target.push({
+        field: path,
+        expected: wanted,
+        actual: value === undefined ? null : value,
+        ...(typeof value === 'number' && typeof wanted === 'number'
+          ? { delta: value - wanted }
+          : {}),
+      });
     }
   }
   for (const [field, value] of Object.entries(expected)) {
     if (field === 'updatedAt') continue;
-    compare(actual?.[field], value, field,
-      MUTABLE_BODY_FIELDS.includes(field) ? gameplay : seedOwned);
+    compare(
+      actual?.[field],
+      value,
+      field,
+      MUTABLE_BODY_FIELDS.includes(field) ? gameplay : seedOwned
+    );
   }
   const updatedAt = actual?.updatedAt;
   const timestampValid = typeof updatedAt === 'string' && Number.isFinite(Date.parse(updatedAt));
-  if (!timestampValid) seedOwned.push({ field: 'updatedAt', expected: 'valid ISO timestamp', actual: updatedAt ?? null });
-  return { id: expected.id, seedOwned, gameplay,
-    updatedAt: { expected: expected.updatedAt, actual: updatedAt ?? null, validMutableTimestamp: timestampValid } };
+  if (!timestampValid)
+    seedOwned.push({
+      field: 'updatedAt',
+      expected: 'valid ISO timestamp',
+      actual: updatedAt ?? null,
+    });
+  return {
+    id: expected.id,
+    seedOwned,
+    gameplay,
+    updatedAt: {
+      expected: expected.updatedAt,
+      actual: updatedAt ?? null,
+      validMutableTimestamp: timestampValid,
+    },
+  };
 }
 
 function assertBodyMatches(actual, expected, { allowGameplayChanges = true } = {}) {
   if (!actual) throw new Error(`Missing expected seeded body ${expected.id}`);
   const differences = bodyDeltas(actual, expected);
-  const mismatch = differences.seedOwned[0] ||
-    (!allowGameplayChanges && differences.gameplay[0]);
+  const mismatch = differences.seedOwned[0] || (!allowGameplayChanges && differences.gameplay[0]);
   if (mismatch) throw new Error(`Seed readback mismatch for ${expected.id}.${mismatch.field}`);
   return { pristine: differences.gameplay.length === 0 };
 }
@@ -100,7 +143,12 @@ function assertBodyMatches(actual, expected, { allowGameplayChanges = true } = {
  * approved epoch before a normal seed version can be adopted; never infer source
  * validity from IDs, current seed state, or a fabricated version in the P6 journal.
  */
-function reconcileCopperValeCatalog(state, actualBodies, catalogBodies, preview = previewCopperValeP4()) {
+function reconcileCopperValeCatalog(
+  state,
+  actualBodies,
+  catalogBodies,
+  preview = previewCopperValeP4()
+) {
   const expected = [...preview.baseBodies, ...preview.generatedBodies];
   const expectedIds = expected.map((body) => body.id).sort();
   const expectedHashes = Object.fromEntries(expected.map((body) => [body.id, sha256(body)]));
@@ -111,44 +159,69 @@ function reconcileCopperValeCatalog(state, actualBodies, catalogBodies, preview 
     namingSha256: sha256(expected.map(namingBodyFields)),
     stationSha256: sha256(preview.station),
   };
-  if (!state || state.schemaVersion !== 'copper-vale-seed-lifecycle-v1' ||
-      state.systemId !== preview.systemId || state.status !== 'complete' ||
-      state.marketVerified !== true || state.p4OutputSha256 !== preview.outputSha256 ||
-      !isDeepStrictEqual(state.hashes, hashes) ||
-      !isDeepStrictEqual(state.revisions, REVISIONS) ||
-      !isDeepStrictEqual(state.expectedBodyIds, expectedIds) ||
-      !isDeepStrictEqual([...new Set(state.verifiedBodyIds || [])].sort(), expectedIds) ||
-      state.verifiedBodyIds.length !== expectedIds.length ||
-      !isDeepStrictEqual(state.expectedBodies, expectedHashes) ||
-      typeof state.expectedMarketSha256 !== 'string' ||
-      typeof state.expectedMarketSeedSha256 !== 'string' ||
-      state.planSha256 !== sha256({
-        schemaVersion: state.schemaVersion, systemId: preview.systemId,
-        epoch: preview.epoch, p4OutputSha256: preview.outputSha256,
-        revisions: REVISIONS, hashes, expectedBodies: expectedHashes,
+  if (
+    !state ||
+    state.schemaVersion !== 'copper-vale-seed-lifecycle-v1' ||
+    state.systemId !== preview.systemId ||
+    state.status !== 'complete' ||
+    state.marketVerified !== true ||
+    state.p4OutputSha256 !== preview.outputSha256 ||
+    !isDeepStrictEqual(state.hashes, hashes) ||
+    !isDeepStrictEqual(state.revisions, REVISIONS) ||
+    !isDeepStrictEqual(state.expectedBodyIds, expectedIds) ||
+    !isDeepStrictEqual([...new Set(state.verifiedBodyIds || [])].sort(), expectedIds) ||
+    state.verifiedBodyIds.length !== expectedIds.length ||
+    !isDeepStrictEqual(state.expectedBodies, expectedHashes) ||
+    typeof state.expectedMarketSha256 !== 'string' ||
+    typeof state.expectedMarketSeedSha256 !== 'string' ||
+    state.planSha256 !==
+      sha256({
+        schemaVersion: state.schemaVersion,
+        systemId: preview.systemId,
+        epoch: preview.epoch,
+        p4OutputSha256: preview.outputSha256,
+        revisions: REVISIONS,
+        hashes,
+        expectedBodies: expectedHashes,
         expectedMarketSha256: state.expectedMarketSha256,
         expectedMarketSeedSha256: state.expectedMarketSeedSha256,
-      })) {
-    throw new Error('Approved P6 source/checkpoint mismatch; catalog refresh requires owner review');
+      })
+  ) {
+    throw new Error(
+      'Approved P6 source/checkpoint mismatch; catalog refresh requires owner review'
+    );
   }
   // The normal builder must still match the replayed base source exactly.
   if (!isDeepStrictEqual(catalogBodies, preview.baseBodies)) {
-    throw new Error('Normal catalog source differs from approved P6 base source; owner review required');
+    throw new Error(
+      'Normal catalog source differs from approved P6 base source; owner review required'
+    );
   }
   const byId = new Map(actualBodies.map((body) => [body.id, body]));
   const bodies = expected.map((body) => bodyDeltas(byId.get(body.id), body));
   return {
-    writes: false, sourceVerified: true, expectedBodyCount: expected.length,
+    writes: false,
+    sourceVerified: true,
+    expectedBodyCount: expected.length,
     actualBodyCount: actualBodies.length,
     matches: bodies.every((body) => body.seedOwned.length === 0),
     bodies,
     basePositions: preview.baseBodies.map((body) => ({
-      id: body.id, expected: body.spatial, actual: byId.get(body.id)?.spatial ?? null,
+      id: body.id,
+      expected: body.spatial,
+      actual: byId.get(body.id)?.spatial ?? null,
     })),
   };
 }
 
 module.exports = {
-  REVISIONS, physicalBodyFields, resourceBodyFields, namingBodyFields,
-  sha256, projectToExpectedShape, assertBodyMatches, bodyDeltas, reconcileCopperValeCatalog,
+  REVISIONS,
+  physicalBodyFields,
+  resourceBodyFields,
+  namingBodyFields,
+  sha256,
+  projectToExpectedShape,
+  assertBodyMatches,
+  bodyDeltas,
+  reconcileCopperValeCatalog,
 };

@@ -6,7 +6,8 @@ const { attachRequestId } = require('./handler-utils');
 const { getNavigationStateAsync } = require('./context/navigation-state-service');
 const { estimateFromNavigationState } = require('./context/navigation-route-estimate-service');
 const {
-  validatePredictionRequest, predictionFromNavigationState,
+  validatePredictionRequest,
+  predictionFromNavigationState,
 } = require('./context/navigation-prediction-service');
 
 class SolarSystemGetMessageHandler {
@@ -21,18 +22,31 @@ class SolarSystemGetMessageHandler {
       return this.buildSystemResponse(payload);
     }
     const predictionError = hasPrediction
-      ? validatePredictionRequest(payload.navigationPrediction, payload.navigation) : null;
+      ? validatePredictionRequest(payload.navigationPrediction, payload.navigation)
+      : null;
     const response = Object.prototype.hasOwnProperty.call(payload, 'navigation')
-      ? await this.buildSystemResponse(payload, hasPrediction && !predictionError
-          ? { prediction: payload.navigationPrediction } : undefined)
-      : attachRequestId({
-          success: false, message: hasEstimate
-            ? 'navigationEstimate requires navigation' : 'navigationPrediction requires navigation',
-          playerName: this.context.toNonEmptyString(payload?.playerName),
-          solarSystemId: this.context.toNonEmptyString(payload?.solarSystemId).toLowerCase(),
-        }, payload);
-    const state = response.navigationState || (response.reason === 'NAVIGATION_READ_FAILED'
-      ? { status: 'unsupported', reason: response.reason, message: response.message } : undefined);
+      ? await this.buildSystemResponse(
+          payload,
+          hasPrediction && !predictionError
+            ? { prediction: payload.navigationPrediction }
+            : undefined
+        )
+      : attachRequestId(
+          {
+            success: false,
+            message: hasEstimate
+              ? 'navigationEstimate requires navigation'
+              : 'navigationPrediction requires navigation',
+            playerName: this.context.toNonEmptyString(payload?.playerName),
+            solarSystemId: this.context.toNonEmptyString(payload?.solarSystemId).toLowerCase(),
+          },
+          payload
+        );
+    const state =
+      response.navigationState ||
+      (response.reason === 'NAVIGATION_READ_FAILED'
+        ? { status: 'unsupported', reason: response.reason, message: response.message }
+        : undefined);
     if (hasEstimate) {
       response.navigationEstimate = {
         ...estimateFromNavigationState(this.context, state, payload.navigationEstimate),
@@ -41,7 +55,12 @@ class SolarSystemGetMessageHandler {
     }
     if (hasPrediction) {
       response.navigationPrediction = {
-        ...predictionFromNavigationState(this.context, state, predictionError, response.navigationPrediction),
+        ...predictionFromNavigationState(
+          this.context,
+          state,
+          predictionError,
+          response.navigationPrediction
+        ),
         association: 'same-response-navigation-sources',
       };
     }
@@ -99,27 +118,49 @@ class SolarSystemGetMessageHandler {
     if (Object.prototype.hasOwnProperty.call(payload, 'navigation')) {
       try {
         const projection = await getNavigationStateAsync(
-          this.context, playerName, solarSystemId, payload.navigation, options
+          this.context,
+          playerName,
+          solarSystemId,
+          payload.navigation,
+          options
         );
         const bodies = projection.bodies.map((body) => this.context.normalizeCelestialBody(body));
-        return attachRequestId({
-          success: true,
-          message: projection.navigationState.status === 'supported'
-            ? 'Solar system navigation positions evaluated'
-            : 'Solar system navigation positions are unsupported',
-          playerName: player.playerName, solarSystemId, solarSystem: summary,
-          stars: bodies.filter((body) => body.bodyType === 'star'), bodies,
-          navigationState: projection.navigationState,
-          ...('predictionResult' in projection ? { navigationPrediction: projection.predictionResult } : {}),
-        }, payload);
+        return attachRequestId(
+          {
+            success: true,
+            message:
+              projection.navigationState.status === 'supported'
+                ? 'Solar system navigation positions evaluated'
+                : 'Solar system navigation positions are unsupported',
+            playerName: player.playerName,
+            solarSystemId,
+            solarSystem: summary,
+            stars: bodies.filter((body) => body.bodyType === 'star'),
+            bodies,
+            navigationState: projection.navigationState,
+            ...('predictionResult' in projection
+              ? { navigationPrediction: projection.predictionResult }
+              : {}),
+          },
+          payload
+        );
       } catch (error) {
         this.context.log(`[solar-system-get] Navigation read failed: ${error.message}`);
-        return attachRequestId({
-          success: false, message: 'Navigation source read failed',
-          reason: 'NAVIGATION_READ_FAILED', playerName: player.playerName, solarSystemId,
-          navigationState: { status: 'unsupported', reason: 'NAVIGATION_READ_FAILED',
-            message: 'Navigation source read failed' },
-        }, payload);
+        return attachRequestId(
+          {
+            success: false,
+            message: 'Navigation source read failed',
+            reason: 'NAVIGATION_READ_FAILED',
+            playerName: player.playerName,
+            solarSystemId,
+            navigationState: {
+              status: 'unsupported',
+              reason: 'NAVIGATION_READ_FAILED',
+              message: 'Navigation source read failed',
+            },
+          },
+          payload
+        );
       }
     }
 
@@ -144,9 +185,18 @@ class SolarSystemGetMessageHandler {
     const stars = bodies.filter((body) => body.bodyType === 'star');
     const materializedSummary = {
       ...summary,
-      planetCount: Math.max(summary.planetCount || 0, bodies.filter((body) => body.bodyType === 'planet').length),
-      moonCount: Math.max(summary.moonCount || 0, bodies.filter((body) => body.bodyType === 'moon').length),
-      asteroidCount: Math.max(summary.asteroidCount || 0, bodies.filter((body) => body.bodyType === 'asteroid').length),
+      planetCount: Math.max(
+        summary.planetCount || 0,
+        bodies.filter((body) => body.bodyType === 'planet').length
+      ),
+      moonCount: Math.max(
+        summary.moonCount || 0,
+        bodies.filter((body) => body.bodyType === 'moon').length
+      ),
+      asteroidCount: Math.max(
+        summary.asteroidCount || 0,
+        bodies.filter((body) => body.bodyType === 'asteroid').length
+      ),
     };
 
     return attachRequestId(
@@ -168,9 +218,11 @@ class SolarSystemGetMessageHandler {
       level: 'debug',
     });
 
-    if (!Object.prototype.hasOwnProperty.call(payload, 'navigation') &&
-        !Object.prototype.hasOwnProperty.call(payload, 'navigationEstimate') &&
-        !Object.prototype.hasOwnProperty.call(payload, 'navigationPrediction')) {
+    if (
+      !Object.prototype.hasOwnProperty.call(payload, 'navigation') &&
+      !Object.prototype.hasOwnProperty.call(payload, 'navigationEstimate') &&
+      !Object.prototype.hasOwnProperty.call(payload, 'navigationPrediction')
+    ) {
       this.context.refreshCharacterPresence(payload);
     }
 

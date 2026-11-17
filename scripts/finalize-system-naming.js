@@ -29,8 +29,7 @@ const MARKDOWN_PATH = path.join(ROOT, 'docs', 'system-naming-final-review-2026-1
 const ALGORITHM = 'system-naming-finalization-v1';
 const DATE = '2026-11-06';
 const REVIEWER = 'project owner (user)';
-const digest = (value) =>
-  createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const digest = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const invalidText = /[\p{Cc}\u200b-\u200f\u202a-\u202e\u2060-\u206f]/u;
 
@@ -74,7 +73,9 @@ function buildCandidates(bank = vocabulary) {
     if (
       !Array.isArray(language.references) ||
       !language.references.length ||
-      language.references.some((reference) => !reference.startsWith('https://en.wiktionary.org/wiki/'))
+      language.references.some(
+        (reference) => !reference.startsWith('https://en.wiktionary.org/wiki/')
+      )
     ) {
       throw new Error(`Missing lexical references for ${language.language}`);
     }
@@ -82,8 +83,7 @@ function buildCandidates(bank = vocabulary) {
       for (const [placeIndex, placeValue] of language.places.entries()) {
         const image = vocabularyEntry(imageValue);
         const place = vocabularyEntry(placeValue);
-        const candidateId =
-          `final-v1-${language.language.toLowerCase()}-${imageIndex + 1}-${placeIndex + 1}`;
+        const candidateId = `final-v1-${language.language.toLowerCase()}-${imageIndex + 1}-${placeIndex + 1}`;
         if (ids.has(candidateId)) throw new Error(`Duplicate candidate ID: ${candidateId}`);
         ids.add(candidateId);
         candidates.push({
@@ -125,13 +125,17 @@ function buildFinalization(baselineManifest, registry, bank = vocabulary) {
   const finalPolicy = structuredClone(policy);
   finalPolicy.policyVersion = 'system-naming-owner-curated-final-v1';
   finalPolicy.status = 'owner-authorized-full-scope-allocation';
-  const other = finalPolicy.languages.find((language) => language.id === 'other-reviewed-traditions');
+  const other = finalPolicy.languages.find(
+    (language) => language.id === 'other-reviewed-traditions'
+  );
   delete other.requiredLinguisticStatus;
   other.candidateEligibilityNote =
     'Owner-authorized Finnish/Welsh fictional compounds; no independent linguistic certification claimed.';
   const candidates = buildCandidates(bank);
   for (const candidate of candidates) {
-    const category = finalPolicy.languages.find((language) => language.id === candidate.policyLanguageId);
+    const category = finalPolicy.languages.find(
+      (language) => language.id === candidate.policyLanguageId
+    );
     assert.ok(category?.candidateLanguageLabels.includes(candidate.language));
   }
   const reserved = new Set();
@@ -151,8 +155,10 @@ function buildFinalization(baselineManifest, registry, bank = vocabulary) {
   });
   if (allocation.unfilledCount) {
     throw new Error(
-      `Candidate shortages: ${allocation.quotas.filter((quota) => quota.unfilledCount)
-        .map((quota) => `${quota.id}: ${quota.unfilledCount}`).join(', ')}`
+      `Candidate shortages: ${allocation.quotas
+        .filter((quota) => quota.unfilledCount)
+        .map((quota) => `${quota.id}: ${quota.unfilledCount}`)
+        .join(', ')}`
     );
   }
   const manifest = structuredClone(baselineManifest);
@@ -216,7 +222,8 @@ function buildFinalization(baselineManifest, registry, bank = vocabulary) {
     baselineManifestSha256: digest(baselineManifest),
     ownerAuthorization:
       'Authorize generation, eligibility decisions, and activation now within the confirmed scope.',
-    scope: 'All remaining catalog-pattern nominations; preserve protected systems and existing proper names.',
+    scope:
+      'All remaining catalog-pattern nominations; preserve protected systems and existing proper names.',
     curation: bank.curation,
     independentLinguisticOrCulturalVerification: 'not-performed',
     rightsStatus: bank.rightsStatus,
@@ -290,7 +297,9 @@ function renderMarkdown(report) {
     '',
     '| Language | Weight | New assignments |',
     '| --- | ---: | ---: |',
-    ...report.allocation.quotas.map((quota) => `| ${quota.language} | ${quota.weight}% | ${quota.filled} |`),
+    ...report.allocation.quotas.map(
+      (quota) => `| ${quota.language} | ${quota.weight}% | ${quota.filled} |`
+    ),
     '',
     '## Complete assignment review',
     '',
@@ -298,8 +307,9 @@ function renderMarkdown(report) {
     '',
     '| # | System ID | Original designation | Assigned name | Language | Editorial gloss |',
     '| ---: | --- | --- | --- | --- | --- |',
-    ...report.rows.map((row, index) =>
-      `| ${index + 1} | ${row.systemId} | ${row.designation} | ${row.name} | ${row.language} | ${row.gloss} |`
+    ...report.rows.map(
+      (row, index) =>
+        `| ${index + 1} | ${row.systemId} | ${row.designation} | ${row.name} | ${row.language} | ${row.gloss} |`
     ),
     '',
     '## Deployment and rollback',
@@ -319,9 +329,7 @@ function main(args) {
   }
   const current = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
   const baselineExists = fs.existsSync(BASELINE_PATH);
-  const baseline = baselineExists
-    ? JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8'))
-    : current;
+  const baseline = baselineExists ? JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8')) : current;
   const registry = getSolarSystemRegistry({ namingManifest: baseline });
   const { manifest, report } = buildFinalization(baseline, registry);
   const outputs = [
@@ -341,14 +349,16 @@ function main(args) {
     );
     for (const [file, contents] of outputs) fs.writeFileSync(file, contents);
   }
-  console.log(JSON.stringify({
-    mode: args[0],
-    newAssignments: report.newAssignments,
-    activeAssignments: report.activeAssignmentCount,
-    newEligibilityDecisions: report.newEligibilityDecisions,
-    manifestSha256: report.manifestSha256,
-    liveDatabaseWrites: 0,
-  }));
+  console.log(
+    JSON.stringify({
+      mode: args[0],
+      newAssignments: report.newAssignments,
+      activeAssignments: report.activeAssignmentCount,
+      newEligibilityDecisions: report.newEligibilityDecisions,
+      manifestSha256: report.manifestSha256,
+      liveDatabaseWrites: 0,
+    })
+  );
 }
 
 if (require.main === module) main(process.argv.slice(2));

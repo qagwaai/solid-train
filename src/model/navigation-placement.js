@@ -10,13 +10,19 @@ function canonical(value) {
   if (value instanceof Date) return value.toISOString();
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]));
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, canonical(value[key])])
+    );
   }
   return value;
 }
 
 function revision(value) {
-  return createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
+  return createHash('sha256')
+    .update(JSON.stringify(canonical(value)))
+    .digest('hex');
 }
 
 function shipRevision(ship) {
@@ -25,14 +31,20 @@ function shipRevision(ship) {
   return revision({
     id: ship.id,
     spatial: spatial && {
-      solarSystemId: spatial.solarSystemId, frame: spatial.frame,
-      epochMs: spatial.epochMs, positionKm: {
-        x: spatial.positionKm?.x, y: spatial.positionKm?.y, z: spatial.positionKm?.z,
+      solarSystemId: spatial.solarSystemId,
+      frame: spatial.frame,
+      epochMs: spatial.epochMs,
+      positionKm: {
+        x: spatial.positionKm?.x,
+        y: spatial.positionKm?.y,
+        z: spatial.positionKm?.z,
       },
     },
     ownership: owner && {
-      ownerType: owner.ownerType, playerId: owner.playerId || null,
-      characterId: owner.characterId || null, npcId: owner.npcId || null,
+      ownerType: owner.ownerType,
+      playerId: owner.playerId || null,
+      characterId: owner.characterId || null,
+      npcId: owner.npcId || null,
       factionId: owner.factionId || null,
     },
   });
@@ -50,4 +62,11 @@ function preserveNavigationPlacements(previousShips, nextShips) {
   });
 }
 
-module.exports = { BASIS_ID, MODEL_ID, PLACEMENT_RULE, revision, shipRevision, preserveNavigationPlacements };
+module.exports = {
+  BASIS_ID,
+  MODEL_ID,
+  PLACEMENT_RULE,
+  revision,
+  shipRevision,
+  preserveNavigationPlacements,
+};

@@ -9,7 +9,9 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 
 function requireOptIn(args) {
   if (args.length !== 1 || args[0] !== '--isolated') {
-    throw new Error('Explicit opt-in required: npm run pilot:copper-vale -- --isolated (no URI/port overrides)');
+    throw new Error(
+      'Explicit opt-in required: npm run pilot:copper-vale -- --isolated (no URI/port overrides)'
+    );
   }
 }
 
@@ -42,7 +44,9 @@ async function launchIsolatedPilot(args) {
     })();
     return stopping;
   };
-  const onSignal = () => { void stop(); };
+  const onSignal = () => {
+    void stop();
+  };
   process.once('SIGINT', onSignal);
   process.once('SIGTERM', onSignal);
   try {
@@ -79,12 +83,14 @@ async function launchIsolatedPilot(args) {
     });
     const baseUrl = `http://127.0.0.1:${ready.port}`;
     const health = await fetch(`${baseUrl}/health`, { signal: AbortSignal.timeout(10000) });
-    if (!health.ok || (await health.json()).status !== 'ok') throw new Error('Pilot health check failed');
+    if (!health.ok || (await health.json()).status !== 'ok')
+      throw new Error('Pilot health check failed');
     // Exercise the existing session transport without creating a seeded account.
     const transport = await fetch(`${baseUrl}/socket.io/?EIO=4&transport=polling`, {
       signal: AbortSignal.timeout(10000),
     });
-    if (!transport.ok || !(await transport.text()).startsWith('0{')) throw new Error('Socket.IO readiness failed');
+    if (!transport.ok || !(await transport.text()).startsWith('0{'))
+      throw new Error('Socket.IO readiness failed');
     let lifecycleRequestId = 0;
     const runSeedLifecycle = (action) => {
       if (!['dry-run', 'apply', 'resume', 'readback', 'rollback'].includes(action)) {
@@ -128,23 +134,29 @@ async function launchIsolatedPilot(args) {
 }
 
 if (require.main === module) {
-  launchIsolatedPilot(process.argv.slice(2)).then((pilot) => {
-    console.log(`COPPER_VALE_P6_READY ${JSON.stringify({
-      baseUrl: pilot.baseUrl,
-      health: `${pilot.baseUrl}/health`,
-      contract: `${pilot.baseUrl}/openapi.yaml`,
-      socketPath: '/socket.io',
-      systemId: pilot.systemId,
-      bodyCount: pilot.bodyCount,
-      stationId: pilot.stationId,
-      p3InputSha256: pilot.p3InputSha256,
-      p4OutputSha256: pilot.p4OutputSha256,
-    })}`);
-    console.log('Use normal UI registration, then login. No preseeded account or credentials. Ctrl+C stops only this pilot and deletes its Mongo.');
-  }).catch((error) => {
-    console.error(`[copper-vale-p6] ${error.message}`);
-    process.exitCode = 1;
-  });
+  launchIsolatedPilot(process.argv.slice(2))
+    .then((pilot) => {
+      console.log(
+        `COPPER_VALE_P6_READY ${JSON.stringify({
+          baseUrl: pilot.baseUrl,
+          health: `${pilot.baseUrl}/health`,
+          contract: `${pilot.baseUrl}/openapi.yaml`,
+          socketPath: '/socket.io',
+          systemId: pilot.systemId,
+          bodyCount: pilot.bodyCount,
+          stationId: pilot.stationId,
+          p3InputSha256: pilot.p3InputSha256,
+          p4OutputSha256: pilot.p4OutputSha256,
+        })}`
+      );
+      console.log(
+        'Use normal UI registration, then login. No preseeded account or credentials. Ctrl+C stops only this pilot and deletes its Mongo.'
+      );
+    })
+    .catch((error) => {
+      console.error(`[copper-vale-p6] ${error.message}`);
+      process.exitCode = 1;
+    });
 }
 
 module.exports = { launchIsolatedPilot, requireOptIn, childEnvironment };

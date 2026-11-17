@@ -19,46 +19,80 @@ const {
   seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
 const { MessageHandlerContext } = require('../src/handlers/message-handler-context');
-const { buildSeededCelestialBodiesForSolarSystem } = require('../src/model/solar-system-celestial-seed');
+const {
+  buildSeededCelestialBodiesForSolarSystem,
+} = require('../src/model/solar-system-celestial-seed');
 const { buildSeededMarketsForSolarSystem } = require('../src/model/solar-system-market-seed');
 const { materializeStationSnapshotAsync } = require('../src/handlers/context/orbital-math');
 const {
   registerTrustedNavigationPlacementAsync,
 } = require('../src/handlers/context/navigation-state-service');
-const navigationValidator = Parser.dereference(path.join(__dirname, '..', 'api', 'openapi.yaml'))
-  .then((api) => createSchemaValidator({ strict: false }).compile(
-    api.paths['/socket/solar-system-get'].post.responses['200'].content['application/json']
-      .schema.properties.navigationState
-  ));
+const navigationValidator = Parser.dereference(
+  path.join(__dirname, '..', 'api', 'openapi.yaml')
+).then((api) =>
+  createSchemaValidator({ strict: false }).compile(
+    api.paths['/socket/solar-system-get'].post.responses['200'].content['application/json'].schema
+      .properties.navigationState
+  )
+);
 
 async function navigationFixture() {
   const sourceEpoch = '2026-04-17T00:00:00.000Z';
   const shipEpoch = '2026-11-14T00:00:00.000Z';
   const ctx = new MessageHandlerContext({ log: () => {} });
   const bodies = buildSeededCelestialBodiesForSolarSystem('sol', sourceEpoch);
-  const market = buildSeededMarketsForSolarSystem('sol').find((entry) => entry.marketId === 'sol-earth-orbit');
+  const market = buildSeededMarketsForSolarSystem('sol').find(
+    (entry) => entry.marketId === 'sol-earth-orbit'
+  );
   for (const body of bodies) ctx.celestialBodiesById.set(body.id, body);
   ctx.marketsByKey.set('sol:sol-earth-orbit', market);
-  const target = new MessageHandlerContext({ log: () => {},
-    celestialBodiesById: new Map(buildSeededCelestialBodiesForSolarSystem('sol', shipEpoch)
-      .map((body) => [body.id, body])) });
+  const target = new MessageHandlerContext({
+    log: () => {},
+    celestialBodiesById: new Map(
+      buildSeededCelestialBodiesForSolarSystem('sol', shipEpoch).map((body) => [body.id, body])
+    ),
+  });
   const station = await materializeStationSnapshotAsync(target, market);
   const ship = {
-    id: 'trusted-fixture-ship', model: 'Scavenger Pod', inventory: [],
+    id: 'trusted-fixture-ship',
+    model: 'Scavenger Pod',
+    inventory: [],
     spatial: structuredClone(station.spatial),
-    ownership: { ownerType: 'player-character', playerId: 'fixture-player',
-      characterId: 'fixture-character', npcId: null, factionId: null },
+    ownership: {
+      ownerType: 'player-character',
+      playerId: 'fixture-player',
+      characterId: 'fixture-character',
+      npcId: null,
+      factionId: null,
+    },
   };
-  ctx.registeredPlayers.set('fixturepilot', { playerId: 'fixture-player', playerName: 'FixturePilot' });
-  ctx.charactersByPlayer.set('fixturepilot', [{ id: 'fixture-character', ships: [ship] }]);
-  ctx.seedSolarSystemCelestialBodiesAsync = async () => { throw new Error('Navigation must not seed'); };
-  ctx.refreshCharacterPresence = () => { throw new Error('Navigation must not update presence'); };
-  const request = { playerName: 'FixturePilot', solarSystemId: 'sol',
-    navigation: { shipId: ship.id, destinationMarketId: market.marketId, candidateBodyId: 'sol-luna' } };
-  const certify = () => registerTrustedNavigationPlacementAsync(ctx, {
-    playerName: request.playerName, shipId: ship.id,
-    sourceMarketId: market.marketId, offsetKm: { x: 0, y: 0, z: 0 },
+  ctx.registeredPlayers.set('fixturepilot', {
+    playerId: 'fixture-player',
+    playerName: 'FixturePilot',
   });
+  ctx.charactersByPlayer.set('fixturepilot', [{ id: 'fixture-character', ships: [ship] }]);
+  ctx.seedSolarSystemCelestialBodiesAsync = async () => {
+    throw new Error('Navigation must not seed');
+  };
+  ctx.refreshCharacterPresence = () => {
+    throw new Error('Navigation must not update presence');
+  };
+  const request = {
+    playerName: 'FixturePilot',
+    solarSystemId: 'sol',
+    navigation: {
+      shipId: ship.id,
+      destinationMarketId: market.marketId,
+      candidateBodyId: 'sol-luna',
+    },
+  };
+  const certify = () =>
+    registerTrustedNavigationPlacementAsync(ctx, {
+      playerName: request.playerName,
+      shipId: ship.id,
+      sourceMarketId: market.marketId,
+      offsetKm: { x: 0, y: 0, z: 0 },
+    });
   return { ctx, ship, market, bodies, request, certify, station };
 }
 
@@ -67,7 +101,10 @@ test('navigation evaluates an explicitly synthetic trusted placement at the unch
   await fixture.certify();
   fixture.request.asOf = '2020-01-01T00:00:00.000Z';
   const before = JSON.stringify([fixture.ship, fixture.market, fixture.bodies]);
-  const response = await new SolarSystemGetMessageHandler(fixture.ctx).handle(createMockSocket(), fixture.request);
+  const response = await new SolarSystemGetMessageHandler(fixture.ctx).handle(
+    createMockSocket(),
+    fixture.request
+  );
   assert.equal(response.success, true);
   const state = response.navigationState;
   const validate = await navigationValidator;
@@ -80,18 +117,25 @@ test('navigation evaluates an explicitly synthetic trusted placement at the unch
   assert.equal(state.destination.placementKind, null);
   assert.equal(state.candidates[0].bodyId, 'sol-luna');
   assert.notEqual(state.candidates[0].sourceEpochMs, state.epochMs);
-  assert.deepEqual([state.motion.status, state.clearance.status, state.gravityAssist.status],
-    ['unsupported', 'unsupported', 'unsupported']);
+  assert.deepEqual(
+    [state.motion.status, state.clearance.status, state.gravityAssist.status],
+    ['unsupported', 'unsupported', 'unsupported']
+  );
   assert.equal(JSON.stringify([fixture.ship, fixture.market, fixture.bodies]), before);
   const moon = response.bodies.find((body) => body.id === 'sol-luna');
-  assert.equal(moon.spatial.epochMs, fixture.bodies.find((body) => body.id === 'sol-luna').spatial.epochMs);
+  assert.equal(
+    moon.spatial.epochMs,
+    fixture.bodies.find((body) => body.id === 'sol-luna').spatial.epochMs
+  );
 });
 
 test('navigation rejects unknown or caller-asserted ship basis even when labels and epochs match', async () => {
   const fixture = await navigationFixture();
   fixture.ship.spatial.coordinateBasisId = 'stellar:sol:catalog-cartesian:v1';
   fixture.ship.navigationPlacement = { trusted: true };
-  const response = await new SolarSystemGetMessageHandler(fixture.ctx).buildResponse(fixture.request);
+  const response = await new SolarSystemGetMessageHandler(fixture.ctx).buildResponse(
+    fixture.request
+  );
   assert.equal(response.navigationState.reason, 'BASIS_UNKNOWN');
   const validate = await navigationValidator;
   assert.equal(validate(response.navigationState), true, JSON.stringify(validate.errors));
@@ -102,39 +146,81 @@ test('navigation rejects unknown or caller-asserted ship basis even when labels 
 test('navigation fails closed for invalid selectors, unsupported systems and ownership', async () => {
   const fixture = await navigationFixture();
   const handler = new SolarSystemGetMessageHandler(fixture.ctx);
-  for (const navigation of [null, [], { ...fixture.request.navigation, candidateBodyId: [] },
-    { ...fixture.request.navigation, coordinateBasisId: 'stellar:sol:catalog-cartesian:v1' }]) {
+  for (const navigation of [
+    null,
+    [],
+    { ...fixture.request.navigation, candidateBodyId: [] },
+    { ...fixture.request.navigation, coordinateBasisId: 'stellar:sol:catalog-cartesian:v1' },
+  ]) {
     const response = await handler.buildResponse({ ...fixture.request, navigation });
     assert.equal(response.navigationState.reason, 'NAVIGATION_REQUEST_INVALID');
   }
-  assert.equal((await handler.buildResponse({ ...fixture.request, solarSystemId: 'alpha-centauri' }))
-    .navigationState.reason, 'SYSTEM_UNSUPPORTED');
+  assert.equal(
+    (await handler.buildResponse({ ...fixture.request, solarSystemId: 'alpha-centauri' }))
+      .navigationState.reason,
+    'SYSTEM_UNSUPPORTED'
+  );
   fixture.ship.ownership.playerId = 'another-player';
-  assert.equal((await handler.buildResponse(fixture.request)).navigationState.reason, 'SHIP_NOT_OWNED');
+  assert.equal(
+    (await handler.buildResponse(fixture.request)).navigationState.reason,
+    'SHIP_NOT_OWNED'
+  );
 });
 
 test('navigation revokes a trusted proof when a character ship write occurs', async () => {
   const fixture = await navigationFixture();
   await fixture.certify();
-  await fixture.ctx.updateCharacterAsync('FixturePilot', 'fixture-character', { ships: [fixture.ship] });
-  assert.equal((await new SolarSystemGetMessageHandler(fixture.ctx).buildResponse(fixture.request))
-    .navigationState.reason, 'BASIS_UNKNOWN');
+  await fixture.ctx.updateCharacterAsync('FixturePilot', 'fixture-character', {
+    ships: [fixture.ship],
+  });
+  assert.equal(
+    (await new SolarSystemGetMessageHandler(fixture.ctx).buildResponse(fixture.request))
+      .navigationState.reason,
+    'BASIS_UNKNOWN'
+  );
 });
 
 test('navigation rejects changed source models, station anchors, inactive placement and unsupported candidates', async () => {
   for (const [mutate, reason] of [
-    [(f) => { f.bodies.find((body) => body.id === 'sol-mars').orbitalElements.eccentricity += 0.01;
-      f.request.navigation.candidateBodyId = 'sol-mars'; }, 'SOURCE_UNVERIFIED'],
-    [(f) => { f.market.trajectory.orbit.anchorBodyId = 'sol-moon'; }, 'STATION_HOST_UNVERIFIED'],
-    [(f) => { f.market.stationPlacement = { kind: 'body-orbit', primaryBodyId: 'sol-earth',
-      activation: 'metadata-only', stationKeeping: false, provenance: 'fixture', reason: 'fixture' }; },
-      'STATION_PLACEMENT_UNSUPPORTED'],
-    [(f) => { f.request.navigation.candidateBodyId = 'sol-halley'; }, 'EVALUATION_UNSUPPORTED'],
+    [
+      (f) => {
+        f.bodies.find((body) => body.id === 'sol-mars').orbitalElements.eccentricity += 0.01;
+        f.request.navigation.candidateBodyId = 'sol-mars';
+      },
+      'SOURCE_UNVERIFIED',
+    ],
+    [
+      (f) => {
+        f.market.trajectory.orbit.anchorBodyId = 'sol-moon';
+      },
+      'STATION_HOST_UNVERIFIED',
+    ],
+    [
+      (f) => {
+        f.market.stationPlacement = {
+          kind: 'body-orbit',
+          primaryBodyId: 'sol-earth',
+          activation: 'metadata-only',
+          stationKeeping: false,
+          provenance: 'fixture',
+          reason: 'fixture',
+        };
+      },
+      'STATION_PLACEMENT_UNSUPPORTED',
+    ],
+    [
+      (f) => {
+        f.request.navigation.candidateBodyId = 'sol-halley';
+      },
+      'EVALUATION_UNSUPPORTED',
+    ],
   ]) {
     const fixture = await navigationFixture();
     await fixture.certify();
     mutate(fixture);
-    const response = await new SolarSystemGetMessageHandler(fixture.ctx).buildResponse(fixture.request);
+    const response = await new SolarSystemGetMessageHandler(fixture.ctx).buildResponse(
+      fixture.request
+    );
     assert.equal(response.navigationState.reason, reason);
   }
 });
@@ -154,8 +240,13 @@ test('navigation pins source reads, rejects concurrent change and surfaces datab
     },
   };
   const handler = new SolarSystemGetMessageHandler(fixture.ctx);
-  assert.equal((await handler.buildResponse(fixture.request)).navigationState.reason, 'SOURCES_CHANGED');
-  fixture.ctx.databaseService.getCharacters = async () => { throw new Error('unavailable'); };
+  assert.equal(
+    (await handler.buildResponse(fixture.request)).navigationState.reason,
+    'SOURCES_CHANGED'
+  );
+  fixture.ctx.databaseService.getCharacters = async () => {
+    throw new Error('unavailable');
+  };
   const failure = await handler.buildResponse(fixture.request);
   assert.equal(failure.success, false);
   assert.equal(failure.navigationState.reason, 'NAVIGATION_READ_FAILED');
@@ -164,11 +255,18 @@ test('navigation pins source reads, rejects concurrent change and surfaces datab
 test('navigation proof is process-context scoped and does not survive a new context', async () => {
   const fixture = await navigationFixture();
   await fixture.certify();
-  const fresh = new MessageHandlerContext({ log: () => {}, registeredPlayers: fixture.ctx.registeredPlayers,
-    charactersByPlayer: fixture.ctx.charactersByPlayer, celestialBodiesById: fixture.ctx.celestialBodiesById,
-    marketsByKey: fixture.ctx.marketsByKey });
-  assert.equal((await new SolarSystemGetMessageHandler(fresh).buildResponse(fixture.request))
-    .navigationState.reason, 'BASIS_UNKNOWN');
+  const fresh = new MessageHandlerContext({
+    log: () => {},
+    registeredPlayers: fixture.ctx.registeredPlayers,
+    charactersByPlayer: fixture.ctx.charactersByPlayer,
+    celestialBodiesById: fixture.ctx.celestialBodiesById,
+    marketsByKey: fixture.ctx.marketsByKey,
+  });
+  assert.equal(
+    (await new SolarSystemGetMessageHandler(fresh).buildResponse(fixture.request)).navigationState
+      .reason,
+    'BASIS_UNKNOWN'
+  );
 });
 
 test('navigation rejects a concurrent ship write during evaluation or placement registration', async () => {
@@ -180,7 +278,9 @@ test('navigation rejects a concurrent ship write during evaluation or placement 
     fixture.ctx.databaseService = {
       getCharacters: async () => {
         if (++reads === 2) {
-          await fixture.ctx.updateCharacterAsync('FixturePilot', 'fixture-character', { ships: [fixture.ship] });
+          await fixture.ctx.updateCharacterAsync('FixturePilot', 'fixture-character', {
+            ships: [fixture.ship],
+          });
         }
         return structuredClone(characters);
       },
@@ -191,8 +291,9 @@ test('navigation rejects a concurrent ship write during evaluation or placement 
     if (registering) {
       await assert.rejects(fixture.certify(), (error) => error.reason === 'BASIS_UNKNOWN');
     } else {
-      const state = (await new SolarSystemGetMessageHandler(fixture.ctx).buildResponse(fixture.request))
-        .navigationState;
+      const state = (
+        await new SolarSystemGetMessageHandler(fixture.ctx).buildResponse(fixture.request)
+      ).navigationState;
       assert.equal(state.reason, 'BASIS_UNKNOWN');
     }
   }
@@ -203,25 +304,37 @@ test('navigation rejects an altered or unsupported position epoch and requires a
   await fixture.certify();
   const handler = new SolarSystemGetMessageHandler(fixture.ctx);
   fixture.ship.spatial.epochMs = Date.parse('2100-01-01T00:00:00.000Z');
-  assert.equal((await handler.buildResponse(fixture.request)).navigationState.reason, 'POSITION_EPOCH_UNSUPPORTED');
+  assert.equal(
+    (await handler.buildResponse(fixture.request)).navigationState.reason,
+    'POSITION_EPOCH_UNSUPPORTED'
+  );
   fixture.ship.spatial.epochMs = Date.parse('2026-11-14T00:00:00.001Z');
-  assert.equal((await handler.buildResponse(fixture.request)).navigationState.reason, 'BASIS_UNKNOWN');
+  assert.equal(
+    (await handler.buildResponse(fixture.request)).navigationState.reason,
+    'BASIS_UNKNOWN'
+  );
   const missing = await navigationFixture();
   await missing.certify();
   missing.ctx.celestialBodiesById.delete('sol-luna');
-  const failure = await new SolarSystemGetMessageHandler(missing.ctx).buildResponse(missing.request);
+  const failure = await new SolarSystemGetMessageHandler(missing.ctx).buildResponse(
+    missing.request
+  );
   assert.equal(failure.navigationState.reason, 'EVALUATION_UNSUPPORTED');
   assert.equal(Object.hasOwn(failure.navigationState, 'destination'), false);
 });
 
 test('navigation verifies the source position against the model at the documented one-metre threshold', async () => {
-  for (const [offsetKm, status] of [[0.0009, 'supported'], [0.0011, 'unsupported']]) {
+  for (const [offsetKm, status] of [
+    [0.0009, 'supported'],
+    [0.0011, 'unsupported'],
+  ]) {
     const fixture = await navigationFixture();
     await fixture.certify();
     fixture.request.navigation.candidateBodyId = 'sol-mars';
     fixture.bodies.find((body) => body.id === 'sol-mars').spatial.positionKm.x += offsetKm;
-    const state = (await new SolarSystemGetMessageHandler(fixture.ctx).buildResponse(fixture.request))
-      .navigationState;
+    const state = (
+      await new SolarSystemGetMessageHandler(fixture.ctx).buildResponse(fixture.request)
+    ).navigationState;
     assert.equal(state.status, status);
     if (status === 'unsupported') assert.equal(state.reason, 'SOURCE_UNVERIFIED');
   }

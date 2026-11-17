@@ -22,7 +22,9 @@ async function seedCopperValeIsolatedPilot(databaseService) {
     log: () => {},
     getCurrentTimestamp: () => preview.epoch,
   });
-  await databaseService.upsertMarket(createSeedMarketPayload(context, preview.station, preview.epoch));
+  await databaseService.upsertMarket(
+    createSeedMarketPayload(context, preview.station, preview.epoch)
+  );
 
   // Read through a fresh canonical context, never through a hand-populated cache.
   const persisted = await databaseService.getCelestialBodies({});
@@ -31,8 +33,15 @@ async function seedCopperValeIsolatedPilot(databaseService) {
     const actual = await getCelestialBodyByIdAsync(context, expected.id);
     assert.ok(actual, `Missing durable body ${expected.id}`);
     for (const field of [
-      'id', 'displayName', 'parentBodyId', 'bodyType', 'spatial',
-      'physicalCatalog', 'orbitalElements', 'composition', 'universeMetadata',
+      'id',
+      'displayName',
+      'parentBodyId',
+      'bodyType',
+      'spatial',
+      'physicalCatalog',
+      'orbitalElements',
+      'composition',
+      'universeMetadata',
     ]) {
       if (expected[field] == null) {
         assert.ok(actual[field] == null, `${expected.id}: unexpected ${field}`);
@@ -40,21 +49,37 @@ async function seedCopperValeIsolatedPilot(databaseService) {
         assert.partialDeepStrictEqual(actual[field], expected[field], `${expected.id}: ${field}`);
       }
     }
-    assert.equal(resolveNamedBody(persisted, preview.systemId, expected.displayName).id, expected.id);
+    assert.equal(
+      resolveNamedBody(persisted, preview.systemId, expected.displayName).id,
+      expected.id
+    );
     for (const alias of expected.universeMetadata?.naming?.aliases || []) {
       assert.equal(resolveNamedBody(persisted, preview.systemId, alias).id, expected.id);
     }
   }
-  const markets = await getMarketsAsync(context, { solarSystemId: preview.systemId, asOf: preview.epoch });
+  const markets = await getMarketsAsync(context, {
+    solarSystemId: preview.systemId,
+    asOf: preview.epoch,
+  });
   assert.equal(markets.length, 1);
-  for (const field of ['marketId', 'marketName', 'siteName', 'stationPlacement', 'trajectory', 'spatial']) {
+  for (const field of [
+    'marketId',
+    'marketName',
+    'siteName',
+    'stationPlacement',
+    'trajectory',
+    'spatial',
+  ]) {
     assert.partialDeepStrictEqual(markets[0][field], preview.station[field], `Station: ${field}`);
   }
   for (const blocked of preview.unchangedSystems) {
     assert.equal(blocked.status, 'blocked');
     assert.equal(blocked.generatedBodyCount, 0);
     assert.equal(blocked.namingChanged, false);
-    assert.equal((await databaseService.getCelestialBodies({ solarSystemId: blocked.systemId })).length, 0);
+    assert.equal(
+      (await databaseService.getCelestialBodies({ solarSystemId: blocked.systemId })).length,
+      0
+    );
     assert.equal((await databaseService.getMarkets({ solarSystemId: blocked.systemId })).length, 0);
   }
   return {

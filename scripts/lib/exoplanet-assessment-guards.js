@@ -11,7 +11,8 @@ function assessEvidence(evidence, { measurementFields, requireCommonFit = false 
   const blockers = [];
   const ids = new Set();
   for (const record of evidence.records) {
-    if (!record.id || ids.has(record.id)) throw new Error('Evidence IDs must be present and unique');
+    if (!record.id || ids.has(record.id))
+      throw new Error('Evidence IDs must be present and unique');
     ids.add(record.id);
     if (record.fieldEvidence !== undefined && !Array.isArray(record.fieldEvidence)) {
       throw new Error(`${record.id}: fieldEvidence must be an array`);
@@ -26,10 +27,7 @@ function assessEvidence(evidence, { measurementFields, requireCommonFit = false 
         if (entry.value !== record[field]) {
           blockers.push(`${record.id}: ${field} evidence value does not match`);
         }
-        if (
-          field === 'massEarth' &&
-          record.massProvenance !== 'Mass'
-        ) {
+        if (field === 'massEarth' && record.massProvenance !== 'Mass') {
           blockers.push(
             `${record.id}: mass provenance ${record.massProvenance || 'unknown'} is not a measured mass`
           );
@@ -41,8 +39,10 @@ function assessEvidence(evidence, { measurementFields, requireCommonFit = false 
           blockers.push(`${record.id}: ${field} lacks a field-specific source`);
         }
         if (
-          !Number.isFinite(entry.errorUpper) || entry.errorUpper < 0 ||
-          !Number.isFinite(entry.errorLower) || entry.errorLower > 0
+          !Number.isFinite(entry.errorUpper) ||
+          entry.errorUpper < 0 ||
+          !Number.isFinite(entry.errorLower) ||
+          entry.errorLower > 0
         ) {
           blockers.push(`${record.id}: ${field} lacks valid signed uncertainty bounds`);
         }

@@ -40,7 +40,10 @@ test('finalization is deterministic, fills every language quota, and matches all
   assert.equal(report.livePublicationVerified, false);
   assert.equal(
     renderMarkdown(report),
-    fs.readFileSync(path.join(__dirname, '..', 'docs', 'system-naming-final-review-2026-11-06.md'), 'utf8')
+    fs.readFileSync(
+      path.join(__dirname, '..', 'docs', 'system-naming-final-review-2026-11-06.md'),
+      'utf8'
+    )
   );
   const counts = new Map();
   for (const row of report.rows) {
@@ -76,7 +79,10 @@ test('full naming expansion preserves existing assignments, all other systems, a
   assert.equal(active.length, 4845);
   assert.deepEqual(active.map(identity), before.map(identity));
   assert.equal(active.filter((system) => system.settlementName).length, 4025);
-  assert.equal(active.filter((system, i) => system.displayName !== before[i].displayName).length, 3906);
+  assert.equal(
+    active.filter((system, i) => system.displayName !== before[i].displayName).length,
+    3906
+  );
   assert.equal(before.filter((system) => isProtected(system, baseline)).length, 162);
   for (let index = 0; index < active.length; index++) {
     if (!expandedIds.has(active[index].id)) assert.deepEqual(active[index], before[index]);

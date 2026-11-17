@@ -9,10 +9,7 @@
       "description": "Velocity in km/s. The payload does not carry a separate epoch; its temporal association cannot be verified from this object."
     },
     "angularVelocityRadPerSec": {
-      "anyOf": [
-        { "$ref": "#/definitions/vector3" },
-        { "type": "null" }
-      ],
+      "anyOf": [{ "$ref": "#/definitions/vector3" }, { "type": "null" }],
       "description": "Optional angular velocity in radians/s; null or absence is unknown/unavailable, not zero."
     }
   },

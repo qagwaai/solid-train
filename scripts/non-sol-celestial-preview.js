@@ -6,7 +6,10 @@ const { createHash, randomUUID } = require('node:crypto');
 const { previewNonSolSystem } = require('../src/model/non-sol-augmentation');
 const policy = require('../data/non-sol-scientific-policy-v1.json');
 const expandedPolicy = require('../data/non-sol-scientific-policy-v2.json');
-const { previewExpandedNonSolSystem, countBodies } = require('../src/model/non-sol-expanded-augmentation');
+const {
+  previewExpandedNonSolSystem,
+  countBodies,
+} = require('../src/model/non-sol-expanded-augmentation');
 
 const DEFAULT_SYSTEMS = ['alpha-centauri', 'barnards-star', 'exo-gj-9066', 'cygnus-x1'];
 
@@ -68,11 +71,13 @@ function buildReport(options) {
       exclusionCodes: [...new Set(preview.exclusions.map((entry) => entry.code))],
       sourceSha256: preview.sourceSha256,
       outputSha256: preview.outputSha256,
-      ...(options.expanded ? {
-        bodyCounts: preview.counts,
-        populationDescriptors: preview.populationDescriptors.length,
-        familyBlockers: preview.familyBlockers,
-      } : {}),
+      ...(options.expanded
+        ? {
+            bodyCounts: preview.counts,
+            populationDescriptors: preview.populationDescriptors.length,
+            familyBlockers: preview.familyBlockers,
+          }
+        : {}),
     });
     if (!options.all) details.push(preview);
   }
@@ -87,20 +92,30 @@ function buildReport(options) {
     blockedPreviews: summary.filter((entry) => entry.status === 'blocked').length,
     summary,
     ...(options.all ? {} : { details }),
-    ...(options.expanded ? {
-      occurrenceCalibrated: false,
-      samplingInterpretation: expandedPolicy.samplingInterpretation,
-      counts: {
-        existing: countBodies(details.flatMap((preview) => preview.baseBodies)),
-        additions: countBodies(details.flatMap((preview) => preview.generatedBodies)),
-        combined: countBodies(details.flatMap((preview) => [...preview.baseBodies, ...preview.generatedBodies])),
-      },
-      structures: {
-        existingRings: details.reduce((sum, preview) => sum + preview.baseBodies.filter((body) => body.rings).length, 0),
-        proposedRings: details.reduce((sum, preview) => sum + preview.ringProposals.length, 0),
-        proposedPopulations: details.reduce((sum, preview) => sum + preview.populationDescriptors.length, 0),
-      },
-    } : {}),
+    ...(options.expanded
+      ? {
+          occurrenceCalibrated: false,
+          samplingInterpretation: expandedPolicy.samplingInterpretation,
+          counts: {
+            existing: countBodies(details.flatMap((preview) => preview.baseBodies)),
+            additions: countBodies(details.flatMap((preview) => preview.generatedBodies)),
+            combined: countBodies(
+              details.flatMap((preview) => [...preview.baseBodies, ...preview.generatedBodies])
+            ),
+          },
+          structures: {
+            existingRings: details.reduce(
+              (sum, preview) => sum + preview.baseBodies.filter((body) => body.rings).length,
+              0
+            ),
+            proposedRings: details.reduce((sum, preview) => sum + preview.ringProposals.length, 0),
+            proposedPopulations: details.reduce(
+              (sum, preview) => sum + preview.populationDescriptors.length,
+              0
+            ),
+          },
+        }
+      : {}),
   };
   return {
     ...report,
@@ -141,12 +156,18 @@ function main(args = process.argv.slice(2)) {
       `${row.systemId}: ${row.status}; ${JSON.stringify(row.counts)}; rings=${row.ringProposals}; exclusions=${row.exclusionCodes.join(',') || 'none'}`
     );
     if (options.expanded) {
-      console.log(`  existing=${JSON.stringify(row.bodyCounts.existing.byType)}; combined=${JSON.stringify(row.bodyCounts.combined.byType)}`);
-      console.log(`  planet appearances (not observed composition)=${JSON.stringify(row.bodyCounts.combined.planetAppearances)}`);
+      console.log(
+        `  existing=${JSON.stringify(row.bodyCounts.existing.byType)}; combined=${JSON.stringify(row.bodyCounts.combined.byType)}`
+      );
+      console.log(
+        `  planet appearances (not observed composition)=${JSON.stringify(row.bodyCounts.combined.planetAppearances)}`
+      );
     }
   }
   if (options.expanded)
-    console.log(`Totals: ${JSON.stringify(report.counts)}; structures=${JSON.stringify(report.structures)}. Authored exploratory sampling, not calibrated occurrence.`);
+    console.log(
+      `Totals: ${JSON.stringify(report.counts)}; structures=${JSON.stringify(report.structures)}. Authored exploratory sampling, not calibrated occurrence.`
+    );
   console.log(
     `Digest: ${report.reportSha256}. No runtime activation, database writes, playable verification, or rollout completion.`
   );

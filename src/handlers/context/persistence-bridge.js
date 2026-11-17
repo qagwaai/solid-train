@@ -91,9 +91,18 @@ async function deleteCharacterAsync(ctx, playerName, characterId) {
 
 async function updateCharacterAsync(ctx, playerName, characterId, updates, options = {}) {
   if (Array.isArray(updates?.ships)) {
-    revokeNavigationPlacements(ctx, playerName, updates.ships.map((ship) => ship.id));
-    updates = { ...updates, ships: preserveNavigationPlacements(
-      ctx.findCharacter(playerName, characterId)?.ships, updates.ships) };
+    revokeNavigationPlacements(
+      ctx,
+      playerName,
+      updates.ships.map((ship) => ship.id)
+    );
+    updates = {
+      ...updates,
+      ships: preserveNavigationPlacements(
+        ctx.findCharacter(playerName, characterId)?.ships,
+        updates.ships
+      ),
+    };
   }
   const isVersionConflict = (error) => {
     const message = ctx.toNonEmptyString(error?.message).toLowerCase();

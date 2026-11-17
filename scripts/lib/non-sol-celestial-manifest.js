@@ -657,7 +657,9 @@ function assertPreservedBaseline(frozen, current, { sourceHashesEquivalent = () 
     assert.deepEqual(
       currentSources.map((file, index) => {
         const previous = frozenSources[index];
-        return previous && previous.path === file.path && previous.sha256 !== file.sha256 &&
+        return previous &&
+          previous.path === file.path &&
+          previous.sha256 !== file.sha256 &&
           sourceHashesEquivalent(file.path, file.sha256, previous.sha256)
           ? previous
           : file;

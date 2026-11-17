@@ -368,9 +368,15 @@ paths:
                   playerName: PilotOne
                   sessionKey: session-123
                   correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
-                  requestIdentity: { operation: solar-system-get, entityType: solar-system, containerId: sol }
+                  requestIdentity:
+                    { operation: solar-system-get, entityType: solar-system, containerId: sol }
                   solarSystemId: sol
-                  navigation: { shipId: owned-ship-id, destinationMarketId: sol-pluto-orbit, candidateBodyId: sol-luna }
+                  navigation:
+                    {
+                      shipId: owned-ship-id,
+                      destinationMarketId: sol-pluto-orbit,
+                      candidateBodyId: sol-luna,
+                    }
                   navigationPrediction: { scenarioCruiseSpeedKmPerSec: 10 }
               pairedPredictionMissingCandidate:
                 summary: Transport-valid input retains a zero-candidate preview and yields nested CANDIDATE_REQUIRED
@@ -378,7 +384,8 @@ paths:
                   playerName: PilotOne
                   sessionKey: session-123
                   correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
-                  requestIdentity: { operation: solar-system-get, entityType: solar-system, containerId: sol }
+                  requestIdentity:
+                    { operation: solar-system-get, entityType: solar-system, containerId: sol }
                   solarSystemId: sol
                   navigation: { shipId: owned-ship-id, destinationMarketId: sol-pluto-orbit }
                   navigationPrediction: { scenarioCruiseSpeedKmPerSec: 150 }
@@ -742,7 +749,8 @@ paths:
                       epochMs: 1794614400000
                       departure: &pairedPredictionDeparture
                         shipId: owned-ship-id
-                        positionKm: { x: -68497108.89898615, y: 230490599.55439094, z: 6513204.619689254 }
+                        positionKm:
+                          { x: -68497108.89898615, y: 230490599.55439094, z: 6513204.619689254 }
                         provenance:
                           kind: trusted-persisted-placement
                           lineageId: f08d2910-b9d0-4aea-a749-a9f1cd1015d0
@@ -752,21 +760,25 @@ paths:
                       destination: &pairedPredictionDestination
                         marketId: sol-pluto-orbit
                         hostBodyId: sol-pluto
-                        positionKm: { x: 2974293648.201258, y: -4397750958.234561, z: -390278339.2324666 }
-                        hostPositionKm: { x: 2974292253.685408, y: -4397752426.080326, z: -390278377.66936064 }
+                        positionKm:
+                          { x: 2974293648.201258, y: -4397750958.234561, z: -390278339.2324666 }
+                        hostPositionKm:
+                          { x: 2974292253.685408, y: -4397752426.080326, z: -390278377.66936064 }
                         hostSourceEpochMs: 1776384000000
                         orbitalReferenceEpoch: '2026-01-01T00:00:00.000Z'
                         placementKind: null
                         association: verified-exact-anchor
                       candidates:
                         - bodyId: sol-luna
-                          positionKm: { x: 92713269.03814426, y: 115056805.05196837, z: 14921.888450147251 }
+                          positionKm:
+                            { x: 92713269.03814426, y: 115056805.05196837, z: 14921.888450147251 }
                           sourceEpochMs: 1776384000000
                       provenance:
                         evaluationModelId: sol-catalog-kepler-position-v1
                         sourceRevision: d41b0b0f05177509ea34d3533b81dca5f63c1d95c230a5e632a24bb8dac9e9b2
                         positionToleranceKm: 0.001
-                      previewEligibility: { status: eligible-with-warnings, reason: CLEARANCE_UNVERIFIED }
+                      previewEligibility:
+                        { status: eligible-with-warnings, reason: CLEARANCE_UNVERIFIED }
                       motion: { status: unsupported }
                       clearance: { status: unsupported }
                       gravityAssist: { status: unsupported }
@@ -787,18 +799,22 @@ paths:
                         departure:
                           shipId: owned-ship-id
                           epochMs: 1794614400000
-                          positionKm: { x: -68497108.89898615, y: 230490599.55439094, z: 6513204.619689254 }
+                          positionKm:
+                            { x: -68497108.89898615, y: 230490599.55439094, z: 6513204.619689254 }
                         encounter:
                           bodyId: sol-luna
                           epochMs: 1795713802170
-                          positionKm: { x: 64474291.511722974, y: 133169650.84930696, z: -17879.967533573898 }
+                          positionKm:
+                            { x: 64474291.511722974, y: 133169650.84930696, z: -17879.967533573898 }
                           convergence: { iterations: 16, residualMs: 0.133056640625 }
                         arrival:
                           marketId: sol-pluto-orbit
                           hostBodyId: sol-pluto
                           epochMs: 1831977600050
-                          positionKm: { x: 3146423889.109306, y: -4326655970.758481, z: -447745954.4471171 }
-                          hostPositionKm: { x: 3146424514.4662237, y: -4326653939.490068, z: -447745901.25648177 }
+                          positionKm:
+                            { x: 3146423889.109306, y: -4326655970.758481, z: -447745954.4471171 }
+                          hostPositionKm:
+                            { x: 3146424514.4662237, y: -4326653939.490068, z: -447745901.25648177 }
                           convergence: { iterations: 7, residualMs: 0.3828125 }
                         assumptions:
                           legDistanceStraightLine: true
@@ -835,7 +851,8 @@ paths:
                     message: Solar system navigation positions evaluated
                     playerName: PilotOne
                     correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
-                    requestIdentity: { operation: solar-system-get, entityType: solar-system, containerId: sol }
+                    requestIdentity:
+                      { operation: solar-system-get, entityType: solar-system, containerId: sol }
                     solarSystemId: sol
                     navigationState:
                       status: supported
@@ -849,7 +866,8 @@ paths:
                         evaluationModelId: sol-catalog-kepler-position-v1
                         sourceRevision: 96bf89ea96b092e8c269fb204a8cdd3dbbd17e764a7b57ae27cc25f149f97d2b
                         positionToleranceKm: 0.001
-                      previewEligibility: { status: eligible-with-warnings, reason: CLEARANCE_UNVERIFIED }
+                      previewEligibility:
+                        { status: eligible-with-warnings, reason: CLEARANCE_UNVERIFIED }
                       motion: { status: unsupported }
                       clearance: { status: unsupported }
                       gravityAssist: { status: unsupported }

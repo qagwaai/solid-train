@@ -55,9 +55,7 @@ function fluidRocheKm(hostRadiusKm, hostDensity, satelliteDensity) {
 }
 
 function equilibriumTemperatureK(luminositySolar, distanceKm, bondAlbedo = B.bondAlbedo) {
-  return (
-    (278.3296 * (luminositySolar * (1 - bondAlbedo)) ** 0.25) / Math.sqrt(distanceKm / AU_KM)
-  );
+  return (278.3296 * (luminositySolar * (1 - bondAlbedo)) ** 0.25) / Math.sqrt(distanceKm / AU_KM);
 }
 
 function clearingDiscriminant(massKg, semiMajorAxisKm, stellarMassKg) {
@@ -267,8 +265,16 @@ function stellarRejection(candidate, type, star, peers, bounds = B) {
     envelope.apoapsisKm > bounds.maxStellarOrbitAu * AU_KM
   )
     return 'STELLAR_CLEARANCE_OR_EXTENT';
-  const hot = equilibriumTemperatureK(star.luminositySolar, envelope.periapsisKm, bounds.bondAlbedo);
-  const cold = equilibriumTemperatureK(star.luminositySolar, envelope.apoapsisKm, bounds.bondAlbedo);
+  const hot = equilibriumTemperatureK(
+    star.luminositySolar,
+    envelope.periapsisKm,
+    bounds.bondAlbedo
+  );
+  const cold = equilibriumTemperatureK(
+    star.luminositySolar,
+    envelope.apoapsisKm,
+    bounds.bondAlbedo
+  );
   if (
     hot > bounds.solidTemperatureK[1] ||
     cold < bounds.solidTemperatureK[0] ||
@@ -296,8 +302,15 @@ function stellarRejection(candidate, type, star, peers, bounds = B) {
 
 function moonRejection(candidate, host, star, peers, usedMass, ringOuterKm, bounds = B) {
   const hostOrbit = orbitEnvelope(host.orbitalElements);
-  const temperature = equilibriumTemperatureK(star.luminositySolar, hostOrbit.periapsisKm, bounds.bondAlbedo);
-  if (temperature > bounds.maxMoonTemperatureK || (candidate.icy && temperature > bounds.maxIceTemperatureK))
+  const temperature = equilibriumTemperatureK(
+    star.luminositySolar,
+    hostOrbit.periapsisKm,
+    bounds.bondAlbedo
+  );
+  if (
+    temperature > bounds.maxMoonTemperatureK ||
+    (candidate.icy && temperature > bounds.maxIceTemperatureK)
+  )
     return 'MOON_THERMAL_BOUNDS';
   const envelope = orbitEnvelope(candidate.orbit);
   const radius = host.physicalCatalog.meanRadiusKm;
@@ -306,7 +319,11 @@ function moonRejection(candidate, host, star, peers, usedMass, ringOuterKm, boun
     density(host.physicalCatalog.massKg, radius),
     candidate.densityKgM3
   );
-  const inner = Math.max(radius + candidate.radiusKm, roche * bounds.rocheClearanceFactor, ringOuterKm);
+  const inner = Math.max(
+    radius + candidate.radiusKm,
+    roche * bounds.rocheClearanceFactor,
+    ringOuterKm
+  );
   const outer =
     hillRadiusKm(host.orbitalElements, host.physicalCatalog.massKg, star.physicalCatalog.massKg) *
     bounds.moonHillFraction;

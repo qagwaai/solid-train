@@ -8,12 +8,17 @@ function buildHistoricalFitReport() {
   if (arguments.length) throw new Error('Historical fit adapter does not accept input overrides');
   const fit = structuredClone(source);
   const planets = fit.planets.map((planet) => {
-    const parameters = Object.fromEntries(fit.columns.map((field, index) => {
-      const [value, error] = planet.parameters[index];
-      return [field, error === null
-        ? { value, kind: 'fixed-model-parameter' }
-        : { value, kind: 'fitted-parameter', errorUpper: error, errorLower: -error }];
-    }));
+    const parameters = Object.fromEntries(
+      fit.columns.map((field, index) => {
+        const [value, error] = planet.parameters[index];
+        return [
+          field,
+          error === null
+            ? { value, kind: 'fixed-model-parameter' }
+            : { value, kind: 'fitted-parameter', errorUpper: error, errorLower: -error },
+        ];
+      })
+    );
     return {
       id: planet.id,
       parameters,
@@ -21,8 +26,11 @@ function buildHistoricalFitReport() {
         firstTransitJd: fit.timeOriginJd + parameters.transitOffsetDays.value,
         restFramePeriodDays: parameters.periodDays.value * fit.restFramePeriodFactor,
         massRatio: parameters.massRatioMicro.value * 1e-6,
-        massEarth: parameters.massRatioMicro.value * 1e-6 *
-          fit.host.massSolar.value * EARTH_MASSES_PER_SOLAR_MASS,
+        massEarth:
+          parameters.massRatioMicro.value *
+          1e-6 *
+          fit.host.massSolar.value *
+          EARTH_MASSES_PER_SOLAR_MASS,
         eccentricity: Math.hypot(parameters.eCosOmega.value, parameters.eSinOmega.value),
         massKind: parameters.massRatioMicro.kind,
         eccentricityKind: parameters.eCosOmega.kind,

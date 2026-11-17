@@ -546,9 +546,16 @@ test(
       const predictionPromise = waitForEvent(client, 'solar-system-get-response');
       client.emit('solar-system-get-request', {
         ...f.request,
-        requestIdentity: { operation: 'solar-system-get', entityType: 'solar-system', containerId: 'sol' },
-        navigation: { shipId: f.ship.id, destinationMarketId: f.request.destinationMarketId,
-          ...(candidateBodyId ? { candidateBodyId } : {}) },
+        requestIdentity: {
+          operation: 'solar-system-get',
+          entityType: 'solar-system',
+          containerId: 'sol',
+        },
+        navigation: {
+          shipId: f.ship.id,
+          destinationMarketId: f.request.destinationMarketId,
+          ...(candidateBodyId ? { candidateBodyId } : {}),
+        },
         navigationEstimate: {},
         navigationPrediction: options,
       });

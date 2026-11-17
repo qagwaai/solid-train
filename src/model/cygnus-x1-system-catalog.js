@@ -78,9 +78,7 @@ const CYGNUS_X1_HD226868 = {
     meanRadiusKm: 22.3 * SOLAR_RADIUS_KM,
     meanTemperatureK: 31138,
     compositionTags: ['hydrogen', 'helium', 'plasma'],
-    sourceReferences: [
-      'Miller-Jones et al. 2021, Science 372, 1046, doi:10.1126/science.abb3363',
-    ],
+    sourceReferences: ['Miller-Jones et al. 2021, Science 372, 1046, doi:10.1126/science.abb3363'],
   },
   atmosphere: {
     hasAtmosphere: true,

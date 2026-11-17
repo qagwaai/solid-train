@@ -2,7 +2,9 @@
 
 const { MongoConnection } = require('../src/db/connection');
 const { DatabaseService } = require('../src/db/service');
-const { runCopperValeDensityLifecycle } = require('../src/model/copper-vale-market-density-lifecycle');
+const {
+  runCopperValeDensityLifecycle,
+} = require('../src/model/copper-vale-market-density-lifecycle');
 const { parseArguments, assertForgeStopped } = require('./copper-vale-persistent-seed');
 const { runContractSafetyPreflight } = require('./sw08/startup-preflight');
 
@@ -15,16 +17,22 @@ async function runPersistentDensity(args) {
     await connection.connect();
     const service = new DatabaseService();
     const preflight = await runCopperValeDensityLifecycle(service, { action: 'dry-run' });
-    console.log(`COPPER_VALE_DENSITY_PREFLIGHT ${JSON.stringify({ target: options.target, ...preflight })}`);
+    console.log(
+      `COPPER_VALE_DENSITY_PREFLIGHT ${JSON.stringify({ target: options.target, ...preflight })}`
+    );
     if (options.writes) {
       const expected = options.action === 'apply' ? ['ready', 'verified'] : ['resumable'];
       if (!expected.includes(preflight.readiness)) {
-        throw new Error(`Persistent density ${options.action} refused: ${preflight.blockedReason || preflight.readiness}`);
+        throw new Error(
+          `Persistent density ${options.action} refused: ${preflight.blockedReason || preflight.readiness}`
+        );
       }
       await assertForgeStopped();
     }
     const result = await runCopperValeDensityLifecycle(service, { action: options.action });
-    console.log(`COPPER_VALE_DENSITY_RESULT ${JSON.stringify({ target: options.target, protectedDataUnchanged: true, ...result })}`);
+    console.log(
+      `COPPER_VALE_DENSITY_RESULT ${JSON.stringify({ target: options.target, protectedDataUnchanged: true, ...result })}`
+    );
     return result;
   } finally {
     await connection.disconnect();

@@ -6,7 +6,12 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { bulkFixture } = require('../test-support/non-sol-bulk-fixture');
-const { allocations, buildDensityPlan, supply, policy } = require('../scripts/lib/non-sol-market-density-plan');
+const {
+  allocations,
+  buildDensityPlan,
+  supply,
+  policy,
+} = require('../scripts/lib/non-sol-market-density-plan');
 const { parseArguments } = require('../scripts/non-sol-market-density');
 const { verifyArtifacts } = require('../scripts/lib/non-sol-bulk-artifacts');
 const { sha256 } = require('../src/model/copper-vale-catalog-reconciliation');
@@ -15,7 +20,9 @@ const { checkpoint } = require('../scripts/lib/non-sol-market-density-lifecycle'
 const { Market } = require('../src/db/models');
 const input = 'artifacts/non-sol-bulk-v1-delivery';
 let base;
-test.before(async () => { base = await bulkFixture('exo-kepler-11'); });
+test.before(async () => {
+  base = await bulkFixture('exo-kepler-11');
+});
 
 test('Hamilton full cohort mix is deterministic, complete and within accepted profile ranges', () => {
   const ids = Array.from({ length: 4843 }, (_, i) => `system-${i}`);
@@ -27,7 +34,12 @@ test('Hamilton full cohort mix is deterministic, complete and within accepted pr
     assert.ok(a.target >= p.min && a.target <= p.max);
     counts[a.profile] = (counts[a.profile] || 0) + 1;
   }
-  assert.deepEqual(counts, { frontier: 1937, developing: 1695, established: 969, 'major-trade-center': 242 });
+  assert.deepEqual(counts, {
+    frontier: 1937,
+    developing: 1695,
+    established: 969,
+    'major-trade-center': 242,
+  });
 });
 
 test('16-market target is additive, canonical and physically screened without changing baseline', async () => {
@@ -52,8 +64,15 @@ test('16-market target is additive, canonical and physically screened without ch
 });
 
 test('frontier one adds nothing; impossible placement reports explicit hold, never clamps target', async () => {
-  assert.equal((await buildDensityPlan(base, { profile: 'frontier', target: 1 })).markets.length, 0);
-  const noHosts = { ...base, generatedBodies: [], baseBodies: base.baseBodies.filter((b) => b.bodyType === 'star') };
+  assert.equal(
+    (await buildDensityPlan(base, { profile: 'frontier', target: 1 })).markets.length,
+    0
+  );
+  const noHosts = {
+    ...base,
+    generatedBodies: [],
+    baseBodies: base.baseBodies.filter((b) => b.bodyType === 'star'),
+  };
   const p = await buildDensityPlan(noHosts, { profile: 'major-trade-center', target: 16 });
   assert.equal(p.status, 'hold');
   assert.equal(p.shortfall, 15);
@@ -74,15 +93,23 @@ test('density planning awaits market validation and records a rejected placement
 test('guarded CLI refuses remote/default write targets, absent receipts and input overwrite', () => {
   assert.equal(parseArguments([]).action, 'prepare');
   for (const args of [
-    ['--action=apply'], ['--action=dry-run'], ['--target=mongodb://remote:27017/x', '--action=apply'],
+    ['--action=apply'],
+    ['--action=dry-run'],
+    ['--target=mongodb://remote:27017/x', '--action=apply'],
     ['--target=mongodb://localhost:27017/solid-train', '--action=apply'],
-    [`--out=${input}`], ['--unknown=true'], ['--action=prepare', '--approve=' + 'a'.repeat(64)],
-  ]) assert.throws(() => parseArguments(args));
+    [`--out=${input}`],
+    ['--unknown=true'],
+    ['--action=prepare', '--approve=' + 'a'.repeat(64)],
+  ])
+    assert.throws(() => parseArguments(args));
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'density-guard-'));
   try {
     fs.writeFileSync(path.join(out, 'header.json'), JSON.stringify({ sourceGuard: 'outdated' }));
     const record = { systemId: 'fixture', previous: null };
-    fs.writeFileSync(path.join(out, 'progress.jsonl'), JSON.stringify({ ...record, recordSha256: sha256(record) }) + '\n');
+    fs.writeFileSync(
+      path.join(out, 'progress.jsonl'),
+      JSON.stringify({ ...record, recordSha256: sha256(record) }) + '\n'
+    );
     assert.throws(() => verifyArtifacts(out), /Source guard drift/);
     assert.throws(() => verifyArtifacts(out, 'a'.repeat(64)), /Source guard drift/);
   } finally {
@@ -99,6 +126,9 @@ test('density reconciliation is exact checkpoint identity, not a prefix whitelis
   bad[0].trajectory.orbit.semiMajorAxisKm += 1;
   assert.throws(() => reconcileDensityMarkets(state, bad, base), /placement drift/);
   assert.throws(() => reconcileDensityMarkets(state, all.slice(1), base), /missing market/);
-  assert.throws(() => reconcileDensityMarkets({ ...state, sourceGuard: 'tampered' }, all, base), /checksum/);
+  assert.throws(
+    () => reconcileDensityMarkets({ ...state, sourceGuard: 'tampered' }, all, base),
+    /checksum/
+  );
   assert.throws(() => reconcileDensityMarkets(state, p.markets, base), /baseline market/);
 });

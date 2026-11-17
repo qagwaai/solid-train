@@ -55,7 +55,9 @@ function cacheCharacters(ctx, playerName, characters) {
         for (const ship of normalized.ships) {
           const original = character.ships?.find((entry) => entry.id === ship.id);
           if (original?.navigationPlacement) {
-            ship.navigationPlacement = structuredClone(ctx.toPlainObject(original.navigationPlacement));
+            ship.navigationPlacement = structuredClone(
+              ctx.toPlainObject(original.navigationPlacement)
+            );
           }
         }
         return normalized;

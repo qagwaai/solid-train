@@ -150,10 +150,7 @@ class SolarSystemListMessageHandler {
           system.planetCount || 0,
           live.planetCounts.get(system.id) || 0
         );
-        enriched.moonCount = Math.max(
-          system.moonCount || 0,
-          live.moonCounts.get(system.id) || 0
-        );
+        enriched.moonCount = Math.max(system.moonCount || 0, live.moonCounts.get(system.id) || 0);
         enriched.asteroidCount = Math.max(
           system.asteroidCount || 0,
           live.asteroidCounts.get(system.id) || 0

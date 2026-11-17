@@ -63,19 +63,30 @@ test('IDs are prefixed, lowercase slugs', () => {
 });
 
 test('future imports preserve field limits, signed errors and references without changing points', () => {
-  const planet = normalizePlanet(row({
-    pl_bmasse: 25, pl_bmasselim: 1,
-    pl_bmasse_reflink: ads('2013ApJ...770..131L', 'Lissauer et al. 2013'),
-    pl_orbeccen: 0.15, pl_orbeccenlim: 1,
-    pl_rade: 3.33, pl_radelim: 0, pl_radeerr1: 0.06, pl_radeerr2: -0.08,
-  }));
+  const planet = normalizePlanet(
+    row({
+      pl_bmasse: 25,
+      pl_bmasselim: 1,
+      pl_bmasse_reflink: ads('2013ApJ...770..131L', 'Lissauer et al. 2013'),
+      pl_orbeccen: 0.15,
+      pl_orbeccenlim: 1,
+      pl_rade: 3.33,
+      pl_radelim: 0,
+      pl_radeerr1: 0.06,
+      pl_radeerr2: -0.08,
+    })
+  );
   assert.equal(planet.massEarth, 25);
   assert.equal(planet.eccentricity, 0.15);
   assert.deepEqual(planet.fieldEvidence, [
     { field: 'eccentricity', value: 0.15, limit: 'upper' },
     { field: 'radiusEarth', value: 3.33, limit: 'none', errorUpper: 0.06, errorLower: -0.08 },
-    { field: 'massEarth', value: 25, limit: 'upper',
-      reference: ['2013ApJ...770..131L', 'Lissauer et al. 2013'] },
+    {
+      field: 'massEarth',
+      value: 25,
+      limit: 'upper',
+      reference: ['2013ApJ...770..131L', 'Lissauer et al. 2013'],
+    },
   ]);
   for (const column of ['pl_bmasse', 'pl_orbeccen', 'st_mass', 'st_lum']) {
     for (const suffix of ['lim', 'err1', 'err2']) {
@@ -85,8 +96,10 @@ test('future imports preserve field limits, signed errors and references without
 });
 
 test('metadata retains lower limits and rejects invalid flags and signed errors', () => {
-  assert.equal(normalizePlanet(row({ pl_bmasse: 3, pl_bmasselim: -1 }))
-    .fieldEvidence[0].limit, 'lower');
+  assert.equal(
+    normalizePlanet(row({ pl_bmasse: 3, pl_bmasselim: -1 })).fieldEvidence[0].limit,
+    'lower'
+  );
   assert.throws(() => normalizePlanet(row({ pl_bmasse: 3, pl_bmasselim: 2 })), /invalid/);
   assert.throws(() => normalizePlanet(row({ pl_bmasse: 3, pl_bmasseerr1: -1 })), /invalid/);
   assert.throws(() => normalizePlanet(row({ pl_bmasse: 3, pl_bmasseerr2: 1 })), /invalid/);
@@ -94,15 +107,22 @@ test('metadata retains lower limits and rejects invalid flags and signed errors'
   const wrapped = normalizePlanet(row({ pl_orblper: -90, pl_orblperlim: 0 }));
   assert.equal(wrapped.argumentOfPeriapsisDeg, 270);
   assert.deepEqual(wrapped.fieldEvidence[0], {
-    field: 'argumentOfPeriapsisDeg', value: 270, limit: 'none', sourceValue: -90,
+    field: 'argumentOfPeriapsisDeg',
+    value: 270,
+    limit: 'none',
+    sourceValue: -90,
   });
 });
 
 test('host evidence follows the selected point and retains distinct source alternatives', () => {
   const rows = [
     row({ st_mass: 1, st_masslim: 0, st_mass_reflink: ads('2013ApJ...770..131L', 'A') }),
-    row({ pl_name: 'Test-1 c', st_mass: 1, st_masslim: 0,
-      st_mass_reflink: ads('2014A&A...571A..38B', 'B') }),
+    row({
+      pl_name: 'Test-1 c',
+      st_mass: 1,
+      st_masslim: 0,
+      st_mass_reflink: ads('2014A&A...571A..38B', 'B'),
+    }),
     row({ pl_name: 'Test-1 d', st_mass: 2, st_masslim: 1 }),
   ];
   const { hosts } = normalizeHosts(rows);

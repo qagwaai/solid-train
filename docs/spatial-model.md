@@ -190,13 +190,13 @@ hazards and travel execution are not evaluated.
 
 ### Outcomes and preview isolation
 
-| `success` | `estimate.status` | Meaning |
-| --- | --- | --- |
-| true | `supported` | Distance available; duration independently `estimated` or `unavailable` |
-| false | `invalid` | `NAVIGATION_REQUEST_INVALID`: malformed input or inconsistent request identity |
-| false | `unsupported` | Existing ownership/lineage/system/source/epoch/model rejection, or `INVALID_SESSION` |
-| false | `ineligible` | `KNOWN_INVALID_SOURCE` or `KNOWN_INVALID_DESTINATION` |
-| false | `failed` | `NAVIGATION_READ_FAILED` or `ESTIMATE_NUMERIC_INVALID` |
+| `success` | `estimate.status` | Meaning                                                                              |
+| --------- | ----------------- | ------------------------------------------------------------------------------------ |
+| true      | `supported`       | Distance available; duration independently `estimated` or `unavailable`              |
+| false     | `invalid`         | `NAVIGATION_REQUEST_INVALID`: malformed input or inconsistent request identity       |
+| false     | `unsupported`     | Existing ownership/lineage/system/source/epoch/model rejection, or `INVALID_SESSION` |
+| false     | `ineligible`      | `KNOWN_INVALID_SOURCE` or `KNOWN_INVALID_DESTINATION`                                |
+| false     | `failed`          | `NAVIGATION_READ_FAILED` or `ESTIMATE_NUMERIC_INVALID`                               |
 
 Rejected estimates have only status, reason and message, no measurement/duration.
 The outer response also includes message, player/system identity and correlation.
@@ -409,14 +409,14 @@ purchase/restart example below demonstrates the intended separation.
 
 The navigation envelope identifies this restricted numeric basis:
 
-| Property | Definition |
-| --- | --- |
-| ID | `stellar:sol:catalog-cartesian:v1` |
-| System | `sol` only |
-| Origin | Game-system root `sol-sun` at `(0,0,0)`, not a physical barycenter |
-| Axes | Existing Sol seeder's numeric Cartesian axes and parent-vector summation; right-handed, X cross Y = Z |
-| Orientation | At zero orbital orientation, periapsis is +X, advancing anomaly moves toward +Y, and the zero-inclination plane is XY |
-| Source plane | Sol heliocentric source elements reference the J2000.0 ecliptic; parent-relative elements have no separate plane identifier |
+| Property        | Definition                                                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| ID              | `stellar:sol:catalog-cartesian:v1`                                                                                                   |
+| System          | `sol` only                                                                                                                           |
+| Origin          | Game-system root `sol-sun` at `(0,0,0)`, not a physical barycenter                                                                   |
+| Axes            | Existing Sol seeder's numeric Cartesian axes and parent-vector summation; right-handed, X cross Y = Z                                |
+| Orientation     | At zero orbital orientation, periapsis is +X, advancing anomaly moves toward +Y, and the zero-inclination plane is XY                |
+| Source plane    | Sol heliocentric source elements reference the J2000.0 ecliptic; parent-relative elements have no separate plane identifier          |
 | Physical limits | No new external inertial alignment, ephemeris accuracy, physically correct satellite-plane transformation, or cross-system guarantee |
 
 The ID must be versioned if the numeric coordinate convention or origin changes;
@@ -554,16 +554,16 @@ or evaluator version must treat it as unsupported.
 
 The authoritative response schema defines these rejection reasons:
 
-| Reason | Consumer behavior |
-| --- | --- |
-| `BASIS_UNKNOWN` | No valid backend-issued persisted purchase lineage, or the ship changed; disable preview. Runtime-only proofs are test-only |
-| `SHIP_NOT_OWNED`, `SYSTEM_UNSUPPORTED`, `SYSTEM_MISMATCH` | Reject the selection/system; do not substitute another ship/system |
-| `NAVIGATION_REQUEST_INVALID` | Correct selectors; no basis or epoch assertions are accepted |
-| `POSITION_EPOCH_UNSUPPORTED`, `POSITION_INVALID` | Do not retimestamp or replace the supplied position |
-| `SOURCE_UNVERIFIED`, `EVALUATION_UNSUPPORTED` | Source lineage/model is unavailable or invalid; no client propagation fallback |
-| `STATION_HOST_UNVERIFIED`, `STATION_PLACEMENT_UNSUPPORTED` | No exact supported station association; do not infer one |
-| `SOURCES_CHANGED` | Obtain a fresh request; never combine the conflicting results |
-| `NAVIGATION_READ_FAILED` | System read failed; surface the error rather than an empty supported projection |
+| Reason                                                     | Consumer behavior                                                                                                           |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `BASIS_UNKNOWN`                                            | No valid backend-issued persisted purchase lineage, or the ship changed; disable preview. Runtime-only proofs are test-only |
+| `SHIP_NOT_OWNED`, `SYSTEM_UNSUPPORTED`, `SYSTEM_MISMATCH`  | Reject the selection/system; do not substitute another ship/system                                                          |
+| `NAVIGATION_REQUEST_INVALID`                               | Correct selectors; no basis or epoch assertions are accepted                                                                |
+| `POSITION_EPOCH_UNSUPPORTED`, `POSITION_INVALID`           | Do not retimestamp or replace the supplied position                                                                         |
+| `SOURCE_UNVERIFIED`, `EVALUATION_UNSUPPORTED`              | Source lineage/model is unavailable or invalid; no client propagation fallback                                              |
+| `STATION_HOST_UNVERIFIED`, `STATION_PLACEMENT_UNSUPPORTED` | No exact supported station association; do not infer one                                                                    |
+| `SOURCES_CHANGED`                                          | Obtain a fresh request; never combine the conflicting results                                                               |
+| `NAVIGATION_READ_FAILED`                                   | System read failed; surface the error rather than an empty supported projection                                             |
 
 A valid lookup can return `success: true` with an unsupported `navigationState`;
 the lookup succeeded, not the position gate. Database/unexpected evaluation

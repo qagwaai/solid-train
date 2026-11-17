@@ -2,12 +2,13 @@
 
 Date: 2026-11-16
 
-Status: **Phase 2B approved by Nova; Forge's Phase 2C readiness checks complete.**
+Status: **Phase 2C complete; Phase 2D formatting cleanup complete (uncommitted, awaiting owner review).**
 After Nova's review, the owner authorized `scope=full-phase2b` on 2026-11-16.
 The solver, same-capture integration and four contract corrections are implemented.
 The owner subsequently relayed Nova's approval and selected
-`nextStep=phase2c-readiness`. Authenticated live prediction and Viewer visual
-acceptance remain with Nova/owner; see Sections 12.3 and 16.
+`nextStep=phase2c-readiness`. Nova then reported live validation success and the
+owner declared Phase 2C complete (D22). The owner committed the Phase 2 work
+locally as `5ce7df13`; Phase 2D cleanup is recorded in Section 12.4.
 Phase 1, the paired
 direct-distance baseline and the UI-only broad candidate sweep remain unchanged.
 
@@ -28,17 +29,17 @@ draft in this document is not implementation approval.
 
 ### Phase tracker
 
-| Phase | Depends on | Status | Completion evidence |
-| --- | --- | --- | --- |
-| 1 — Navigation position projection and preview | — | Accepted | Commit `5a53dbe7`; owner visual acceptance relayed in Nova's 2026-11-16 prompt; [spatial-model.md](spatial-model.md) |
-| 1b — Paired direct baseline (`navigationEstimate`) | 1 | Accepted | Commit `c18aa84b`; owner visual acceptance relayed in Nova's 2026-11-16 prompt |
-| 1c — UI-only broad candidate sweep | 1 | Accepted (Nova-only; no backend change) | Nova's 2026-11-16 prompt |
-| 2A — Phase 2 contract proposal | 1, 1b | Approved with the implemented review corrections | Initial provisional approval D11–D16; final Nova approval relayed by owner in D20 |
-| 2B — Phase 2 backend implementation | 2A approved | Approved by Nova | Owner relayed approval (D20); 87 focused tests pass, Section 12.2 |
-| 2B.1 — Contract, schemas, examples and contract tests | 2A | Reviewed; corrections implemented in 2B | Historical evidence in Section 12.1; Nova's four review items resolved below |
-| 2C — Nova consumption and visual acceptance | 2B | Forge readiness complete; Nova authenticated smoke/visual acceptance pending | D21; live contract/session-guard evidence in Section 12.3; copy/paste handoff in Section 16 |
-| 2D — End-of-session Prettier/cleanup | 2B | Not started | Owner cleanup prompt only |
-| 3+ — Later navigation phases | Separate gate | Not started | — |
+| Phase                                                 | Depends on    | Status                                           | Completion evidence                                                                                                  |
+| ----------------------------------------------------- | ------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| 1 — Navigation position projection and preview        | —             | Accepted                                         | Commit `5a53dbe7`; owner visual acceptance relayed in Nova's 2026-11-16 prompt; [spatial-model.md](spatial-model.md) |
+| 1b — Paired direct baseline (`navigationEstimate`)    | 1             | Accepted                                         | Commit `c18aa84b`; owner visual acceptance relayed in Nova's 2026-11-16 prompt                                       |
+| 1c — UI-only broad candidate sweep                    | 1             | Accepted (Nova-only; no backend change)          | Nova's 2026-11-16 prompt                                                                                             |
+| 2A — Phase 2 contract proposal                        | 1, 1b         | Approved with the implemented review corrections | Initial provisional approval D11–D16; final Nova approval relayed by owner in D20                                    |
+| 2B — Phase 2 backend implementation                   | 2A approved   | Approved by Nova                                 | Owner relayed approval (D20); 87 focused tests pass, Section 12.2; owner commit `5ce7df13`                           |
+| 2B.1 — Contract, schemas, examples and contract tests | 2A            | Reviewed; corrections implemented in 2B          | Historical evidence in Section 12.1; Nova's four review items resolved below                                         |
+| 2C — Nova consumption and visual acceptance           | 2B            | Complete                                         | D21 readiness (Section 12.3); Nova validation success and owner completion, D22                                      |
+| 2D — End-of-session Prettier/cleanup                  | 2B            | Complete (uncommitted)                           | Owner cleanup prompt and scope D22–D24; evidence in Section 12.4                                                     |
+| 3+ — Later navigation phases                          | Separate gate | Not started                                      | —                                                                                                                    |
 
 ### 2A — contract proposal checklist
 
@@ -98,12 +99,26 @@ draft in this document is not implementation approval.
 - [x] Server process start follows the prediction runtime edits; no restart
       performed by this checkpoint.
 - [x] Copy/paste Nova integration handoff and review scenarios supplied (Section 16).
-- [ ] Nova's existing authenticated session exercises a successful live prediction
+- [x] Nova's existing authenticated session exercises a successful live prediction
       and nested rejections on a supported owned ship; credentials stay local.
-- [ ] Nova verifies separate prediction markers, unchanged direct preview/distance,
-      same-response association and stale-response handling.
-- [ ] Owner accepts the Viewer presentation. Backend approval alone does not close
-      this gate.
+      Nova reported validation success (D22).
+- [x] Nova verifies separate prediction markers, unchanged direct preview/distance,
+      same-response association and stale-response handling (D22).
+- [x] Owner accepts the Viewer presentation: "phase 2c is complete and
+      successful" (D22).
+
+### 2D — formatting and cleanup checklist
+
+- [x] Read-only review before writing: Prettier difference list, raw-byte
+      hash pins, generator byte-exact checks and the contract artifact.
+- [x] Owner chose repository-wide formatting, an unchanged contract artifact and
+      uncommitted results (D23), with generated/byte-pinned outputs excluded
+      through `.prettierignore` (D24).
+- [x] Add `.prettierignore` and run `npm run format` (88 files; second pass for
+      four non-idempotent member chains).
+- [x] Repository format check, tests, lint, typecheck and generator/manifest
+      checks recorded in Section 12.4.
+- [ ] Owner reviews and commits the uncommitted formatting changes.
 
 ### Update rules
 
@@ -145,29 +160,32 @@ Non-goals (explicitly excluded):
 
 ## 3. Decision log
 
-| # | Date | Decision | Source |
-| --- | --- | --- | --- |
-| D1 | 2026-11-16 | Opt-in sibling `navigationPrediction` on `solar-system-get`, computed inside the same capture pair as `navigationState`. No separate operation, no revision-token protocol. | Owner form answer: `sibling-solar-system-get` |
-| D2 | 2026-11-16 | Static minimum scenario speed 120 km/s (inclusive). | Owner form answer: `static-120` |
-| D3 | 2026-11-16 | Maximum scenario speed 10,000 km/s (inclusive). | Owner form answer: `10000` |
-| D4 | 2026-11-16 | Maximum prediction horizon: arrival at most 10 Julian years (315,576,000,000 ms) after departure. | Owner form answer: `10-julian-years` |
-| D5 | 2026-11-16 | Names: request/response sibling `navigationPrediction`; speed field `scenarioCruiseSpeedKmPerSec`. | Owner form answer: `navigationPrediction+scenarioCruiseSpeedKmPerSec` |
-| D6 | 2026-11-16 | A candidate equal to the departure or destination host body is allowed. | Owner form answer: `allow` |
-| D7 | 2026-11-16 | Time display: declare the uniform POSIX-millisecond game time scale; UTC-style labels are identity labels, not conversions. | Owner form answer: `declare-posix-identity-label` |
-| D8 | 2026-11-16 | Take the most straightforward time-scale approach now and record a revisit for multi-system and multi-galaxy time (Section 15). | Owner: "I am concerned about my answers related to TT/TDB. It feels like we are going to have to revisit this question when we go to other star systems. It does not seem like there is a galaxy wide time system, and it is possible that we might go to other galaxies. take the most straightforward approach for the moment, noting that we might have to revisit." |
-| D9 | 2026-11-16 | Departure epoch is the verified stored ship position epoch (`navigationState.epochMs`). The ship is not propagated; request time is never used. | Phase 1 semantics; Forge proposal |
-| D10 | 2026-11-16 | Every rejection carries only `status`/`reason`/`message`; no partial positions or epochs are returned. | Nova prompt; Forge proposal |
-| D11 | 2026-11-16 | Apply the contract, schemas, examples, focused contract tests and tracker first, then pause for review. No runtime work is authorized in this step. | Owner: "Nova has given provisional approval"; form answer `firstStep=contract-first` |
-| D12 | 2026-11-16 | P1: Allow clearly illustrative projected epoch labels, never ETA or duration. | Owner form answer: `Allow clearly illustrative epoch labels; never ETA or duration` |
-| D13 | 2026-11-16 | P2: Accept `constant-speed-straight-legs-moving-targets-v1` and `stellar:unix-ms-uniform:v1`. | Owner form answer: `Accept proposed identifiers` |
-| D14 | 2026-11-16 | P3: Keep convergence diagnostics and `arrival.hostPositionKm`. | Owner form answer: `Keep convergence and arrival.hostPositionKm (recommended)` |
-| D15 | 2026-11-16 | P4: Confirm D9: departure uses the verified stored ship epoch; no ship propagation. | Owner form answer: `Use the verified stored ship epoch; no ship propagation (recommended)` |
-| D16 | 2026-11-16 | P5: Keep `info.version` unchanged for the additive opt-in. | Owner form answer: `No info.version bump for this additive opt-in (recommended)` |
-| D17 | 2026-11-16 | Authorize complete Phase 2B runtime, contract corrections, integration and focused tests; supersedes D11's runtime gate. | Owner form answer: `scope=full-phase2b`, no additional notes |
-| D18 | 2026-11-16 | Defer prediction-only input validation to the handler. Missing candidate/invalid speed retain navigationState; existing selector and estimate validation remains unchanged. | Nova review item 1; owner approval D17 |
-| D19 | 2026-11-16 | Publish the analytic all-phase chain speed bound, exact station/host composition and authoritative game-time calendar semantics. No architecture/product redesign. | Nova review items 2–4; owner approval D17 |
-| D20 | 2026-11-16 | Accept Nova's approval of the completed Phase 2B backend and revised contract. This is not yet Viewer visual acceptance. | Owner: "Nova has reviewed your changes ... we are approved and green to start the next step." |
-| D21 | 2026-11-16 | Perform Phase 2C Forge readiness checks read-only, prepare Nova's handoff and update this tracker. Do not assume live-world writes, credentials, server restart, cleanup or Phase 3 authorization. | Owner form answer: `nextStep=phase2c-readiness`, no additional guidance |
+| #   | Date       | Decision                                                                                                                                                                                                                                                             | Source                                                                                                                                                                                                                                                                                                                                                                  |
+| --- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | 2026-11-16 | Opt-in sibling `navigationPrediction` on `solar-system-get`, computed inside the same capture pair as `navigationState`. No separate operation, no revision-token protocol.                                                                                          | Owner form answer: `sibling-solar-system-get`                                                                                                                                                                                                                                                                                                                           |
+| D2  | 2026-11-16 | Static minimum scenario speed 120 km/s (inclusive).                                                                                                                                                                                                                  | Owner form answer: `static-120`                                                                                                                                                                                                                                                                                                                                         |
+| D3  | 2026-11-16 | Maximum scenario speed 10,000 km/s (inclusive).                                                                                                                                                                                                                      | Owner form answer: `10000`                                                                                                                                                                                                                                                                                                                                              |
+| D4  | 2026-11-16 | Maximum prediction horizon: arrival at most 10 Julian years (315,576,000,000 ms) after departure.                                                                                                                                                                    | Owner form answer: `10-julian-years`                                                                                                                                                                                                                                                                                                                                    |
+| D5  | 2026-11-16 | Names: request/response sibling `navigationPrediction`; speed field `scenarioCruiseSpeedKmPerSec`.                                                                                                                                                                   | Owner form answer: `navigationPrediction+scenarioCruiseSpeedKmPerSec`                                                                                                                                                                                                                                                                                                   |
+| D6  | 2026-11-16 | A candidate equal to the departure or destination host body is allowed.                                                                                                                                                                                              | Owner form answer: `allow`                                                                                                                                                                                                                                                                                                                                              |
+| D7  | 2026-11-16 | Time display: declare the uniform POSIX-millisecond game time scale; UTC-style labels are identity labels, not conversions.                                                                                                                                          | Owner form answer: `declare-posix-identity-label`                                                                                                                                                                                                                                                                                                                       |
+| D8  | 2026-11-16 | Take the most straightforward time-scale approach now and record a revisit for multi-system and multi-galaxy time (Section 15).                                                                                                                                      | Owner: "I am concerned about my answers related to TT/TDB. It feels like we are going to have to revisit this question when we go to other star systems. It does not seem like there is a galaxy wide time system, and it is possible that we might go to other galaxies. take the most straightforward approach for the moment, noting that we might have to revisit." |
+| D9  | 2026-11-16 | Departure epoch is the verified stored ship position epoch (`navigationState.epochMs`). The ship is not propagated; request time is never used.                                                                                                                      | Phase 1 semantics; Forge proposal                                                                                                                                                                                                                                                                                                                                       |
+| D10 | 2026-11-16 | Every rejection carries only `status`/`reason`/`message`; no partial positions or epochs are returned.                                                                                                                                                               | Nova prompt; Forge proposal                                                                                                                                                                                                                                                                                                                                             |
+| D11 | 2026-11-16 | Apply the contract, schemas, examples, focused contract tests and tracker first, then pause for review. No runtime work is authorized in this step.                                                                                                                  | Owner: "Nova has given provisional approval"; form answer `firstStep=contract-first`                                                                                                                                                                                                                                                                                    |
+| D12 | 2026-11-16 | P1: Allow clearly illustrative projected epoch labels, never ETA or duration.                                                                                                                                                                                        | Owner form answer: `Allow clearly illustrative epoch labels; never ETA or duration`                                                                                                                                                                                                                                                                                     |
+| D13 | 2026-11-16 | P2: Accept `constant-speed-straight-legs-moving-targets-v1` and `stellar:unix-ms-uniform:v1`.                                                                                                                                                                        | Owner form answer: `Accept proposed identifiers`                                                                                                                                                                                                                                                                                                                        |
+| D14 | 2026-11-16 | P3: Keep convergence diagnostics and `arrival.hostPositionKm`.                                                                                                                                                                                                       | Owner form answer: `Keep convergence and arrival.hostPositionKm (recommended)`                                                                                                                                                                                                                                                                                          |
+| D15 | 2026-11-16 | P4: Confirm D9: departure uses the verified stored ship epoch; no ship propagation.                                                                                                                                                                                  | Owner form answer: `Use the verified stored ship epoch; no ship propagation (recommended)`                                                                                                                                                                                                                                                                              |
+| D16 | 2026-11-16 | P5: Keep `info.version` unchanged for the additive opt-in.                                                                                                                                                                                                           | Owner form answer: `No info.version bump for this additive opt-in (recommended)`                                                                                                                                                                                                                                                                                        |
+| D17 | 2026-11-16 | Authorize complete Phase 2B runtime, contract corrections, integration and focused tests; supersedes D11's runtime gate.                                                                                                                                             | Owner form answer: `scope=full-phase2b`, no additional notes                                                                                                                                                                                                                                                                                                            |
+| D18 | 2026-11-16 | Defer prediction-only input validation to the handler. Missing candidate/invalid speed retain navigationState; existing selector and estimate validation remains unchanged.                                                                                          | Nova review item 1; owner approval D17                                                                                                                                                                                                                                                                                                                                  |
+| D19 | 2026-11-16 | Publish the analytic all-phase chain speed bound, exact station/host composition and authoritative game-time calendar semantics. No architecture/product redesign.                                                                                                   | Nova review items 2–4; owner approval D17                                                                                                                                                                                                                                                                                                                               |
+| D20 | 2026-11-16 | Accept Nova's approval of the completed Phase 2B backend and revised contract. This is not yet Viewer visual acceptance.                                                                                                                                             | Owner: "Nova has reviewed your changes ... we are approved and green to start the next step."                                                                                                                                                                                                                                                                           |
+| D21 | 2026-11-16 | Perform Phase 2C Forge readiness checks read-only, prepare Nova's handoff and update this tracker. Do not assume live-world writes, credentials, server restart, cleanup or Phase 3 authorization.                                                                   | Owner form answer: `nextStep=phase2c-readiness`, no additional guidance                                                                                                                                                                                                                                                                                                 |
+| D22 | 2026-11-16 | Close Phase 2C with Nova's live validation and owner acceptance; start Phase 2D end-of-session cleanup.                                                                                                                                                              | Owner: "Nova reports validation success. phase 2c is complete and successful. lets move forward with phase 2d"                                                                                                                                                                                                                                                          |
+| D23 | 2026-11-16 | Phase 2D scope: repository-wide Prettier; leave the stale `contract-artifact.json` unchanged (it predates Phase 1 navigation); leave the results uncommitted for owner review.                                                                                       | Owner form answer: `formatScope=repo-wide`, `artifactRefresh=leave`, `commitMode=uncommitted`                                                                                                                                                                                                                                                                           |
+| D24 | 2026-11-16 | Exclude generated and byte-pinned outputs through a new `.prettierignore` (`data/`, `reports/`, the generated naming review, `docs/Stellar notes.md`, the crossmatch calibration JSON) so repository formatting does not break exact-output checks or manifest pins. | Owner form answer: `exclusionApproach=prettierignore-generated`                                                                                                                                                                                                                                                                                                         |
 
 ## 4. Contract summary
 
@@ -288,7 +306,7 @@ is not a live freshness guarantee or a transactional database snapshot.
 - Leg timing function, with start epoch `tS` (ms), fixed start point `P` and
   moving target `X(t)`:
 
-  `g(t) = tS + 1000 · |X(t) − P| / v`   (ms)
+  `g(t) = tS + 1000 · |X(t) − P| / v` (ms)
 
 Each leg is a straight line at constant scenario speed **for timing only**. It
 is not the drawn path, a flown distance or a trajectory.
@@ -333,16 +351,16 @@ check.
 
 ### 6.4 Constants
 
-| Constant | Value |
-| --- | --- |
-| `MIN_SPEED_KM_PER_SEC` | 120 (inclusive) |
-| `MAX_SPEED_KM_PER_SEC` | 10,000 (inclusive) |
-| `MAX_CONTRACTION` | 0.5 |
-| `STOP_TOLERANCE_MS` | 0.1 |
-| `RESIDUAL_TOLERANCE_MS` | 1 |
-| `MAX_ITERATIONS` | 64 per leg |
-| `H` (prediction horizon) | 315,576,000,000 ms (10 Julian years), departure to arrival |
-| `MAX_EPOCH_MS` | 4,102,444,800,000 (2100-01-01Z, exclusive; existing evaluator range) |
+| Constant                 | Value                                                                |
+| ------------------------ | -------------------------------------------------------------------- |
+| `MIN_SPEED_KM_PER_SEC`   | 120 (inclusive)                                                      |
+| `MAX_SPEED_KM_PER_SEC`   | 10,000 (inclusive)                                                   |
+| `MAX_CONTRACTION`        | 0.5                                                                  |
+| `STOP_TOLERANCE_MS`      | 0.1                                                                  |
+| `RESIDUAL_TOLERANCE_MS`  | 1                                                                    |
+| `MAX_ITERATIONS`         | 64 per leg                                                           |
+| `H` (prediction horizon) | 315,576,000,000 ms (10 Julian years), departure to arrival           |
+| `MAX_EPOCH_MS`           | 4,102,444,800,000 (2100-01-01Z, exclusive; existing evaluator range) |
 
 These limits are pinned to `predictionModelId`. Changing any of them requires a
 new model id and a contract review; they are not echoed in responses.
@@ -430,10 +448,10 @@ The sweep covered 469 planet/moon candidates × 4 routes (Mars→Pluto,
 Pluto→Mars, Mars→Mars, Pluto→Pluto) × 4 departure epochs (2000-01-01,
 2026-11-14, 2075-06-01, 2089-01-01):
 
-| Speed | Runs | Failures | Max iterations (leg 1 / leg 2) | Max residual | Max departure→arrival | Max L |
-| --- | --- | --- | --- | --- | --- | --- |
-| 120 km/s | 7,504 | 0 | 26 / 18 | 0.661 ms | 5.44 years | 0.4915 |
-| 10,000 km/s | 7,504 | 0 | 6 / 5 | 0.501 ms | 0.064 years | — |
+| Speed       | Runs  | Failures | Max iterations (leg 1 / leg 2) | Max residual | Max departure→arrival | Max L  |
+| ----------- | ----- | -------- | ------------------------------ | ------------ | --------------------- | ------ |
+| 120 km/s    | 7,504 | 0        | 26 / 18                        | 0.661 ms     | 5.44 years            | 0.4915 |
+| 10,000 km/s | 7,504 | 0        | 6 / 5                          | 0.501 ms     | 0.064 years           | —      |
 
 Station bounds (km/s): Mercury 59.141, Venus 35.444, Moon 31.511, Earth 30.533,
 Mars 26.686, Jupiter 13.958, Saturn 10.434, Uranus 7.334, Pluto 6.239,
@@ -476,15 +494,14 @@ The model does not include:
   treats it as **uniform game time**:
   - Kepler propagation uses elapsed seconds equal to `Δms / 1000`.
   - Orbital element epochs are ISO-8601 `Z` labels parsed with `Date.parse` into
-    the same scale. J2000 is labeled `2000-01-01T12:00:00.000Z` =
-    946728000000.
+    the same scale. J2000 is labeled `2000-01-01T12:00:00.000Z` = 946728000000.
 - **No conversion.** No UTC, TAI, TT or TDB conversion is applied anywhere.
   Real J2000.0 (TT) is 11:58:55.816 UTC, a 64.184 s offset that is now about
   69.184 s. This shifts positions by at most about 4,100 km for the fastest
   candidate. That is immaterial for an illustrative preview and is consistent
   with Phase 1.
 - **Declared id.** The prediction declares `timeScaleId:
-  "stellar:unix-ms-uniform:v1"`, applying to every epoch in the same response,
+"stellar:unix-ms-uniform:v1"`, applying to every epoch in the same response,
   including `navigationState.epochMs`. `navigationState` itself is unchanged.
 - **Display.** `new Date(epochMs).toISOString()` is only a readable calendar
   rendering of that same game-time value, **not conversion to physical UTC**.
@@ -496,21 +513,21 @@ The model does not include:
 
 ## 8. Outcomes and precedence
 
-| Status | Reason | When |
-| --- | --- | --- |
-| `invalid` | `NAVIGATION_REQUEST_INVALID` | The options are not an object or have unknown keys. The navigation selection is missing or invalid (no `navigationState`, or state reason `NAVIGATION_REQUEST_INVALID`). |
-| `invalid` | `SCENARIO_SPEED_INVALID` | The speed is missing, null, not a number, non-finite, below 120 or above 10,000. |
-| `invalid` | `CANDIDATE_REQUIRED` | The selection is valid but `navigation.candidateBodyId` is absent. |
-| `unsupported` | Mirrored: `SYSTEM_UNSUPPORTED`, `SYSTEM_MISMATCH`, `SHIP_NOT_OWNED`, `BASIS_UNKNOWN`, `POSITION_EPOCH_UNSUPPORTED`, `POSITION_INVALID`, `EVALUATION_UNSUPPORTED`, `SOURCE_UNVERIFIED`, `STATION_HOST_UNVERIFIED`, `STATION_PLACEMENT_UNSUPPORTED`, `SOURCES_CHANGED` | `navigationState` is unsupported. This covers missing or unsupported Kepler data or bodies, changed sources and unsupported departure epochs. |
-| `unsupported` | `SCENARIO_SPEED_BELOW_CONVERGENCE_BOUND` | `Vbound / v > 0.5` for either leg (precondition). |
-| `unsupported` | `PREDICTION_HORIZON_EXCEEDED` | Arrival or encounter is more than H after departure. |
-| `unsupported` | `PREDICTION_EPOCH_UNSUPPORTED` | A predicted epoch is at or after 2100-01-01Z. |
-| `ineligible` | `KNOWN_INVALID_SOURCE`, `KNOWN_INVALID_DESTINATION` | `previewEligibility` is ineligible. The solver is not run. |
-| `failed` | `NAVIGATION_READ_FAILED` | Source read failure (outer `success: false`). |
-| `failed` | `ENCOUNTER_NONCONVERGENT`, `ARRIVAL_NONCONVERGENT` | The iteration cap was reached or the residual is above 1 ms for that leg. |
-| `failed` | `PREDICTION_NUMERIC_INVALID` | A non-finite epoch or position occurred during prediction. |
-| `failed` | `PREDICTION_SOURCE_MISMATCH` | An association invariant was violated (Section 5). |
-| `failed` | `PREDICTION_EVALUATION_FAILED` | An unexpected exception in the prediction step. It is contained and logged; `navigationState` is unaffected. |
+| Status        | Reason                                                                                                                                                                                                                                                               | When                                                                                                                                                                     |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `invalid`     | `NAVIGATION_REQUEST_INVALID`                                                                                                                                                                                                                                         | The options are not an object or have unknown keys. The navigation selection is missing or invalid (no `navigationState`, or state reason `NAVIGATION_REQUEST_INVALID`). |
+| `invalid`     | `SCENARIO_SPEED_INVALID`                                                                                                                                                                                                                                             | The speed is missing, null, not a number, non-finite, below 120 or above 10,000.                                                                                         |
+| `invalid`     | `CANDIDATE_REQUIRED`                                                                                                                                                                                                                                                 | The selection is valid but `navigation.candidateBodyId` is absent.                                                                                                       |
+| `unsupported` | Mirrored: `SYSTEM_UNSUPPORTED`, `SYSTEM_MISMATCH`, `SHIP_NOT_OWNED`, `BASIS_UNKNOWN`, `POSITION_EPOCH_UNSUPPORTED`, `POSITION_INVALID`, `EVALUATION_UNSUPPORTED`, `SOURCE_UNVERIFIED`, `STATION_HOST_UNVERIFIED`, `STATION_PLACEMENT_UNSUPPORTED`, `SOURCES_CHANGED` | `navigationState` is unsupported. This covers missing or unsupported Kepler data or bodies, changed sources and unsupported departure epochs.                            |
+| `unsupported` | `SCENARIO_SPEED_BELOW_CONVERGENCE_BOUND`                                                                                                                                                                                                                             | `Vbound / v > 0.5` for either leg (precondition).                                                                                                                        |
+| `unsupported` | `PREDICTION_HORIZON_EXCEEDED`                                                                                                                                                                                                                                        | Arrival or encounter is more than H after departure.                                                                                                                     |
+| `unsupported` | `PREDICTION_EPOCH_UNSUPPORTED`                                                                                                                                                                                                                                       | A predicted epoch is at or after 2100-01-01Z.                                                                                                                            |
+| `ineligible`  | `KNOWN_INVALID_SOURCE`, `KNOWN_INVALID_DESTINATION`                                                                                                                                                                                                                  | `previewEligibility` is ineligible. The solver is not run.                                                                                                               |
+| `failed`      | `NAVIGATION_READ_FAILED`                                                                                                                                                                                                                                             | Source read failure (outer `success: false`).                                                                                                                            |
+| `failed`      | `ENCOUNTER_NONCONVERGENT`, `ARRIVAL_NONCONVERGENT`                                                                                                                                                                                                                   | The iteration cap was reached or the residual is above 1 ms for that leg.                                                                                                |
+| `failed`      | `PREDICTION_NUMERIC_INVALID`                                                                                                                                                                                                                                         | A non-finite epoch or position occurred during prediction.                                                                                                               |
+| `failed`      | `PREDICTION_SOURCE_MISMATCH`                                                                                                                                                                                                                                         | An association invariant was violated (Section 5).                                                                                                                       |
+| `failed`      | `PREDICTION_EVALUATION_FAILED`                                                                                                                                                                                                                                       | An unexpected exception in the prediction step. It is contained and logged; `navigationState` is unaffected.                                                             |
 
 Precedence (the first match wins):
 
@@ -723,7 +740,14 @@ the approved accepted payloads. Runtime invariants remain future work.
         "arrival": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["marketId", "hostBodyId", "epochMs", "positionKm", "hostPositionKm", "convergence"],
+          "required": [
+            "marketId",
+            "hostBodyId",
+            "epochMs",
+            "positionKm",
+            "hostPositionKm",
+            "convergence"
+          ],
           "description": "Destination station and its host body center at the illustrative arrival epoch (>= encounter.epochMs, <= departure.epochMs + 315576000000). Not an ETA.",
           "properties": {
             "marketId": { "type": "string", "pattern": "\\S" },
@@ -938,7 +962,7 @@ planning or UI is included."):
 Append this response note:
 
 ```yaml
-        - navigationPrediction success is independent of outer success; inspect prediction.status.
+- navigationPrediction success is independent of outer success; inspect prediction.status.
 ```
 
 ### 10.6 `api/openapi/solarsystem/openapi.yaml` — examples
@@ -951,134 +975,134 @@ values will be regenerated from the implemented solver.
 Request (after `pairedDirectBaseline`):
 
 ```yaml
-              pairedPrediction:
-                summary: Illustrative single-candidate prediction at an explicit scenario speed
-                value:
-                  playerName: PilotOne
-                  sessionKey: session-123
-                  correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
-                  requestIdentity:
-                    operation: solar-system-get
-                    entityType: solar-system
-                    containerId: sol
-                  solarSystemId: sol
-                  navigation:
-                    shipId: owned-ship-id
-                    destinationMarketId: sol-pluto-orbit
-                    candidateBodyId: sol-luna
-                  navigationPrediction:
-                    scenarioCruiseSpeedKmPerSec: 150
+pairedPrediction:
+  summary: Illustrative single-candidate prediction at an explicit scenario speed
+  value:
+    playerName: PilotOne
+    sessionKey: session-123
+    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+    requestIdentity:
+      operation: solar-system-get
+      entityType: solar-system
+      containerId: sol
+    solarSystemId: sol
+    navigation:
+      shipId: owned-ship-id
+      destinationMarketId: sol-pluto-orbit
+      candidateBodyId: sol-luna
+    navigationPrediction:
+      scenarioCruiseSpeedKmPerSec: 150
 ```
 
 Responses (after `failedSolarSystemGet`). The celestial arrays are omitted for
 brevity, which the schema permits, and the summary says so:
 
 ```yaml
-                pairedPredictionSupported:
-                  summary: Supported illustrative prediction paired with its navigationState (stars/bodies omitted)
-                  value:
-                    success: true
-                    message: Solar system navigation positions evaluated
-                    playerName: PilotOne
-                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
-                    requestIdentity:
-                      operation: solar-system-get
-                      entityType: solar-system
-                      containerId: sol
-                    solarSystemId: sol
-                    navigationState: &pairedPredictionState
-                      status: supported
-                      solarSystemId: sol
-                      coordinateBasisId: stellar:sol:catalog-cartesian:v1
-                      epochMs: 1794614400000
-                      departure:
-                        shipId: owned-ship-id
-                        positionKm: { x: -68497108.89898615, y: 230490599.55439094, z: 6513204.619689254 }
-                        provenance:
-                          kind: trusted-persisted-placement
-                          lineageId: f08d2910-b9d0-4aea-a749-a9f1cd1015d0
-                          sourceMarketId: sol-mars-orbit
-                          offsetKm: { x: 0, y: 0, z: 0 }
-                          shipRevision: c226ceb9d805b260146979f9562abb5802f98943558b8c973055e1f4af9dad2a
-                      destination:
-                        marketId: sol-pluto-orbit
-                        hostBodyId: sol-pluto
-                        positionKm: { x: 2974293648.201258, y: -4397750958.234561, z: -390278339.2324666 }
-                        hostPositionKm: { x: 2974292253.685408, y: -4397752426.080326, z: -390278377.66936064 }
-                        hostSourceEpochMs: 1776384000000
-                        orbitalReferenceEpoch: '2026-01-01T00:00:00.000Z'
-                        placementKind: null
-                        association: verified-exact-anchor
-                      candidates:
-                        - bodyId: sol-luna
-                          positionKm: { x: 92713269.03814426, y: 115056805.05196837, z: 14921.888450147251 }
-                          sourceEpochMs: 1776384000000
-                      provenance:
-                        evaluationModelId: sol-catalog-kepler-position-v1
-                        sourceRevision: d41b0b0f05177509ea34d3533b81dca5f63c1d95c230a5e632a24bb8dac9e9b2
-                        positionToleranceKm: 0.001
-                      previewEligibility: { status: eligible-with-warnings, reason: CLEARANCE_UNVERIFIED }
-                      motion: { status: unsupported }
-                      clearance: { status: unsupported }
-                      gravityAssist: { status: unsupported }
-                    navigationPrediction:
-                      success: true
-                      association: same-response-navigation-sources
-                      prediction:
-                        status: supported
-                        solarSystemId: sol
-                        coordinateBasisId: stellar:sol:catalog-cartesian:v1
-                        positionEvaluationModelId: sol-catalog-kepler-position-v1
-                        predictionModelId: constant-speed-straight-legs-moving-targets-v1
-                        timeScaleId: stellar:unix-ms-uniform:v1
-                        sourceRevision: d41b0b0f05177509ea34d3533b81dca5f63c1d95c230a5e632a24bb8dac9e9b2
-                        classification: illustrative-not-eta
-                        scenarioCruiseSpeedKmPerSec: 150
-                        speedProvenance: caller-supplied-scenario
-                        departure:
-                          shipId: owned-ship-id
-                          epochMs: 1794614400000
-                          positionKm: { x: -68497108.89898615, y: 230490599.55439094, z: 6513204.619689254 }
-                        encounter:
-                          bodyId: sol-luna
-                          epochMs: 1795713802170
-                          positionKm: { x: 64474291.511722974, y: 133169650.84930696, z: -17879.967533573898 }
-                          convergence: { iterations: 16, residualMs: 0.133056640625 }
-                        arrival:
-                          marketId: sol-pluto-orbit
-                          hostBodyId: sol-pluto
-                          epochMs: 1831977600050
-                          positionKm: { x: 3146423889.109306, y: -4326655970.758481, z: -447745954.4471171 }
-                          hostPositionKm: { x: 3146424514.4662237, y: -4326653939.490068, z: -447745901.25648177 }
-                          convergence: { iterations: 7, residualMs: 0.3828125 }
-                        assumptions:
-                          legDistanceStraightLine: true
-                          constantScenarioSpeed: true
-                          accelerationBrakingOmitted: true
-                          gravityAndAssistEffectsOmitted: true
-                          departureFixedAtNavigationEpoch: true
-                          encounterAtBodyCenter: true
-                        warnings: [CLEARANCE_UNVERIFIED]
-                pairedPredictionSpeedRejected:
-                  summary: Invalid scenario speed rejects only the prediction; navigationState is unchanged
-                  value:
-                    success: true
-                    message: Solar system navigation positions evaluated
-                    playerName: PilotOne
-                    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
-                    requestIdentity:
-                      operation: solar-system-get
-                      entityType: solar-system
-                      containerId: sol
-                    solarSystemId: sol
-                    navigationState: *pairedPredictionState
-                    navigationPrediction:
-                      success: false
-                      association: same-response-navigation-sources
-                      prediction:
-                        status: invalid
-                        reason: SCENARIO_SPEED_INVALID
-                        message: scenarioCruiseSpeedKmPerSec is required and must be a finite number in [120, 10000] km/s
+pairedPredictionSupported:
+  summary: Supported illustrative prediction paired with its navigationState (stars/bodies omitted)
+  value:
+    success: true
+    message: Solar system navigation positions evaluated
+    playerName: PilotOne
+    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+    requestIdentity:
+      operation: solar-system-get
+      entityType: solar-system
+      containerId: sol
+    solarSystemId: sol
+    navigationState: &pairedPredictionState
+      status: supported
+      solarSystemId: sol
+      coordinateBasisId: stellar:sol:catalog-cartesian:v1
+      epochMs: 1794614400000
+      departure:
+        shipId: owned-ship-id
+        positionKm: { x: -68497108.89898615, y: 230490599.55439094, z: 6513204.619689254 }
+        provenance:
+          kind: trusted-persisted-placement
+          lineageId: f08d2910-b9d0-4aea-a749-a9f1cd1015d0
+          sourceMarketId: sol-mars-orbit
+          offsetKm: { x: 0, y: 0, z: 0 }
+          shipRevision: c226ceb9d805b260146979f9562abb5802f98943558b8c973055e1f4af9dad2a
+      destination:
+        marketId: sol-pluto-orbit
+        hostBodyId: sol-pluto
+        positionKm: { x: 2974293648.201258, y: -4397750958.234561, z: -390278339.2324666 }
+        hostPositionKm: { x: 2974292253.685408, y: -4397752426.080326, z: -390278377.66936064 }
+        hostSourceEpochMs: 1776384000000
+        orbitalReferenceEpoch: '2026-01-01T00:00:00.000Z'
+        placementKind: null
+        association: verified-exact-anchor
+      candidates:
+        - bodyId: sol-luna
+          positionKm: { x: 92713269.03814426, y: 115056805.05196837, z: 14921.888450147251 }
+          sourceEpochMs: 1776384000000
+      provenance:
+        evaluationModelId: sol-catalog-kepler-position-v1
+        sourceRevision: d41b0b0f05177509ea34d3533b81dca5f63c1d95c230a5e632a24bb8dac9e9b2
+        positionToleranceKm: 0.001
+      previewEligibility: { status: eligible-with-warnings, reason: CLEARANCE_UNVERIFIED }
+      motion: { status: unsupported }
+      clearance: { status: unsupported }
+      gravityAssist: { status: unsupported }
+    navigationPrediction:
+      success: true
+      association: same-response-navigation-sources
+      prediction:
+        status: supported
+        solarSystemId: sol
+        coordinateBasisId: stellar:sol:catalog-cartesian:v1
+        positionEvaluationModelId: sol-catalog-kepler-position-v1
+        predictionModelId: constant-speed-straight-legs-moving-targets-v1
+        timeScaleId: stellar:unix-ms-uniform:v1
+        sourceRevision: d41b0b0f05177509ea34d3533b81dca5f63c1d95c230a5e632a24bb8dac9e9b2
+        classification: illustrative-not-eta
+        scenarioCruiseSpeedKmPerSec: 150
+        speedProvenance: caller-supplied-scenario
+        departure:
+          shipId: owned-ship-id
+          epochMs: 1794614400000
+          positionKm: { x: -68497108.89898615, y: 230490599.55439094, z: 6513204.619689254 }
+        encounter:
+          bodyId: sol-luna
+          epochMs: 1795713802170
+          positionKm: { x: 64474291.511722974, y: 133169650.84930696, z: -17879.967533573898 }
+          convergence: { iterations: 16, residualMs: 0.133056640625 }
+        arrival:
+          marketId: sol-pluto-orbit
+          hostBodyId: sol-pluto
+          epochMs: 1831977600050
+          positionKm: { x: 3146423889.109306, y: -4326655970.758481, z: -447745954.4471171 }
+          hostPositionKm: { x: 3146424514.4662237, y: -4326653939.490068, z: -447745901.25648177 }
+          convergence: { iterations: 7, residualMs: 0.3828125 }
+        assumptions:
+          legDistanceStraightLine: true
+          constantScenarioSpeed: true
+          accelerationBrakingOmitted: true
+          gravityAndAssistEffectsOmitted: true
+          departureFixedAtNavigationEpoch: true
+          encounterAtBodyCenter: true
+        warnings: [CLEARANCE_UNVERIFIED]
+pairedPredictionSpeedRejected:
+  summary: Invalid scenario speed rejects only the prediction; navigationState is unchanged
+  value:
+    success: true
+    message: Solar system navigation positions evaluated
+    playerName: PilotOne
+    correlationId: 36ea198f-0df8-4fa9-82b3-7bdfe0d9fd66
+    requestIdentity:
+      operation: solar-system-get
+      entityType: solar-system
+      containerId: sol
+    solarSystemId: sol
+    navigationState: *pairedPredictionState
+    navigationPrediction:
+      success: false
+      association: same-response-navigation-sources
+      prediction:
+        status: invalid
+        reason: SCENARIO_SPEED_INVALID
+        message: scenarioCruiseSpeedKmPerSec is required and must be a finite number in [120, 10000] km/s
 ```
 
 ### 10.7 `api/openapi.yaml` — root navigation note
@@ -1188,16 +1212,16 @@ Handler, socket and contract:
 
 Node ≥ 24 is required.
 
-| Command | Expected result |
-| --- | --- |
-| `node --test test/navigation-prediction.test.js` | All new tests pass |
-| `node --test test/navigation-prediction.test.js test/navigation-route-estimate.test.js test/navigation-position-contract.test.js test/solar-system-get-message-handler.test.js test/celestial-operation-examples.test.js` | All pass; the solarsystem diagnostic reports `19 examples validated` |
-| `node --test test/navigation-purchase.mongo.integration.test.js` | Passes (in-memory MongoDB) |
-| `npx --yes @apidevtools/swagger-cli validate api/openapi.yaml` | `api/openapi.yaml is valid` |
-| `npm run typecheck` | Exit 0 |
-| `npm run lint` | 0 errors (ESLint only; Prettier is not part of it) |
-| `npm test` | Full suite passes |
-| `npm run contract:artifact`, then `npm run contract:gate:hard` | `totalIssues: 0`, exit 0. The path/socket set is unchanged and only additive optional schema members are added |
+| Command                                                                                                                                                                                                                   | Expected result                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `node --test test/navigation-prediction.test.js`                                                                                                                                                                          | All new tests pass                                                                                             |
+| `node --test test/navigation-prediction.test.js test/navigation-route-estimate.test.js test/navigation-position-contract.test.js test/solar-system-get-message-handler.test.js test/celestial-operation-examples.test.js` | All pass; the solarsystem diagnostic reports `19 examples validated`                                           |
+| `node --test test/navigation-purchase.mongo.integration.test.js`                                                                                                                                                          | Passes (in-memory MongoDB)                                                                                     |
+| `npx --yes @apidevtools/swagger-cli validate api/openapi.yaml`                                                                                                                                                            | `api/openapi.yaml is valid`                                                                                    |
+| `npm run typecheck`                                                                                                                                                                                                       | Exit 0                                                                                                         |
+| `npm run lint`                                                                                                                                                                                                            | 0 errors (ESLint only; Prettier is not part of it)                                                             |
+| `npm test`                                                                                                                                                                                                                | Full suite passes                                                                                              |
+| `npm run contract:artifact`, then `npm run contract:gate:hard`                                                                                                                                                            | `totalIssues: 0`, exit 0. The path/socket set is unchanged and only additive optional schema members are added |
 
 `contract:artifact` and the gate invoke Prettier internally and rewrite tracked
 files under `api/artifacts/contracts/`. Do not run these CLIs while formatting is
@@ -1214,14 +1238,14 @@ per-leg convergence limits, typed failures without partial predictions, and the
 example's source/endpoint association. The existing navigation tests exercise
 unchanged Phase 1 and direct-distance behavior.
 
-| Exact command | Observed result |
-| --- | --- |
-| `node --test test\navigation-prediction.test.js test\navigation-route-estimate.test.js test\navigation-position-contract.test.js test\solar-system-get-message-handler.test.js test\celestial-operation-examples.test.js` | 39 passed, 0 failed; solarsystem: `16 examples validated` |
-| `npx --yes @apidevtools/swagger-cli validate api\openapi.yaml` | `api\openapi.yaml is valid`, exit 0 |
-| `npx --no-install eslint test\navigation-prediction.test.js test\celestial-operation-examples.test.js` | Exit 0, no errors or warnings |
-| `npm run typecheck` | Exit 0 |
-| `git --no-pager diff --check` | Exit 0; Git notes existing CRLF normalization on the request schema |
-| `node -` with the stdin script below | `totalIssues: 0`; assertion passed; no artifact writes or Prettier |
+| Exact command                                                                                                                                                                                                             | Observed result                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `node --test test\navigation-prediction.test.js test\navigation-route-estimate.test.js test\navigation-position-contract.test.js test\solar-system-get-message-handler.test.js test\celestial-operation-examples.test.js` | 39 passed, 0 failed; solarsystem: `16 examples validated`           |
+| `npx --yes @apidevtools/swagger-cli validate api\openapi.yaml`                                                                                                                                                            | `api\openapi.yaml is valid`, exit 0                                 |
+| `npx --no-install eslint test\navigation-prediction.test.js test\celestial-operation-examples.test.js`                                                                                                                    | Exit 0, no errors or warnings                                       |
+| `npm run typecheck`                                                                                                                                                                                                       | Exit 0                                                              |
+| `git --no-pager diff --check`                                                                                                                                                                                             | Exit 0; Git notes existing CRLF normalization on the request schema |
+| `node -` with the stdin script below                                                                                                                                                                                      | `totalIssues: 0`; assertion passed; no artifact writes or Prettier  |
 
 ```js
 const fs = require('node:fs');
@@ -1229,7 +1253,12 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { buildArtifact } = require(path.resolve('scripts', 'sw08', 'generate-contract-artifact.js'));
 const { analyzeDrift } = require(path.resolve('scripts', 'sw08', 'check-contract-drift.js'));
-const baseline = JSON.parse(fs.readFileSync(path.resolve('api', 'artifacts', 'contracts', 'baseline-contract-artifact.json'), 'utf8'));
+const baseline = JSON.parse(
+  fs.readFileSync(
+    path.resolve('api', 'artifacts', 'contracts', 'baseline-contract-artifact.json'),
+    'utf8'
+  )
+);
 const report = analyzeDrift(baseline, buildArtifact(process.cwd()));
 console.log(JSON.stringify(report.summary, null, 2));
 assert.equal(report.summary.totalIssues, 0, JSON.stringify(report.issues));
@@ -1254,26 +1283,26 @@ The owner approved `scope=full-phase2b`. This step implements runtime prediction
 not only the contract. No operation/event name, contract version, existing
 eligibility gate or agreed product scope changed.
 
-| Nova item | Resolution and evidence |
-| --- | --- |
-| 1. Request validation versus nested failures | `navigation-prediction-options.schema.json` is intentionally transport-unconstrained; the request's prediction dependency/candidate requirement is removed. Handler shape/speed/candidate checks return typed nested failures. Strict speed bounds remain on successful results via `definitions.validSpeed`. Existing selector/estimate schema rules remain unchanged. Unit tests, transport-valid rejection examples and real authenticated Socket.IO round trips cover missing/invalid speed, absent candidate and malformed options while preserving the preview/direct estimate. |
-| 2. Auditable contraction bound | Section 6.5 derives the all-phase periapsis maximum and parent-chain triangle bound from the actual versioned elements, period conventions and rotations. The test enumerates every one of 469 candidate chains and all 10 station chains, calculating analytic bounds rather than sampling epochs: maxima 58.976 and 59.141 km/s, both below 60. Both runtime ratios must be <=0.5 before any iteration; unavailable bounds return `EVALUATION_UNSUPPORTED`. Tests cover zero eccentricity, high supported eccentricities, negative body periods, invalid station periods, missing/cyclic/custom sources, numeric overflow, exact ratio 0.5 and just above. Analytic-model guarantees are distinguished from floating-point arithmetic and physical accuracy. |
-| 3. Arrival station position | Section 6.5.1 and the result schema specify future host-chain position plus the verified station orbit's future rotated offset in the same basis/epoch. Tests independently recompute both vectors and cover absent metadata and equivalent active body-orbit metadata; unsupported placement stays rejected. The numeric-epoch station entry point preserves fractional milliseconds during iteration, with unchanged legacy timestamp behavior and integer positions. |
-| 4. Authoritative calculation time | Uniform POSIX/game milliseconds remain authoritative. ISO-8601 `Z` is a readable calendar rendering, not conversion to physical UTC. No UTC/TAI/TT/TDB calculation or conversion is introduced. Exact integer epochs remain on every returned point; the UI wording in Section 7 is corrected. |
+| Nova item                                    | Resolution and evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Request validation versus nested failures | `navigation-prediction-options.schema.json` is intentionally transport-unconstrained; the request's prediction dependency/candidate requirement is removed. Handler shape/speed/candidate checks return typed nested failures. Strict speed bounds remain on successful results via `definitions.validSpeed`. Existing selector/estimate schema rules remain unchanged. Unit tests, transport-valid rejection examples and real authenticated Socket.IO round trips cover missing/invalid speed, absent candidate and malformed options while preserving the preview/direct estimate.                                                                                                                                                                          |
+| 2. Auditable contraction bound               | Section 6.5 derives the all-phase periapsis maximum and parent-chain triangle bound from the actual versioned elements, period conventions and rotations. The test enumerates every one of 469 candidate chains and all 10 station chains, calculating analytic bounds rather than sampling epochs: maxima 58.976 and 59.141 km/s, both below 60. Both runtime ratios must be <=0.5 before any iteration; unavailable bounds return `EVALUATION_UNSUPPORTED`. Tests cover zero eccentricity, high supported eccentricities, negative body periods, invalid station periods, missing/cyclic/custom sources, numeric overflow, exact ratio 0.5 and just above. Analytic-model guarantees are distinguished from floating-point arithmetic and physical accuracy. |
+| 3. Arrival station position                  | Section 6.5.1 and the result schema specify future host-chain position plus the verified station orbit's future rotated offset in the same basis/epoch. Tests independently recompute both vectors and cover absent metadata and equivalent active body-orbit metadata; unsupported placement stays rejected. The numeric-epoch station entry point preserves fractional milliseconds during iteration, with unchanged legacy timestamp behavior and integer positions.                                                                                                                                                                                                                                                                                        |
+| 4. Authoritative calculation time            | Uniform POSIX/game milliseconds remain authoritative. ISO-8601 `Z` is a readable calendar rendering, not conversion to physical UTC. No UTC/TAI/TT/TDB calculation or conversion is introduced. Exact integer epochs remain on every returned point; the UI wording in Section 7 is corrected.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 Final validation:
 
-| Exact command | Observed result |
-| --- | --- |
-| `node --test test\navigation-prediction.test.js test\navigation-route-estimate.test.js test\navigation-position-contract.test.js test\solar-system-get-message-handler.test.js test\celestial-operation-examples.test.js test\navigation-purchase.mongo.integration.test.js test\station-market-snapshot.test.js test\station-market-snapshot.mongo.integration.test.js` | **87 passed, 0 failed, 0 skipped**, exit 0. Includes real Socket.IO, isolated Mongo purchase/reload lineage and station regression tests. All **19 solarsystem examples** validate. |
-| `npx --yes @apidevtools/swagger-cli validate api\openapi.yaml` | Valid, exit 0 |
-| `npx --no-install eslint src\handlers\context\navigation-prediction-service.js src\handlers\context\navigation-state-service.js src\handlers\context\orbital-math.js src\handlers\solar-system-get-message-handler.js test\navigation-prediction.test.js test\navigation-route-estimate.test.js test\navigation-purchase.mongo.integration.test.js test\celestial-operation-examples.test.js test-support\navigation-test-helpers.js` | Exit 0, no errors or warnings |
-| `npm run typecheck` | Exit 0 |
-| `node scripts\lint-handler-patterns.js` | Exit 0, no critical violations; existing notices for credit-ledger/launch-item spatial checks and market handler sharing remain |
-| `node -` with the Section 12.1 in-memory artifact/drift script | `totalIssues: 0`, assertion passed; no writes or formatting |
-| `git --no-pager diff --check` | Exit 0; Git reports CRLF normalization notices on existing files |
-| `git --no-pager status --short -- api\artifacts\contracts` | Empty at start and earlier validation. A later check reported modified report paths during unrelated worktree activity; all were preserved, with no task-owned artifact writes or cleanup. |
-| `git --no-pager diff --numstat -- api\artifacts\contracts` | Empty at the final check despite the status markers; no content diff reported |
+| Exact command                                                                                                                                                                                                                                                                                                                                                                                                                         | Observed result                                                                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `node --test test\navigation-prediction.test.js test\navigation-route-estimate.test.js test\navigation-position-contract.test.js test\solar-system-get-message-handler.test.js test\celestial-operation-examples.test.js test\navigation-purchase.mongo.integration.test.js test\station-market-snapshot.test.js test\station-market-snapshot.mongo.integration.test.js`                                                              | **87 passed, 0 failed, 0 skipped**, exit 0. Includes real Socket.IO, isolated Mongo purchase/reload lineage and station regression tests. All **19 solarsystem examples** validate.        |
+| `npx --yes @apidevtools/swagger-cli validate api\openapi.yaml`                                                                                                                                                                                                                                                                                                                                                                        | Valid, exit 0                                                                                                                                                                              |
+| `npx --no-install eslint src\handlers\context\navigation-prediction-service.js src\handlers\context\navigation-state-service.js src\handlers\context\orbital-math.js src\handlers\solar-system-get-message-handler.js test\navigation-prediction.test.js test\navigation-route-estimate.test.js test\navigation-purchase.mongo.integration.test.js test\celestial-operation-examples.test.js test-support\navigation-test-helpers.js` | Exit 0, no errors or warnings                                                                                                                                                              |
+| `npm run typecheck`                                                                                                                                                                                                                                                                                                                                                                                                                   | Exit 0                                                                                                                                                                                     |
+| `node scripts\lint-handler-patterns.js`                                                                                                                                                                                                                                                                                                                                                                                               | Exit 0, no critical violations; existing notices for credit-ledger/launch-item spatial checks and market handler sharing remain                                                            |
+| `node -` with the Section 12.1 in-memory artifact/drift script                                                                                                                                                                                                                                                                                                                                                                        | `totalIssues: 0`, assertion passed; no writes or formatting                                                                                                                                |
+| `git --no-pager diff --check`                                                                                                                                                                                                                                                                                                                                                                                                         | Exit 0; Git reports CRLF normalization notices on existing files                                                                                                                           |
+| `git --no-pager status --short -- api\artifacts\contracts`                                                                                                                                                                                                                                                                                                                                                                            | Empty at start and earlier validation. A later check reported modified report paths during unrelated worktree activity; all were preserved, with no task-owned artifact writes or cleanup. |
+| `git --no-pager diff --numstat -- api\artifacts\contracts`                                                                                                                                                                                                                                                                                                                                                                            | Empty at the final check despite the status markers; no content diff reported                                                                                                              |
 
 The full runtime reproduces the reviewed encounter/arrival epochs, positions,
 iteration counts and residuals exactly. The zero-candidate example's distinct
@@ -1303,15 +1332,15 @@ Nova approved Phase 2B, as relayed by the owner (D20). The owner then selected
 read-only Forge readiness and handoff (D21). This checkpoint changes only this
 design/tracking document; it does not add API/runtime behavior.
 
-| Probe | Observed result |
-| --- | --- |
-| `Invoke-WebRequest -Uri 'http://localhost:3000/docs/' -UseBasicParsing -TimeoutSec 15` | HTTP 200; Swagger UI with its normal bundle/init scripts |
-| `GET http://localhost:3000/health` using Node `fetch` | HTTP 200; exactly `{ "status": "ok" }` |
-| `GET http://localhost:3000/openapi.yaml` using Node `fetch` | HTTP 200, YAML content, `Cache-Control: no-store` |
-| `node -` with the live-contract script below | Fully resolved live `socketSolarSystemGet` operation deep-equals the workspace operation. All **12 examples belonging to this operation** validate, plus four invalid-option inputs and the missing-candidate transport case. The **19** in Section 12.2 counts the entire solarsystem module, not only this operation. |
-| `node -` with the missing-session script below | WebSocket connection succeeds; exactly the expected `invalid-session` payload is received; no `solar-system-get-response`/prediction is emitted during the observation window. Empty session key fails before player/world lookup. Socket is disconnected after the probe. |
-| `Get-NetTCPConnection -LocalPort 3000 -State Listen` and `Get-Process -Id <OwningProcess>` | Existing Node listener started at 16:40:47 local time, after all four prediction runtime source modification times (latest 16:34:12). No process was started, stopped or restarted. |
-| `git --no-pager diff --numstat -- api\artifacts\contracts` | Empty. No generated artifacts were cleaned or reverted. |
+| Probe                                                                                      | Observed result                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Invoke-WebRequest -Uri 'http://localhost:3000/docs/' -UseBasicParsing -TimeoutSec 15`     | HTTP 200; Swagger UI with its normal bundle/init scripts                                                                                                                                                                                                                                                                |
+| `GET http://localhost:3000/health` using Node `fetch`                                      | HTTP 200; exactly `{ "status": "ok" }`                                                                                                                                                                                                                                                                                  |
+| `GET http://localhost:3000/openapi.yaml` using Node `fetch`                                | HTTP 200, YAML content, `Cache-Control: no-store`                                                                                                                                                                                                                                                                       |
+| `node -` with the live-contract script below                                               | Fully resolved live `socketSolarSystemGet` operation deep-equals the workspace operation. All **12 examples belonging to this operation** validate, plus four invalid-option inputs and the missing-candidate transport case. The **19** in Section 12.2 counts the entire solarsystem module, not only this operation. |
+| `node -` with the missing-session script below                                             | WebSocket connection succeeds; exactly the expected `invalid-session` payload is received; no `solar-system-get-response`/prediction is emitted during the observation window. Empty session key fails before player/world lookup. Socket is disconnected after the probe.                                              |
+| `Get-NetTCPConnection -LocalPort 3000 -State Listen` and `Get-Process -Id <OwningProcess>` | Existing Node listener started at 16:40:47 local time, after all four prediction runtime source modification times (latest 16:34:12). No process was started, stopped or restarted.                                                                                                                                     |
+| `git --no-pager diff --numstat -- api\artifacts\contracts`                                 | Empty. No generated artifacts were cleaned or reverted.                                                                                                                                                                                                                                                                 |
 
 The schema parser's default safe-URL resolver declined localhost on the first
 attempt, even though direct GET succeeded. The successful probe explicitly
@@ -1330,11 +1359,17 @@ const { createSchemaValidator } = require('./src/model/schema-validator');
 (async () => {
   const origin = 'http://localhost:3000';
   const [live, local] = await Promise.all([
-    Parser.dereference(`${origin}/openapi.yaml`, { resolve: {
-      file: false,
-      http: { safeUrlResolver: false, redirects: 0, timeout: 10000,
-        canRead: (file) => new URL(file.url).origin === origin },
-    } }),
+    Parser.dereference(`${origin}/openapi.yaml`, {
+      resolve: {
+        file: false,
+        http: {
+          safeUrlResolver: false,
+          redirects: 0,
+          timeout: 10000,
+          canRead: (file) => new URL(file.url).origin === origin,
+        },
+      },
+    }),
     Parser.dereference(path.resolve('api', 'openapi.yaml')),
   ]);
   const operation = live.paths['/socket/solar-system-get'].post;
@@ -1345,15 +1380,27 @@ const { createSchemaValidator } = require('./src/model/schema-validator');
   const request = operation.requestBody.content['application/json'];
   const response = operation.responses['200'].content['application/json'];
   let count = 0;
-  for (const [kind, content] of [['request', request], ['response', response]]) {
+  for (const [kind, content] of [
+    ['request', request],
+    ['response', response],
+  ]) {
     const validate = ajv.compile(content.schema);
     for (const [name, example] of Object.entries(content.examples)) {
-      assert.equal(validate(example.value), true, `${kind} ${name}: ${JSON.stringify(validate.errors)}`);
+      assert.equal(
+        validate(example.value),
+        true,
+        `${kind} ${name}: ${JSON.stringify(validate.errors)}`
+      );
       count++;
     }
   }
   const validateRequest = ajv.compile(request.schema);
-  for (const options of [{}, null, {scenarioCruiseSpeedKmPerSec: 10}, {scenarioCruiseSpeedKmPerSec: '150'}]) {
+  for (const options of [
+    {},
+    null,
+    { scenarioCruiseSpeedKmPerSec: 10 },
+    { scenarioCruiseSpeedKmPerSec: '150' },
+  ]) {
     const value = structuredClone(request.examples.pairedPrediction.value);
     value.navigationPrediction = options;
     assert.equal(validateRequest(value), true, JSON.stringify(validateRequest.errors));
@@ -1361,12 +1408,28 @@ const { createSchemaValidator } = require('./src/model/schema-validator');
   const value = structuredClone(request.examples.pairedPrediction.value);
   delete value.navigation.candidateBodyId;
   assert.equal(validateRequest(value), true, JSON.stringify(validateRequest.errors));
-  console.log(`Live solar-system-get examples: ${count} valid; invalid-option and missing-candidate transport checks: PASS`);
-  const prediction = response.examples.pairedPredictionSupported.value.navigationPrediction.prediction;
-  console.log(JSON.stringify({version: live.info.version, predictionModelId: prediction.predictionModelId,
-    timeScaleId: prediction.timeScaleId, encounterEpochMs: prediction.encounter.epochMs,
-    arrivalEpochMs: prediction.arrival.epochMs}, null, 2));
-})().catch((error) => { console.error(error.message); process.exitCode = 1; });
+  console.log(
+    `Live solar-system-get examples: ${count} valid; invalid-option and missing-candidate transport checks: PASS`
+  );
+  const prediction =
+    response.examples.pairedPredictionSupported.value.navigationPrediction.prediction;
+  console.log(
+    JSON.stringify(
+      {
+        version: live.info.version,
+        predictionModelId: prediction.predictionModelId,
+        timeScaleId: prediction.timeScaleId,
+        encounterEpochMs: prediction.encounter.epochMs,
+        arrivalEpochMs: prediction.arrival.epochMs,
+      },
+      null,
+      2
+    )
+  );
+})().catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
 ```
 
 Missing-session probe (same `node -` invocation):
@@ -1377,32 +1440,58 @@ const { randomUUID } = require('node:crypto');
 const { io } = require('socket.io-client');
 const { INVALID_SESSION_EVENT, INVALID_SESSION_MESSAGE } = require('./src/model/session');
 (async () => {
-  const socket = io('http://localhost:3000', { autoConnect: false, reconnection: false,
-    transports: ['websocket'], timeout: 5000 });
+  const socket = io('http://localhost:3000', {
+    autoConnect: false,
+    reconnection: false,
+    transports: ['websocket'],
+    timeout: 5000,
+  });
   let responses = 0;
-  socket.on('solar-system-get-response', () => { responses++; });
+  socket.on('solar-system-get-response', () => {
+    responses++;
+  });
   let timer;
   try {
     const invalid = new Promise((resolve, reject) => {
       timer = setTimeout(() => reject(new Error('Read-only session probe timed out')), 8000);
       socket.once('connect_error', reject);
       socket.once(INVALID_SESSION_EVENT, resolve);
-      socket.once('connect', () => socket.emit('solar-system-get-request', {
-        playerName: 'phase2c-readiness-probe', sessionKey: '', correlationId: randomUUID(),
-        requestIdentity: { operation: 'solar-system-get', entityType: 'solar-system', containerId: 'sol' },
-        solarSystemId: 'sol',
-        navigation: { shipId: 'not-an-owned-ship', destinationMarketId: 'sol-pluto-orbit', candidateBodyId: 'sol-luna' },
-        navigationPrediction: { scenarioCruiseSpeedKmPerSec: 150 },
-      }));
+      socket.once('connect', () =>
+        socket.emit('solar-system-get-request', {
+          playerName: 'phase2c-readiness-probe',
+          sessionKey: '',
+          correlationId: randomUUID(),
+          requestIdentity: {
+            operation: 'solar-system-get',
+            entityType: 'solar-system',
+            containerId: 'sol',
+          },
+          solarSystemId: 'sol',
+          navigation: {
+            shipId: 'not-an-owned-ship',
+            destinationMarketId: 'sol-pluto-orbit',
+            candidateBodyId: 'sol-luna',
+          },
+          navigationPrediction: { scenarioCruiseSpeedKmPerSec: 150 },
+        })
+      );
     });
     socket.connect();
     const response = await invalid;
     assert.deepEqual(response, { message: INVALID_SESSION_MESSAGE });
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     assert.equal(responses, 0);
-    console.log(`Live Socket.IO: ${INVALID_SESSION_EVENT} received; no prediction/solar-system response; missing session was not bypassed: PASS`);
-  } finally { clearTimeout(timer); socket.disconnect(); }
-})().catch(error => { console.error(error.message); process.exitCode = 1; });
+    console.log(
+      `Live Socket.IO: ${INVALID_SESSION_EVENT} received; no prediction/solar-system response; missing session was not bypassed: PASS`
+    );
+  } finally {
+    clearTimeout(timer);
+    socket.disconnect();
+  }
+})().catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
 ```
 
 **Evidence boundary:** static contract parity and process timestamps are not an
@@ -1414,6 +1503,88 @@ test evidence, not a result from this live process. Nova must perform the live
 smoke using its already-authorized session and an existing supported ship.
 Visual acceptance is likewise pending. No broader test suite, Prettier, artifact
 generation/cleanup or Phase 3 work was run.
+
+### 12.4 Phase 2D formatting cleanup evidence (2026-11-16)
+
+Scope (D22–D24): repository-wide Prettier with generated/byte-pinned outputs
+excluded through a new `.prettierignore`; `contract-artifact.json` unchanged;
+results left uncommitted for owner review. Base: owner commit `5ce7df13`.
+
+Read-only review before any write:
+
+- `npx --no-install prettier --list-different .` listed 112 files: 13 of the 17
+  Phase 2 files (five of them were already unformatted before Phase 2) and 99
+  other repository files.
+- Byte-exact consumers in that list:
+  `test/system-naming-finalization.test.js` requires
+  `renderMarkdown(report)` to equal
+  `docs/system-naming-final-review-2026-11-06.md`;
+  `scripts/finalize-system-naming.js --check` compares that document and three
+  naming JSON outputs byte for byte; and
+  `data/non-sol-celestial-generation-manifest-v1.json` pins raw SHA-256
+  `sourceFiles`, including eight listed data/doc files that still matched.
+  Exoplanet, Kepler-11, benchmark-report and crossmatch-calibration JSON is
+  generator-written and would revert on regeneration.
+- Not affected: weighted-allocation protected hashes (files not in the list)
+  and universe packaging (reads ignored `artifacts/` delivery folders).
+- `contract-artifact.json` lacks Phase 1 and Phase 2 navigation surfaces (stale
+  before Phase 2); in-memory drift against the baseline was 0. Left unchanged.
+- Pre-write baselines: finalization `--check` passed; the inventory strict
+  `--check` already failed (pre-existing stale P0 baseline);
+  `--check-preservation` passed with 12 historical source changes and equal
+  body hashes.
+
+Changes:
+
+- `.prettierignore` (new): `data/`, `reports/`,
+  `docs/system-naming-final-review-2026-11-06.md`, `docs/Stellar notes.md`,
+  `scripts/lib/exoplanet-crossmatch-calibration.json`. Prettier 3 still honors
+  `.gitignore` as well.
+- `npm run format` formatted 88 files. Prettier's member-chain layout was not
+  idempotent in four files (`scripts/lib/non-sol-market-density-lifecycle.js`,
+  `scripts/lib/non-sol-market-density-plan.js` and two Mongo integration tests);
+  a second `npm run format` settled them.
+- Net: 88 tracked files changed plus the new ignore file. No other worktree
+  change.
+
+Final independent revalidation reproduced the checks below against the current
+worktree. For each changed file except this tracker, formatting its `HEAD`
+contents with the current Prettier configuration until stable reproduced the
+worktree bytes exactly: 87 of 87 files. The tracker was reviewed separately
+against its formatted `HEAD` version; its content changes record completion,
+approved scope and validation evidence. The ignore rules exactly match D24.
+The structural comparisons below also passed independently.
+
+The complete review patch (including the untracked `.prettierignore`), the
+tracker-only content diff, the verification script, per-file SHA-256 evidence
+and full validation logs are retained with the local session review evidence,
+not added to the repository.
+
+| Command                                                                                | Result                                                                                                                                                                                                 |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run format:check`                                                                 | `All matched files use Prettier code style!`                                                                                                                                                           |
+| Equivalence against `HEAD` (espree AST without locations/raw, `JSON.parse`, `js-yaml`) | 75 JS, 5 JSON, 1 YAML: no semantic differences. Six of seven Markdown files changed only whitespace/emphasis; this tracker's other changes are D22–D24 edits, table padding and embedded-sample layout |
+| `npm test`                                                                             | `api/openapi.yaml is valid`; no critical handler-pattern violations; 1015 tests, 1015 pass, 0 fail, 0 skipped (~259 s on final revalidation)                                                           |
+| `npm run lint`                                                                         | exit 0, no problems                                                                                                                                                                                    |
+| `npm run typecheck`                                                                    | exit 0                                                                                                                                                                                                 |
+| `git --no-pager diff --check`                                                          | clean                                                                                                                                                                                                  |
+| `node scripts\finalize-system-naming.js --check`                                       | pass; `manifestSha256` `4d223d0f…`, `liveDatabaseWrites: 0`                                                                                                                                            |
+| `node scripts\non-sol-celestial-inventory.js --check-preservation`                     | PASS (4844 targets); historical source changes now 13, adding the formatted pinned input `src\model\cygnus-x1-system-catalog.js` (body hashes unchanged)                                               |
+| In-memory `buildArtifact`/`analyzeDrift` (Section 12)                                  | `totalIssues` 0; no artifact writes                                                                                                                                                                    |
+
+The full test run retained the existing non-critical handler-pattern notices;
+repository ESLint reported no problems. Hashes of all 88 changed tracked files
+were unchanged across the test run.
+
+Test side effect: `npm test` rewrote seven tracked
+`artifacts/contracts/*-report.json` files, replacing committed absolute
+`D:\at-template\…` paths with the local checkout path. The diffs were inspected
+(path-only) and exactly those seven files were restored to their captured
+pre-test bytes. No other files were restored; both artifact directories have
+no remaining changes and `api/artifacts` was untouched.
+
+Not done: commit or push, server restart, contract-artifact regeneration, or a
+rewrite of the stale P0 inventory baseline (owner decision, outside Phase 2).
 
 ## 13. Compatibility risks
 
@@ -1462,16 +1633,16 @@ outstanding blockers. D17 subsequently approved runtime implementation.
 
 ## 15. Revisit register (owner decision D8)
 
-| # | Item | Current Phase 2 approach | Trigger to revisit |
-| --- | --- | --- | --- |
-| R1 | Universe-wide game time standard (multi-system, multi-galaxy) | A single uniform POSIX-millisecond game time scale, used for Sol only | First non-Sol navigation or prediction, inter-system travel, or any galaxy/intergalactic scope |
-| R2 | Per-system time scales and mapping between system clocks | Not modeled | Same as R1, or a per-system ephemeris |
-| R3 | TT/TDB fidelity in Sol (64–69 s offset; ≤ ~4,100 km) | Ignored; consistent with Phase 1 | Any accuracy claim beyond illustrative, or an ephemeris/model upgrade |
-| R4 | Light-time and relativistic effects (≤ 3.3% c; Sol light-time up to hours) | Ignored; positions are geometric instants | Observation/communication features, or raising the maximum speed |
-| R5 | `timeScaleId` on `navigationState` itself | Declared on the prediction only | Next `navigationState` contract revision |
-| R6 | Departure at request time, with ship propagation | Frozen at the stored ship epoch | Phase 3+ gate |
-| R7 | True UTC display with leap seconds | Identity label only | Any real-world clock synchronization claim |
-| R8 | Static 120 km/s minimum | Global proven-contraction floor | Catalog changes raising bounds (guarded by test 26), or a product need for slower scenarios (route-specific bounds or a bracketing earliest-root solver) |
+| #   | Item                                                                       | Current Phase 2 approach                                              | Trigger to revisit                                                                                                                                       |
+| --- | -------------------------------------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Universe-wide game time standard (multi-system, multi-galaxy)              | A single uniform POSIX-millisecond game time scale, used for Sol only | First non-Sol navigation or prediction, inter-system travel, or any galaxy/intergalactic scope                                                           |
+| R2  | Per-system time scales and mapping between system clocks                   | Not modeled                                                           | Same as R1, or a per-system ephemeris                                                                                                                    |
+| R3  | TT/TDB fidelity in Sol (64–69 s offset; ≤ ~4,100 km)                       | Ignored; consistent with Phase 1                                      | Any accuracy claim beyond illustrative, or an ephemeris/model upgrade                                                                                    |
+| R4  | Light-time and relativistic effects (≤ 3.3% c; Sol light-time up to hours) | Ignored; positions are geometric instants                             | Observation/communication features, or raising the maximum speed                                                                                         |
+| R5  | `timeScaleId` on `navigationState` itself                                  | Declared on the prediction only                                       | Next `navigationState` contract revision                                                                                                                 |
+| R6  | Departure at request time, with ship propagation                           | Frozen at the stored ship epoch                                       | Phase 3+ gate                                                                                                                                            |
+| R7  | True UTC display with leap seconds                                         | Identity label only                                                   | Any real-world clock synchronization claim                                                                                                               |
+| R8  | Static 120 km/s minimum                                                    | Global proven-contraction floor                                       | Catalog changes raising bounds (guarded by test 26), or a product need for slower scenarios (route-specific bounds or a bracketing earliest-root solver) |
 
 Future direction, not designed here: tiered Navigation Computer capabilities
 comparing costs such as time and fuel, working toward A*-like search. Phase 3

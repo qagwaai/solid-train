@@ -361,10 +361,16 @@ test('real baseline preserves all source outputs and audits authoritative provis
   assert.ok(manifest.sourceFiles.every((file) => !path.isAbsolute(file.path)));
   assert.ok(manifest.sourceFiles.every((file) => !file.path.includes('/')));
   assert.equal(manifest.resources.techNotes.path, 'docs\\Stellar notes.md');
-  assert.equal(manifest.resources.mining.evidenceFile, 'src\\handlers\\launch-item-message-handler.js');
+  assert.equal(
+    manifest.resources.mining.evidenceFile,
+    'src\\handlers\\launch-item-message-handler.js'
+  );
   assert.ok(manifest.ownership.every((entry) => entry.evidenceFile.includes('\\')));
-  assert.ok(manifest.systems.filter((system) => system.profile.evidenceFile)
-    .every((system) => system.profile.evidenceFile.startsWith('data\\')));
+  assert.ok(
+    manifest.systems
+      .filter((system) => system.profile.evidenceFile)
+      .every((system) => system.profile.evidenceFile.startsWith('data\\'))
+  );
   assert.doesNotThrow(() =>
     assertPreservedBaseline(
       JSON.parse(

@@ -1,0 +1,9 @@
+# Generated or byte-pinned outputs. Their producers write JSON.stringify/rendered
+# text, and exact-output checks or manifest SHA-256 pins depend on those bytes:
+# scripts/finalize-system-naming.js --check, test/system-naming-finalization.test.js
+# and data/non-sol-celestial-generation-manifest-v1.json (sourceFiles).
+data/
+reports/
+docs/system-naming-final-review-2026-11-06.md
+docs/Stellar notes.md
+scripts/lib/exoplanet-crossmatch-calibration.json

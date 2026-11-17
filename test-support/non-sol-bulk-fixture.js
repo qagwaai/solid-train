@@ -7,7 +7,8 @@ async function bulkFixture(id) {
   const row = manifest.systems.find((system) => system.id === id);
   if (!row) throw new Error(`Unknown non-Sol fixture system: ${id}`);
   const plan = await generateBulkSystem(row);
-  if (plan.status !== 'ready') throw new Error(`Non-Sol fixture ${id} is not ready: ${plan.reason}`);
+  if (plan.status !== 'ready')
+    throw new Error(`Non-Sol fixture ${id} is not ready: ${plan.reason}`);
   return plan;
 }
 

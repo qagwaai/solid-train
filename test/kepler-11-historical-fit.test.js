@@ -15,12 +15,48 @@ function close(actual, expected, tolerance) {
 test('adapter replays all Table 7 nominal values and errors without mutating the source', () => {
   const before = JSON.stringify(source);
   const expected = [
-    [[10.3039, .0004], [689.7391, .0012], [.050, .019], [.014, .010], [6.80, 2.16]],
-    [[13.0240, .0005], [683.3497, .0010], [.033, .016], [.005, .008], [9.25, 3.34]],
-    [[22.6849, .0005], [694.0072, .0007], [-.003, .004], [.004, .003], [23.61, 1.84]],
-    [[31.9999, .0005], [695.0756, .0005], [-.007, .003], [-.007, .003], [23.85, 2.55]],
-    [[46.6877, .0014], [718.2697, .0021], [.014, .005], [-.001, .002], [5.26, 1.21]],
-    [[118.3806, .0005], [693.8010, .0010], [0, null], [0, null], [25.29, null]],
+    [
+      [10.3039, 0.0004],
+      [689.7391, 0.0012],
+      [0.05, 0.019],
+      [0.014, 0.01],
+      [6.8, 2.16],
+    ],
+    [
+      [13.024, 0.0005],
+      [683.3497, 0.001],
+      [0.033, 0.016],
+      [0.005, 0.008],
+      [9.25, 3.34],
+    ],
+    [
+      [22.6849, 0.0005],
+      [694.0072, 0.0007],
+      [-0.003, 0.004],
+      [0.004, 0.003],
+      [23.61, 1.84],
+    ],
+    [
+      [31.9999, 0.0005],
+      [695.0756, 0.0005],
+      [-0.007, 0.003],
+      [-0.007, 0.003],
+      [23.85, 2.55],
+    ],
+    [
+      [46.6877, 0.0014],
+      [718.2697, 0.0021],
+      [0.014, 0.005],
+      [-0.001, 0.002],
+      [5.26, 1.21],
+    ],
+    [
+      [118.3806, 0.0005],
+      [693.801, 0.001],
+      [0, null],
+      [0, null],
+      [25.29, null],
+    ],
   ];
   const report = buildHistoricalFitReport();
   assert.equal(report.systemId, 'exo-kepler-116');
@@ -49,10 +85,10 @@ test('adapter replays all Table 7 nominal values and errors without mutating the
     });
   });
   assert.deepEqual(report.host, {
-    massSolar: { value: .961, errorUpper: .025, errorLower: -.025 },
-    radiusSolar: { value: 1.065, errorUpper: .017, errorLower: -.022 },
+    massSolar: { value: 0.961, errorUpper: 0.025, errorLower: -0.025 },
+    radiusSolar: { value: 1.065, errorUpper: 0.017, errorLower: -0.022 },
     temperatureK: { value: 5663, errorUpper: 55, errorLower: -66 },
-    luminositySolar: { value: 1.045, errorUpper: .061, errorLower: -.078 },
+    luminositySolar: { value: 1.045, errorUpper: 0.061, errorLower: -0.078 },
     ageGyr: { value: 8.5, errorUpper: 1.1, errorLower: -1.4 },
   });
   report.host.massSolar.value = 99;
@@ -64,18 +100,26 @@ test('adapter replays all Table 7 nominal values and errors without mutating the
 test('adapter diagnostics meet documented numerical and source-convention thresholds', () => {
   const report = buildHistoricalFitReport();
   assert.equal(report.conventions.dynamicalEpochJd, 2455580);
-  const masses = [2.17574, 2.95964, 7.55428, 7.63107, 1.68300, 8.09182];
-  const eccentricities = [.051923, .033377, .005, .009899, .014036, 0];
+  const masses = [2.17574, 2.95964, 7.55428, 7.63107, 1.683, 8.09182];
+  const eccentricities = [0.051923, 0.033377, 0.005, 0.009899, 0.014036, 0];
   report.planets.forEach((planet, index) => {
-    close(planet.diagnostics.massEarth, masses[index], .000005);
-    close(planet.diagnostics.eccentricity, eccentricities[index], .0000005);
-    close(planet.diagnostics.firstTransitJd,
-      2454900 + planet.parameters.transitOffsetDays.value, 1e-9);
-    close(planet.diagnostics.restFramePeriodDays,
-      planet.parameters.periodDays.value * 1.00019, 1e-12);
+    close(planet.diagnostics.massEarth, masses[index], 0.000005);
+    close(planet.diagnostics.eccentricity, eccentricities[index], 0.0000005);
+    close(
+      planet.diagnostics.firstTransitJd,
+      2454900 + planet.parameters.transitOffsetDays.value,
+      1e-9
+    );
+    close(
+      planet.diagnostics.restFramePeriodDays,
+      planet.parameters.periodDays.value * 1.00019,
+      1e-12
+    );
     assert.ok(planet.diagnostics.firstTransitJd > report.conventions.dynamicalEpochJd);
-    assert.ok(planet.diagnostics.firstTransitJd <
-      report.conventions.dynamicalEpochJd + planet.parameters.periodDays.value);
+    assert.ok(
+      planet.diagnostics.firstTransitJd <
+        report.conventions.dynamicalEpochJd + planet.parameters.periodDays.value
+    );
   });
   assert.equal(report.planets[5].diagnostics.massKind, 'fixed-model-parameter');
   assert.equal(report.planets[5].diagnostics.eccentricityKind, 'fixed-model-parameter');
@@ -87,13 +131,23 @@ test('nominal parameter replay cannot bypass assessment or claim integration/gen
   assert.equal(report.status, 'nominal-parameters-adapted');
   assert.equal(report.physicalEligibility, 'not-assessed');
   assert.deepEqual(report.capabilities, {
-    parameterReplay: true, stateVectors: false, integration: false,
-    stabilityCertification: false, generation: false,
+    parameterReplay: true,
+    stateVectors: false,
+    integration: false,
+    stabilityCertification: false,
+    generation: false,
   });
   assert.equal(report.blockers.length, 4);
-  assert.equal(assessEvidence({ records: report.planets }, {
-    measurementFields: ['massEarth'], requireCommonFit: true,
-  }).status, 'held');
+  assert.equal(
+    assessEvidence(
+      { records: report.planets },
+      {
+        measurementFields: ['massEarth'],
+        requireCommonFit: true,
+      }
+    ).status,
+    'held'
+  );
   assert.throws(() => buildHistoricalFitReport({ epoch: 2451545 }), /does not accept/);
 });
 
