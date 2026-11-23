@@ -53,6 +53,24 @@
           "const": "stellar:sol:catalog-cartesian:v1",
           "description": "Numeric Sol catalog game basis: sol-sun root at zero, right-handed existing Cartesian seeder axes and parent-vector summation, X cross Y = Z. At zero orientation periapsis is +X, advancing anomaly moves toward +Y, and zero inclination lies in XY. Heliocentric source elements reference the J2000.0 ecliptic; satellite source planes are not independently normalized. Not physical barycentric coordinates or a new inertial/ephemeris guarantee."
         },
+        "driveProfile": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "name", "rangeAu", "cruiseSpeedAuPerHour", "fuelCostPerAu"],
+              "properties": {
+                "id": { "type": "string", "pattern": "\\S" },
+                "name": { "type": "string", "pattern": "\\S" },
+                "rangeAu": { "type": "number", "exclusiveMinimum": 0 },
+                "cruiseSpeedAuPerHour": { "type": "number", "exclusiveMinimum": 0 },
+                "fuelCostPerAu": { "type": "number", "exclusiveMinimum": 0 }
+              }
+            }
+          ]
+        },
+        "driveProfileRevision": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
         "epochMs": {
           "type": "integer",
           "minimum": 946684800000,

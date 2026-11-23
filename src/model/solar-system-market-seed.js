@@ -1,6 +1,6 @@
 'use strict';
 
-const SOLAR_SYSTEM_MARKET_SEED_VERSION = '2026-10-station-snapshot-v2';
+const SOLAR_SYSTEM_MARKET_SEED_VERSION = '2026-11-station-snapshot-v3';
 const SOLAR_SYSTEM_MARKET_SEED_STATE_KEY = 'solar-system-market-seed-state';
 const DEFAULT_ORBIT_EPOCH = '2026-01-01T00:00:00.000Z';
 
@@ -10,7 +10,7 @@ const SOL_PLANETARY_MARKETS = [
     marketName: 'Hermes Relay Market',
     anchorBodyId: 'sol-mercury',
     anchorBodyName: 'Mercury',
-    semiMajorAxisKm: 2200,
+    semiMajorAxisKm: 12824.432989690722,
     eccentricity: 0.03,
     orbitalPeriodSec: 86400,
     priceMultiplier: 1.18,
@@ -21,7 +21,7 @@ const SOL_PLANETARY_MARKETS = [
     marketName: 'Aphrodite Sky Exchange',
     anchorBodyId: 'sol-venus',
     anchorBodyName: 'Venus',
-    semiMajorAxisKm: 3500,
+    semiMajorAxisKm: 16213.939393939394,
     eccentricity: 0.01,
     orbitalPeriodSec: 120000,
     priceMultiplier: 1.05,
@@ -32,7 +32,7 @@ const SOL_PLANETARY_MARKETS = [
     marketName: 'Terra Orbital Trade Ring',
     anchorBodyId: 'sol-earth',
     anchorBodyName: 'Earth',
-    semiMajorAxisKm: 4200,
+    semiMajorAxisKm: 16536.363636363636,
     eccentricity: 0.01,
     orbitalPeriodSec: 108000,
     priceMultiplier: 1.0,
@@ -43,7 +43,7 @@ const SOL_PLANETARY_MARKETS = [
     marketName: 'Luna Nearside Bazaar',
     anchorBodyId: 'sol-luna',
     anchorBodyName: 'Earth Moon',
-    semiMajorAxisKm: 1200,
+    semiMajorAxisKm: 11976.938775510203,
     eccentricity: 0.02,
     orbitalPeriodSec: 54000,
     priceMultiplier: 1.02,
@@ -65,7 +65,7 @@ const SOL_PLANETARY_MARKETS = [
     marketName: 'Jovian Gate Market',
     anchorBodyId: 'sol-jupiter',
     anchorBodyName: 'Jupiter',
-    semiMajorAxisKm: 9800,
+    semiMajorAxisKm: 83240.625,
     eccentricity: 0.04,
     orbitalPeriodSec: 260000,
     priceMultiplier: 0.93,
@@ -76,7 +76,7 @@ const SOL_PLANETARY_MARKETS = [
     marketName: 'Ringside Logistics Hub',
     anchorBodyId: 'sol-saturn',
     anchorBodyName: 'Saturn',
-    semiMajorAxisKm: 8600,
+    semiMajorAxisKm: 70342.26804123711,
     eccentricity: 0.03,
     orbitalPeriodSec: 245000,
     priceMultiplier: 0.95,
@@ -87,7 +87,7 @@ const SOL_PLANETARY_MARKETS = [
     marketName: 'Tilted Crown Exchange',
     anchorBodyId: 'sol-uranus',
     anchorBodyName: 'Uranus',
-    semiMajorAxisKm: 7200,
+    semiMajorAxisKm: 36083.67346938776,
     eccentricity: 0.02,
     orbitalPeriodSec: 230000,
     priceMultiplier: 0.97,
@@ -98,7 +98,7 @@ const SOL_PLANETARY_MARKETS = [
     marketName: 'Blue Frontier Port',
     anchorBodyId: 'sol-neptune',
     anchorBodyName: 'Neptune',
-    semiMajorAxisKm: 7400,
+    semiMajorAxisKm: 35692.78350515464,
     eccentricity: 0.03,
     orbitalPeriodSec: 240000,
     priceMultiplier: 0.99,

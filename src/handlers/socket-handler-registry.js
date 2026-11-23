@@ -53,6 +53,10 @@ const {
   NAVIGATION_ROUTE_ESTIMATE_RESPONSE_EVENT,
   navigationEstimateSocketFailure,
 } = require('../model/navigation-route-estimate');
+const {
+  NAVIGATION_ROUTE_EDGE_BATCH_REQUEST_EVENT,
+  NAVIGATION_ROUTE_EDGE_BATCH_RESPONSE_EVENT,
+} = require('../model/navigation-route-edge-batch');
 const { STAR_LIST_REQUEST_EVENT } = require('../model/star-list');
 const { STAR_GET_REQUEST_EVENT } = require('../model/star-get');
 const {
@@ -116,6 +120,7 @@ const RESPONSE_CHANNEL_BY_OPERATION = Object.freeze({
   'solar-system-list': 'solar-system-list-response',
   'solar-system-get': 'solar-system-get-response',
   'navigation-route-estimate': NAVIGATION_ROUTE_ESTIMATE_RESPONSE_EVENT,
+  'navigation-route-edge-batch': NAVIGATION_ROUTE_EDGE_BATCH_RESPONSE_EVENT,
   'star-list': 'star-list-response',
   'star-get': 'star-get-response',
 });
@@ -509,6 +514,15 @@ const SOCKET_HANDLER_REGISTRY = [
     failureResponseEvent: NAVIGATION_ROUTE_ESTIMATE_RESPONSE_EVENT,
     failureResponse: navigationEstimateSocketFailure,
     internalErrorMessage: 'Navigation route estimate could not be evaluated',
+  },
+  {
+    event: NAVIGATION_ROUTE_EDGE_BATCH_REQUEST_EVENT,
+    handlerKey: 'navigationRouteEdgeBatchMessageHandler',
+    errorLabel: 'Navigation route edge batch',
+    canonicalOperation: 'navigation-route-edge-batch',
+    handlerOwnsCorrelation: true,
+    failureResponseEvent: NAVIGATION_ROUTE_EDGE_BATCH_RESPONSE_EVENT,
+    internalErrorMessage: 'Navigation route edge batch could not be evaluated',
   },
   {
     event: STAR_LIST_REQUEST_EVENT,

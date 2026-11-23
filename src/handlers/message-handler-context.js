@@ -1,6 +1,7 @@
 'use strict';
 
 const { GameState } = require('../model/game');
+const { SharedGameClock } = require('../model/game-clock');
 const orbitalMath = require('./context/orbital-math');
 const marketService = require('./context/market-service');
 const npcService = require('./context/npc-service');
@@ -42,6 +43,8 @@ class MessageHandlerContext {
     this.marketsByKey = options.marketsByKey || new Map();
     this.databaseService = options.databaseService || null;
     this.game = options.game || new GameState();
+    this.gameClock = options.gameClock || new SharedGameClock();
+    this.navigationPlanningCaptures = options.navigationPlanningCaptures || new Map();
     this.logger = logger;
     this.log = (line, logOptions = {}) => this.logger.log(line, logOptions);
     this.createId =

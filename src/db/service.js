@@ -64,6 +64,20 @@ class DatabaseService {
     this.log = (line, logOptions = {}) => this.logger.log(line, logOptions);
   }
 
+  async getNavigationGameClock() {
+    const document = await GameStateDocument.findOne({ key: 'navigation-game-clock-v1' }).lean();
+    return document?.value || null;
+  }
+
+  async putNavigationGameClock(value) {
+    const document = await GameStateDocument.findOneAndUpdate(
+      { key: 'navigation-game-clock-v1' },
+      { $set: { key: 'navigation-game-clock-v1', value, updatedAt: new Date() } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
+    return document?.value || null;
+  }
+
   /**
    * Normalize user-provided string input; returns empty string when invalid.
    * @param {unknown} value

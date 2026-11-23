@@ -640,6 +640,12 @@ async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigatio
       solarSystemId: 'sol',
       coordinateBasisId: BASIS_ID,
       epochMs: ship.spatial.epochMs,
+      driveProfile: ship.driveProfile
+        ? structuredClone(ship.driveProfile)
+        : null,
+      driveProfileRevision: ship.driveProfile
+        ? revision(ship.driveProfile)
+        : null,
       departure: {
         shipId: ship.id,
         positionKm: ship.spatial.positionKm,

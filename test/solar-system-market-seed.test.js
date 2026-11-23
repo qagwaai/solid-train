@@ -6,6 +6,7 @@ const {
   SOLAR_SYSTEM_MARKET_SEED_VERSION,
   buildSeededMarketsForSolarSystem,
 } = require('../src/model/solar-system-market-seed');
+const { SOL_SYSTEM_CATALOG } = require('../src/model/sol-system-catalog');
 
 test('buildSeededMarketsForSolarSystem builds Sol market set with required orbit metadata', () => {
   const seeded = buildSeededMarketsForSolarSystem('sol', '2026-05-05T00:00:00.000Z');
@@ -33,6 +34,40 @@ test('buildSeededMarketsForSolarSystem builds Sol market set with required orbit
   const pluto = seeded.find((market) => market.marketId === 'sol-pluto-orbit');
   assert.ok(pluto);
   assert.equal(pluto.trajectory.orbit.anchorBodyId, 'sol-pluto');
+});
+
+test('affected bundled Sol stations have 10000 km mean-radius periapsis altitude', () => {
+  const catalog = new Map(SOL_SYSTEM_CATALOG.map((body) => [body.id, body]));
+  const seeded = buildSeededMarketsForSolarSystem('sol');
+  const expectedSemiMajorAxisKm = {
+    'sol-mercury-orbit': 12824.432989690722,
+    'sol-venus-orbit': 16213.939393939394,
+    'sol-earth-orbit': 16536.363636363636,
+    'sol-moon-orbit': 11976.938775510203,
+    'sol-jupiter-orbit': 83240.625,
+    'sol-saturn-orbit': 70342.26804123711,
+    'sol-uranus-orbit': 36083.67346938776,
+    'sol-neptune-orbit': 35692.78350515464,
+  };
+  for (const [marketId, semiMajorAxisKm] of Object.entries(expectedSemiMajorAxisKm)) {
+    const market = seeded.find((entry) => entry.marketId === marketId);
+    assert.ok(market);
+    const orbit = market.trajectory.orbit;
+    assert.equal(orbit.semiMajorAxisKm, semiMajorAxisKm);
+    const radiusKm = catalog.get(orbit.anchorBodyId).physical.meanRadiusKm;
+    const periapsisKm = orbit.semiMajorAxisKm * (1 - orbit.eccentricity);
+    assert.ok(Math.abs(periapsisKm - (radiusKm + 10000)) < 1e-9);
+  }
+});
+
+test('Mars and Pluto bundled station orbits remain unchanged', () => {
+  const seeded = buildSeededMarketsForSolarSystem('sol');
+  const mars = seeded.find((entry) => entry.marketId === 'sol-mars-orbit');
+  const pluto = seeded.find((entry) => entry.marketId === 'sol-pluto-orbit');
+  assert.equal(mars.trajectory.orbit.semiMajorAxisKm, 3800);
+  assert.equal(mars.trajectory.orbit.eccentricity, 0.02);
+  assert.equal(pluto.trajectory.orbit.semiMajorAxisKm, 2100);
+  assert.equal(pluto.trajectory.orbit.eccentricity, 0.05);
 });
 
 test('buildSeededMarketsForSolarSystem returns empty for unsupported systems', () => {

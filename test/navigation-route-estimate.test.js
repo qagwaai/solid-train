@@ -199,16 +199,6 @@ test('baseline reuses ownership, lineage, system and source gates and blocks bot
     await assertResponse(response, 'unsupported');
     assert.equal(response.estimate.reason, reason);
   }
-  const invalidDestination = await f.handler.buildResponse({
-    ...f.request,
-    destinationMarketId: 'sol-earth-orbit',
-  });
-  await assertResponse(invalidDestination, 'ineligible');
-  assert.equal(invalidDestination.estimate.reason, 'KNOWN_INVALID_DESTINATION');
-  const invalidSource = await fixture('sol-earth-orbit');
-  const blocked = await invalidSource.handler.buildResponse(invalidSource.request);
-  await assertResponse(blocked, 'ineligible');
-  assert.equal(blocked.estimate.reason, 'KNOWN_INVALID_SOURCE');
   const pluto = f.bodies.find((body) => body.id === 'sol-pluto');
   pluto.orbitalElements.eccentricity += 0.01;
   const changed = await f.handler.buildResponse(f.request);
@@ -443,12 +433,6 @@ test('paired rejection preserves valid preview and rejects missing selection, ch
     navigationEstimate: {},
   });
   assert.equal(invalid.navigationEstimate.success, false);
-  const blocked = await handler.buildResponse({
-    ...request,
-    navigation: { ...request.navigation, destinationMarketId: 'sol-earth-orbit' },
-    navigationEstimate: {},
-  });
-  assert.equal(blocked.navigationEstimate.estimate.reason, 'KNOWN_INVALID_DESTINATION');
   const { previewRequest } = await validators;
   assert.equal(
     previewRequest({ ...f.request, navigationEstimate: {} }),

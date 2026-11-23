@@ -87,6 +87,9 @@ const { SolarSystemGetMessageHandler } = require('./handlers/solar-system-get-me
 const {
   NavigationRouteEstimateMessageHandler,
 } = require('./handlers/navigation-route-estimate-message-handler');
+const {
+  NavigationRouteEdgeBatchMessageHandler,
+} = require('./handlers/navigation-route-edge-batch-message-handler');
 const { StarListMessageHandler } = require('./handlers/star-list-message-handler');
 const { StarGetMessageHandler } = require('./handlers/star-get-message-handler');
 const { registerSocketHandlers } = require('./handlers/socket-handler-registry');
@@ -211,6 +214,8 @@ function createServer(options = {}) {
   const navigationRouteEstimateMessageHandler = new NavigationRouteEstimateMessageHandler(
     messageHandlerContext
   );
+  const navigationRouteEdgeBatchMessageHandler =
+    new NavigationRouteEdgeBatchMessageHandler(messageHandlerContext);
   const starListMessageHandler = new StarListMessageHandler(messageHandlerContext);
   const starGetMessageHandler = new StarGetMessageHandler(messageHandlerContext);
 
@@ -341,6 +346,7 @@ function createServer(options = {}) {
         solarSystemListMessageHandler,
         solarSystemGetMessageHandler,
         navigationRouteEstimateMessageHandler,
+        navigationRouteEdgeBatchMessageHandler,
         starListMessageHandler,
         starGetMessageHandler,
       },
@@ -393,6 +399,12 @@ async function startServer(options = {}) {
   });
 
   await messageHandlerContext.initializeAsync({ seedDefaults: true });
+  if (databaseService) {
+    messageHandlerContext.gameClock.databaseService = databaseService;
+    await messageHandlerContext.gameClock.initializeAsync(databaseService);
+  } else {
+    messageHandlerContext.gameClock.initialized = false;
+  }
 
   // Best-effort persistence of the star catalog (HYG + exoplanet catalog) and the
   // solar-system registry into Mongo. Bulk writes are skipped when the content
@@ -478,6 +490,7 @@ async function startServer(options = {}) {
       server.close(async (error) => {
         clearTimeout(fallbackTimer);
         try {
+          if (databaseService) await messageHandlerContext.gameClock.persistAsync();
           if (mongoConnection.getConnectionStatus()) {
             await mongoConnection.disconnect();
           }

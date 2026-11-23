@@ -7,6 +7,86 @@ servers:
 tags:
   - name: SolarSystem
 paths:
+  /socket/navigation-route-edge-batch:
+    post:
+      summary: navigation-route-edge-batch-request
+      operationId: socketNavigationRouteEdgeBatch
+      tags: [SolarSystem]
+      description: |
+        Bounded Phase 3 Sol route-edge evaluator. Socket events are
+        navigation-route-edge-batch-request and navigation-route-edge-batch-response.
+        Nova owns bounded search and ranking; this operation replays complete
+        prefixes from the verified departure and returns no partial jobs or legs.
+        Cruise speed is fixed at 12466.489225 km/s, fuel is 1 unit/AU, and an
+        eligible leg is at most 0.5 AU. At most five encounters, six legs and
+        3 AU of eligible path length are accepted. Direct references may exceed
+        the hop limit and remain visible but ineligible. Each encounter side is
+        replayed independently. Complete jobs include moving body positions,
+        exact epochs, straight-leg distances, durations and fuel. The operation
+        does not claim global optimality or a physical/cleared trajectory.
+        Body-target jobs are encounter jobs: targetSide (-1/+1) is echoed as
+        targetSide and target.encounter identity is appended to sideHistory.
+        prefixSides covers prefixBodyIds only; targetSide is separate and never
+        implied to be a market-side value. Prefix plus target encounters are
+        distinct and count toward the five-encounter bound. A successful body
+        target may be eligible=false with OUTSIDE_HOP_OR_PATH_LIMIT when its leg
+        or full path exceeds the 0.5 AU/3 AU bounds; success means complete
+        replay, not eligibility.
+        Bootstrap creates a server-held capture pinned to the saved departure
+        position, departure epoch, ship/destination, source revision and clock
+        generation/lineage. Continuations require bootstrapId and planningRevision.
+        The server revalidates sources; two-capture and in-process captures do not
+        establish an atomic database snapshot and cannot detect A-to-B-to-A ABA
+        changes between checks. Authentication uses the established Socket.IO
+        session; invalid sessions emit the central invalid-session event plus a
+        correlated typed operation failure. Source, clock and capture failures
+        discard the batch. Timeout/interruption returns incomplete with complete
+        choices only. Numeric distances use binary64 kilometres and epochs are
+        rounded integer game milliseconds; all values must be finite.
+        profileId is optional for compatibility. Omitting it preserves the legacy
+        0.5 AU leg/3 AU eligible-path profile. Nova may explicitly select
+        stellar-sol-station-100au-v1: no per-leg hop cap, exact complete-route
+        total <=14959787070 km (100 AU). The Nova 512-job/30000-ms search budget
+        is client-owned and not server-batch completion. Direct over 100 AU is
+        visible, complete and ineligible. This profile is not a global optimum.
+        navigationMode=ship-drive-normal is the authoritative ship planning mode:
+        the owned ship driveProfile.rangeAu is checked independently as the
+        maximum exact distance of every moving-target leg. It adds no whole-route
+        fuel/support range. navigationMode=bounded-preview-100au ignores only the
+        ship drive range, retains 100 AU and all existing planner/auth/hazard
+        gates, and never authorizes flight. Omitted navigationMode preserves legacy
+        behavior. Missing or changed normalized drive profiles fail explicitly.
+        Evaluated body encounter legs include an optional encounter object.
+        It provides the exact body center and server side-waypoint at the leg
+        arrival epoch, plus side, basis, position model and source revision.
+        encounter.encounterEpochMs equals leg.arrivalEpochMs and
+        encounter.waypointPositionKm equals leg.endPositionKm. Market legs omit
+        encounter. This data supports a timed encounter marker; it is not a
+        curved trajectory, hyperbolic flyby, periapsis or physical clearance result.
+        ship-drive-normal evaluates the owned ship's pinned
+        driveProfile.rangeAu against every exact moving-target leg independently.
+        It has no inferred total drive range. A leg exactly at rangeAu*AU remains
+        eligible; positive epsilon over is OUTSIDE_SHIP_LEG_RANGE. This mode can
+        combine with the 100 AU profile: 100 AU remains a planner bound and does
+        not expand/replace ship range. bounded-preview-100au reports
+        driveEligibility not-applicable and never authorizes flight.
+        The request `requestIdentity` contains only `entityType` and `containerId`.
+        The server canonicalizes the echoed response identity by adding
+        `operation: navigation-route-edge-batch`; Nova must use the response value
+        and must not send or require a request operation field.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NavigationRouteEdgeBatchRequest'
+      responses:
+        '200':
+          description: navigation-route-edge-batch-response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigationRouteEdgeBatchResponse'
   /socket/navigation-route-estimate:
     post:
       summary: navigation-route-estimate-request
@@ -1009,6 +1089,10 @@ paths:
                     solarSystems: []
 components:
   schemas:
+    NavigationRouteEdgeBatchRequest:
+      $ref: '../../schemas/navigation-route-edge-batch-request.schema.json'
+    NavigationRouteEdgeBatchResponse:
+      $ref: '../../schemas/navigation-route-edge-batch-response.schema.json'
     NavigationRouteEstimateRequest:
       $ref: '../../schemas/navigation-route-estimate-request.schema.json'
     NavigationRouteEstimateResponse:

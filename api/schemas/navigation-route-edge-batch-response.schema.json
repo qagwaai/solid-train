@@ -1,0 +1,594 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NavigationRouteEdgeBatchResponse",
+  "description": "Typed complete-edge Phase 3 batch contract. Successful jobs contain complete ordered legs and no partial legs; failed jobs contain no legs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["success", "message", "correlationId", "requestIdentity", "batch"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "message": { "type": "string" },
+    "correlationId": { "type": ["string", "null"] },
+    "requestIdentity": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "entityType", "containerId"],
+          "properties": {
+            "operation": { "const": "navigation-route-edge-batch" },
+            "entityType": { "const": "solar-system" },
+            "containerId": { "const": "sol" }
+          }
+        }
+      ]
+    },
+    "batch": { "$ref": "#/definitions/batch" },
+    "failure": { "$ref": "#/definitions/operationFailure" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "success": { "const": true } } },
+      "then": {
+        "properties": {
+          "batch": { "$ref": "#/definitions/successBatch" }
+        },
+        "not": { "required": ["failure"] }
+      },
+      "else": {
+        "required": ["failure"],
+        "properties": {
+          "batch": { "$ref": "#/definitions/failedBatch" }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "vector3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      }
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileId",
+        "candidateDiscovery",
+        "candidateBodyCount",
+        "maxEncounters",
+        "maxLegs",
+        "maxLegDistanceKm",
+        "maxEligiblePathKm",
+        "fuelUnitsPerAu",
+        "cruiseSpeedKmPerSec",
+        "maxJobs",
+        "maxLogicalLegs",
+        "maxTimeoutMs"
+      ],
+      "properties": {
+        "profileId": {
+          "enum": [
+            "navigation-phase3-legacy-v1",
+            "stellar-sol-station-100au-v1"
+          ]
+        },
+        "candidateDiscovery": { "enum": ["automatic", "explicit"] },
+        "candidateBodyCount": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "maxEncounters": { "const": 5 },
+        "maxLegs": { "const": 6 },
+        "maxLegDistanceKm": {
+          "oneOf": [
+            { "const": 74798935.35 },
+            { "const": null }
+          ],
+          "description": "Legacy profile retains 0.5 AU. The 100 AU profile has no separate per-leg cap."
+        },
+        "maxEligiblePathKm": {
+          "enum": [448793612.1, 14959787070]
+        },
+        "fuelUnitsPerAu": { "const": 1 },
+        "cruiseSpeedKmPerSec": { "const": 12466.489225 },
+        "maxJobs": { "const": 32 },
+        "maxLogicalLegs": { "const": 192 },
+        "maxTimeoutMs": { "const": 30000 },
+        "novaSearchDispatchBudget": { "const": 512 },
+        "novaOverallTimeoutMs": { "const": 30000 },
+        "novaSearchBudgetScope": { "const": "client-owned-not-server-batch-completion" }
+      }
+    },
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "epochMs", "timeScaleId", "running", "generation", "lineage", "durability"],
+      "properties": {
+        "status": { "enum": ["supported", "paused", "unavailable", "recovery"] },
+        "epochMs": { "type": ["integer", "null"], "minimum": 946684800000, "maximum": 4102444799999 },
+        "timeScaleId": { "const": "stellar:unix-ms-uniform:v1" },
+        "running": { "type": "boolean" },
+        "generation": { "type": "integer", "minimum": 1 },
+        "lineage": { "type": "string", "pattern": "\\S" },
+        "durability": { "enum": ["durable-mongo-game-state", "process-only-unverified"] }
+      }
+    },
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planningRevision",
+        "bootstrapId",
+        "departureEpochMs",
+        "departurePositionKm",
+        "coordinateBasisId",
+        "positionEvaluationModelId",
+        "shipId",
+        "shipRevision",
+        "destinationMarketId",
+        "candidateBodyIds",
+        "sourceRevision",
+        "clockGeneration",
+        "clockLineage",
+        "clockEpochMs",
+        "profileId",
+        "profileVersion",
+        "navigationMode",
+        "driveProfile",
+        "driveProfileRevision",
+        "flightAuthorized"
+      ],
+      "description": "Bootstrap capture pins shipRevision, driveProfile, driveProfileRevision, ship/destination/source revisions, clock, profile and navigation mode. Continuation requires matching planningRevision/bootstrapId and revalidates all pinned values; shipRevision/drive/source/clock/profile/mode mismatch fails closed.",
+      "properties": {
+        "planningRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "bootstrapId": { "type": "string", "pattern": "\\S" },
+        "departureEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "departurePositionKm": { "$ref": "#/definitions/vector3" },
+        "coordinateBasisId": { "const": "stellar:sol:catalog-cartesian:v1" },
+        "positionEvaluationModelId": { "const": "sol-catalog-kepler-position-v1" },
+        "shipId": { "type": "string", "pattern": "\\S" },
+        "shipRevision": { "$ref": "./navigation-state-response.schema.json#/definitions/revision" },
+        "destinationMarketId": { "type": "string", "pattern": "\\S" },
+        "candidateBodyIds": { "type": "array", "maxItems": 10, "uniqueItems": true, "items": { "type": "string", "pattern": "\\S" } },
+        "sourceRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "clockGeneration": { "type": "integer", "minimum": 1 },
+        "clockLineage": { "type": "string", "pattern": "\\S" },
+        "clockEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "profileId": {
+          "enum": [
+            "navigation-phase3-legacy-v1",
+            "stellar-sol-station-100au-v1"
+          ]
+        },
+        "profileVersion": { "const": "v1" },
+        "navigationMode": {
+          "enum": ["legacy", "ship-drive-normal", "bounded-preview-100au"]
+        },
+        "driveProfile": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "name", "rangeAu", "cruiseSpeedAuPerHour", "fuelCostPerAu"],
+              "properties": {
+                "id": { "type": "string", "pattern": "\\S" },
+                "name": { "type": "string", "pattern": "\\S" },
+                "rangeAu": { "type": "number", "exclusiveMinimum": 0 },
+                "cruiseSpeedAuPerHour": { "type": "number", "exclusiveMinimum": 0 },
+                "fuelCostPerAu": { "type": "number", "exclusiveMinimum": 0 }
+              }
+            }
+          ]
+        },
+        "driveProfileRevision": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "flightAuthorized": { "const": false }
+      }
+    },
+    "leg": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "legIndex",
+        "fromBodyOrShipId",
+        "toBodyOrMarketId",
+        "startPositionKm",
+        "endPositionKm",
+        "departureEpochMs",
+        "arrivalEpochMs",
+        "distanceKm",
+        "durationMs",
+        "fuelUnits",
+        "withinHopLimit"
+      ],
+      "properties": {
+        "legIndex": { "type": "integer", "minimum": 1, "maximum": 6 },
+        "fromBodyOrShipId": { "type": "string", "pattern": "\\S" },
+        "toBodyOrMarketId": { "type": "string", "pattern": "\\S" },
+        "startPositionKm": { "$ref": "#/definitions/vector3" },
+        "endPositionKm": { "$ref": "#/definitions/vector3" },
+        "departureEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "arrivalEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "distanceKm": { "type": "number", "minimum": 0 },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "fuelUnits": { "type": "number", "minimum": 0 },
+        "withinHopLimit": { "type": "boolean" },
+        "encounter": { "$ref": "#/definitions/timedEncounter" },
+        "withinShipLegRange": {
+          "type": "boolean",
+          "description": "Present only for ship-drive-normal mode. True iff this exact moving-target leg distanceKm <= captured driveProfile.rangeAu*AU_KM."
+        },
+        "shipLegRangeKm": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Present only for ship-drive-normal mode. Computed as captured rangeAu*149597870.7 km."
+        }
+      }
+    },
+    "timedEncounter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bodyId",
+        "side",
+        "encounterEpochMs",
+        "bodyCenterPositionKm",
+        "waypointPositionKm",
+        "offsetKm",
+        "coordinateBasisId",
+        "positionEvaluationModelId",
+        "sourceRevision"
+      ],
+      "properties": {
+        "bodyId": { "type": "string", "pattern": "\\S" },
+        "side": { "enum": [-1, 1] },
+        "encounterEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "bodyCenterPositionKm": { "$ref": "#/definitions/vector3" },
+        "waypointPositionKm": { "$ref": "#/definitions/vector3" },
+        "offsetKm": { "$ref": "#/definitions/vector3" },
+        "coordinateBasisId": { "const": "stellar:sol:catalog-cartesian:v1" },
+        "positionEvaluationModelId": { "const": "sol-catalog-kepler-position-v1" },
+        "sourceRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      },
+      "description": "Present only on evaluated body encounter legs. encounterEpochMs equals leg.arrivalEpochMs and waypointPositionKm equals leg.endPositionKm. bodyCenterPositionKm is the exact catalog-evaluated body center at encounterEpochMs, not a Viewer snapshot. offsetKm=waypoint-bodyCenter. This is straight-leg waypoint presentation, not a curved or physical flyby trajectory."
+    },
+    "hazardMarker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bodyId",
+        "hazardType",
+        "level",
+        "explanation",
+        "legIndex",
+        "epochMs",
+        "positionKm",
+        "routeFraction",
+        "distanceAlongLegKm",
+        "warningRadiusKm",
+        "approximation",
+        "uncertainty"
+      ],
+      "properties": {
+        "bodyId": { "type": "string", "pattern": "\\S" },
+        "hazardType": { "enum": ["surface", "atmosphere", "ring"] },
+        "level": { "const": "warning" },
+        "explanation": { "type": "string", "pattern": "\\S" },
+        "legIndex": { "type": "integer", "minimum": 1, "maximum": 6 },
+        "epochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "positionKm": { "$ref": "#/definitions/vector3" },
+        "routeFraction": { "type": "number", "minimum": 0, "maximum": 1 },
+        "distanceAlongLegKm": { "type": "number", "minimum": 0 },
+        "warningRadiusKm": { "type": "number", "minimum": 0 },
+        "approximation": { "const": "coarse-spherical-moving-body-envelope-on-straight-leg" },
+        "uncertainty": { "const": "advisory-only-not-a-physical-clearance-guarantee" }
+      }
+    },
+    "unresolvedHazardAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bodyId", "legIndex", "epochMs", "positionKm", "reason", "approximation", "uncertainty"],
+      "properties": {
+        "bodyId": { "type": "string", "pattern": "\\S" },
+        "legIndex": { "type": "integer", "minimum": 1, "maximum": 6 },
+        "epochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "positionKm": { "$ref": "#/definitions/vector3" },
+        "reason": { "enum": ["profile_unavailable", "body_position_unavailable"] },
+        "approximation": { "const": "coarse-spherical-moving-body-envelope-on-straight-leg" },
+        "uncertainty": { "const": "advisory-only-data-or-position-unresolved" }
+      }
+    },
+    "hazardAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "markers", "unresolvedBodyIds", "unresolvedAssessments", "surveyStatus"],
+      "properties": {
+        "level": { "enum": ["clear-within-survey", "warning", "warning-with-unresolved"] },
+        "markers": { "type": "array", "items": { "$ref": "#/definitions/hazardMarker" } },
+        "unresolvedBodyIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "\\S" } },
+        "unresolvedAssessments": { "type": "array", "items": { "$ref": "#/definitions/unresolvedHazardAssessment" } },
+        "surveyStatus": { "enum": ["complete", "incomplete", "unavailable"] }
+      }
+    },
+    "sideHistory": {
+      "type": "array",
+      "maxItems": 5,
+      "description": "One entry per evaluated encounter, including a body target. Prefix entries precede target entries.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["encounterIndex", "bodyId", "side"],
+        "properties": {
+          "encounterIndex": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "bodyId": { "type": "string", "pattern": "\\S" },
+          "side": { "enum": [-1, 1] }
+        }
+      }
+    },
+    "driveEligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "flightAuthorized"],
+      "description": "Ship-drive-normal evaluates exact leg distances independently against captured rangeAu; no whole-route drive total. bounded-preview-100au reports not-applicable and ignores drive. legacy reports not-applicable.",
+      "properties": {
+        "status": { "enum": ["eligible", "ineligible", "unavailable", "not-applicable"] },
+        "reason": { "enum": ["WITHIN_SHIP_LEG_RANGE", "OUTSIDE_SHIP_LEG_RANGE", "DRIVE_PROFILE_UNAVAILABLE", "BOUNDED_PREVIEW_IGNORES_SHIP_DRIVE"] },
+        "rangeAu": { "type": "number", "exclusiveMinimum": 0 },
+        "rangeKm": { "type": "number", "exclusiveMinimum": 0 },
+        "exceedingLegs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["legIndex", "distanceKm"],
+            "properties": {
+              "legIndex": { "type": "integer", "minimum": 1, "maximum": 6 },
+              "distanceKm": { "type": "number", "exclusiveMinimum": 0 }
+            }
+          }
+        },
+        "flightAuthorized": { "const": false }
+      }
+    },
+    "successfulJob": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success",
+        "jobId",
+        "prefixBodyIds",
+        "prefixSides",
+        "sideHistory",
+        "target",
+        "modelId",
+        "eligible",
+        "eligibilityReason",
+        "legs",
+        "totalDistanceKm",
+        "totalDurationMs",
+        "fuelUnits",
+        "hazardAssessment",
+        "navigationMode",
+        "flightAuthorized",
+        "driveEligibility"
+      ],
+      "description": "eligible is false if any planner bound or ship-drive-normal leg range fails. driveEligibility is independent diagnostic in preview/legacy modes. In normal mode eligible=false reason OUTSIDE_SHIP_LEG_RANGE takes precedence.",
+      "properties": {
+        "success": { "const": true },
+        "jobId": { "type": "string", "pattern": "\\S" },
+        "prefixBodyIds": { "type": "array", "maxItems": 5, "uniqueItems": true, "items": { "type": "string", "pattern": "\\S" } },
+        "prefixSides": { "type": "array", "maxItems": 5, "items": { "enum": [-1, 1] } },
+        "sideHistory": { "$ref": "#/definitions/sideHistory" },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "enum": ["body", "market"] },
+            "id": { "type": "string", "pattern": "\\S" }
+          }
+        },
+        "targetSide": {
+          "description": "Required only for target.kind=body; omitted for market targets.",
+          "enum": [-1, 1]
+        },
+        "modelId": { "const": "navigation-route-edge-batch-v1" },
+        "eligible": { "type": "boolean" },
+        "eligible": {
+          "type": "boolean",
+          "description": "Final profile+navigation-mode eligibility. In ship-drive-normal mode it is true only if every leg is <= captured rangeAu*AU and planner bounds pass. In bounded-preview-100au it ignores ship range but must pass 100 AU; direct and route preview never imply flight authorization."
+        },
+        "eligibilityReason": {
+          "enum": ["WITHIN_PHASE3_BOUNDS", "OUTSIDE_HOP_OR_PATH_LIMIT", "OUTSIDE_TOTAL_PATH_LIMIT", "OUTSIDE_SHIP_LEG_RANGE"],
+          "description": "Final reason. ship-drive-normal chooses OUTSIDE_SHIP_LEG_RANGE if any exact leg exceeds rangeAu*AU, even if a planner reason also fails. Otherwise use legacy hop/path or 100 AU planner reason."
+        },
+        "legs": { "type": "array", "minItems": 1, "maxItems": 6, "items": { "$ref": "#/definitions/leg" } },
+        "totalDistanceKm": { "type": "number", "minimum": 0 },
+        "totalDurationMs": { "type": "integer", "minimum": 0 },
+        "fuelUnits": { "type": "number", "minimum": 0 },
+        "hazardAssessment": { "$ref": "#/definitions/hazardAssessment" },
+        "navigationMode": { "enum": ["legacy", "ship-drive-normal", "bounded-preview-100au"] },
+        "flightAuthorized": { "const": false },
+        "driveEligibility": { "$ref": "#/definitions/driveEligibility" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "target": { "properties": { "kind": { "const": "body" } } } }, "required": ["target"] },
+          "then": { "required": ["targetSide"] }
+        },
+        {
+          "if": { "properties": { "target": { "properties": { "kind": { "const": "market" } } } }, "required": ["target"] },
+          "then": { "not": { "required": ["targetSide"] } }
+        }
+      ]
+    },
+    "failedJob": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["success", "jobId", "prefixBodyIds", "prefixSides", "target", "reason", "message"],
+      "properties": {
+        "success": { "const": false },
+        "jobId": { "type": "string", "pattern": "\\S" },
+        "prefixBodyIds": { "type": "array", "maxItems": 5, "uniqueItems": true, "items": { "type": "string", "pattern": "\\S" } },
+        "prefixSides": { "type": "array", "maxItems": 5, "items": { "enum": [-1, 1] } },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "enum": ["body", "market"] },
+            "id": { "type": "string", "pattern": "\\S" }
+          }
+        },
+        "reason": { "enum": ["OUT_OF_DOMAIN", "ENCOUNTER_UNAVAILABLE", "NUMERIC_FAILURE", "INVALID_CAPTURE", "SOURCE_MISMATCH", "CLOCK_UNAVAILABLE", "SURVEY_INCOMPLETE"] },
+        "message": { "type": "string", "pattern": "\\S" }
+      }
+    },
+    "directReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "kind", "target", "departurePositionKm", "destinationPositionKm", "distanceKm", "durationMs", "fuelUnits", "eligible", "eligibilityReason", "hazardAssessment", "navigationMode", "flightAuthorized", "driveEligibility"],
+      "properties": {
+        "status": { "const": "supported" },
+        "kind": { "const": "direct-reference" },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "const": "market" },
+            "id": { "type": "string", "pattern": "\\S" }
+          }
+        },
+        "departurePositionKm": { "$ref": "#/definitions/vector3" },
+        "destinationPositionKm": { "$ref": "#/definitions/vector3" },
+        "distanceKm": { "type": "number", "minimum": 0 },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "fuelUnits": { "type": "number", "minimum": 0 },
+        "eligible": { "type": "boolean" },
+        "eligible": {
+          "type": "boolean",
+          "description": "Final direct eligibility. In ship-drive-normal it requires both planner limits and every direct leg <= captured rangeAu*AU."
+        },
+        "eligibilityReason": {
+          "enum": ["WITHIN_PHASE3_BOUNDS", "DIRECT_REFERENCE_MAY_EXCEED_HOP_LIMIT", "DIRECT_REFERENCE_MAY_EXCEED_PATH_LIMIT", "OUTSIDE_SHIP_LEG_RANGE"],
+          "description": "OUTSIDE_SHIP_LEG_RANGE takes precedence in ship-drive-normal; otherwise DIRECT_REFERENCE... or WITHIN..."
+        },
+        "hazardAssessment": { "$ref": "#/definitions/hazardAssessment" },
+        "navigationMode": { "enum": ["legacy", "ship-drive-normal", "bounded-preview-100au"] },
+        "flightAuthorized": { "const": false },
+        "driveEligibility": { "$ref": "#/definitions/driveEligibility" }
+      }
+    },
+    "survey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surveyId", "status", "approximation", "inventoryBodyIds", "profiles"],
+      "properties": {
+        "surveyId": { "const": "sol-hazard-survey-v1" },
+        "status": { "enum": ["complete", "incomplete", "unavailable"] },
+        "approximation": { "const": "coarse-spherical-moving-body-warning-envelope" },
+        "inventoryBodyIds": { "type": "array", "items": { "type": "string", "pattern": "\\S" } },
+        "profiles": { "type": "array" }
+      }
+    },
+    "batch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "capture", "clock", "directReference", "jobs", "bounds", "hazardSurvey", "numericPrecision"],
+      "properties": {
+        "status": { "enum": ["supported", "incomplete", "failed"] },
+        "capture": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/capture" }] },
+        "clock": { "$ref": "#/definitions/clock" },
+        "directReference": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/directReference" }] },
+        "jobs": { "type": "array", "maxItems": 32, "items": { "oneOf": [{ "$ref": "#/definitions/successfulJob" }, { "$ref": "#/definitions/failedJob" }] } },
+        "bounds": { "$ref": "#/definitions/bounds" },
+        "hazardSurvey": { "$ref": "#/definitions/survey" },
+        "numericPrecision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["epochUnit", "positionUnit", "distanceUnit", "durationUnit", "fuelUnit", "distanceRounding", "epochRounding", "finiteValueRequirement"],
+          "properties": {
+            "epochUnit": { "const": "uniform-game-millisecond" },
+            "positionUnit": { "const": "kilometre" },
+            "distanceUnit": { "const": "kilometre" },
+            "durationUnit": { "const": "game-millisecond" },
+            "fuelUnit": { "const": "prototype-fuel-unit-per-AU" },
+            "distanceRounding": { "const": "IEEE-754-binary64-full-precision-response" },
+            "epochRounding": { "const": "Math.round-nearest-millisecond" },
+            "finiteValueRequirement": { "const": "all-output-numbers-must-be-finite" }
+          }
+        },
+        "completion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "completedJobCount", "failedJobCount", "logicalLegCount"],
+          "properties": {
+            "mode": { "enum": ["complete", "timeout", "interrupted", "budget-limited"] },
+            "completedJobCount": { "type": "integer", "minimum": 0 },
+            "failedJobCount": { "type": "integer", "minimum": 0 },
+            "logicalLegCount": { "type": "integer", "minimum": 0, "maximum": 192 }
+          }
+        }
+      }
+    },
+    "successBatch": {
+      "allOf": [
+        { "$ref": "#/definitions/batch" },
+        {
+          "type": "object",
+          "properties": {
+            "status": { "enum": ["supported", "incomplete"] },
+            "completion": { "required": ["mode", "completedJobCount", "failedJobCount", "logicalLegCount"] }
+          }
+        }
+      ]
+    },
+    "failedBatch": {
+      "allOf": [
+        { "$ref": "#/definitions/batch" },
+        {
+          "type": "object",
+          "properties": {
+            "status": { "const": "failed" },
+            "jobs": { "maxItems": 32, "items": { "$ref": "#/definitions/failedJob" } },
+            "directReference": { "type": "null" }
+          }
+        }
+      ]
+    },
+    "operationFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "message"],
+      "properties": {
+        "reason": {
+          "enum": [
+            "invalid_request",
+            "unauthorized",
+            "unsupported_ship_position",
+            "unsupported_target",
+            "clock_unavailable",
+            "clock_recovery_in_progress",
+            "clock_data_inconsistent",
+            "invalid_capture",
+            "capture_expired",
+            "source_changed",
+            "source_association_mismatch",
+            "survey_incomplete",
+            "timeout",
+            "interrupted",
+            "batch_evaluation_failed",
+            "drive_profile_unavailable",
+            "drive_profile_changed"
+          ]
+        },
+        "message": { "type": "string", "pattern": "\\S" }
+      }
+    }
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NavigationRouteEdgeBatchRequest",
+  "description": "Authoritative bounded edge-batch operation. The server replays ordered prefixes and returns complete legs only. Nova owns route search/ranking. Direct targets may exceed the 0.5 AU per-leg eligibility limit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "playerName",
+    "sessionKey",
+    "operation",
+    "phase",
+    "correlationId",
+    "requestIdentity",
+    "selection",
+    "scenarioCruiseSpeedKmPerSec",
+    "jobs"
+  ],
+  "properties": {
+    "playerName": { "type": "string", "pattern": "\\S" },
+    "sessionKey": { "type": "string", "pattern": "\\S" },
+    "operation": { "const": "navigation-route-edge-batch.v1" },
+    "phase": { "enum": ["bootstrap", "continuation"] },
+    "correlationId": { "type": "string", "pattern": "\\S" },
+    "requestIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entityType", "containerId"],
+      "properties": {
+        "entityType": { "const": "solar-system" },
+        "containerId": { "const": "sol" }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["solarSystemId", "shipId", "destination"],
+      "properties": {
+        "solarSystemId": { "const": "sol" },
+        "characterId": {
+          "type": "string",
+          "pattern": "\\S",
+          "description": "Deprecated in Phase 3; ownership is established from the authenticated player and ship."
+        },
+        "shipId": { "type": "string", "pattern": "\\S" },
+        "destination": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "const": "market" },
+            "id": { "type": "string", "pattern": "\\S" }
+          }
+        },
+        "candidateBodyIds": {
+          "description": "Optional explicit pool. When omitted, the server discovers an approved bounded pool of up to ten Sol planets/moons.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "\\S" }
+        }
+      }
+    },
+    "scenarioCruiseSpeedKmPerSec": { "const": 12466.489225 },
+    "navigationMode": {
+      "enum": ["ship-drive-normal", "bounded-preview-100au"],
+      "description": "Omit for legacy behavior. ship-drive-normal applies the owned ship captured driveProfile.rangeAu to each exact leg independently; it has no inferred total drive range and retains the selected planner profile. bounded-preview-100au ignores ship drive range for planning only, requires stellar-sol-station-100au-v1, retains the 100 AU and six-leg/five-encounter bounds, and is not flight authorization. Nova must start a new bootstrap when navigationMode/profile/ship/destination changes; continuation is invalid across those changes."
+    },
+    "profileId": {
+      "enum": [
+        "navigation-phase3-legacy-v1",
+        "stellar-sol-station-100au-v1"
+      ],
+      "description": "Omitting profileId preserves legacy 0.5 AU leg/3 AU eligible-path behavior. Nova must explicitly send stellar-sol-station-100au-v1 for the temporary 100 AU total-route testing profile."
+    },
+    "planningRevision": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Required for continuation. Echoed by bootstrap; pins departure, source revisions and clock generation for the search."
+    },
+    "bootstrapId": {
+      "type": "string",
+      "pattern": "\\S",
+      "description": "Opaque read-only continuity identifier. Bootstrap omits it; continuation supplies it with planningRevision."
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 30000,
+      "description": "Optional client/server batch budget hint. A timed-out result is incomplete and contains only complete jobs."
+    },
+    "jobs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["jobId", "prefixBodyIds", "target"],
+        "properties": {
+          "jobId": { "type": "string", "pattern": "\\S" },
+          "prefixBodyIds": {
+            "type": "array",
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "\\S" }
+          },
+          "prefixSides": {
+            "type": "array",
+            "maxItems": 5,
+            "items": { "enum": [-1, 1] }
+          },
+          "target": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "id"],
+            "properties": {
+              "kind": { "enum": ["body", "market"] },
+              "id": { "type": "string", "pattern": "\\S" }
+            }
+          },
+          "targetSide": { "enum": [-1, 1] }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "phase": { "const": "bootstrap" } } },
+      "then": { "not": { "required": ["planningRevision", "bootstrapId"] } }
+    },
+    {
+      "if": { "properties": { "phase": { "const": "continuation" } } },
+      "then": { "required": ["planningRevision", "bootstrapId"] }
+    },
+    {
+      "if": { "properties": { "navigationMode": { "const": "bounded-preview-100au" } } },
+      "then": { "properties": { "profileId": { "const": "stellar-sol-station-100au-v1" } }, "required": ["profileId"] }
+    }
+  ]
+}

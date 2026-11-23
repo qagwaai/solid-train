@@ -43,8 +43,8 @@ function station(ctx, marketId, circular = false) {
 }
 
 for (const [marketId, hostId, radius] of [
-  ['sol-moon-orbit', 'sol-luna', 1200],
-  ['sol-earth-orbit', 'sol-earth', 4200],
+  ['sol-moon-orbit', 'sol-luna', 11976.938775510203],
+  ['sol-earth-orbit', 'sol-earth', 16536.363636363636],
 ]) {
   test(`${marketId}: circular station is ${radius} km from canonical host at its fixed epoch`, async () => {
     const ctx = context();
@@ -121,7 +121,10 @@ test('elliptical station uses existing orbital helper at host epoch, not a const
         Math.hypot(offset.x, offset.y, offset.z)
     ) < 1e-7
   );
-  assert.notEqual(Math.hypot(offset.x, offset.y, offset.z), 1200);
+  assert.notEqual(
+    Math.hypot(offset.x, offset.y, offset.z),
+    11976.938775510203
+  );
 });
 
 test('different host and element epochs use the persisted host time, never the request time', async () => {
@@ -150,7 +153,7 @@ test('different host and element epochs use the persisted host time, never the r
     snapshot.spatial.positionKm
   );
   const radius = ctx.calculateDistanceKm(host.spatial.positionKm, snapshot.spatial.positionKm);
-  assert.ok(radius >= 1176 && radius <= 1224);
+  assert.ok(radius >= 11737.4 && radius <= 12216.477551020408);
 });
 
 test('missing element epoch is rejected instead of replacing it with current time', async () => {

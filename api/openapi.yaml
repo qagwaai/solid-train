@@ -399,6 +399,8 @@ paths:
     $ref: './openapi/solarsystem/openapi.yaml#/paths/~1socket~1solar-system-get'
   /socket/navigation-route-estimate:
     $ref: './openapi/solarsystem/openapi.yaml#/paths/~1socket~1navigation-route-estimate'
+  /socket/navigation-route-edge-batch:
+    $ref: './openapi/solarsystem/openapi.yaml#/paths/~1socket~1navigation-route-edge-batch'
   /socket/solar-system-list:
     $ref: './openapi/solarsystem/openapi.yaml#/paths/~1socket~1solar-system-list'
   /socket/star-get:
