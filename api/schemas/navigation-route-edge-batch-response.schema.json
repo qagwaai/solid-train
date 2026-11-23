@@ -74,20 +74,14 @@
       ],
       "properties": {
         "profileId": {
-          "enum": [
-            "navigation-phase3-legacy-v1",
-            "stellar-sol-station-100au-v1"
-          ]
+          "enum": ["navigation-phase3-legacy-v1", "stellar-sol-station-100au-v1"]
         },
         "candidateDiscovery": { "enum": ["automatic", "explicit"] },
         "candidateBodyCount": { "type": "integer", "minimum": 1, "maximum": 10 },
         "maxEncounters": { "const": 5 },
         "maxLegs": { "const": 6 },
         "maxLegDistanceKm": {
-          "oneOf": [
-            { "const": 74798935.35 },
-            { "const": null }
-          ],
+          "oneOf": [{ "const": 74798935.35 }, { "const": null }],
           "description": "Legacy profile retains 0.5 AU. The 100 AU profile has no separate per-leg cap."
         },
         "maxEligiblePathKm": {
@@ -106,10 +100,23 @@
     "clock": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "epochMs", "timeScaleId", "running", "generation", "lineage", "durability"],
+      "description": "Validated clock read at response time; search timing uses capture.searchStartEpochMs rather than this advancing epoch.",
+      "required": [
+        "status",
+        "epochMs",
+        "timeScaleId",
+        "running",
+        "generation",
+        "lineage",
+        "durability"
+      ],
       "properties": {
         "status": { "enum": ["supported", "paused", "unavailable", "recovery"] },
-        "epochMs": { "type": ["integer", "null"], "minimum": 946684800000, "maximum": 4102444799999 },
+        "epochMs": {
+          "type": ["integer", "null"],
+          "minimum": 946684800000,
+          "maximum": 4102444799999
+        },
         "timeScaleId": { "const": "stellar:unix-ms-uniform:v1" },
         "running": { "type": "boolean" },
         "generation": { "type": "integer", "minimum": 1 },
@@ -123,7 +130,7 @@
       "required": [
         "planningRevision",
         "bootstrapId",
-        "departureEpochMs",
+        "shipPositionEpochMs",
         "departurePositionKm",
         "coordinateBasisId",
         "positionEvaluationModelId",
@@ -134,7 +141,7 @@
         "sourceRevision",
         "clockGeneration",
         "clockLineage",
-        "clockEpochMs",
+        "searchStartEpochMs",
         "profileId",
         "profileVersion",
         "navigationMode",
@@ -146,23 +153,35 @@
       "properties": {
         "planningRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "bootstrapId": { "type": "string", "pattern": "\\S" },
-        "departureEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "shipPositionEpochMs": {
+          "type": "integer",
+          "minimum": 946684800000,
+          "maximum": 4102444799999,
+          "description": "Saved ship position snapshot epoch; planning does not retimestamp it."
+        },
         "departurePositionKm": { "$ref": "#/definitions/vector3" },
         "coordinateBasisId": { "const": "stellar:sol:catalog-cartesian:v1" },
         "positionEvaluationModelId": { "const": "sol-catalog-kepler-position-v1" },
         "shipId": { "type": "string", "pattern": "\\S" },
         "shipRevision": { "$ref": "./navigation-state-response.schema.json#/definitions/revision" },
         "destinationMarketId": { "type": "string", "pattern": "\\S" },
-        "candidateBodyIds": { "type": "array", "maxItems": 10, "uniqueItems": true, "items": { "type": "string", "pattern": "\\S" } },
+        "candidateBodyIds": {
+          "type": "array",
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "\\S" }
+        },
         "sourceRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "clockGeneration": { "type": "integer", "minimum": 1 },
         "clockLineage": { "type": "string", "pattern": "\\S" },
-        "clockEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "searchStartEpochMs": {
+          "type": "integer",
+          "minimum": 946684800000,
+          "maximum": 4102444799999,
+          "description": "Backend bootstrap game-clock epoch pinned for the entire search."
+        },
         "profileId": {
-          "enum": [
-            "navigation-phase3-legacy-v1",
-            "stellar-sol-station-100au-v1"
-          ]
+          "enum": ["navigation-phase3-legacy-v1", "stellar-sol-station-100au-v1"]
         },
         "profileVersion": { "const": "v1" },
         "navigationMode": {
@@ -211,7 +230,11 @@
         "toBodyOrMarketId": { "type": "string", "pattern": "\\S" },
         "startPositionKm": { "$ref": "#/definitions/vector3" },
         "endPositionKm": { "$ref": "#/definitions/vector3" },
-        "departureEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "departureEpochMs": {
+          "type": "integer",
+          "minimum": 946684800000,
+          "maximum": 4102444799999
+        },
         "arrivalEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
         "distanceKm": { "type": "number", "minimum": 0 },
         "durationMs": { "type": "integer", "minimum": 0 },
@@ -246,7 +269,11 @@
       "properties": {
         "bodyId": { "type": "string", "pattern": "\\S" },
         "side": { "enum": [-1, 1] },
-        "encounterEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
+        "encounterEpochMs": {
+          "type": "integer",
+          "minimum": 946684800000,
+          "maximum": 4102444799999
+        },
         "bodyCenterPositionKm": { "$ref": "#/definitions/vector3" },
         "waypointPositionKm": { "$ref": "#/definitions/vector3" },
         "offsetKm": { "$ref": "#/definitions/vector3" },
@@ -291,7 +318,15 @@
     "unresolvedHazardAssessment": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["bodyId", "legIndex", "epochMs", "positionKm", "reason", "approximation", "uncertainty"],
+      "required": [
+        "bodyId",
+        "legIndex",
+        "epochMs",
+        "positionKm",
+        "reason",
+        "approximation",
+        "uncertainty"
+      ],
       "properties": {
         "bodyId": { "type": "string", "pattern": "\\S" },
         "legIndex": { "type": "integer", "minimum": 1, "maximum": 6 },
@@ -305,12 +340,25 @@
     "hazardAssessment": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["level", "markers", "unresolvedBodyIds", "unresolvedAssessments", "surveyStatus"],
+      "required": [
+        "level",
+        "markers",
+        "unresolvedBodyIds",
+        "unresolvedAssessments",
+        "surveyStatus"
+      ],
       "properties": {
         "level": { "enum": ["clear-within-survey", "warning", "warning-with-unresolved"] },
         "markers": { "type": "array", "items": { "$ref": "#/definitions/hazardMarker" } },
-        "unresolvedBodyIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "\\S" } },
-        "unresolvedAssessments": { "type": "array", "items": { "$ref": "#/definitions/unresolvedHazardAssessment" } },
+        "unresolvedBodyIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "\\S" }
+        },
+        "unresolvedAssessments": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/unresolvedHazardAssessment" }
+        },
         "surveyStatus": { "enum": ["complete", "incomplete", "unavailable"] }
       }
     },
@@ -336,7 +384,14 @@
       "description": "Ship-drive-normal evaluates exact leg distances independently against captured rangeAu; no whole-route drive total. bounded-preview-100au reports not-applicable and ignores drive. legacy reports not-applicable.",
       "properties": {
         "status": { "enum": ["eligible", "ineligible", "unavailable", "not-applicable"] },
-        "reason": { "enum": ["WITHIN_SHIP_LEG_RANGE", "OUTSIDE_SHIP_LEG_RANGE", "DRIVE_PROFILE_UNAVAILABLE", "BOUNDED_PREVIEW_IGNORES_SHIP_DRIVE"] },
+        "reason": {
+          "enum": [
+            "WITHIN_SHIP_LEG_RANGE",
+            "OUTSIDE_SHIP_LEG_RANGE",
+            "DRIVE_PROFILE_UNAVAILABLE",
+            "BOUNDED_PREVIEW_IGNORES_SHIP_DRIVE"
+          ]
+        },
         "rangeAu": { "type": "number", "exclusiveMinimum": 0 },
         "rangeKm": { "type": "number", "exclusiveMinimum": 0 },
         "exceedingLegs": {
@@ -380,7 +435,12 @@
       "properties": {
         "success": { "const": true },
         "jobId": { "type": "string", "pattern": "\\S" },
-        "prefixBodyIds": { "type": "array", "maxItems": 5, "uniqueItems": true, "items": { "type": "string", "pattern": "\\S" } },
+        "prefixBodyIds": {
+          "type": "array",
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "\\S" }
+        },
         "prefixSides": { "type": "array", "maxItems": 5, "items": { "enum": [-1, 1] } },
         "sideHistory": { "$ref": "#/definitions/sideHistory" },
         "target": {
@@ -403,10 +463,20 @@
           "description": "Final profile+navigation-mode eligibility. In ship-drive-normal mode it is true only if every leg is <= captured rangeAu*AU and planner bounds pass. In bounded-preview-100au it ignores ship range but must pass 100 AU; direct and route preview never imply flight authorization."
         },
         "eligibilityReason": {
-          "enum": ["WITHIN_PHASE3_BOUNDS", "OUTSIDE_HOP_OR_PATH_LIMIT", "OUTSIDE_TOTAL_PATH_LIMIT", "OUTSIDE_SHIP_LEG_RANGE"],
+          "enum": [
+            "WITHIN_PHASE3_BOUNDS",
+            "OUTSIDE_HOP_OR_PATH_LIMIT",
+            "OUTSIDE_TOTAL_PATH_LIMIT",
+            "OUTSIDE_SHIP_LEG_RANGE"
+          ],
           "description": "Final reason. ship-drive-normal chooses OUTSIDE_SHIP_LEG_RANGE if any exact leg exceeds rangeAu*AU, even if a planner reason also fails. Otherwise use legacy hop/path or 100 AU planner reason."
         },
-        "legs": { "type": "array", "minItems": 1, "maxItems": 6, "items": { "$ref": "#/definitions/leg" } },
+        "legs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": { "$ref": "#/definitions/leg" }
+        },
         "totalDistanceKm": { "type": "number", "minimum": 0 },
         "totalDurationMs": { "type": "integer", "minimum": 0 },
         "fuelUnits": { "type": "number", "minimum": 0 },
@@ -417,11 +487,17 @@
       },
       "allOf": [
         {
-          "if": { "properties": { "target": { "properties": { "kind": { "const": "body" } } } }, "required": ["target"] },
+          "if": {
+            "properties": { "target": { "properties": { "kind": { "const": "body" } } } },
+            "required": ["target"]
+          },
           "then": { "required": ["targetSide"] }
         },
         {
-          "if": { "properties": { "target": { "properties": { "kind": { "const": "market" } } } }, "required": ["target"] },
+          "if": {
+            "properties": { "target": { "properties": { "kind": { "const": "market" } } } },
+            "required": ["target"]
+          },
           "then": { "not": { "required": ["targetSide"] } }
         }
       ]
@@ -429,11 +505,24 @@
     "failedJob": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["success", "jobId", "prefixBodyIds", "prefixSides", "target", "reason", "message"],
+      "required": [
+        "success",
+        "jobId",
+        "prefixBodyIds",
+        "prefixSides",
+        "target",
+        "reason",
+        "message"
+      ],
       "properties": {
         "success": { "const": false },
         "jobId": { "type": "string", "pattern": "\\S" },
-        "prefixBodyIds": { "type": "array", "maxItems": 5, "uniqueItems": true, "items": { "type": "string", "pattern": "\\S" } },
+        "prefixBodyIds": {
+          "type": "array",
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "\\S" }
+        },
         "prefixSides": { "type": "array", "maxItems": 5, "items": { "enum": [-1, 1] } },
         "target": {
           "type": "object",
@@ -444,14 +533,38 @@
             "id": { "type": "string", "pattern": "\\S" }
           }
         },
-        "reason": { "enum": ["OUT_OF_DOMAIN", "ENCOUNTER_UNAVAILABLE", "NUMERIC_FAILURE", "INVALID_CAPTURE", "SOURCE_MISMATCH", "CLOCK_UNAVAILABLE", "SURVEY_INCOMPLETE"] },
+        "reason": {
+          "enum": [
+            "OUT_OF_DOMAIN",
+            "ENCOUNTER_UNAVAILABLE",
+            "TARGET_UNSUPPORTED",
+            "NUMERIC_FAILURE"
+          ]
+        },
         "message": { "type": "string", "pattern": "\\S" }
       }
     },
     "directReference": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "kind", "target", "departurePositionKm", "destinationPositionKm", "distanceKm", "durationMs", "fuelUnits", "eligible", "eligibilityReason", "hazardAssessment", "navigationMode", "flightAuthorized", "driveEligibility"],
+      "required": [
+        "status",
+        "kind",
+        "target",
+        "departureEpochMs",
+        "arrivalEpochMs",
+        "departurePositionKm",
+        "destinationPositionKm",
+        "distanceKm",
+        "durationMs",
+        "fuelUnits",
+        "eligible",
+        "eligibilityReason",
+        "hazardAssessment",
+        "navigationMode",
+        "flightAuthorized",
+        "driveEligibility"
+      ],
       "properties": {
         "status": { "const": "supported" },
         "kind": { "const": "direct-reference" },
@@ -466,6 +579,12 @@
         },
         "departurePositionKm": { "$ref": "#/definitions/vector3" },
         "destinationPositionKm": { "$ref": "#/definitions/vector3" },
+        "departureEpochMs": {
+          "type": "integer",
+          "minimum": 946684800000,
+          "maximum": 4102444799999
+        },
+        "arrivalEpochMs": { "type": "integer", "minimum": 946684800000, "maximum": 4102444799999 },
         "distanceKm": { "type": "number", "minimum": 0 },
         "durationMs": { "type": "integer", "minimum": 0 },
         "fuelUnits": { "type": "number", "minimum": 0 },
@@ -475,7 +594,12 @@
           "description": "Final direct eligibility. In ship-drive-normal it requires both planner limits and every direct leg <= captured rangeAu*AU."
         },
         "eligibilityReason": {
-          "enum": ["WITHIN_PHASE3_BOUNDS", "DIRECT_REFERENCE_MAY_EXCEED_HOP_LIMIT", "DIRECT_REFERENCE_MAY_EXCEED_PATH_LIMIT", "OUTSIDE_SHIP_LEG_RANGE"],
+          "enum": [
+            "WITHIN_PHASE3_BOUNDS",
+            "DIRECT_REFERENCE_MAY_EXCEED_HOP_LIMIT",
+            "DIRECT_REFERENCE_MAY_EXCEED_PATH_LIMIT",
+            "OUTSIDE_SHIP_LEG_RANGE"
+          ],
           "description": "OUTSIDE_SHIP_LEG_RANGE takes precedence in ship-drive-normal; otherwise DIRECT_REFERENCE... or WITHIN..."
         },
         "hazardAssessment": { "$ref": "#/definitions/hazardAssessment" },
@@ -499,19 +623,49 @@
     "batch": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "capture", "clock", "directReference", "jobs", "bounds", "hazardSurvey", "numericPrecision"],
+      "required": [
+        "status",
+        "capture",
+        "clock",
+        "directReference",
+        "jobs",
+        "bounds",
+        "hazardSurvey",
+        "numericPrecision",
+        "completion"
+      ],
       "properties": {
         "status": { "enum": ["supported", "incomplete", "failed"] },
         "capture": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/capture" }] },
-        "clock": { "$ref": "#/definitions/clock" },
-        "directReference": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/directReference" }] },
-        "jobs": { "type": "array", "maxItems": 32, "items": { "oneOf": [{ "$ref": "#/definitions/successfulJob" }, { "$ref": "#/definitions/failedJob" }] } },
-        "bounds": { "$ref": "#/definitions/bounds" },
-        "hazardSurvey": { "$ref": "#/definitions/survey" },
+        "clock": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/clock" }] },
+        "directReference": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/directReference" }]
+        },
+        "jobs": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "oneOf": [
+              { "$ref": "#/definitions/successfulJob" },
+              { "$ref": "#/definitions/failedJob" }
+            ]
+          }
+        },
+        "bounds": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/bounds" }] },
+        "hazardSurvey": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/survey" }] },
         "numericPrecision": {
-          "type": "object",
+          "type": ["object", "null"],
           "additionalProperties": false,
-          "required": ["epochUnit", "positionUnit", "distanceUnit", "durationUnit", "fuelUnit", "distanceRounding", "epochRounding", "finiteValueRequirement"],
+          "required": [
+            "epochUnit",
+            "positionUnit",
+            "distanceUnit",
+            "durationUnit",
+            "fuelUnit",
+            "distanceRounding",
+            "epochRounding",
+            "finiteValueRequirement"
+          ],
           "properties": {
             "epochUnit": { "const": "uniform-game-millisecond" },
             "positionUnit": { "const": "kilometre" },
@@ -524,11 +678,19 @@
           }
         },
         "completion": {
-          "type": "object",
+          "type": ["object", "null"],
+          "description": "Complete means every submitted job has a terminal record. Counts describe returned records; logicalLegCount sums each returned request prefix length plus one. Unreturned IDs are unfinished. Timeout is reported only when observed.",
           "additionalProperties": false,
-          "required": ["mode", "completedJobCount", "failedJobCount", "logicalLegCount"],
+          "required": [
+            "mode",
+            "submittedJobCount",
+            "completedJobCount",
+            "failedJobCount",
+            "logicalLegCount"
+          ],
           "properties": {
             "mode": { "enum": ["complete", "timeout", "interrupted", "budget-limited"] },
+            "submittedJobCount": { "type": "integer", "minimum": 1, "maximum": 32 },
             "completedJobCount": { "type": "integer", "minimum": 0 },
             "failedJobCount": { "type": "integer", "minimum": 0 },
             "logicalLegCount": { "type": "integer", "minimum": 0, "maximum": 192 }
@@ -543,7 +705,24 @@
           "type": "object",
           "properties": {
             "status": { "enum": ["supported", "incomplete"] },
-            "completion": { "required": ["mode", "completedJobCount", "failedJobCount", "logicalLegCount"] }
+            "capture": { "$ref": "#/definitions/capture" },
+            "clock": { "$ref": "#/definitions/clock" },
+            "directReference": { "$ref": "#/definitions/directReference" },
+            "bounds": { "$ref": "#/definitions/bounds" },
+            "hazardSurvey": { "$ref": "#/definitions/survey" },
+            "numericPrecision": { "type": "object" },
+            "completion": { "type": "object" }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "supported" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "jobs": { "items": { "$ref": "#/definitions/successfulJob" } },
+              "completion": {
+                "properties": { "mode": { "const": "complete" }, "failedJobCount": { "const": 0 } }
+              }
+            }
           }
         }
       ]
@@ -555,14 +734,21 @@
           "type": "object",
           "properties": {
             "status": { "const": "failed" },
-            "jobs": { "maxItems": 32, "items": { "$ref": "#/definitions/failedJob" } },
-            "directReference": { "type": "null" }
+            "capture": { "type": "null" },
+            "clock": { "type": "null" },
+            "jobs": { "maxItems": 0 },
+            "directReference": { "type": "null" },
+            "bounds": { "type": "null" },
+            "hazardSurvey": { "type": "null" },
+            "numericPrecision": { "type": "null" },
+            "completion": { "type": "null" }
           }
         }
       ]
     },
     "operationFailure": {
       "type": "object",
+      "description": "source_changed and drive_profile_changed invalidate the search; invalid_capture means the opaque capture is unavailable or mismatched. direct_* failures fail the required direct calculation. No failed batch contains usable job results.",
       "additionalProperties": false,
       "required": ["reason", "message"],
       "properties": {
@@ -579,9 +765,10 @@
             "capture_expired",
             "source_changed",
             "source_association_mismatch",
-            "survey_incomplete",
-            "timeout",
-            "interrupted",
+            "direct_target_unsupported",
+            "direct_source_unavailable",
+            "direct_numeric_failure",
+            "navigation_read_failed",
             "batch_evaluation_failed",
             "drive_profile_unavailable",
             "drive_profile_changed"

@@ -57,6 +57,9 @@ const {
   NAVIGATION_ROUTE_EDGE_BATCH_REQUEST_EVENT,
   NAVIGATION_ROUTE_EDGE_BATCH_RESPONSE_EVENT,
 } = require('../model/navigation-route-edge-batch');
+const {
+  navigationRouteEdgeBatchSocketFailure,
+} = require('./navigation-route-edge-batch-message-handler');
 const { STAR_LIST_REQUEST_EVENT } = require('../model/star-list');
 const { STAR_GET_REQUEST_EVENT } = require('../model/star-get');
 const {
@@ -522,6 +525,7 @@ const SOCKET_HANDLER_REGISTRY = [
     canonicalOperation: 'navigation-route-edge-batch',
     handlerOwnsCorrelation: true,
     failureResponseEvent: NAVIGATION_ROUTE_EDGE_BATCH_RESPONSE_EVENT,
+    failureResponse: navigationRouteEdgeBatchSocketFailure,
     internalErrorMessage: 'Navigation route edge batch could not be evaluated',
   },
   {

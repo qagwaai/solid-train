@@ -35,6 +35,45 @@ function createMockContext() {
   };
 }
 
+test('route edge batches return correlated typed failures for invalid sessions and handler errors', async () => {
+  const request = {
+    correlationId: 'route-search',
+    requestIdentity: { entityType: 'solar-system', containerId: 'sol' },
+  };
+  for (const invalidSession of [true, false]) {
+    const socket = createMockSocket();
+    registerSocketHandlers(
+      socket,
+      {
+        navigationRouteEdgeBatchMessageHandler: {
+          async handle() {
+            throw new Error('private test detail');
+          },
+        },
+      },
+      {
+        async hasValidSessionAsync() {
+          return !invalidSession;
+        },
+      }
+    );
+    await socket.trigger('navigation-route-edge-batch-request', request);
+    const event = socket.events.find(
+      (entry) => entry.eventName === 'navigation-route-edge-batch-response'
+    );
+    assert.ok(event);
+    assert.equal(event.payload.success, false);
+    assert.equal(event.payload.correlationId, request.correlationId);
+    assert.equal(
+      event.payload.failure.reason,
+      invalidSession ? 'unauthorized' : 'batch_evaluation_failed'
+    );
+    assert.equal(event.payload.message.includes('private test detail'), false);
+    assert.equal(event.payload.batch.capture, null);
+    assert.deepEqual(event.payload.batch.jobs, []);
+  }
+});
+
 test('registerSocketHandlers injects correlation echo for handlers that omit it', async () => {
   const socket = createMockSocket();
   const mockContext = createMockContext();

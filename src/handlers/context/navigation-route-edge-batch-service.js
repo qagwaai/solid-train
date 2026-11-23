@@ -2,6 +2,7 @@
 
 const { SOL_SYSTEM_CATALOG } = require('../../model/sol-system-catalog');
 const { computeAbsolutePositionKm } = require('../../model/solar-system-celestial-seed');
+const { MIN_EPOCH_MS, MAX_EPOCH_MS } = require('./navigation-state-service');
 
 const AU_KM = 149597870.7;
 const CRUISE_SPEED_KM_S = 12466.489225;
@@ -22,17 +23,17 @@ function directReferenceEligibility(distanceKm, profileId = LEGACY_PROFILE_ID) {
   if (profileId === TEST_PROFILE_ID) {
     return {
       eligible: distanceKm <= TEST_MAX_LENGTH_KM,
-      reason: distanceKm <= TEST_MAX_LENGTH_KM
-        ? 'WITHIN_PHASE3_BOUNDS'
-        : 'DIRECT_REFERENCE_MAY_EXCEED_PATH_LIMIT',
+      reason:
+        distanceKm <= TEST_MAX_LENGTH_KM
+          ? 'WITHIN_PHASE3_BOUNDS'
+          : 'DIRECT_REFERENCE_MAY_EXCEED_PATH_LIMIT',
     };
   }
 
   return {
     eligible: distanceKm <= LEG_LIMIT_KM,
-    reason: distanceKm <= LEG_LIMIT_KM
-      ? 'WITHIN_PHASE3_BOUNDS'
-      : 'DIRECT_REFERENCE_MAY_EXCEED_HOP_LIMIT',
+    reason:
+      distanceKm <= LEG_LIMIT_KM ? 'WITHIN_PHASE3_BOUNDS' : 'DIRECT_REFERENCE_MAY_EXCEED_HOP_LIMIT',
   };
 }
 
@@ -40,16 +41,13 @@ function routeEligibility(totalDistanceKm, profileId = LEGACY_PROFILE_ID) {
   if (profileId === TEST_PROFILE_ID) {
     return {
       eligible: totalDistanceKm <= TEST_MAX_LENGTH_KM,
-      reason: totalDistanceKm <= TEST_MAX_LENGTH_KM
-        ? 'WITHIN_PHASE3_BOUNDS'
-        : 'OUTSIDE_TOTAL_PATH_LIMIT',
+      reason:
+        totalDistanceKm <= TEST_MAX_LENGTH_KM ? 'WITHIN_PHASE3_BOUNDS' : 'OUTSIDE_TOTAL_PATH_LIMIT',
     };
   }
   return {
     eligible: totalDistanceKm <= MAX_LENGTH_KM,
-    reason: totalDistanceKm <= MAX_LENGTH_KM
-      ? 'WITHIN_PHASE3_BOUNDS'
-      : 'OUTSIDE_HOP_OR_PATH_LIMIT',
+    reason: totalDistanceKm <= MAX_LENGTH_KM ? 'WITHIN_PHASE3_BOUNDS' : 'OUTSIDE_HOP_OR_PATH_LIMIT',
   };
 }
 
@@ -158,6 +156,7 @@ function cross(a, b) {
 function solveMovingTarget({ startEpochMs, startPositionKm, targetPositionAtEpoch }) {
   let epochMs = startEpochMs;
   for (let iteration = 1; iteration <= 64; iteration += 1) {
+    if (!Number.isFinite(epochMs) || epochMs < MIN_EPOCH_MS || epochMs >= MAX_EPOCH_MS) return null;
     const target = targetPositionAtEpoch(epochMs);
     if (!target || !finiteVector(target)) return null;
     const distanceKm = vectorDistance(startPositionKm, target);
@@ -165,16 +164,27 @@ function solveMovingTarget({ startEpochMs, startPositionKm, targetPositionAtEpoc
     if (!Number.isFinite(next)) return null;
     if (Math.abs(next - epochMs) <= 0.1) {
       const roundedEpoch = Math.round(next);
+      if (roundedEpoch < MIN_EPOCH_MS || roundedEpoch >= MAX_EPOCH_MS) return null;
       const finalTarget = targetPositionAtEpoch(roundedEpoch);
       if (!finalTarget || !finiteVector(finalTarget)) return null;
-      if (Math.abs(startEpochMs + (1000 * vectorDistance(startPositionKm, finalTarget)) / CRUISE_SPEED_KM_S - roundedEpoch) > 1) {
+      if (
+        Math.abs(
+          startEpochMs +
+            (1000 * vectorDistance(startPositionKm, finalTarget)) / CRUISE_SPEED_KM_S -
+            roundedEpoch
+        ) > 1
+      ) {
         return null;
       }
       return {
         epochMs: roundedEpoch,
         positionKm: finalTarget,
         iterations: iteration,
-        residualMs: Math.abs(startEpochMs + (1000 * vectorDistance(startPositionKm, finalTarget)) / CRUISE_SPEED_KM_S - roundedEpoch),
+        residualMs: Math.abs(
+          startEpochMs +
+            (1000 * vectorDistance(startPositionKm, finalTarget)) / CRUISE_SPEED_KM_S -
+            roundedEpoch
+        ),
       };
     }
     epochMs = next;
@@ -200,7 +210,10 @@ function candidateWaypoint(startPositionKm, bodyId, startEpochMs, side = 1) {
   for (let angle = 0; angle < 360; angle += 45) {
     const radians = (angle * Math.PI) / 180;
     const radial = multiply(tangent, side * Math.cos(radians));
-    const normal = multiply(unit(cross(tangent, approachDirection)) || tangent, side * Math.sin(radians));
+    const normal = multiply(
+      unit(cross(tangent, approachDirection)) || tangent,
+      side * Math.sin(radians)
+    );
     offsets.push(add(radial, normal));
   }
   for (const offset of offsets) {
@@ -214,7 +227,10 @@ function candidateWaypoint(startPositionKm, bodyId, startEpochMs, side = 1) {
       const otherPosition = bodyPosition(profile.bodyId, startEpochMs);
       if (!otherPosition) continue;
       const otherRadius = profile.surfaceRadiusKm;
-      if (otherRadius != null && vectorDistance(point, otherPosition) <= otherRadius + WARNING_BUFFER_KM + 10) {
+      if (
+        otherRadius != null &&
+        vectorDistance(point, otherPosition) <= otherRadius + WARNING_BUFFER_KM + 10
+      ) {
         overlapsSurveyedBody = true;
         break;
       }
@@ -307,10 +323,16 @@ function assessHazards(legs, inventory = SOL_HAZARD_SURVEY) {
     }
   }
   return {
-    level: unresolved.length > 0 ? 'warning-with-unresolved' : markers.length > 0 ? 'warning' : 'clear-within-survey',
+    level:
+      unresolved.length > 0
+        ? 'warning-with-unresolved'
+        : markers.length > 0
+          ? 'warning'
+          : 'clear-within-survey',
     markers,
     unresolvedBodyIds: [...new Set(unresolved)],
     unresolvedAssessments,
+    surveyStatus: inventory.status,
   };
 }
 
@@ -330,9 +352,9 @@ function closestPointOnSegment(point, start, end) {
 }
 
 function buildProfiles() {
-  const inventoryIds = SOL_SYSTEM_CATALOG
-    .filter((entry) => ['star', 'planet', 'moon', 'dwarf-planet'].includes(entry.bodyType))
-    .map((entry) => entry.id);
+  const inventoryIds = SOL_SYSTEM_CATALOG.filter((entry) =>
+    ['star', 'planet', 'moon', 'dwarf-planet'].includes(entry.bodyType)
+  ).map((entry) => entry.id);
   const profiles = inventoryIds.map((bodyId) => {
     const entry = CATALOG.get(bodyId);
     const surface = radiusKm(entry);
@@ -347,7 +369,13 @@ function buildProfiles() {
     } else if (entry?.atmosphere?.hasAtmosphere === false) {
       atmosphereOuter = null;
     } else if (surface == null) {
-      return { bodyId, surfaceRadiusKm: null, atmosphereOuterRadiusKm: null, ringOuterEnvelopeKm: null, assessment: 'unavailable' };
+      return {
+        bodyId,
+        surfaceRadiusKm: null,
+        atmosphereOuterRadiusKm: null,
+        ringOuterEnvelopeKm: null,
+        assessment: 'unavailable',
+      };
     }
     if (bodyId === 'sol-saturn') ringOuter = 140180;
     if (bodyId === 'sol-uranus') ringOuter = 98000;
@@ -399,8 +427,7 @@ function evaluateLeg(
     distanceKm,
     durationMs: solved.epochMs - startEpochMs,
     fuelUnits: distanceKm / AU_KM,
-    withinHopLimit:
-      profileId === TEST_PROFILE_ID ? true : distanceKm <= LEG_LIMIT_KM,
+    withinHopLimit: profileId === TEST_PROFILE_ID ? true : distanceKm <= LEG_LIMIT_KM,
     ...(navigationMode === NAV_MODE_NORMAL && driveProfile
       ? {
           withinShipLegRange: distanceKm <= driveProfile.rangeAu * AU_KM,
@@ -410,12 +437,36 @@ function evaluateLeg(
   };
 }
 
-function evaluateJob(ctx, state, clock, job, profileId = LEGACY_PROFILE_ID, navigationMode = null) {
+function evaluateJob(
+  ctx,
+  state,
+  epochMs,
+  job,
+  profileId = LEGACY_PROFILE_ID,
+  navigationMode = null,
+  stationTarget = null
+) {
   const prefix = job.prefixBodyIds || [];
-  if (prefix.length > MAX_ENCOUNTERS) return { success: false, reason: 'OUT_OF_DOMAIN', message: 'Too many encounters' };
-  if (new Set(prefix).size !== prefix.length) return { success: false, reason: 'OUT_OF_DOMAIN', message: 'Repeated encounter bodies are unsupported' };
-  if (prefix.some((id) => !CANDIDATE_IDS.includes(id))) return { success: false, reason: 'OUT_OF_DOMAIN', message: 'Encounter body is outside the approved candidate pool' };
-  if (!state || state.status !== 'supported') return { success: false, reason: 'INVALID_CAPTURE', message: 'A supported navigation capture is required' };
+  if (prefix.length > MAX_ENCOUNTERS)
+    return { success: false, reason: 'OUT_OF_DOMAIN', message: 'Too many encounters' };
+  if (new Set(prefix).size !== prefix.length)
+    return {
+      success: false,
+      reason: 'OUT_OF_DOMAIN',
+      message: 'Repeated encounter bodies are unsupported',
+    };
+  if (prefix.some((id) => !CANDIDATE_IDS.includes(id)))
+    return {
+      success: false,
+      reason: 'OUT_OF_DOMAIN',
+      message: 'Encounter body is outside the approved candidate pool',
+    };
+  if (!state || state.status !== 'supported')
+    return {
+      success: false,
+      reason: 'INVALID_CAPTURE',
+      message: 'A supported navigation capture is required',
+    };
   if (
     job.target?.kind === 'body' &&
     (!CANDIDATE_IDS.includes(job.target.id) ||
@@ -429,7 +480,6 @@ function evaluateJob(ctx, state, clock, job, profileId = LEGACY_PROFILE_ID, navi
     };
   }
 
-  const epochMs = clock?.read?.().epochMs ?? state.epochMs;
   let startPositionKm = state.departure.positionKm;
   let startEpochMs = epochMs;
   let startId = state.departure.shipId;
@@ -441,7 +491,11 @@ function evaluateJob(ctx, state, clock, job, profileId = LEGACY_PROFILE_ID, navi
     const side = job.prefixSides?.[index] ?? 1;
     const offsetVector = candidateWaypoint(startPositionKm, bodyId, startEpochMs, side);
     if (!offsetVector) {
-      return { success: false, reason: 'ENCOUNTER_UNAVAILABLE', message: `No bounded clear encounter offset is available for ${bodyId}` };
+      return {
+        success: false,
+        reason: 'ENCOUNTER_UNAVAILABLE',
+        message: `No bounded clear encounter offset is available for ${bodyId}`,
+      };
     }
     /** @type {any} */
     const leg = evaluateLeg(
@@ -454,11 +508,20 @@ function evaluateJob(ctx, state, clock, job, profileId = LEGACY_PROFILE_ID, navi
       navigationMode,
       state.driveProfile
     );
-    if (!leg) return { success: false, reason: 'NUMERIC_FAILURE', message: 'A moving encounter leg could not converge' };
+    if (!leg)
+      return {
+        success: false,
+        reason: 'NUMERIC_FAILURE',
+        message: 'A moving encounter leg could not converge',
+      };
     leg.legIndex = legs.length + 1;
     leg.encounter = buildEncounter(state, leg, bodyId, side);
     if (!leg.encounter) {
-      return { success: false, reason: 'ENCOUNTER_UNAVAILABLE', message: `The timed encounter marker is unavailable for ${bodyId}` };
+      return {
+        success: false,
+        reason: 'ENCOUNTER_UNAVAILABLE',
+        message: `The timed encounter marker is unavailable for ${bodyId}`,
+      };
     }
     legs.push(leg);
     sideHistory.push({ encounterIndex: index + 1, bodyId, side });
@@ -473,11 +536,24 @@ function evaluateJob(ctx, state, clock, job, profileId = LEGACY_PROFILE_ID, navi
   let targetSide = null;
   if (job.target?.kind === 'body') {
     if (!CANDIDATE_IDS.includes(job.target.id)) {
-      return { success: false, reason: 'OUT_OF_DOMAIN', message: 'Target body is outside the approved candidate pool' };
+      return {
+        success: false,
+        reason: 'OUT_OF_DOMAIN',
+        message: 'Target body is outside the approved candidate pool',
+      };
     }
-    const offsetVector = candidateWaypoint(startPositionKm, job.target.id, startEpochMs, job.targetSide ?? 1);
+    const offsetVector = candidateWaypoint(
+      startPositionKm,
+      job.target.id,
+      startEpochMs,
+      job.targetSide ?? 1
+    );
     if (!offsetVector) {
-      return { success: false, reason: 'ENCOUNTER_UNAVAILABLE', message: `No bounded clear encounter offset is available for ${job.target.id}` };
+      return {
+        success: false,
+        reason: 'ENCOUNTER_UNAVAILABLE',
+        message: `No bounded clear encounter offset is available for ${job.target.id}`,
+      };
     }
     leg = evaluateLeg(
       startPositionKm,
@@ -495,21 +571,31 @@ function evaluateJob(ctx, state, clock, job, profileId = LEGACY_PROFILE_ID, navi
       bodyId: job.target.id,
       side: targetSide,
     });
+    if (!leg)
+      return {
+        success: false,
+        reason: 'NUMERIC_FAILURE',
+        message: 'The destination leg could not converge',
+      };
     leg.encounter = buildEncounter(state, leg, job.target.id, targetSide);
     if (!leg.encounter) {
-      return { success: false, reason: 'ENCOUNTER_UNAVAILABLE', message: `The timed encounter marker is unavailable for ${job.target.id}` };
+      return {
+        success: false,
+        reason: 'ENCOUNTER_UNAVAILABLE',
+        message: `The timed encounter marker is unavailable for ${job.target.id}`,
+      };
     }
   } else {
-    const destinationOffset = subtract(state.destination.positionKm, state.destination.hostPositionKm);
-    const targetHostId = state.destination.hostBodyId;
+    if (!stationTarget)
+      return {
+        success: false,
+        reason: 'TARGET_UNSUPPORTED',
+        message: 'The station target is unavailable',
+      };
     leg = evaluateLeg(
       startPositionKm,
       startEpochMs,
-      (arrivalEpoch) =>
-        add(
-          bodyPosition(targetHostId, arrivalEpoch) || state.destination.hostPositionKm,
-          destinationOffset
-        ),
+      (arrivalEpoch) => stationTarget.atEpoch(arrivalEpoch)?.positionKm,
       startId,
       state.destination.marketId,
       profileId,
@@ -517,18 +603,24 @@ function evaluateJob(ctx, state, clock, job, profileId = LEGACY_PROFILE_ID, navi
       state.driveProfile
     );
   }
-  if (!leg) return { success: false, reason: 'NUMERIC_FAILURE', message: 'The destination leg could not converge' };
+  if (!leg)
+    return {
+      success: false,
+      reason: 'NUMERIC_FAILURE',
+      message: 'The destination leg could not converge',
+    };
   leg.legIndex = legs.length + 1;
   legs.push(leg);
   if (profileId === LEGACY_PROFILE_ID && !leg.withinHopLimit) eligible = false;
 
-  if (legs.length > MAX_LEGS) return { success: false, reason: 'OUT_OF_DOMAIN', message: 'Too many legs' };
+  if (legs.length > MAX_LEGS)
+    return { success: false, reason: 'OUT_OF_DOMAIN', message: 'Too many legs' };
   const totalDistanceKm = legs.reduce((sum, item) => sum + item.distanceKm, 0);
   const routeEligibilityResult = routeEligibility(totalDistanceKm, profileId);
   if (!routeEligibilityResult.eligible) eligible = false;
   const drive = driveEligibility(legs, state.driveProfile, navigationMode);
   if (navigationMode === NAV_MODE_NORMAL && drive.status !== 'eligible') eligible = false;
-  let eligibilityReason = eligible
+  const eligibilityReason = eligible
     ? 'WITHIN_PHASE3_BOUNDS'
     : navigationMode === NAV_MODE_NORMAL && drive.status !== 'eligible'
       ? 'OUTSIDE_SHIP_LEG_RANGE'
@@ -559,7 +651,8 @@ function solveEncounterPosition(bodyId, epochMs, offsetVector) {
   const epochPosition = bodyPosition(bodyId, epochMs);
   if (!epochPosition) return null;
   const waypoint = add(epochPosition, offsetVector);
-  if (norm(subtract(waypoint, epochPosition)) <= radiusKm(CATALOG.get(bodyId)) + WARNING_BUFFER_KM) return null;
+  if (norm(subtract(waypoint, epochPosition)) <= radiusKm(CATALOG.get(bodyId)) + WARNING_BUFFER_KM)
+    return null;
   return waypoint;
 }
 
@@ -583,17 +676,20 @@ function buildEncounter(state, leg, bodyId, side) {
   };
 }
 
-function evaluateDirectReference(ctx, state, clock, profileId = LEGACY_PROFILE_ID, navigationMode = null) {
+function evaluateDirectReference(
+  ctx,
+  state,
+  epochMs,
+  profileId = LEGACY_PROFILE_ID,
+  navigationMode = null,
+  stationTarget = null
+) {
   if (!state || state.status !== 'supported') return null;
-  const clockRead = clock?.read?.();
-  const epochMs = clockRead?.epochMs ?? state.epochMs;
-  const targetHostId = state.destination.hostBodyId;
-  const destinationOffset = subtract(state.destination.positionKm, state.destination.hostPositionKm);
+  if (!stationTarget) return null;
   const solved = solveMovingTarget({
     startEpochMs: epochMs,
     startPositionKm: state.departure.positionKm,
-    targetPositionAtEpoch: (arrivalEpoch) =>
-      add(bodyPosition(targetHostId, arrivalEpoch) || state.destination.hostPositionKm, destinationOffset),
+    targetPositionAtEpoch: (arrivalEpoch) => stationTarget.atEpoch(arrivalEpoch)?.positionKm,
   });
   if (!solved) return null;
   const distanceKm = vectorDistance(state.departure.positionKm, solved.positionKm);
@@ -610,8 +706,7 @@ function evaluateDirectReference(ctx, state, clock, profileId = LEGACY_PROFILE_I
   const eligibility = directReferenceEligibility(distanceKm, profileId);
   const drive = driveEligibility([directLeg], state.driveProfile, navigationMode);
   const directEligible =
-    eligibility.eligible &&
-    (navigationMode !== NAV_MODE_NORMAL || drive.status === 'eligible');
+    eligibility.eligible && (navigationMode !== NAV_MODE_NORMAL || drive.status === 'eligible');
   const directReason =
     navigationMode === NAV_MODE_NORMAL && drive.status !== 'eligible'
       ? 'OUTSIDE_SHIP_LEG_RANGE'
@@ -621,7 +716,9 @@ function evaluateDirectReference(ctx, state, clock, profileId = LEGACY_PROFILE_I
     kind: 'direct-reference',
     target: { kind: 'market', id: state.destination.marketId },
     departurePositionKm: state.departure.positionKm,
-    destinationPositionKm: state.destination.positionKm,
+    destinationPositionKm: solved.positionKm,
+    departureEpochMs: epochMs,
+    arrivalEpochMs: solved.epochMs,
     distanceKm,
     durationMs,
     fuelUnits: distanceKm / AU_KM,

@@ -310,7 +310,7 @@ function evaluator(ctx, snapshot, targetEpochMs) {
       association: 'verified-exact-anchor',
     };
   }
-  function predictionTargets(state) {
+  function stationTarget(state) {
     const allowedIds = new Set(dependencies.keys());
     function requireDependency(id) {
       if (!allowedIds.has(id) || !dependencies.has(id)) {
@@ -326,10 +326,8 @@ function evaluator(ctx, snapshot, targetEpochMs) {
       requireDependency(id);
       return CATALOG.get(id);
     }
-    const candidateId = state.candidates[0].bodyId;
     const marketId = state.destination.marketId;
     const orbit = requireDependency(`station:${marketId}`).trajectory.orbit;
-    const candidateBound = keplerChainSpeedBound(candidateId, catalogBody);
     const destinationBound =
       keplerChainSpeedBound(orbit.anchorBodyId, catalogBody) + keplerSpeedBound(orbit, true);
     function bodyAt(id, epochMs, cache) {
@@ -337,30 +335,50 @@ function evaluator(ctx, snapshot, targetEpochMs) {
       return computeAbsolutePositionKm(CATALOG.get(id), epochMs, cache, CATALOG);
     }
     return {
+      speedBoundKmPerSec: destinationBound,
+      atEpoch: (epochMs) => {
+        const hostPositionKm = bodyAt(orbit.anchorBodyId, epochMs, new Map());
+        const offset = computeRelativeOrbitPositionAtEpochMs(ctx, orbit, epochMs);
+        return {
+          marketId,
+          hostBodyId: orbit.anchorBodyId,
+          hostPositionKm,
+          positionKm: {
+            x: hostPositionKm.x + offset.x,
+            y: hostPositionKm.y + offset.y,
+            z: hostPositionKm.z + offset.z,
+          },
+        };
+      },
+    };
+  }
+  function predictionTargets(state) {
+    const candidateId = state.candidates[0].bodyId;
+    const allowedIds = new Set(dependencies.keys());
+    function catalogBody(id) {
+      if (!allowedIds.has(id) || !dependencies.has(id)) {
+        throw new PredictionError(
+          'failed',
+          'PREDICTION_SOURCE_MISMATCH',
+          'Prediction dependencies changed'
+        );
+      }
+      return CATALOG.get(id);
+    }
+    return {
       candidate: {
-        speedBoundKmPerSec: candidateBound,
+        speedBoundKmPerSec: keplerChainSpeedBound(candidateId, catalogBody),
         atEpoch: (epochMs) => ({
           bodyId: candidateId,
-          positionKm: bodyAt(candidateId, epochMs, new Map()),
+          positionKm: computeAbsolutePositionKm(
+            catalogBody(candidateId),
+            epochMs,
+            new Map(),
+            CATALOG
+          ),
         }),
       },
-      destination: {
-        speedBoundKmPerSec: destinationBound,
-        atEpoch: (epochMs) => {
-          const hostPositionKm = bodyAt(orbit.anchorBodyId, epochMs, new Map());
-          const offset = computeRelativeOrbitPositionAtEpochMs(ctx, orbit, epochMs);
-          return {
-            marketId,
-            hostBodyId: orbit.anchorBodyId,
-            hostPositionKm,
-            positionKm: {
-              x: hostPositionKm.x + offset.x,
-              y: hostPositionKm.y + offset.y,
-              z: hostPositionKm.z + offset.z,
-            },
-          };
-        },
-      },
+      destination: stationTarget(state),
       assertSources: () => {
         if (dependencyRevision(dependencies) !== state.provenance.sourceRevision) {
           throw new PredictionError(
@@ -372,7 +390,7 @@ function evaluator(ctx, snapshot, targetEpochMs) {
       },
     };
   }
-  return { bodyPosition, stationPosition, dependencies, predictionTargets };
+  return { bodyPosition, stationPosition, dependencies, predictionTargets, stationTarget };
 }
 
 function dependencyRevision(dependencies) {
@@ -630,6 +648,9 @@ async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigatio
     const candidates = navigation.candidateBodyId
       ? [evaluation.bodyPosition(navigation.candidateBodyId)]
       : [];
+    if (options.routeCandidateBodyIds) {
+      for (const id of options.routeCandidateBodyIds) evaluation.bodyPosition(id);
+    }
     if (
       candidates.some((body) => !['planet', 'moon'].includes(CATALOG.get(body.bodyId)?.bodyType))
     ) {
@@ -640,12 +661,8 @@ async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigatio
       solarSystemId: 'sol',
       coordinateBasisId: BASIS_ID,
       epochMs: ship.spatial.epochMs,
-      driveProfile: ship.driveProfile
-        ? structuredClone(ship.driveProfile)
-        : null,
-      driveProfileRevision: ship.driveProfile
-        ? revision(ship.driveProfile)
-        : null,
+      driveProfile: ship.driveProfile ? structuredClone(ship.driveProfile) : null,
+      driveProfileRevision: ship.driveProfile ? revision(ship.driveProfile) : null,
       departure: {
         shipId: ship.id,
         positionKm: ship.spatial.positionKm,
@@ -683,6 +700,9 @@ async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigatio
     return {
       bodies: snapshot.bodies,
       navigationState,
+      ...(options.routeCandidateBodyIds
+        ? { routeTarget: evaluation.stationTarget(navigationState) }
+        : {}),
       ...(predictionResult ? { predictionResult } : {}),
     };
   } catch (error) {

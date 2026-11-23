@@ -6,6 +6,11 @@ const path = require('node:path');
 const Parser = require('@apidevtools/swagger-parser');
 const { createSchemaValidator } = require('../src/model/schema-validator');
 const { SharedGameClock } = require('../src/model/game-clock');
+const { navigationFixture } = require('../test-support/navigation-test-helpers');
+const {
+  NavigationRouteEdgeBatchMessageHandler,
+} = require('../src/handlers/navigation-route-edge-batch-message-handler');
+const { computeRelativeOrbitPositionAtEpochMs } = require('../src/handlers/context/orbital-math');
 const {
   AU_KM,
   CRUISE_SPEED_KM_S,
@@ -27,7 +32,6 @@ const {
   SOL_HAZARD_SURVEY,
   bodyPosition,
   distancePointToSegment,
-  buildEncounter,
 } = require('../src/handlers/context/navigation-route-edge-batch-service');
 
 test('Phase 3 route-edge constants preserve approved bounds', () => {
@@ -72,7 +76,6 @@ test('calculated waypoints stay outside modeled radius plus warning buffer', () 
 
 test('side-dependent encounter replay produces separate complete choices', () => {
   const epochMs = Date.parse('2026-01-01T00:00:00.000Z');
-  const clock = new SharedGameClock({ epochMs, running: true });
   const state = {
     status: 'supported',
     epochMs,
@@ -85,24 +88,34 @@ test('side-dependent encounter replay produces separate complete choices', () =>
     },
   };
   const jobs = [-1, 1].map((side) =>
-    evaluateJob({}, state, clock, {
-      jobId: `earth-${side}`,
-      prefixBodyIds: ['sol-earth'],
-      prefixSides: [side],
-      target: { kind: 'market', id: 'sol-mars-orbit' },
-    })
+    evaluateJob(
+      {},
+      state,
+      epochMs,
+      {
+        jobId: `earth-${side}`,
+        prefixBodyIds: ['sol-earth'],
+        prefixSides: [side],
+        target: { kind: 'market', id: 'sol-mars-orbit' },
+      },
+      LEGACY_PROFILE_ID,
+      null,
+      { atEpoch: (epoch) => ({ positionKm: bodyPosition('sol-mars', epoch) }) }
+    )
   );
   for (const job of jobs) {
     assert.equal(job.success, true);
     assert.equal(job.legs.length, 2);
-    assert.equal(job.legs.every((leg) => Number.isFinite(leg.distanceKm)), true);
+    assert.equal(
+      job.legs.every((leg) => Number.isFinite(leg.distanceKm)),
+      true
+    );
   }
   assert.notEqual(jobs[0].totalDistanceKm, jobs[1].totalDistanceKm);
 });
 
 test('body-target jobs expose targetSide in sideHistory', () => {
   const epochMs = Date.parse('2026-01-01T00:00:00.000Z');
-  const clock = new SharedGameClock({ epochMs, running: true });
   const state = {
     status: 'supported',
     epochMs,
@@ -115,7 +128,7 @@ test('body-target jobs expose targetSide in sideHistory', () => {
     },
   };
   for (const side of [-1, 1]) {
-    const job = evaluateJob({}, state, clock, {
+    const job = evaluateJob({}, state, epochMs, {
       jobId: `mercury-${side}`,
       prefixBodyIds: [],
       prefixSides: [],
@@ -124,15 +137,12 @@ test('body-target jobs expose targetSide in sideHistory', () => {
     });
     assert.equal(job.success, true);
     assert.equal(job.targetSide, side);
-    assert.deepEqual(job.sideHistory, [
-      { encounterIndex: 1, bodyId: 'sol-mercury', side },
-    ]);
+    assert.deepEqual(job.sideHistory, [{ encounterIndex: 1, bodyId: 'sol-mercury', side }]);
   }
 });
 
 test('body and prefix encounter legs expose exact timed body/waypoint association', () => {
   const epochMs = Date.parse('2026-01-01T00:00:00.000Z');
-  const clock = new SharedGameClock({ epochMs, running: true });
   const state = {
     status: 'supported',
     epochMs,
@@ -150,13 +160,19 @@ test('body and prefix encounter legs expose exact timed body/waypoint associatio
     },
   };
   for (const side of [-1, 1]) {
-    const job = evaluateJob({}, state, clock, {
-      jobId: `mars-${side}`,
-      prefixBodyIds: [],
-      prefixSides: [],
-      target: { kind: 'body', id: 'sol-mars' },
-      targetSide: side,
-    }, TEST_PROFILE_ID);
+    const job = evaluateJob(
+      {},
+      state,
+      epochMs,
+      {
+        jobId: `mars-${side}`,
+        prefixBodyIds: [],
+        prefixSides: [],
+        target: { kind: 'body', id: 'sol-mars' },
+        targetSide: side,
+      },
+      TEST_PROFILE_ID
+    );
     assert.equal(job.success, true);
     const leg = job.legs[0];
     const encounter = leg.encounter;
@@ -171,12 +187,20 @@ test('body and prefix encounter legs expose exact timed body/waypoint associatio
     assert.notDeepEqual(encounter.bodyCenterPositionKm, leg.endPositionKm);
   }
 
-  const prefixJob = evaluateJob({}, state, clock, {
-    jobId: 'prefix-luna-target-mars',
-    prefixBodyIds: ['sol-luna'],
-    prefixSides: [-1],
-    target: { kind: 'market', id: 'sol-mars-orbit' },
-  }, TEST_PROFILE_ID);
+  const prefixJob = evaluateJob(
+    {},
+    state,
+    epochMs,
+    {
+      jobId: 'prefix-luna-target-mars',
+      prefixBodyIds: ['sol-luna'],
+      prefixSides: [-1],
+      target: { kind: 'market', id: 'sol-mars-orbit' },
+    },
+    TEST_PROFILE_ID,
+    null,
+    { atEpoch: (epoch) => ({ positionKm: bodyPosition('sol-mars', epoch) }) }
+  );
   assert.equal(prefixJob.success, true);
   const prefixLeg = prefixJob.legs[0];
   assert.equal(prefixLeg.encounter.bodyId, 'sol-luna');
@@ -187,7 +211,6 @@ test('body and prefix encounter legs expose exact timed body/waypoint associatio
 
 test('direct reference can exceed hop limits and remains visible and ineligible', () => {
   const epochMs = Date.parse('2026-01-01T00:00:00.000Z');
-  const clock = new SharedGameClock({ epochMs, running: true });
   const state = {
     status: 'supported',
     epochMs,
@@ -199,7 +222,9 @@ test('direct reference can exceed hop limits and remains visible and ineligible'
       hostPositionKm: { x: 5.5e9, y: 0, z: 0 },
     },
   };
-  const direct = evaluateDirectReference({}, state, clock);
+  const direct = evaluateDirectReference({}, state, epochMs, LEGACY_PROFILE_ID, null, {
+    atEpoch: (epoch) => ({ positionKm: bodyPosition('sol-pluto', epoch) }),
+  });
   assert.equal(direct.status, 'supported');
   assert.equal(Object.prototype.hasOwnProperty.call(direct, 'epochMs'), false);
   assert.equal(direct.kind, 'direct-reference');
@@ -207,34 +232,54 @@ test('direct reference can exceed hop limits and remains visible and ineligible'
   assert.ok(direct.distanceKm > LEG_LIMIT_KM);
   assert.equal(direct.hazardAssessment.level !== undefined, true);
   assert.equal(Array.isArray(direct.hazardAssessment.unresolvedAssessments), true);
-  assert.equal(direct.hazardAssessment.markers.every((marker) =>
-    Number.isInteger(marker.legIndex) &&
-    Number.isInteger(marker.epochMs) &&
-    marker.positionKm &&
-    marker.routeFraction >= 0 &&
-    marker.routeFraction <= 1 &&
-    marker.warningRadiusKm >= 1000
-  ), true);
+  assert.equal(
+    direct.hazardAssessment.markers.every(
+      (marker) =>
+        Number.isInteger(marker.legIndex) &&
+        Number.isInteger(marker.epochMs) &&
+        marker.positionKm &&
+        marker.routeFraction >= 0 &&
+        marker.routeFraction <= 1 &&
+        marker.warningRadiusKm >= 1000
+    ),
+    true
+  );
 });
 
 test('direct reference is profile-aware at the exact 100 AU boundary', () => {
-  assert.deepEqual(
-    directReferenceEligibility(TEST_MAX_LENGTH_KM, TEST_PROFILE_ID),
-    { eligible: true, reason: 'WITHIN_PHASE3_BOUNDS' }
-  );
-  assert.deepEqual(
-    directReferenceEligibility(TEST_MAX_LENGTH_KM + 0.001, TEST_PROFILE_ID),
-    { eligible: false, reason: 'DIRECT_REFERENCE_MAY_EXCEED_PATH_LIMIT' }
-  );
+  assert.deepEqual(directReferenceEligibility(TEST_MAX_LENGTH_KM, TEST_PROFILE_ID), {
+    eligible: true,
+    reason: 'WITHIN_PHASE3_BOUNDS',
+  });
+  assert.deepEqual(directReferenceEligibility(TEST_MAX_LENGTH_KM + 0.001, TEST_PROFILE_ID), {
+    eligible: false,
+    reason: 'DIRECT_REFERENCE_MAY_EXCEED_PATH_LIMIT',
+  });
 });
 
 test('ship-drive-normal uses rangeAu as exact per-leg bound only', () => {
-  const drive = { id: 'mk1', name: 'Mk1', rangeAu: 10, cruiseSpeedAuPerHour: 0.3, fuelCostPerAu: 1 };
+  const drive = {
+    id: 'mk1',
+    name: 'Mk1',
+    rangeAu: 10,
+    cruiseSpeedAuPerHour: 0.3,
+    fuelCostPerAu: 1,
+  };
   const legUnder = [{ legIndex: 1, distanceKm: 10 * AU_KM }];
   const legOver = [{ legIndex: 1, distanceKm: 10 * AU_KM + 0.001 }];
   assert.equal(driveEligibility(legUnder, drive, NAV_MODE_NORMAL).status, 'eligible');
   assert.equal(driveEligibility(legOver, drive, NAV_MODE_NORMAL).status, 'ineligible');
-  assert.equal(driveEligibility([{ legIndex: 1, distanceKm: 10 * AU_KM }, { legIndex: 2, distanceKm: 10 * AU_KM }], drive, NAV_MODE_NORMAL).status, 'eligible');
+  assert.equal(
+    driveEligibility(
+      [
+        { legIndex: 1, distanceKm: 10 * AU_KM },
+        { legIndex: 2, distanceKm: 10 * AU_KM },
+      ],
+      drive,
+      NAV_MODE_NORMAL
+    ).status,
+    'eligible'
+  );
   assert.equal(driveEligibility([], null, NAV_MODE_NORMAL).status, 'unavailable');
   assert.equal(driveEligibility([], drive, NAV_MODE_PREVIEW).status, 'not-applicable');
 });
@@ -299,7 +344,28 @@ test('Phase 3 route-edge request and response contracts validate', async () => {
   const operation = api.paths['/socket/navigation-route-edge-batch'].post;
   const ajv = createSchemaValidator({ allErrors: true });
   const validateRequest = ajv.compile(operation.requestBody.content['application/json'].schema);
-  const validateResponse = ajv.compile(operation.responses['200'].content['application/json'].schema);
+  const validateResponse = ajv.compile(
+    operation.responses['200'].content['application/json'].schema
+  );
+  assert.equal(
+    validateRequest(operation.requestBody.content['application/json'].examples.bootstrap.value),
+    true,
+    JSON.stringify(validateRequest.errors)
+  );
+  assert.equal(
+    validateResponse(
+      operation.responses['200'].content['application/json'].examples.requiredDirectFailure.value
+    ),
+    true,
+    JSON.stringify(validateResponse.errors)
+  );
+  assert.equal(
+    validateResponse(
+      operation.responses['200'].content['application/json'].examples.staleContinuation.value
+    ),
+    true,
+    JSON.stringify(validateResponse.errors)
+  );
 
   const request = {
     playerName: 'PilotOne',
@@ -350,7 +416,7 @@ test('Phase 3 route-edge request and response contracts validate', async () => {
       capture: {
         planningRevision: 'a'.repeat(64),
         bootstrapId: 'nav3-aaaaaaaaaaaaaaaaaaaaaaaa',
-        departureEpochMs: epochMsForContract(),
+        shipPositionEpochMs: epochMsForContract(),
         departurePositionKm: { x: 0, y: 0, z: 0 },
         coordinateBasisId: 'stellar:sol:catalog-cartesian:v1',
         positionEvaluationModelId: 'sol-catalog-kepler-position-v1',
@@ -361,7 +427,7 @@ test('Phase 3 route-edge request and response contracts validate', async () => {
         sourceRevision: 'b'.repeat(64),
         clockGeneration: 1,
         clockLineage: 'navigation-clock-lineage-v1',
-        clockEpochMs: epochMsForContract(),
+        searchStartEpochMs: epochMsForContract(),
         profileId: 'stellar-sol-station-100au-v1',
         profileVersion: 'v1',
         navigationMode: 'bounded-preview-100au',
@@ -369,8 +435,27 @@ test('Phase 3 route-edge request and response contracts validate', async () => {
         driveProfileRevision: null,
         flightAuthorized: false,
       },
-      clock: { status: 'supported', epochMs: epochMsForContract(), timeScaleId: 'stellar:unix-ms-uniform:v1', running: true, generation: 1, lineage: 'navigation-clock-lineage-v1', durability: 'process-only-unverified' },
-      directReference: null,
+      clock: {
+        status: 'supported',
+        epochMs: epochMsForContract(),
+        timeScaleId: 'stellar:unix-ms-uniform:v1',
+        running: true,
+        generation: 1,
+        lineage: 'navigation-clock-lineage-v1',
+        durability: 'process-only-unverified',
+      },
+      directReference: evaluateDirectReference(
+        {},
+        {
+          status: 'supported',
+          departure: { shipId: 'ship-1', positionKm: { x: 0, y: 0, z: 0 } },
+          destination: { marketId: 'sol-mars-orbit' },
+        },
+        epochMsForContract(),
+        TEST_PROFILE_ID,
+        NAV_MODE_PREVIEW,
+        { atEpoch: (epoch) => ({ positionKm: bodyPosition('sol-mars', epoch) }) }
+      ),
       jobs: [],
       bounds: {
         profileId: 'stellar-sol-station-100au-v1',
@@ -392,7 +477,8 @@ test('Phase 3 route-edge request and response contracts validate', async () => {
       hazardSurvey: SOL_HAZARD_SURVEY,
       completion: {
         mode: 'complete',
-        completedJobCount: 0,
+        submittedJobCount: 1,
+        completedJobCount: 1,
         failedJobCount: 0,
         logicalLegCount: 1,
       },
@@ -408,9 +494,259 @@ test('Phase 3 route-edge request and response contracts validate', async () => {
       },
     },
   };
+  response.batch.jobs = [
+    evaluateJob(
+      {},
+      {
+        status: 'supported',
+        departure: { shipId: 'ship-1', positionKm: { x: 0, y: 0, z: 0 } },
+        destination: { marketId: 'sol-mars-orbit' },
+      },
+      epochMsForContract(),
+      request.jobs[0],
+      TEST_PROFILE_ID,
+      NAV_MODE_PREVIEW,
+      { atEpoch: (epoch) => ({ positionKm: bodyPosition('sol-mars', epoch) }) }
+    ),
+  ];
   assert.equal(validateResponse(response), true, JSON.stringify(validateResponse.errors));
 });
 
 function epochMsForContract() {
   return Date.parse('2026-01-01T00:00:00.000Z');
 }
+
+test('bootstrap and continuation pin clock and use the full certified arrival pose', async () => {
+  const f = await navigationFixture();
+  const initialSpatial = structuredClone(f.ship.spatial);
+  let epoch = Date.parse('2026-11-23T00:00:00.000Z');
+  let generation = 1;
+  f.ctx.gameClock = {
+    read: () => ({
+      status: 'supported',
+      epochMs: (epoch += 1000),
+      timeScaleId: 'stellar:unix-ms-uniform:v1',
+      running: true,
+      generation,
+      lineage: 'fixture-lineage',
+      durability: 'durable-mongo-game-state',
+    }),
+  };
+  const handler = new NavigationRouteEdgeBatchMessageHandler(f.ctx);
+  const request = {
+    playerName: 'FixturePilot',
+    sessionKey: 'fixture-session',
+    operation: 'navigation-route-edge-batch.v1',
+    phase: 'bootstrap',
+    correlationId: 'fixture',
+    requestIdentity: { entityType: 'solar-system', containerId: 'sol' },
+    selection: {
+      solarSystemId: 'sol',
+      shipId: f.ship.id,
+      destination: { kind: 'market', id: 'sol-pluto-orbit' },
+      candidateBodyIds: ['sol-earth', 'sol-luna'],
+    },
+    scenarioCruiseSpeedKmPerSec: CRUISE_SPEED_KM_S,
+    profileId: TEST_PROFILE_ID,
+    navigationMode: 'bounded-preview-100au',
+    jobs: [
+      { jobId: 'direct', prefixBodyIds: [], target: { kind: 'market', id: 'sol-pluto-orbit' } },
+      {
+        jobId: 'earth',
+        prefixBodyIds: ['sol-earth'],
+        prefixSides: [1],
+        target: { kind: 'market', id: 'sol-pluto-orbit' },
+      },
+    ],
+  };
+  const api = await Parser.dereference(path.join(__dirname, '..', 'api', 'openapi.yaml'));
+  const validate = createSchemaValidator({ allErrors: true }).compile(
+    api.paths['/socket/navigation-route-edge-batch'].post.responses['200'].content[
+      'application/json'
+    ].schema
+  );
+  const first = await handler.buildResponse(request);
+  assert.equal(first.success, true, JSON.stringify(first));
+  assert.equal(validate(first), true, JSON.stringify(validate.errors));
+  const { capture, directReference, jobs, completion } = first.batch;
+  assert.equal(capture.shipPositionEpochMs, initialSpatial.epochMs);
+  assert.deepEqual(capture.departurePositionKm, initialSpatial.positionKm);
+  assert.notEqual(capture.searchStartEpochMs, capture.shipPositionEpochMs);
+  assert.equal(directReference.departureEpochMs, capture.searchStartEpochMs);
+  assert.equal(completion.submittedJobCount, 2);
+  assert.equal(completion.completedJobCount, 2);
+  assert.equal(completion.failedJobCount, 0);
+  assert.equal(completion.logicalLegCount, 3);
+  assert.deepEqual(f.ship.spatial, initialSpatial);
+  const orbit = f.markets.find((market) => market.marketId === 'sol-pluto-orbit').trajectory.orbit;
+  const assertArrival = (start, end, departure, arrival, distance, duration) => {
+    const host = bodyPosition(orbit.anchorBodyId, arrival);
+    const offset = computeRelativeOrbitPositionAtEpochMs(f.ctx, orbit, arrival);
+    const expected = { x: host.x + offset.x, y: host.y + offset.y, z: host.z + offset.z };
+    assert.deepEqual(end, expected);
+    assert.equal(distance, Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z));
+    assert.equal(duration, arrival - departure);
+    assert.ok(Math.abs(departure + (1000 * distance) / CRUISE_SPEED_KM_S - arrival) <= 1);
+    const frozen = computeRelativeOrbitPositionAtEpochMs(f.ctx, orbit, initialSpatial.epochMs);
+    assert.notDeepEqual(offset, frozen);
+  };
+  assertArrival(
+    directReference.departurePositionKm,
+    directReference.destinationPositionKm,
+    directReference.departureEpochMs,
+    directReference.arrivalEpochMs,
+    directReference.distanceKm,
+    directReference.durationMs
+  );
+  for (const job of jobs) {
+    assert.equal(job.success, true);
+    assert.equal(job.legs[0].departureEpochMs, capture.searchStartEpochMs);
+    for (let i = 1; i < job.legs.length; i++) {
+      assert.equal(job.legs[i].departureEpochMs, job.legs[i - 1].arrivalEpochMs);
+      assert.deepEqual(job.legs[i].startPositionKm, job.legs[i - 1].endPositionKm);
+    }
+    const leg = job.legs[job.legs.length - 1];
+    assertArrival(
+      leg.startPositionKm,
+      leg.endPositionKm,
+      leg.departureEpochMs,
+      leg.arrivalEpochMs,
+      leg.distanceKm,
+      leg.durationMs
+    );
+  }
+  const continuation = {
+    ...structuredClone(request),
+    phase: 'continuation',
+    bootstrapId: capture.bootstrapId,
+    planningRevision: capture.planningRevision,
+  };
+  const next = await handler.buildResponse(continuation);
+  assert.equal(next.success, true, JSON.stringify(next));
+  assert.equal(validate(next), true, JSON.stringify(validate.errors));
+  assert.ok(next.batch.clock.epochMs > first.batch.clock.epochMs);
+  assert.deepEqual(next.batch.directReference, directReference);
+  assert.deepEqual(next.batch.jobs, jobs);
+  const partialRequest = structuredClone(continuation);
+  partialRequest.timeoutMs = 100;
+  partialRequest.jobs.push({
+    jobId: 'duplicate-encounter',
+    prefixBodyIds: ['sol-earth'],
+    prefixSides: [1],
+    target: { kind: 'body', id: 'sol-earth' },
+  });
+  const partial = await handler.buildResponse(partialRequest);
+  assert.equal(partial.success, true);
+  assert.equal(partial.batch.status, 'incomplete');
+  assert.equal(partial.batch.completion.mode, 'complete');
+  assert.equal(partial.batch.completion.submittedJobCount, 3);
+  assert.equal(partial.batch.completion.completedJobCount, 2);
+  assert.equal(partial.batch.completion.failedJobCount, 1);
+  assert.equal(partial.batch.completion.logicalLegCount, 5);
+  assert.equal(partial.batch.jobs[2].reason, 'OUT_OF_DOMAIN');
+  assert.equal('legs' in partial.batch.jobs[2], false);
+  assert.equal(validate(partial), true, JSON.stringify(validate.errors));
+  f.ship.driveProfile = {
+    id: 'mk1',
+    name: 'Mk1',
+    rangeAu: 1,
+    cruiseSpeedAuPerHour: 1,
+    fuelCostPerAu: 1,
+  };
+  const changedDrive = await handler.buildResponse(continuation);
+  assert.equal(changedDrive.failure.reason, 'drive_profile_changed');
+  assert.equal(validate(changedDrive), true, JSON.stringify(validate.errors));
+  delete f.ship.driveProfile;
+  const invalidJob = structuredClone(continuation);
+  invalidJob.jobs[0].target = { kind: 'body', id: 'sol-mars' };
+  const invalidResult = await handler.buildResponse(invalidJob);
+  assert.equal(invalidResult.failure.reason, 'invalid_request');
+  assert.equal(validate(invalidResult), true, JSON.stringify(validate.errors));
+  const changedPool = structuredClone(continuation);
+  changedPool.selection.candidateBodyIds = ['sol-earth'];
+  changedPool.jobs = [changedPool.jobs[0]];
+  const poolFailure = await handler.buildResponse(changedPool);
+  assert.equal(poolFailure.success, false);
+  assert.equal(poolFailure.failure.reason, 'source_changed');
+  assert.equal(validate(poolFailure), true, JSON.stringify(validate.errors));
+  generation++;
+  const reset = await handler.buildResponse(continuation);
+  assert.equal(reset.failure.reason, 'source_changed');
+  assert.equal(validate(reset), true, JSON.stringify(validate.errors));
+  generation--;
+  f.markets.find(
+    (market) => market.marketId === 'sol-pluto-orbit'
+  ).trajectory.orbit.semiMajorAxisKm += 1;
+  const changedSource = await handler.buildResponse(continuation);
+  assert.equal(changedSource.failure.reason, 'source_changed');
+  assert.equal(validate(changedSource), true, JSON.stringify(validate.errors));
+});
+
+test('required direct nonconvergence fails the entire batch with null metadata', async () => {
+  const f = await navigationFixture();
+  f.ctx.gameClock = {
+    read: () => ({
+      status: 'supported',
+      epochMs: Date.parse('2099-12-31T23:59:59.999Z'),
+      timeScaleId: 'stellar:unix-ms-uniform:v1',
+      running: true,
+      generation: 1,
+      lineage: 'fixture-lineage',
+      durability: 'durable-mongo-game-state',
+    }),
+  };
+  const handler = new NavigationRouteEdgeBatchMessageHandler(f.ctx);
+  const result = await handler.buildResponse({
+    playerName: 'FixturePilot',
+    sessionKey: 'fixture-session',
+    operation: 'navigation-route-edge-batch.v1',
+    phase: 'bootstrap',
+    correlationId: 'fixture',
+    requestIdentity: { entityType: 'solar-system', containerId: 'sol' },
+    selection: {
+      solarSystemId: 'sol',
+      shipId: f.ship.id,
+      destination: { kind: 'market', id: 'sol-pluto-orbit' },
+      candidateBodyIds: ['sol-earth'],
+    },
+    scenarioCruiseSpeedKmPerSec: CRUISE_SPEED_KM_S,
+    jobs: [{ jobId: 'earth', prefixBodyIds: [], target: { kind: 'body', id: 'sol-earth' } }],
+  });
+  assert.equal(result.success, false);
+  assert.equal(result.failure.reason, 'direct_numeric_failure');
+  assert.deepEqual(result.batch, {
+    status: 'failed',
+    capture: null,
+    clock: null,
+    directReference: null,
+    jobs: [],
+    bounds: null,
+    hazardSurvey: null,
+    numericPrecision: null,
+    completion: null,
+  });
+  assert.equal(f.ctx.navigationPlanningCaptures.size, 0);
+  const api = await Parser.dereference(path.join(__dirname, '..', 'api', 'openapi.yaml'));
+  const validate = createSchemaValidator({ allErrors: true }).compile(
+    api.paths['/socket/navigation-route-edge-batch'].post.responses['200'].content[
+      'application/json'
+    ].schema
+  );
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+});
+
+test('body numeric failure returns a job failure without dereferencing a missing leg', () => {
+  const state = {
+    status: 'supported',
+    departure: { shipId: 'ship-1', positionKm: { x: 0, y: 0, z: 0 } },
+    destination: { marketId: 'sol-mars-orbit' },
+  };
+  const result = evaluateJob({}, state, Date.parse('2099-12-31T23:59:59.999Z'), {
+    jobId: 'earth',
+    prefixBodyIds: [],
+    target: { kind: 'body', id: 'sol-earth' },
+  });
+  assert.equal(result.success, false);
+  assert.equal(result.reason, 'NUMERIC_FAILURE');
+  assert.equal('legs' in result, false);
+});

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "NavigationRouteEdgeBatchRequest",
-  "description": "Authoritative bounded edge-batch operation. The server replays ordered prefixes and returns complete legs only. Nova owns route search/ranking. Direct targets may exceed the 0.5 AU per-leg eligibility limit.",
+  "description": "Bounded route planning replays complete jobs from one captured search-start epoch. Required direct evaluation failures fail the batch.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -52,7 +52,7 @@
           }
         },
         "candidateBodyIds": {
-          "description": "Optional explicit pool. When omitted, the server discovers an approved bounded pool of up to ten Sol planets/moons.",
+          "description": "Optional explicit pool. Omitted on bootstrap, the server discovers an approved bounded pool of up to ten Sol planets/moons; omitted on continuation, the captured pool is reused. Explicit continuation pools must match it as a set.",
           "type": "array",
           "minItems": 1,
           "maxItems": 10,
@@ -67,10 +67,7 @@
       "description": "Omit for legacy behavior. ship-drive-normal applies the owned ship captured driveProfile.rangeAu to each exact leg independently; it has no inferred total drive range and retains the selected planner profile. bounded-preview-100au ignores ship drive range for planning only, requires stellar-sol-station-100au-v1, retains the 100 AU and six-leg/five-encounter bounds, and is not flight authorization. Nova must start a new bootstrap when navigationMode/profile/ship/destination changes; continuation is invalid across those changes."
     },
     "profileId": {
-      "enum": [
-        "navigation-phase3-legacy-v1",
-        "stellar-sol-station-100au-v1"
-      ],
+      "enum": ["navigation-phase3-legacy-v1", "stellar-sol-station-100au-v1"],
       "description": "Omitting profileId preserves legacy 0.5 AU leg/3 AU eligible-path behavior. Nova must explicitly send stellar-sol-station-100au-v1 for the temporary 100 AU total-route testing profile."
     },
     "planningRevision": {
@@ -87,7 +84,7 @@
       "type": "integer",
       "minimum": 100,
       "maximum": 30000,
-      "description": "Optional client/server batch budget hint. A timed-out result is incomplete and contains only complete jobs."
+      "description": "Optional budget hint; it does not guarantee a server deadline. A timeout is reported only if actually enforced and observed."
     },
     "jobs": {
       "type": "array",
@@ -127,15 +124,23 @@
   "allOf": [
     {
       "if": { "properties": { "phase": { "const": "bootstrap" } } },
-      "then": { "not": { "required": ["planningRevision", "bootstrapId"] } }
+      "then": {
+        "not": { "anyOf": [{ "required": ["planningRevision"] }, { "required": ["bootstrapId"] }] }
+      }
     },
     {
       "if": { "properties": { "phase": { "const": "continuation" } } },
       "then": { "required": ["planningRevision", "bootstrapId"] }
     },
     {
-      "if": { "properties": { "navigationMode": { "const": "bounded-preview-100au" } } },
-      "then": { "properties": { "profileId": { "const": "stellar-sol-station-100au-v1" } }, "required": ["profileId"] }
+      "if": {
+        "properties": { "navigationMode": { "const": "bounded-preview-100au" } },
+        "required": ["navigationMode"]
+      },
+      "then": {
+        "properties": { "profileId": { "const": "stellar-sol-station-100au-v1" } },
+        "required": ["profileId"]
+      }
     }
   ]
 }

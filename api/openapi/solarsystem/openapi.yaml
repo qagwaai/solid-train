@@ -32,16 +32,45 @@ paths:
         target may be eligible=false with OUTSIDE_HOP_OR_PATH_LIMIT when its leg
         or full path exceeds the 0.5 AU/3 AU bounds; success means complete
         replay, not eligibility.
-        Bootstrap creates a server-held capture pinned to the saved departure
-        position, departure epoch, ship/destination, source revision and clock
-        generation/lineage. Continuations require bootstrapId and planningRevision.
+        Bootstrap captures the exact saved departurePositionKm and its
+        shipPositionEpochMs separately from the backend clock searchStartEpochMs.
+        Direct and every replay start at that vector and pinned search epoch;
+        later legs start at the prior returned endpoint and arrival. Planning does
+        not move or retimestamp the ship. Continuations require bootstrapId and
+        planningRevision. Ordinary clock advance does not retime the search;
+        generation or lineage change invalidates it.
+        Market endpoints are verified full host-chain plus station orbit poses
+        evaluated at the returned rounded arrival. Distances, fuel, eligibility,
+        and hazard geometry use returned endpoints. Duration equals arrival minus
+        departure; the fixed-speed timing residual is at most 1 ms. A required
+        direct calculation failure fails the entire batch, whereas an out-of-range
+        calculated direct remains supported and ineligible.
         The server revalidates sources; two-capture and in-process captures do not
         establish an atomic database snapshot and cannot detect A-to-B-to-A ABA
         changes between checks. Authentication uses the established Socket.IO
         session; invalid sessions emit the central invalid-session event plus a
         correlated typed operation failure. Source, clock and capture failures
-        discard the batch. Timeout/interruption returns incomplete with complete
-        choices only. Numeric distances use binary64 kilometres and epochs are
+        discard the batch and require an explicit new Plan Route; no automatic
+        retry. Per-job failures contain no legs; incomplete batches retain only
+        complete job records and a required direct. Timeout is reported only if
+        actually observed, not inferred from a failed job or a timeout hint.
+        completion.submittedJobCount is the number requested; completedJobCount
+        counts successful records, failedJobCount counts failed records, and
+        logicalLegCount sums prefix length plus one for each returned record.
+        Returned records retain request order; absent job IDs are unfinished.
+        completion.mode=complete means every submitted job has a terminal record;
+        status=supported additionally requires no failed jobs. Otherwise status
+        is incomplete. timeoutMs is a hint, not an enforced server deadline.
+        Capture and candidate-pool mismatches are source_changed, missing or
+        mismatched capture is invalid_capture, unsupported direct targets are
+        direct_target_unsupported, missing direct sources are
+        direct_source_unavailable, and failed direct solving is
+        direct_numeric_failure. Source read errors are navigation_read_failed.
+        Invalid-session and unexpected handler errors are respectively
+        unauthorized and batch_evaluation_failed. Failed batches return null
+        capture, clock, directReference, bounds, hazardSurvey, numericPrecision,
+        and completion, with an empty jobs array.
+        Numeric distances use binary64 kilometres and epochs are
         rounded integer game milliseconds; all values must be finite.
         profileId is optional for compatibility. Omitting it preserves the legacy
         0.5 AU leg/3 AU eligible-path profile. Nova may explicitly select
@@ -80,6 +109,27 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/NavigationRouteEdgeBatchRequest'
+            examples:
+              bootstrap:
+                value:
+                  playerName: PilotOne
+                  sessionKey: example-session
+                  operation: navigation-route-edge-batch.v1
+                  phase: bootstrap
+                  correlationId: example-search
+                  requestIdentity: { entityType: solar-system, containerId: sol }
+                  selection:
+                    solarSystemId: sol
+                    shipId: ship-1
+                    destination: { kind: market, id: sol-mars-orbit }
+                    candidateBodyIds: [sol-earth]
+                  scenarioCruiseSpeedKmPerSec: 12466.489225
+                  profileId: stellar-sol-station-100au-v1
+                  navigationMode: bounded-preview-100au
+                  jobs:
+                    - jobId: direct
+                      prefixBodyIds: []
+                      target: { kind: market, id: sol-mars-orbit }
       responses:
         '200':
           description: navigation-route-edge-batch-response
@@ -87,6 +137,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NavigationRouteEdgeBatchResponse'
+              examples:
+                requiredDirectFailure:
+                  value:
+                    success: false
+                    message: The required direct route could not converge
+                    correlationId: example-search
+                    requestIdentity:
+                      {
+                        operation: navigation-route-edge-batch,
+                        entityType: solar-system,
+                        containerId: sol,
+                      }
+                    batch:
+                      status: failed
+                      capture: null
+                      clock: null
+                      directReference: null
+                      jobs: []
+                      bounds: null
+                      hazardSurvey: null
+                      numericPrecision: null
+                      completion: null
+                    failure:
+                      reason: direct_numeric_failure
+                      message: The required direct route could not converge
+                staleContinuation:
+                  value:
+                    success: false
+                    message: Planning capture no longer matches current sources
+                    correlationId: example-search
+                    requestIdentity:
+                      {
+                        operation: navigation-route-edge-batch,
+                        entityType: solar-system,
+                        containerId: sol,
+                      }
+                    batch:
+                      status: failed
+                      capture: null
+                      clock: null
+                      directReference: null
+                      jobs: []
+                      bounds: null
+                      hazardSurvey: null
+                      numericPrecision: null
+                      completion: null
+                    failure:
+                      reason: source_changed
+                      message: Planning capture no longer matches current sources
   /socket/navigation-route-estimate:
     post:
       summary: navigation-route-estimate-request

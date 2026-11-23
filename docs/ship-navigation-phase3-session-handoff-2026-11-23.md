@@ -5,6 +5,33 @@ Date: 2026-11-23
 Status: Session implementation and focused contract validation handoff. No commit,
 push, server restart or live-data change is authorized or included.
 
+## Subsequent in-place route-consistency correction
+
+The current source contract supersedes the earlier capture/timing description
+below. `capture.shipPositionEpochMs` identifies the saved position snapshot,
+while `capture.searchStartEpochMs` is the backend bootstrap clock reading used
+for direct, replayed jobs and continuations. Planning does not move or
+retimestamp the ship. The direct reference and market-target legs use the full
+verified host and station pose at rounded arrival; their returned geometry,
+distance, duration, fuel and eligibility refer to the same endpoints. The
+fixed-speed timing residual is at most 1 ms.
+
+The direct calculation is required, including when outside range: an
+out-of-range result is supported and ineligible; unsupported source or numeric
+failure fails the batch. Common source, candidate pool, owner, ship, drive,
+profile, mode or clock generation/lineage changes invalidate a search. Ordinary
+clock advance does not. Failed batches contain null metadata and no jobs.
+Individual failed jobs contain no partial legs and make the batch incomplete,
+even when all requested jobs have terminal records. `timeoutMs` is a hint, not
+an enforced deadline. Nova must explicitly start a new search after
+invalidation; no automatic retry.
+
+The correction is in place, not a parallel version. Source files can be updated
+while an existing server still runs an older handler; the owner must coordinate
+restart and Nova must inspect the served OpenAPI and referenced schemas before
+adoption. Full application-wide celestial movement semantics, docked following,
+Start Travel and world updates remain separate.
+
 ## Implemented contract surfaces
 
 - Additive `navigation-route-edge-batch.v1` Socket.IO operation and request/response
@@ -40,16 +67,16 @@ push, server restart or live-data change is authorized or included.
 The owner-authorized bundled seed and test changes set eight intersecting
 Sol station orbits to mean radius plus 10000 km periapsis:
 
-| Market | Semi-major axis km |
-| --- | ---: |
+| Market              | Semi-major axis km |
+| ------------------- | -----------------: |
 | `sol-mercury-orbit` | 12824.432989690722 |
-| `sol-venus-orbit` | 16213.939393939394 |
-| `sol-earth-orbit` | 16536.363636363636 |
-| `sol-moon-orbit` | 11976.938775510203 |
-| `sol-jupiter-orbit` | 83240.625 |
-| `sol-saturn-orbit` | 70342.26804123711 |
-| `sol-uranus-orbit` | 36083.67346938776 |
-| `sol-neptune-orbit` | 35692.78350515464 |
+| `sol-venus-orbit`   | 16213.939393939394 |
+| `sol-earth-orbit`   | 16536.363636363636 |
+| `sol-moon-orbit`    | 11976.938775510203 |
+| `sol-jupiter-orbit` |          83240.625 |
+| `sol-saturn-orbit`  |  70342.26804123711 |
+| `sol-uranus-orbit`  |  36083.67346938776 |
+| `sol-neptune-orbit` |  35692.78350515464 |
 
 Mars and Pluto were unchanged. The implementation changes eccentricity, period,
 plane, phase, epoch and metadata only as needed to preserve those values.
@@ -110,10 +137,11 @@ repository. Do not stage live credentials or database output.
 
 ## Release gate
 
-No commit, push or server restart was performed. An owner-controlled restart is
-required before the running Forge server serves the latest contract and
-implementation. Before restart, review the final diff and run the documented
-focused checks. Live UI/API validation remains a separate owner-approved step.
+At this handoff stage no commit, push or restart had been performed; an
+owner-controlled restart was then required before the running Forge server
+served the latest contract and implementation. The later integrated live-review
+report below records the owner's restart and the limited checks performed
+afterward. No commit or push has been made.
 
 ## 2026-11-23 ship-drive and final contract closeout
 
@@ -175,5 +203,105 @@ bootstrap. `shipRevision` is now part of the public capture response.
   strict-schema/type warnings-disabled settings; AJV keywords and formats remain
   enabled.
 
-No live data read/write, migration, purchase, ship mutation or restart occurred
-during this closeout.
+No live data read/write, migration, purchase or ship mutation occurred during
+the Forge implementation closeout. The owner later reported a server restart
+for the integrated live review below.
+
+## IMPLEMENT-001 and integrated P4-01/UI-001 closeout
+
+The owner approved an in-place backend contract correction, followed by Nova
+adoption. Forge completed the backend contract/evaluator and focused tests; Nova
+completed ADOPT-001 and owner-approved UI-001. The owner accepted the integrated
+presentation as "looking good". UI-001 hides the historical snapshot-distance /
+unavailable block while calculated route choices are available, including an
+ineligible direct reference; it remains before planning, after failure and when
+no calculated choice is selected. English and Italian calculated-route copy
+now acknowledges estimated time/fuel and preserves the existing unvalidated
+flight/clearance/transfer/gravity disclaimers. Existing access, docking and
+survey warnings were not changed.
+
+### Backend files and validation
+
+Forge changed:
+
+- `api/openapi/solarsystem/openapi.yaml`
+- `api/schemas/navigation-route-edge-batch-request.schema.json`
+- `api/schemas/navigation-route-edge-batch-response.schema.json`
+- `src/handlers/context/navigation-route-edge-batch-service.js`
+- `src/handlers/context/navigation-state-service.js`
+- `src/handlers/navigation-route-edge-batch-message-handler.js`
+- `src/handlers/socket-handler-registry.js`
+- `test/navigation-route-edge-batch.test.js`
+- `test/socket-handler-registry.test.js`
+- This handoff and the Forge-local `.vscode/linked-navigation-state.md`.
+
+The backend focused regression command passed 46 tests:
+
+`node --test test\navigation-route-edge-batch.test.js test\navigation-prediction.test.js test\navigation-position-contract.test.js test\socket-handler-registry.test.js`
+
+Also passed: `npm run typecheck`; targeted ESLint on the six changed
+JavaScript/test files; installed `@apidevtools/swagger-parser` validation of
+`api/openapi.yaml`; and `git --no-pager diff --check`. The attempted
+`npx --no-install swagger-cli validate api\openapi.yaml` could not run because
+the local swagger-cli executable is absent; no package was installed.
+Formatting was deferred until this session closeout.
+
+### Coordinated live review (reported by owner/Nova)
+
+The owner reported restarting the backend, then authorized an unauthenticated
+invalid-request probe. Nova reported that served root and solar-system OpenAPI
+and referenced route schemas returned HTTP 200 and that the registry's
+unauthorized response validated against the served failed-batch schema. This
+checks those exercised contract/error paths only; it is not proof of full live
+numerical coherence.
+
+For the owner's approved UI review of the existing active docked ship from Sol
+to Mars Orbital Market, Nova reported:
+
+- Normal mode failed explicitly with `drive_profile_unavailable`; there was no
+  fallback or drive repair. A retained normal wire validation was unavailable.
+- Preview displayed 512 completed jobs, zero rejected, zero unfinished and
+  five direct/Mars/Phobos/Earth choices. The UI/client correctly represented
+  the capped search and incomplete hazard survey; it did not claim exhaustive
+  search, clearance or flight authorization.
+- A late passive observer saw seven supported complete batches / 203
+  successful jobs (not all 512 response payloads). Within observed responses,
+  capture identity and pinned search epoch remained stable; direct/first legs
+  used the capture epoch and later legs chained returned positions/epochs.
+  Independent endpoint distance/duration checks passed; maximum observed
+  moving-leg residual was 0.494140625 ms. Direct result was
+  15611901.723408457 km, 1252309 ms and 0.10435911721441674 illustrative fuel
+  units, with 0.406494140625 ms residual. Final displayed-choice totals were
+  independently checked for distance, duration and fuel.
+- Phobos presentation showed the time estimate and retained a calculated route
+  when the illustrative curve was unavailable. Survey advisories disclosed
+  unresolved counts (378 direct, 756 Phobos) and `flightAuthorized=false`.
+- The historical Phase 2 projected saved-epoch/zero-distance block appearing
+  beside calculated choices was raised as a presentation concern and addressed
+  by accepted UI-001. A normal-mode UI selector failed; the observer attached
+  late. There is no independent celestial/station ephemeris oracle, full
+  512-response capture, successful normal-mode route, source-reset test, full
+  flight test or performance benchmark.
+
+Nova reported ADOPT-001/UI-001 checks passed: 51 targeted service/selection/
+hazard-cluster tests; `npm run build`; `npm run typecheck` (app/spec/e2e);
+targeted TypeScript ESLint; `git diff --check`; and three focused Playwright
+cases including mocked setup. A broader station spec had 6 passing and 4
+unrelated failures from ambiguous `details-target-btn` selectors and was left
+unchanged. A port-4200 watcher warning was reported; an existing watcher then
+returned HTTP 200. No extra authenticated search was initiated. These are
+Nova-reported checks, not Forge-run checks.
+
+### Remaining boundaries and deployment
+
+No commit or push was made; those are reserved to the owner. The owner's
+restart is reported complete, and Nova's served-contract error-path check is
+reported complete. Runtime behavior beyond the exact probes above remains
+unverified. Normal live ship planning is currently blocked by the observed
+missing drive profile; no repair or assignment was authorized.
+
+Future owner-scoped discussions remain: starter placement lineage and drive
+assignment/progression; durable station-following; application-wide
+snapshot-versus-current-versus-predicted celestial movement semantics; survey
+completeness; and Start Travel, saves and pause behavior. No scope for those
+items is implied by P4-01 or UI-001. Do not start new work from this closeout.
