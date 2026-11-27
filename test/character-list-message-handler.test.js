@@ -16,7 +16,7 @@ test('CharacterListMessageHandler returns a defensive copy of characters', async
   seedPlayer(context, {
     playerName: 'CharacterPilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
+    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [], creditLedger: [] }],
   });
   const handler = new CharacterListMessageHandler(context);
   const socket = createMockSocket();
@@ -24,6 +24,12 @@ test('CharacterListMessageHandler returns a defensive copy of characters', async
   const response = await handler.handle(socket, {
     playerName: 'characterpilot',
     sessionKey: 'session-1',
+    correlationId: '68bd4d59-2ef4-4a51-bb7b-763e530c1270',
+    requestIdentity: {
+      operation: 'character-list',
+      entityType: 'character',
+      containerId: 'characterpilot',
+    },
   });
 
   assert.equal(response.success, true);
@@ -57,7 +63,7 @@ test('CharacterListMessageHandler updates last message timestamp for joined char
   seedPlayer(context, {
     playerName: 'ActivityPilot',
     sessionKey: 'session-1',
-    characters: [{ id: 'character-1', characterName: 'RangerOne' }],
+    characters: [{ id: 'character-1', characterName: 'RangerOne', missions: [], creditLedger: [] }],
   });
 
   const character = context.getCharacters('activitypilot')[0];
@@ -68,6 +74,12 @@ test('CharacterListMessageHandler updates last message timestamp for joined char
   await handler.handle(socket, {
     playerName: 'ActivityPilot',
     sessionKey: 'session-1',
+    correlationId: '68bd4d59-2ef4-4a51-bb7b-763e530c1270',
+    requestIdentity: {
+      operation: 'character-list',
+      entityType: 'character',
+      containerId: 'activitypilot',
+    },
   });
 
   const updatedCharacter = context.getCharacters('activitypilot')[0];

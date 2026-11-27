@@ -55,6 +55,7 @@ test('RegisterMessageHandler rejects duplicate player names', async () => {
   assert.deepEqual(response, {
     success: false,
     message: 'playerName already exists',
+    reason: 'player_exists',
   });
   assert.equal(socket.events[0].eventName, REGISTER_RESPONSE_EVENT);
 });

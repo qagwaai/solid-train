@@ -116,6 +116,66 @@ test('CelestialBodyListMessageHandler returns empty list when no bodies match', 
   assert.equal(socket.events[0].eventName, CELESTIAL_BODY_LIST_RESPONSE_EVENT);
 });
 
+test('celestial body list distinguishes storage failures from an empty field', async () => {
+  const context = createTestContext({ seedDefaults: false });
+  seedPlayer(context, { playerName: 'ScannerOne', sessionKey: 'session-1' });
+  context.databaseService = {
+    async getCelestialBodies() {
+      throw new Error('storage unavailable');
+    },
+    async findCelestialBodiesNearPosition() {
+      return null;
+    },
+  };
+  const handler = new CelestialBodyListMessageHandler(context);
+  for (const location of [{}, { positionKm: { x: 0, y: 0, z: 0 }, distanceKm: 40 }]) {
+    const socket = createMockSocket();
+    const response = await handler.handle(socket, {
+      playerName: 'ScannerOne',
+      solarSystemId: 'sol',
+      createdByCharacterId: 'character-1',
+      missionId: 'first-target',
+      ...location,
+    });
+    assert.equal(response.success, false);
+    assert.equal(response.message, 'Celestial body list is unavailable');
+    assert.deepEqual(response.celestialBodies, []);
+    assert.equal(socket.events[0].payload.success, false);
+  }
+});
+
+test('a successful empty field query does not return stale cached bodies', async () => {
+  const context = createTestContext({ seedDefaults: false });
+  seedPlayer(context, { playerName: 'ScannerOne', sessionKey: 'session-1' });
+  await context.addOrUpdateCelestialBodyAsync(
+    createCelestialBody({
+      id: 'stale',
+      createdByCharacterId: 'character-1',
+      missionId: 'first-target',
+    })
+  );
+  context.databaseService = {
+    async getCelestialBodies() {
+      return [];
+    },
+    async findCelestialBodiesNearPosition() {
+      return [];
+    },
+  };
+  const handler = new CelestialBodyListMessageHandler(context);
+  for (const location of [{}, { positionKm: { x: 150000, y: 50000, z: 30000 }, distanceKm: 40 }]) {
+    const response = await handler.handle(createMockSocket(), {
+      playerName: 'ScannerOne',
+      solarSystemId: 'sol',
+      createdByCharacterId: 'character-1',
+      missionId: 'first-target',
+      ...location,
+    });
+    assert.equal(response.success, true);
+    assert.deepEqual(response.celestialBodies, []);
+  }
+});
+
 test('CelestialBodyListMessageHandler validates required search inputs', async () => {
   const context = createTestContext({ seedDefaults: false });
   seedPlayer(context, {

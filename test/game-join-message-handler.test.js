@@ -9,6 +9,12 @@ const {
   createTestContext,
   seedPlayer,
 } = require('../test-support/message-handler-test-helpers');
+const correlationId = '68bd4d59-2ef4-4a51-bb7b-763e530c1270';
+const identity = (characterId) => ({
+  operation: 'game-join',
+  entityType: 'game-session',
+  containerId: characterId,
+});
 
 test('GameJoinMessageHandler joins character to game and updates character state', async () => {
   const context = createTestContext();
@@ -24,13 +30,17 @@ test('GameJoinMessageHandler joins character to game and updates character state
     playerName: 'joinpilot',
     sessionKey: 'session-1',
     characterId: 'character-1',
+    correlationId,
+    requestIdentity: identity('character-1'),
   });
 
   assert.deepEqual(response, {
     success: true,
     message: 'Character joined game successfully',
-    playerName: 'JoinPilot',
+    playerName: 'joinpilot',
     characterId: 'character-1',
+    correlationId,
+    requestIdentity: identity('character-1'),
   });
   assert.equal(socket.events[0].eventName, GAME_JOIN_RESPONSE_EVENT);
 
@@ -54,6 +64,8 @@ test('GameJoinMessageHandler handles character missing from player list', async 
     playerName: 'EdgePilot',
     sessionKey: 'session-1',
     characterId: 'missing-character-id',
+    correlationId,
+    requestIdentity: identity('missing-character-id'),
   });
 
   assert.deepEqual(response, {
@@ -61,6 +73,9 @@ test('GameJoinMessageHandler handles character missing from player list', async 
     message: 'Character is not in player list',
     playerName: 'EdgePilot',
     characterId: 'missing-character-id',
+    correlationId,
+    requestIdentity: identity('missing-character-id'),
+    reason: 'character_not_found',
   });
   assert.equal(socket.events[0].eventName, GAME_JOIN_RESPONSE_EVENT);
   assert.equal(context.getCharacters('edgepilot')[0].inGame, undefined);

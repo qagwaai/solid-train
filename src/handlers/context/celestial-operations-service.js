@@ -386,7 +386,8 @@ async function getCelestialBodiesAsync(ctx, query = {}) {
       return true;
     });
 
-  const fromDb = await ctx.withDbOrNull('fetching celestial bodies from DB', (databaseService) =>
+  const read = query.strict ? ctx.withDb.bind(ctx) : ctx.withDbOrNull.bind(ctx);
+  const fromDb = await read('fetching celestial bodies from DB', (databaseService) =>
     databaseService.getCelestialBodies({
       solarSystemId: normalizedSolarSystemId || undefined,
       createdByCharacterId: normalizedCreatedByCharacterId || undefined,
@@ -397,8 +398,10 @@ async function getCelestialBodiesAsync(ctx, query = {}) {
 
   if (Array.isArray(fromDb)) {
     const mergedById = new Map();
-    for (const celestialBody of cacheMatches) {
-      mergedById.set(celestialBody.id, celestialBody);
+    if (!query.strict) {
+      for (const celestialBody of cacheMatches) {
+        mergedById.set(celestialBody.id, celestialBody);
+      }
     }
 
     for (const celestialBody of fromDb) {
@@ -428,6 +431,9 @@ async function getCelestialBodiesAsync(ctx, query = {}) {
     return results;
   }
 
+  if (query.strict && ctx.databaseService) {
+    throw new Error('Celestial body storage returned no result');
+  }
   return cacheMatches;
 }
 
@@ -546,7 +552,8 @@ async function getCelestialBodiesNearPositionAsync(ctx, query) {
     })
     .filter((entry) => Boolean(entry));
 
-  const fromDb = await ctx.withDbOrNull('finding celestial bodies from DB', (databaseService) =>
+  const read = query.strict ? ctx.withDb.bind(ctx) : ctx.withDbOrNull.bind(ctx);
+  const fromDb = await read('finding celestial bodies from DB', (databaseService) =>
     databaseService.findCelestialBodiesNearPosition({
       solarSystemId,
       positionKm,
@@ -568,14 +575,18 @@ async function getCelestialBodiesNearPositionAsync(ctx, query) {
     });
 
     const mergedById = new Map();
-    for (const entry of cacheResults) {
-      mergedById.set(entry.celestialBody.id, entry);
+    if (!query.strict) {
+      for (const entry of cacheResults) {
+        mergedById.set(entry.celestialBody.id, entry);
+      }
     }
     for (const entry of fromDbResults) {
       mergedById.set(entry.celestialBody.id, entry);
     }
 
     results = [...mergedById.values()].sort((left, right) => left.distanceKm - right.distanceKm);
+  } else if (query.strict && ctx.databaseService) {
+    throw new Error('Celestial body storage returned no result');
   } else {
     results = cacheResults.sort((left, right) => left.distanceKm - right.distanceKm);
   }

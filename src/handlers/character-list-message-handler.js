@@ -1,6 +1,7 @@
 'use strict';
 
 const { CHARACTER_LIST_RESPONSE_EVENT } = require('../model/character-list');
+const { validRequest, failure, projectRoster } = require('../model/character-roster');
 
 class CharacterListMessageHandler {
   /**
@@ -13,40 +14,58 @@ class CharacterListMessageHandler {
   /**
    * Validate payload and build character-list response.
    * @param {Object} payload
-   * @returns {Object}
+   * @returns {Promise<Object>}
    */
-  buildResponse(payload) {
-    const playerName = this.context.toNonEmptyString(payload?.playerName);
-
-    if (!playerName) {
-      return {
-        success: false,
-        message: 'playerName is required',
-        playerName: '',
-        characters: [],
-      };
+  async buildResponse(payload) {
+    if (!validRequest(payload)) {
+      return failure(payload, 'invalid_request', 'Invalid character list request');
     }
 
+    const playerName = this.context.toNonEmptyString(payload?.playerName);
+
     const normalizedPlayerName = playerName.toLowerCase();
-    const player = this.context.getPlayer(playerName);
+    const player = await this.context.getPlayerAsync(playerName, { strict: true });
 
     if (!player) {
       return {
         success: false,
         message: 'Player is not registered',
+        reason: 'player_not_registered',
         playerName,
         characters: [],
+        correlationId: payload.correlationId,
+        requestIdentity: payload.requestIdentity,
       };
     }
 
-    const characters = this.context.getCharacters(normalizedPlayerName);
+    try {
+      const characters = await this.context.getCharactersAsync(normalizedPlayerName, {
+        strict: true,
+      });
+      const roster = projectRoster(characters);
 
-    return {
-      success: true,
-      message: 'Character list retrieved successfully',
-      playerName: player.playerName,
-      characters: characters.map((character) => this.context.normalizeCharacter(character)),
-    };
+      return {
+        success: true,
+        message: 'Character list retrieved successfully',
+        playerName: player.playerName,
+        characters: roster,
+        correlationId: payload.correlationId,
+        requestIdentity: payload.requestIdentity,
+      };
+    } catch (error) {
+      this.context.log(
+        `[character-list-handler] Failed to build complete roster: ${error.message}`
+      );
+      return {
+        success: false,
+        message: 'Character roster is unavailable',
+        reason: 'incomplete_roster',
+        playerName,
+        characters: [],
+        correlationId: payload.correlationId,
+        requestIdentity: payload.requestIdentity,
+      };
+    }
   }
 
   /**
@@ -60,7 +79,7 @@ class CharacterListMessageHandler {
 
     this.context.refreshCharacterPresence(payload);
 
-    const response = this.buildResponse(payload);
+    const response = await this.buildResponse(payload);
     socket.emit(CHARACTER_LIST_RESPONSE_EVENT, response);
     return response;
   }

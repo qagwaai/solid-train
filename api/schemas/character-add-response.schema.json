@@ -2,15 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "character-add-response",
   "type": "object",
-  "required": [
-    "success",
-    "message",
-    "playerName",
-    "characterName",
-    "characterId",
-    "correlationId",
-    "requestIdentity"
-  ],
+  "required": ["success", "message", "playerName", "correlationId", "requestIdentity"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
@@ -31,5 +23,14 @@
     "playerName": { "type": "string" },
     "characterName": { "type": "string" },
     "characterId": { "type": "string" }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "success": { "const": true } } },
+      "then": { "required": ["characterName", "characterId"] },
+      "else": {
+        "not": { "anyOf": [{ "required": ["characterName"] }, { "required": ["characterId"] }] }
+      }
+    }
+  ]
 }

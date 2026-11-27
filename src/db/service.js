@@ -304,6 +304,16 @@ class DatabaseService {
     );
   }
 
+  async addStarterCharacter(playerName, characterData) {
+    return playerCharacterService.addCharacter(
+      this,
+      Player,
+      playerName,
+      this.normalizeCharacterUpdatesForPersistence(characterData),
+      true
+    );
+  }
+
   /**
    * Get all characters for a player
    * @param {string} playerName

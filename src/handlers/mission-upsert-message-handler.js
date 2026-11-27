@@ -12,6 +12,7 @@ const {
 } = require('../model/mission');
 const { DEFAULT_SOLAR_SYSTEM_ID } = require('../model/celestial-body-upsert');
 const { attachRequestId } = require('./handler-utils');
+const { starterPosition } = require('../model/starter-belt');
 const {
   resolveCorrelationId,
   normalizeRequestIdentity: normalizeCorrelationRequestIdentity,
@@ -21,7 +22,6 @@ const STARTER_MISSION_ASTEROID_STATE = 'unscanned';
 const STARTER_MISSION_ASTEROID_COUNT = 10;
 const STARTER_MISSION_ACTIVATION_STATUSES = new Set(['active']);
 const STARTER_MISSION_CLUSTER_ID = 'first-target-primary-cluster';
-const STARTER_MISSION_CLUSTER_CENTER_KM = Object.freeze({ x: 0, y: 0, z: 0 });
 const STARTER_MISSION_ASTEROID_MATERIALS = [
   { rarity: 'Common', material: 'Iron', textureColor: '#8f99a7' },
   { rarity: 'Common', material: 'Nickel-Iron', textureColor: '#8da6b3' },
@@ -258,23 +258,24 @@ class MissionUpsertMessageHandler {
     const missionId = DEFAULT_STARTER_MISSION_ID;
     const baseCharacterId = this.context.toNonEmptyString(parsed.characterId);
     const timestamp = this.context.getCurrentTimestamp();
+    const center = starterPosition(baseCharacterId);
 
     return Array.from({ length: STARTER_MISSION_ASTEROID_COUNT }, (_, index) => {
       const sequence = index + 1;
       const angle = (Math.PI * 2 * index) / STARTER_MISSION_ASTEROID_COUNT;
-      const radiusKm = 250 + index * 40;
+      const radiusKm = 6 + (14 * index) / (STARTER_MISSION_ASTEROID_COUNT - 1);
       const materialProfile =
         STARTER_MISSION_ASTEROID_MATERIALS[index % STARTER_MISSION_ASTEROID_MATERIALS.length];
       const sourceScanId = `sample-a${sequence}`;
-      const positionKm = {
-        x: Math.round(Math.cos(angle) * radiusKm),
-        y: Math.round(Math.sin(angle) * radiusKm),
-        z: Math.round((index - 4.5) * 12),
-      };
       const localOffsetKm = {
-        x: positionKm.x - STARTER_MISSION_CLUSTER_CENTER_KM.x,
-        y: positionKm.y - STARTER_MISSION_CLUSTER_CENTER_KM.y,
-        z: positionKm.z - STARTER_MISSION_CLUSTER_CENTER_KM.z,
+        x: Math.cos(angle) * radiusKm,
+        y: ((index - 4.5) / 4.5) * 4,
+        z: Math.sin(angle) * radiusKm,
+      };
+      const positionKm = {
+        x: center.x + localOffsetKm.x,
+        y: center.y + localOffsetKm.y,
+        z: center.z + localOffsetKm.z,
       };
       const estimatedDiameterM = 110 + index * 12;
       const estimatedMassKg = 22000000000 + index * 3500000000;
@@ -295,10 +296,10 @@ class MissionUpsertMessageHandler {
           solarSystemId: DEFAULT_SOLAR_SYSTEM_ID,
           frame: 'barycentric',
           positionKm,
-          epochMs: new Date(timestamp).getTime(),
+          epochMs: parsed.starterEpochMs,
         },
         clusterId: `${STARTER_MISSION_CLUSTER_ID}-${baseCharacterId}`,
-        clusterCenterKm: { ...STARTER_MISSION_CLUSTER_CENTER_KM },
+        clusterCenterKm: { ...center },
         localOffsetKm,
         distanceFromClusterCenterKm: Number(
           this.calculateDistanceKmFromOrigin(localOffsetKm).toFixed(3)
@@ -350,13 +351,35 @@ class MissionUpsertMessageHandler {
     const existingField = await this.context.getCelestialBodiesAsync({
       createdByCharacterId: parsed.characterId,
       missionId: DEFAULT_STARTER_MISSION_ID,
+      strict: true,
     });
 
+    const character = this.context.findCharacter(parsed.playerName, parsed.characterId);
+    if (!Number.isSafeInteger(character?.starterEpochMs)) {
+      if (existingField.length > 0) return;
+      throw new Error('Starter position is unavailable');
+    }
     if (existingField.length > 0) {
+      const expectedIds = new Set(
+        Array.from(
+          { length: STARTER_MISSION_ASTEROID_COUNT },
+          (_, index) => `cb-${parsed.characterId}-${DEFAULT_STARTER_MISSION_ID}-a${index + 1}`
+        )
+      );
+      if (
+        existingField.length !== expectedIds.size ||
+        existingField.some((body) => !expectedIds.delete(body.id)) ||
+        expectedIds.size !== 0
+      ) {
+        throw new Error('Starter field is incomplete');
+      }
       return;
     }
-
-    const seededField = this.createStarterMissionAsteroidField(parsed);
+    if (parsed.alreadyActive) throw new Error('Starter field is missing for active mission');
+    const seededField = this.createStarterMissionAsteroidField({
+      ...parsed,
+      starterEpochMs: character.starterEpochMs,
+    });
     await Promise.all(
       seededField.map((celestialBody) => this.context.addOrUpdateCelestialBodyAsync(celestialBody))
     );
@@ -426,15 +449,22 @@ class MissionUpsertMessageHandler {
           payload?.characterId
         );
 
+        const starterActivation =
+          response.mission.missionId === DEFAULT_STARTER_MISSION_ID &&
+          response.mission.status === 'active';
         const existingMissions = await this.context.getMissionsAsync(
           payload?.playerName,
-          payload?.characterId
+          payload?.characterId,
+          { strict: starterActivation }
         );
         const existingMission = existingMissions.find(
           (mission) => mission.missionId === response.mission.missionId
         );
 
         const existingStatus = this.context.toNonEmptyString(existingMission?.status);
+        if (starterActivation && !existingStatus) {
+          throw new Error('Starter mission is unavailable');
+        }
         if (existingStatus && !MISSION_STATUS_SET.has(existingStatus)) {
           response.success = false;
           response.message = `existing mission data has unsupported status: ${existingStatus}. Allowed values: ${MISSION_STATUS_VALUES.join(', ')}`;
@@ -456,7 +486,8 @@ class MissionUpsertMessageHandler {
         await this.context.addOrUpdateMissionAsync(
           payload?.playerName,
           payload?.characterId,
-          missionWithTimestamps
+          missionWithTimestamps,
+          { strict: starterActivation }
         );
 
         await this.ensureUnlockedMissionsAsync({
@@ -467,9 +498,11 @@ class MissionUpsertMessageHandler {
         });
 
         await this.ensureStarterMissionAsteroidsAsync({
+          playerName: response.playerName,
           missionId: response.mission.missionId,
           status: response.mission.status,
           characterId: response.characterId,
+          alreadyActive: existingStatus === 'active',
         });
 
         logCharacterShipInventorySnapshot(

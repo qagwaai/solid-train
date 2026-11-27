@@ -17,6 +17,12 @@ paths:
         - Every request must include a client-generated `correlationId` (UUID v4).
         - Every request must include `requestIdentity` with `operation`, `entityType`, and
           `containerId`.
+        - Identity must be `game-join`, `game-session`, and the exact `characterId`.
+        - Valid requests receive exact correlation, identity, playerName and characterId
+          echoes on success and failure. Invalid sessions also emit `invalid-session`.
+          `outcome_unknown` does not mean a join was rolled back or safe to replay.
+        - Requests without matching correlation and identity metadata are logged and receive
+          no game-join-response.
       operationId: socketGameJoin
       tags: [Game]
       requestBody:

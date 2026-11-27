@@ -3,6 +3,9 @@
 const { CHARACTER_ADD_RESPONSE_EVENT } = require('../model/character-add');
 const { DEFAULT_MISSION_STATUS, DEFAULT_STARTER_MISSION_ID } = require('../model/mission');
 const { ITEM_STATE, ITEM_DAMAGE_STATUS, ITEM_CONTAINER_TYPE } = require('../model/canonical-items');
+const { STARTER_RULE, starterPosition } = require('../model/starter-belt');
+const { BASIS_ID, MODEL_ID, shipRevision } = require('../model/navigation-placement');
+const { MIN_EPOCH_MS, MAX_EPOCH_MS } = require('./context/navigation-state-service');
 
 class CharacterAddMessageHandler {
   /**
@@ -65,15 +68,34 @@ class CharacterAddMessageHandler {
 
     if (response.success) {
       let createdItemIds = [];
+      let characterWriteStarted = false;
 
       try {
         // Starter cargo is created first so character ship inventory can reference concrete item ids.
         const createdAt = this.context.getCurrentTimestamp();
+        const clock = this.context.gameClock.read();
+        if (
+          clock.status !== 'supported' ||
+          clock.durability !== 'durable-mongo-game-state' ||
+          clock.timeScaleId !== 'stellar:unix-ms-uniform:v1' ||
+          !Number.isSafeInteger(clock.epochMs) ||
+          clock.epochMs < MIN_EPOCH_MS ||
+          clock.epochMs >= MAX_EPOCH_MS ||
+          !Number.isSafeInteger(clock.generation) ||
+          clock.generation < 1 ||
+          !this.context.toNonEmptyString(clock.lineage) ||
+          typeof clock.running !== 'boolean'
+        )
+          throw new Error('Shared game clock is unavailable');
+        if (!(await this.context.gameClock.persistAsync())) {
+          throw new Error('Shared game clock checkpoint failed');
+        }
         const starterShipId = `${response.characterId}-ship-1`;
         const starterDroneId = `${starterShipId}-item-1`;
-        const owningPlayerId =
-          this.context.toNonEmptyString(this.context.getPlayer(response.playerName)?.playerId) ||
-          this.context.toNonEmptyString(response.playerName);
+        const owningPlayerId = this.context.toNonEmptyString(
+          this.context.getPlayer(response.playerName)?.playerId
+        );
+        if (!owningPlayerId) throw new Error('Registered player identity is unavailable');
         const starterSubsystemItems = [
           {
             id: `${starterShipId}-starter-propulsion-manifold`,
@@ -181,6 +203,7 @@ class CharacterAddMessageHandler {
           id: response.characterId,
           characterName: response.characterName,
           createdAt,
+          starterEpochMs: clock.epochMs,
           ships: [
             {
               id: starterShipId,
@@ -213,8 +236,8 @@ class CharacterAddMessageHandler {
               spatial: {
                 solarSystemId: 'sol',
                 frame: 'barycentric',
-                positionKm: { x: 0, y: 0, z: 0 },
-                epochMs: Date.parse(createdAt),
+                positionKm: starterPosition(response.characterId),
+                epochMs: clock.epochMs,
               },
               ownership: {
                 ownerType: 'player-character',
@@ -234,6 +257,7 @@ class CharacterAddMessageHandler {
           ],
           creditLedger: [
             {
+              id: `${response.characterId}-starting-credits`,
               type: 'put',
               amount: 425,
               description: 'Starting credits',
@@ -242,9 +266,23 @@ class CharacterAddMessageHandler {
             },
           ],
         };
-        await this.context.addCharacterAsync(payload?.playerName, characterData);
+        const starterShip = characterData.ships[0];
+        starterShip.navigationPlacement = {
+          version: 1,
+          status: 'committed',
+          lineageId: this.context.createId(),
+          shipId: starterShip.id,
+          coordinateBasisId: BASIS_ID,
+          evaluationModelId: MODEL_ID,
+          placementRule: STARTER_RULE,
+          shipRevision: shipRevision(starterShip),
+          epochMs: clock.epochMs,
+          issuedAt: createdAt,
+        };
+        characterWriteStarted = true;
+        await this.context.addStarterCharacterAsync(payload?.playerName, characterData);
       } catch (error) {
-        if (createdItemIds.length > 0) {
+        if (!characterWriteStarted && createdItemIds.length > 0) {
           try {
             await this.context.deleteItemsAsync(createdItemIds);
           } catch (cleanupError) {
@@ -255,7 +293,9 @@ class CharacterAddMessageHandler {
         }
         this.context.log(`[character-add-handler] Failed to add character: ${error.message}`);
         response.success = false;
-        response.message = 'Failed to add character: database error';
+        response.message = characterWriteStarted
+          ? 'Character creation outcome is uncertain; check the character list'
+          : 'Failed to add character';
         delete response.characterId;
         delete response.characterName;
       }

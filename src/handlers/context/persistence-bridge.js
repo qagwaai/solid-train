@@ -11,14 +11,16 @@ const { isCanonicalMissionStatus, MISSION_STATUS_VALUES } = require('../../model
  * @param {string} playerName
  * @returns {Promise<Object|null>}
  */
-async function getPlayerAsync(ctx, playerName) {
-  const player = await ctx.withDbOrNull('fetching player from DB', (databaseService) =>
+async function getPlayerAsync(ctx, playerName, options = {}) {
+  const read = options.strict ? ctx.withDb.bind(ctx) : ctx.withDbOrNull.bind(ctx);
+  const player = await read('fetching player from DB', (databaseService) =>
     databaseService.getPlayerByName(playerName)
   );
   if (player) {
     ctx.cachePlayer(player);
     return player;
   }
+  if (options.strict && ctx.databaseService) return null;
   return ctx.getPlayer(playerName);
 }
 
@@ -35,6 +37,9 @@ async function getCharactersAsync(ctx, playerName, options = {}) {
   );
   if (Array.isArray(characters)) {
     return ctx.cacheCharacters(playerName, characters);
+  }
+  if (options.strict && ctx.databaseService) {
+    throw new Error('Character storage returned no roster');
   }
   const normalizedPlayerName = ctx.normalizePlayerName(playerName);
   return ctx.getCharacters(normalizedPlayerName);
@@ -71,6 +76,20 @@ async function addCharacterAsync(ctx, playerName, characterData) {
   await ctx.withDb('adding character in DB', (databaseService) =>
     databaseService.addCharacter(playerName, character)
   );
+  const normalizedPlayerName = ctx.normalizePlayerName(playerName);
+  const characters = ctx.getCharacters(normalizedPlayerName);
+  characters.push(character);
+  ctx.setCharacters(normalizedPlayerName, characters);
+}
+
+async function addStarterCharacterAsync(ctx, playerName, characterData) {
+  const character = ctx.normalizeCharacter(characterData);
+  const starter = characterData.ships[0].navigationPlacement;
+  character.ships[0].navigationPlacement = structuredClone(starter);
+  const result = await ctx.withDb('adding character in DB', (databaseService) =>
+    databaseService.addStarterCharacter(playerName, character)
+  );
+  if (ctx.databaseService && !result) throw new Error('Character storage returned no player');
 
   const normalizedPlayerName = ctx.normalizePlayerName(playerName);
   const characters = ctx.getCharacters(normalizedPlayerName);
@@ -245,7 +264,7 @@ async function getNpcBustAsync(ctx, npcId) {
   return ctx.npcBustsById.get(normalizedNpcId) || null;
 }
 
-async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData) {
+async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData, options = {}) {
   const status = ctx.toNonEmptyString(missionData?.status);
   if (!isCanonicalMissionStatus(status)) {
     throw new Error(
@@ -253,9 +272,12 @@ async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData
     );
   }
 
-  await ctx.withDb('adding/updating mission in DB', (databaseService) =>
+  const result = await ctx.withDb('adding/updating mission in DB', (databaseService) =>
     databaseService.addOrUpdateMission(playerName, characterId, missionData)
   );
+  if (options.strict && ctx.databaseService && !result) {
+    throw new Error('Mission storage returned no updated character');
+  }
 
   const character = ctx.findCharacter(playerName, characterId);
   if (!character) {
@@ -276,8 +298,9 @@ async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData
   }
 }
 
-async function getMissionsAsync(ctx, playerName, characterId) {
-  const missions = await ctx.withDbOrNull('fetching missions from DB', (databaseService) =>
+async function getMissionsAsync(ctx, playerName, characterId, options = {}) {
+  const read = options.strict ? ctx.withDb.bind(ctx) : ctx.withDbOrNull.bind(ctx);
+  const missions = await read('fetching missions from DB', (databaseService) =>
     databaseService.getMissions(playerName, characterId)
   );
 
@@ -292,6 +315,9 @@ async function getMissionsAsync(ctx, playerName, characterId) {
     return normalizedMissions;
   }
 
+  if (options.strict && ctx.databaseService) {
+    throw new Error('Mission storage returned no mission list');
+  }
   const character = ctx.findCharacter(playerName, characterId);
   if (!character || !Array.isArray(character.missions)) {
     return [];
@@ -342,6 +368,7 @@ module.exports = {
   registerPlayerAsync,
   updatePlayerAsync,
   addCharacterAsync,
+  addStarterCharacterAsync,
   deleteCharacterAsync,
   updateCharacterAsync,
   updateCharacterBustAsync,

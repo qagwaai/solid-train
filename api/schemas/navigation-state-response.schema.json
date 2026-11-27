@@ -85,22 +85,31 @@
             "positionKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" },
             "provenance": {
               "type": "object",
-              "required": ["kind", "sourceMarketId", "offsetKm", "shipRevision"],
+              "required": ["kind", "offsetKm", "shipRevision"],
               "properties": {
                 "kind": {
                   "enum": ["trusted-runtime-placement", "trusted-persisted-placement"],
-                  "description": "Production uses durable backend-controlled persisted purchase lineage. trusted-runtime-placement is test-only and does not establish a production issuance path."
+                  "description": "Persisted placement is issued by the backend on purchase or new starter creation. trusted-runtime-placement is test-only."
                 },
                 "lineageId": {
                   "type": "string",
-                  "description": "Stable committed purchase lineage identity, required for persisted placement."
+                  "description": "Stable placement identity, required for persisted placement."
                 },
                 "sourceMarketId": { "type": "string" },
+                "sourceKind": { "const": "starter-belt" },
                 "offsetKm": { "$ref": "./spatial-state.schema.json#/definitions/vector3" },
                 "shipRevision": { "$ref": "#/definitions/revision" }
               },
               "if": { "properties": { "kind": { "const": "trusted-persisted-placement" } } },
               "then": { "required": ["lineageId"] },
+              "oneOf": [
+                { "required": ["sourceMarketId"], "not": { "required": ["sourceKind"] } },
+                {
+                  "required": ["sourceKind"],
+                  "properties": { "kind": { "const": "trusted-persisted-placement" } },
+                  "not": { "required": ["sourceMarketId"] }
+                }
+              ],
               "additionalProperties": false
             }
           },

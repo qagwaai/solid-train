@@ -231,6 +231,7 @@ defineDelegatedMethods(MessageHandlerContext.prototype, playerService, [
   'registerPlayerAsync',
   'updatePlayerAsync',
   'addCharacterAsync',
+  'addStarterCharacterAsync',
   'deleteCharacterAsync',
   'updateCharacterAsync',
   'updateCharacterBustAsync',

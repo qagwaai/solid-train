@@ -64,9 +64,15 @@ function seed(context) {
         entry('b', 'take', 25, '2026-05-05T01:00:00.000Z'),
         entry('a', 'put', 50, '2026-05-05T01:00:00.000Z'),
       ],
+      missions: [],
     },
-    { id: 'character-2', characterName: 'Scout', creditLedger: [entry('d', 'take', 5)] },
-    { id: 'character-empty', characterName: 'Empty', creditLedger: [] },
+    {
+      id: 'character-2',
+      characterName: 'Scout',
+      creditLedger: [entry('d', 'take', 5)],
+      missions: [],
+    },
+    { id: 'character-empty', characterName: 'Empty', creditLedger: [], missions: [] },
   ]);
 }
 
@@ -144,8 +150,9 @@ test('ledger scope, full balance, inclusive filters, deterministic paging and em
   assert.equal(all.balance, 120);
   assert.equal(all.total, 4);
   assert.equal(all.limit, 200);
-  const characterList = new CharacterListMessageHandler(context).buildResponse(payload);
-  Object.assign(characterList, {
+  const characterList = await new CharacterListMessageHandler(context).buildResponse({
+    playerName: 'PilotOne',
+    sessionKey: 'session-1',
     correlationId: 'f4740f89-47a4-4c43-914e-08c4f4c2fe16',
     requestIdentity: {
       operation: 'character-list',

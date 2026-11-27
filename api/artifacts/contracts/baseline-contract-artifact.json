@@ -6359,6 +6359,32 @@
       },
       "CharacterAddResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "allOf": [
+          {
+            "else": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": ["characterName"]
+                  },
+                  {
+                    "required": ["characterId"]
+                  }
+                ]
+              }
+            },
+            "if": {
+              "properties": {
+                "success": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "required": ["characterName", "characterId"]
+            }
+          }
+        ],
         "properties": {
           "characterId": {
             "type": "string"
@@ -6396,15 +6422,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characterName",
-          "characterId",
-          "correlationId",
-          "requestIdentity"
-        ],
+        "required": ["success", "message", "playerName", "correlationId", "requestIdentity"],
         "title": "character-add-response",
         "type": "object"
       },
@@ -14801,6 +14819,12 @@
       },
       "LoginResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "allOf": [
+          {
+            "if": { "properties": { "success": { "const": true } } },
+            "then": { "required": ["playerId", "sessionKey"] }
+          }
+        ],
         "properties": {
           "message": {
             "type": "string"
@@ -14815,7 +14839,7 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerId", "sessionKey"],
+        "required": ["success", "message"],
         "title": "login-response",
         "type": "object"
       },
@@ -30786,6 +30810,32 @@
       },
       "CharacterAddResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "allOf": [
+          {
+            "else": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": ["characterName"]
+                  },
+                  {
+                    "required": ["characterId"]
+                  }
+                ]
+              }
+            },
+            "if": {
+              "properties": {
+                "success": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "required": ["characterName", "characterId"]
+            }
+          }
+        ],
         "properties": {
           "characterId": {
             "type": "string"
@@ -30823,15 +30873,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success",
-          "message",
-          "playerName",
-          "characterName",
-          "characterId",
-          "correlationId",
-          "requestIdentity"
-        ],
+        "required": ["success", "message", "playerName", "correlationId", "requestIdentity"],
         "title": "character-add-response",
         "type": "object"
       },
@@ -33793,6 +33835,12 @@
       },
       "LoginResponse": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "allOf": [
+          {
+            "if": { "properties": { "success": { "const": true } } },
+            "then": { "required": ["playerId", "sessionKey"] }
+          }
+        ],
         "properties": {
           "message": {
             "type": "string"
@@ -33807,7 +33855,7 @@
             "type": "boolean"
           }
         },
-        "required": ["success", "message", "playerId", "sessionKey"],
+        "required": ["success", "message"],
         "title": "login-response",
         "type": "object"
       },

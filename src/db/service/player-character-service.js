@@ -125,7 +125,7 @@ async function updatePlayer(ctx, Player, playerName, updates) {
   }
 }
 
-async function addCharacter(ctx, Player, playerName, characterData) {
+async function addCharacter(ctx, Player, playerName, characterData, trustedStarter = false) {
   try {
     const playerNameQuery = ctx.buildPlayerNameQuery(playerName);
     if (!playerNameQuery) {
@@ -138,7 +138,9 @@ async function addCharacter(ctx, Player, playerName, characterData) {
         $push: {
           characters: {
             ...characterData,
-            ships: preserveNavigationPlacements([], characterData.ships || []),
+            ships: trustedStarter
+              ? characterData.ships
+              : preserveNavigationPlacements([], characterData.ships || []),
           },
         },
         updatedAt: new Date(),
@@ -157,6 +159,13 @@ async function getCharacters(ctx, Player, playerName) {
     const playerNameQuery = ctx.buildPlayerNameQuery(playerName);
     if (!playerNameQuery) {
       return [];
+    }
+
+    async function getCharacterRoster(ctx, Player, playerName) {
+      const playerNameQuery = ctx.buildPlayerNameQuery(playerName);
+      if (!playerNameQuery) return null;
+      const player = await Player.findOne(playerNameQuery, { characters: 1 }).lean();
+      return player && Array.isArray(player.characters) ? player.characters : null;
     }
 
     const player = await Player.findOne(playerNameQuery, { characters: 1 }).lean();

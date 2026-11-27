@@ -43,8 +43,9 @@ class SharedGameClock {
       this.lastWallMs = wallMs;
       this.lastCheckpointWallMs = wallMs;
       if (this.running) {
-        const stoppedAtWallMs =
-          Number.isSafeInteger(persisted.stoppedAtWallMs) ? persisted.stoppedAtWallMs : null;
+        const stoppedAtWallMs = Number.isSafeInteger(persisted.stoppedAtWallMs)
+          ? persisted.stoppedAtWallMs
+          : null;
         if (stoppedAtWallMs !== null) {
           // A clean stopped state resumes without stopped-server downtime.
           this.running = true;
@@ -99,7 +100,7 @@ class SharedGameClock {
     const wallMs = Date.now();
     this.advance(wallMs);
     try {
-      await this.databaseService.putNavigationGameClock({
+      const checkpoint = {
         lineage: this.lineage,
         epochMs: this.epochMs,
         running: this.running,
@@ -107,7 +108,18 @@ class SharedGameClock {
         lastWallMs: wallMs,
         stoppedAtWallMs: this.running ? null : wallMs,
         updatedAtWallMs: wallMs,
-      });
+      };
+      const stored = await this.databaseService.putNavigationGameClock(checkpoint);
+      if (
+        !stored ||
+        stored.lineage !== checkpoint.lineage ||
+        stored.epochMs !== checkpoint.epochMs ||
+        stored.generation !== checkpoint.generation ||
+        stored.running !== checkpoint.running
+      ) {
+        this.initialized = false;
+        return false;
+      }
       this.lastCheckpointWallMs = wallMs;
       return true;
     } catch (_error) {

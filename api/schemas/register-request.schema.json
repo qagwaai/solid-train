@@ -2,11 +2,15 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "register-request",
   "type": "object",
-  "required": ["playerName", "email", "password"],
+  "required": ["playerName", "email", "password", "correlationId"],
   "properties": {
     "playerName": { "type": "string" },
     "email": { "type": "string", "format": "email" },
     "password": { "type": "string" },
-    "locale": { "type": "string" }
+    "locale": { "type": "string" },
+    "correlationId": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    }
   }
 }

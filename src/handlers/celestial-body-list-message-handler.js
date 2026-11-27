@@ -64,6 +64,7 @@ class CelestialBodyListMessageHandler {
     const states = this.normalizeStateFilters(payload?.states);
     const createdByCharacterId = this.context.toNonEmptyString(payload?.createdByCharacterId);
     const missionId = this.context.toNonEmptyString(payload?.missionId);
+    const strictFieldQuery = Boolean(createdByCharacterId && missionId);
     const fail = (message, name = playerName) => ({
       success: false,
       message,
@@ -108,6 +109,7 @@ class CelestialBodyListMessageHandler {
         stateValues: states,
         createdByCharacterId: createdByCharacterId || undefined,
         missionId: missionId || undefined,
+        strict: strictFieldQuery,
       });
       all.sort((left, right) => compareIds(left.id, right.id));
       const { items, page } = pageItems(all, paging);
@@ -130,6 +132,7 @@ class CelestialBodyListMessageHandler {
       stateValues: states,
       createdByCharacterId: createdByCharacterId || undefined,
       missionId: missionId || undefined,
+      strict: strictFieldQuery,
     });
     searchResult.sort(
       (left, right) =>
@@ -181,7 +184,20 @@ class CelestialBodyListMessageHandler {
 
     this.context.refreshCharacterPresence(payload);
 
-    const response = await this.buildResponse(payload);
+    let response;
+    try {
+      response = await this.buildResponse(payload);
+    } catch (error) {
+      this.context.log(`[celestial-body-list-handler] Failed to list bodies: ${error.message}`);
+      response = {
+        success: false,
+        message: 'Celestial body list is unavailable',
+        playerName: this.context.toNonEmptyString(payload?.playerName),
+        solarSystemId: this.context.toNonEmptyString(payload?.solarSystemId),
+        celestialBodies: [],
+        ...emptyPage(parsePaging(payload)),
+      };
+    }
     socket.emit(CELESTIAL_BODY_LIST_RESPONSE_EVENT, response);
     return response;
   }

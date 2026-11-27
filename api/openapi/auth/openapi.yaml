@@ -10,6 +10,7 @@ paths:
   /socket/register:
     post:
       summary: register
+      description: Requires a UUID v4 correlationId. Requests without one are logged and receive no response. Registration does not log in. outcome_unknown does not establish whether the write occurred; do not automatically replay.
       operationId: socketRegister
       tags: [Auth]
       requestBody:
@@ -35,6 +36,7 @@ paths:
   /socket/login:
     post:
       summary: login
+      description: Requires a UUID v4 correlationId. Requests without one are logged and receive no response. Success rotates the session; outcome_unknown does not establish whether the rotation occurred.
       operationId: socketLogin
       tags: [Auth]
       requestBody:

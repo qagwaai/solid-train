@@ -1,6 +1,11 @@
 'use strict';
 
-const { GAME_JOIN_RESPONSE_EVENT } = require('../model/game-join');
+const {
+  GAME_JOIN_RESPONSE_EVENT,
+  validJoinCorrelation,
+  validJoinRequest,
+  gameJoinFailure,
+} = require('../model/game-join');
 
 class GameJoinMessageHandler {
   /**
@@ -67,9 +72,25 @@ class GameJoinMessageHandler {
   async handle(socket, payload) {
     this.context.logHandlerMessage('game-join', payload);
 
+    if (!validJoinCorrelation(payload)) {
+      this.context.log('[game-join-handler] Rejected uncorrelatable request', { level: 'error' });
+      return null;
+    }
+
+    if (!validJoinRequest(payload)) {
+      const response = gameJoinFailure(payload, 'invalid_request', 'Invalid game join request');
+      socket.emit(GAME_JOIN_RESPONSE_EVENT, response);
+      return response;
+    }
+
     this.context.refreshCharacterPresence(payload);
 
     const response = this.buildResponse(payload);
+    response.playerName = payload.playerName;
+    response.characterId = payload.characterId;
+    response.correlationId = payload.correlationId;
+    response.requestIdentity = payload.requestIdentity;
+    if (!response.success) response.reason = 'character_not_found';
 
     if (response.success) {
       const character = this.context.findCharacter(payload?.playerName, payload?.characterId);

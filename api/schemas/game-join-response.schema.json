@@ -15,19 +15,39 @@
     "message": { "type": "string" },
     "correlationId": {
       "type": "string",
-      "format": "uuid",
-      "description": "Echo of the request correlationId."
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+      "description": "Exact echo of the request UUID v4."
     },
     "requestIdentity": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["operation", "entityType", "containerId"],
       "properties": {
-        "operation": { "type": "string" },
-        "entityType": { "type": "string" },
-        "containerId": { "type": "string" }
+        "operation": { "const": "game-join" },
+        "entityType": { "const": "game-session" },
+        "containerId": { "type": "string", "pattern": "\\S" }
       }
+    },
+    "reason": {
+      "enum": ["invalid_request", "invalid_session", "character_not_found", "outcome_unknown"]
     },
     "playerName": { "type": "string" },
     "characterId": { "type": "string" }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "success": { "const": true } } },
+      "then": {
+        "properties": {
+          "correlationId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+          },
+          "requestIdentity": { "type": "object" }
+        },
+        "not": { "required": ["reason"] }
+      },
+      "else": { "required": ["reason"] }
+    }
+  ]
 }

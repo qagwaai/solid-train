@@ -87,8 +87,8 @@ async function hasValidSessionAsync(ctx, payload) {
   return persistenceBridge.hasValidSessionAsync(ctx, payload);
 }
 
-async function getPlayerAsync(ctx, playerName) {
-  return persistenceBridge.getPlayerAsync(ctx, playerName);
+async function getPlayerAsync(ctx, playerName, options = {}) {
+  return persistenceBridge.getPlayerAsync(ctx, playerName, options);
 }
 
 async function getCharactersAsync(ctx, playerName, options = {}) {
@@ -105,6 +105,10 @@ async function updatePlayerAsync(ctx, playerName, updates) {
 
 async function addCharacterAsync(ctx, playerName, characterData) {
   return persistenceBridge.addCharacterAsync(ctx, playerName, characterData);
+}
+
+async function addStarterCharacterAsync(ctx, playerName, characterData) {
+  return persistenceBridge.addStarterCharacterAsync(ctx, playerName, characterData);
 }
 
 async function deleteCharacterAsync(ctx, playerName, characterId) {
@@ -141,12 +145,18 @@ async function getNpcBustAsync(ctx, npcId) {
   return persistenceBridge.getNpcBustAsync(ctx, npcId);
 }
 
-async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData) {
-  return persistenceBridge.addOrUpdateMissionAsync(ctx, playerName, characterId, missionData);
+async function addOrUpdateMissionAsync(ctx, playerName, characterId, missionData, options = {}) {
+  return persistenceBridge.addOrUpdateMissionAsync(
+    ctx,
+    playerName,
+    characterId,
+    missionData,
+    options
+  );
 }
 
-async function getMissionsAsync(ctx, playerName, characterId) {
-  return persistenceBridge.getMissionsAsync(ctx, playerName, characterId);
+async function getMissionsAsync(ctx, playerName, characterId, options = {}) {
+  return persistenceBridge.getMissionsAsync(ctx, playerName, characterId, options);
 }
 
 module.exports = {
@@ -163,6 +173,7 @@ module.exports = {
   registerPlayerAsync,
   updatePlayerAsync,
   addCharacterAsync,
+  addStarterCharacterAsync,
   deleteCharacterAsync,
   updateCharacterAsync,
   addShipAsync,

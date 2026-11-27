@@ -4,9 +4,9 @@ const LOGIN_EVENT = 'login';
 const LOGIN_RESPONSE_EVENT = 'login-response';
 
 const LOGIN_FAILURE_REASONS = {
-  PLAYER_NOT_REGISTERED: 'PLAYER_NOT_REGISTERED',
-  PASSWORD_MISMATCH: 'PASSWORD_MISMATCH',
-  UNKNOWN: 'UNKNOWN',
+  PLAYER_NOT_REGISTERED: 'invalid_credentials',
+  PASSWORD_MISMATCH: 'invalid_credentials',
+  UNKNOWN: 'invalid_request',
 };
 
 /**

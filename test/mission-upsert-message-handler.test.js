@@ -19,7 +19,10 @@ function seedMissionPilot(context, missions = []) {
       {
         id: 'character-1',
         characterName: 'RangerOne',
-        missions,
+        starterEpochMs: 1776384000000,
+        missions: missions.some((mission) => mission.missionId === 'first-target')
+          ? missions
+          : [{ missionId: 'first-target', status: 'available' }, ...missions],
       },
     ],
   });
@@ -232,6 +235,25 @@ test('MissionUpsertMessageHandler rejects unknown mission ids', async () => {
   assert.ok(response.message.includes('missionId must be one of'));
 });
 
+test('first-target does not generate a field when its storage query fails', async () => {
+  const context = createTestContext({ seedDefaults: false });
+  context.databaseService = {
+    async getCelestialBodies() {
+      throw new Error('storage unavailable');
+    },
+  };
+  const handler = new MissionUpsertMessageHandler(context);
+  await assert.rejects(
+    handler.ensureStarterMissionAsteroidsAsync({
+      missionId: 'first-target',
+      status: 'active',
+      characterId: 'character-1',
+    }),
+    /storage unavailable/
+  );
+  assert.equal(context.celestialBodiesById.size, 0);
+});
+
 test('MissionUpsertMessageHandler seeds first-target asteroid field on mission start', async () => {
   const context = createTestContext();
   seedMissionPilot(context, []);
@@ -260,37 +282,27 @@ test('MissionUpsertMessageHandler seeds first-target asteroid field on mission s
   assert.ok(seededField.every((body) => body.sourceScanId));
   assert.ok(seededField.every((body) => body.bodyType === 'asteroid'));
   for (const [index, body] of seededField.entries()) {
-    const angle = (Math.PI * 2 * index) / seededField.length;
-    const radiusKm = 250 + index * 40;
-    assert.deepEqual(body.spatial.positionKm, {
-      x: Math.round(Math.cos(angle) * radiusKm),
-      y: Math.round(Math.sin(angle) * radiusKm),
-      z: Math.round((index - 4.5) * 12),
-    });
+    const radiusKm = Math.hypot(body.localOffsetKm.x, body.localOffsetKm.z);
+    assert.ok(radiusKm >= 6 - 1e-9 && radiusKm <= 20 + 1e-9);
+    assert.ok(Math.abs(body.localOffsetKm.y) <= 4);
+    assert.equal(body.spatial.epochMs, 1776384000000);
     assert.equal(body.spatial.frame, 'barycentric');
-    assert.deepEqual(body.localOffsetKm, {
-      x: body.spatial.positionKm.x - body.clusterCenterKm.x,
-      y: body.spatial.positionKm.y - body.clusterCenterKm.y,
-      z: body.spatial.positionKm.z - body.clusterCenterKm.z,
-    });
+    assert.ok(
+      Math.abs(body.localOffsetKm.x - (body.spatial.positionKm.x - body.clusterCenterKm.x)) < 1e-6
+    );
+    assert.ok(
+      Math.abs(body.localOffsetKm.y - (body.spatial.positionKm.y - body.clusterCenterKm.y)) < 1e-6
+    );
+    assert.ok(
+      Math.abs(body.localOffsetKm.z - (body.spatial.positionKm.z - body.clusterCenterKm.z)) < 1e-6
+    );
   }
   assert.ok(seededField.every((body) => typeof body.clusterId === 'string' && body.clusterId));
   assert.ok(
     seededField.every(
       (body) =>
         body.clusterCenterKm &&
-        body.clusterCenterKm.x === 0 &&
-        body.clusterCenterKm.y === 0 &&
-        body.clusterCenterKm.z === 0
-    )
-  );
-  assert.ok(
-    seededField.every(
-      (body) =>
-        body.localOffsetKm &&
-        body.localOffsetKm.x === body.spatial.positionKm.x &&
-        body.localOffsetKm.y === body.spatial.positionKm.y &&
-        body.localOffsetKm.z === body.spatial.positionKm.z
+        Math.hypot(body.clusterCenterKm.x, body.clusterCenterKm.y) > 2.1 * 149597870.7
     )
   );
   assert.ok(seededField.every((body) => typeof body.distanceFromClusterCenterKm === 'number'));

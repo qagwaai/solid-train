@@ -35,6 +35,9 @@ paths:
         - `states` limits results to the provided canonical body states.
         - `createdByCharacterId` and `missionId` narrow results to mission-generated
           or character-scoped bodies.
+        - When both are supplied, a configured database is authoritative: a failed
+          or invalid storage read returns `success: false`, not an empty success.
+          Without a configured database, results come from the in-memory store.
 
         Paging (P2, breaking): results are always paged. `offset` defaults to 0 and
         `limit` defaults to 100; values above 500 are clamped to 500. Invalid paging

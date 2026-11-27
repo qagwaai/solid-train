@@ -72,12 +72,8 @@ class LoginMessageHandler {
       return missingCredentials;
     }
 
-    let player = this.context.getPlayer(playerName);
-    if (!player) {
-      // Reload from persistence so login works after process restarts.
-      await this.context.getPlayerAsync(playerName);
-      player = this.context.getPlayer(playerName);
-    }
+    const loadedPlayer = await this.context.getPlayerAsync(playerName, { strict: true });
+    const player = loadedPlayer ? this.context.getPlayer(playerName) : null;
 
     if (!player) {
       const response = this.buildUnknownPlayerResponse();
@@ -91,7 +87,21 @@ class LoginMessageHandler {
       response = this.buildPasswordMismatchResponse();
     } else {
       const sessionKey = this.context.createId();
-      player.sessionKey = sessionKey;
+      if (
+        !this.context.toNonEmptyString(player.playerId) ||
+        !this.context.toNonEmptyString(sessionKey)
+      ) {
+        this.context.log('[login-handler] Player or session identity is invalid', {
+          level: 'error',
+        });
+        const failure = {
+          success: false,
+          message: 'Login failed: invalid session state',
+          reason: 'outcome_unknown',
+        };
+        socket.emit(LOGIN_RESPONSE_EVENT, failure);
+        return failure;
+      }
       response = {
         success: true,
         message: 'Login successful',
@@ -102,7 +112,6 @@ class LoginMessageHandler {
 
     if (response.success) {
       try {
-        player.socketId = socket.id;
         const updates = {
           sessionKey: response.sessionKey,
           socketId: socket.id,
@@ -116,12 +125,12 @@ class LoginMessageHandler {
         });
 
         // Refresh character cache from persistence so character flows work after restarts.
-        await this.context.getCharactersAsync(playerName);
+        await this.context.getCharactersAsync(playerName, { strict: true });
       } catch (error) {
         this.context.log(`[login-handler] Failed to update player session: ${error.message}`);
         response.success = false;
         response.message = 'Login failed: database error';
-        response.reason = LOGIN_FAILURE_REASONS.UNKNOWN;
+        response.reason = 'outcome_unknown';
         delete response.playerId;
         delete response.sessionKey;
       }

@@ -24,6 +24,7 @@ class RegisterMessageHandler {
       return {
         success: false,
         message: 'playerName, email, and password are required',
+        reason: 'invalid_request',
       };
     }
 
@@ -60,10 +61,11 @@ class RegisterMessageHandler {
 
       try {
         // Keep duplicate-name check here so response stays deterministic across DB/in-memory modes.
-        const existingPlayer = await this.context.getPlayerAsync(playerName);
+        const existingPlayer = await this.context.getPlayerAsync(playerName, { strict: true });
         if (existingPlayer) {
           response.success = false;
           response.message = 'playerName already exists';
+          response.reason = 'player_exists';
           socket.emit(REGISTER_RESPONSE_EVENT, response);
           return response;
         }
@@ -81,10 +83,12 @@ class RegisterMessageHandler {
         if (error?.message === 'Player already exists') {
           response.success = false;
           response.message = 'playerName already exists';
+          response.reason = 'player_exists';
         } else {
           this.context.log(`[register-handler] Failed to register player: ${error.message}`);
           response.success = false;
           response.message = 'Registration failed: database error';
+          response.reason = 'outcome_unknown';
         }
         delete response.playerId;
       }

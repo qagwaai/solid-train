@@ -17,6 +17,8 @@ paths:
         - Every request must include a client-generated `correlationId` (UUID v4).
         - Every request must include `requestIdentity` with `operation`, `entityType`, and
           `containerId`.
+        - Success includes `characterName` and `characterId`. A failed creation can omit
+          both; when the outcome is uncertain, check the character list before retrying.
       operationId: socketCharacterAdd
       tags: [Character]
       requestBody:
@@ -62,10 +64,8 @@ paths:
                   summary: Failure still echoes correlation metadata
                   value:
                     success: false
-                    message: Character name is required
+                    message: Failed to add character
                     playerName: BuilderPilot
-                    characterName: ''
-                    characterId: ''
                     correlationId: 3b7d0a6d-3b44-4d6f-9d82-6bbf8e16f522
                     requestIdentity:
                       operation: character-add
@@ -264,6 +264,7 @@ paths:
                         characterName: RangerOne
                         credits: 0
                         creditLedger: []
+                        missions: []
                 richCharacterSummary:
                   summary: Character list may include ships, credits, and joined-game activity fields
                   value:
@@ -286,6 +287,7 @@ paths:
                             description: Starting credits
                             timestamp: '2026-04-17T00:00:00.000Z'
                             referenceId: null
+                        missions: []
                         inGame: true
                         gameJoinedAt: '2026-04-17T00:00:00.000Z'
                         gameLastMessageReceivedAt: '2026-04-17T00:15:00.000Z'
@@ -298,6 +300,7 @@ paths:
                   value:
                     success: false
                     message: Player is not registered
+                    reason: player_not_registered
                     playerName: GhostPilot
                     correlationId: 5ec4e0b0-f37d-4d8b-b025-2435ad11eb58
                     requestIdentity:

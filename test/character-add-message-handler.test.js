@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { CharacterAddMessageHandler } = require('../src/handlers/character-add-message-handler');
 const { CHARACTER_ADD_RESPONSE_EVENT } = require('../src/model/character-add');
+const { starterPosition } = require('../src/model/starter-belt');
 
 const {
   createMockSocket,
@@ -13,6 +14,18 @@ const {
 
 test('CharacterAddMessageHandler adds a character and emits response', async () => {
   const context = createTestContext();
+  context.gameClock = {
+    read: () => ({
+      status: 'supported',
+      durability: 'durable-mongo-game-state',
+      timeScaleId: 'stellar:unix-ms-uniform:v1',
+      epochMs: 1776384000000,
+      generation: 1,
+      lineage: 'test-clock',
+      running: true,
+    }),
+    persistAsync: async () => true,
+  };
   seedPlayer(context, {
     playerName: 'BuilderPilot',
     sessionKey: 'session-1',
@@ -39,53 +52,58 @@ test('CharacterAddMessageHandler adds a character and emits response', async () 
   assert.equal(characters[0].id, 'player-1');
   assert.equal(characters[0].characterName, 'RangerOne');
   assert.equal(characters[0].createdAt, '2026-04-17T00:00:00.000Z');
-  assert.deepEqual(characters[0].ships, [
-    {
-      id: 'player-1-ship-1',
-      name: 'RangerOne Ship 1',
-      model: 'Scavenger Pod',
-      tier: 1,
-      createdAt: '2026-04-17T00:00:00.000Z',
-      inventory: [
-        {
-          itemId: 'player-1-ship-1-item-1',
-          itemType: 'expendable-dart-drone',
+  const { navigationPlacement, ...starterShip } = characters[0].ships[0];
+  assert.equal(navigationPlacement.placementRule, 'starter-belt-sol-xy-v1');
+  assert.deepEqual(
+    [starterShip],
+    [
+      {
+        id: 'player-1-ship-1',
+        name: 'RangerOne Ship 1',
+        model: 'Scavenger Pod',
+        tier: 1,
+        createdAt: '2026-04-17T00:00:00.000Z',
+        inventory: [
+          {
+            itemId: 'player-1-ship-1-item-1',
+            itemType: 'expendable-dart-drone',
+          },
+          {
+            itemId: 'player-1-ship-1-starter-propulsion-manifold',
+            itemType: 'propulsion-manifold',
+          },
+          {
+            itemId: 'player-1-ship-1-starter-sensor-array',
+            itemType: 'sensor-array',
+          },
+          {
+            itemId: 'player-1-ship-1-starter-power-distribution-bus',
+            itemType: 'power-distribution-bus',
+          },
+          {
+            itemId: 'player-1-ship-1-starter-ship-tractor-beam',
+            itemType: 'ship-tractor-beam',
+          },
+        ],
+        status: null,
+        spatial: {
+          solarSystemId: 'sol',
+          frame: 'barycentric',
+          positionKm: starterPosition('player-1'),
+          epochMs: 1776384000000,
         },
-        {
-          itemId: 'player-1-ship-1-starter-propulsion-manifold',
-          itemType: 'propulsion-manifold',
+        launchable: true,
+        damageProfile: null,
+        ownership: {
+          ownerType: 'player-character',
+          playerId: 'player-seeded',
+          characterId: 'player-1',
+          npcId: null,
+          factionId: null,
         },
-        {
-          itemId: 'player-1-ship-1-starter-sensor-array',
-          itemType: 'sensor-array',
-        },
-        {
-          itemId: 'player-1-ship-1-starter-power-distribution-bus',
-          itemType: 'power-distribution-bus',
-        },
-        {
-          itemId: 'player-1-ship-1-starter-ship-tractor-beam',
-          itemType: 'ship-tractor-beam',
-        },
-      ],
-      status: null,
-      spatial: {
-        solarSystemId: 'sol',
-        frame: 'barycentric',
-        positionKm: { x: 0, y: 0, z: 0 },
-        epochMs: 1776384000000,
       },
-      launchable: true,
-      damageProfile: null,
-      ownership: {
-        ownerType: 'player-character',
-        playerId: 'player-seeded',
-        characterId: 'player-1',
-        npcId: null,
-        factionId: null,
-      },
-    },
-  ]);
+    ]
+  );
   assert.deepEqual(characters[0].missions, [
     {
       missionId: 'first-target',

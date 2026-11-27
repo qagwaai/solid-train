@@ -110,6 +110,7 @@ function createPlayerModelArtifacts({ mongoose, shipSchema, missionSchema }) {
         type: String,
         required: true,
       },
+      starterEpochMs: { type: Number, default: undefined },
       ships: [shipSchema],
       missions: [missionSchema],
       creditLedger: [creditLedgerEntrySchema],

@@ -16,7 +16,12 @@ const { SHIP_LIST_REQUEST_EVENT } = require('../model/ship-list');
 const { SHIP_UPSERT_REQUEST_EVENT } = require('../model/ship-upsert');
 const { SHIP_LIST_BY_OWNER_REQUEST_EVENT } = require('../model/ship-list-by-owner');
 const { SHIP_TRANSFER_REQUEST_EVENT } = require('../model/ship-transfer');
-const { GAME_JOIN_REQUEST_EVENT } = require('../model/game-join');
+const {
+  GAME_JOIN_REQUEST_EVENT,
+  GAME_JOIN_RESPONSE_EVENT,
+  validJoinCorrelation,
+  gameJoinFailure,
+} = require('../model/game-join');
 const { MISSION_UPSERT_REQUEST_EVENT } = require('../model/mission-upsert');
 const { CELESTIAL_BODY_UPSERT_REQUEST_EVENT } = require('../model/celestial-body-upsert');
 const { CELESTIAL_BODY_LIST_REQUEST_EVENT } = require('../model/celestial-body-list');
@@ -128,6 +133,8 @@ const RESPONSE_CHANNEL_BY_OPERATION = Object.freeze({
   'star-get': 'star-get-response',
 });
 
+const AUTH_CORRELATION = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function normalizeRequestIdentityFromPayload(payload, fallbackOperation) {
   return normalizeRequestIdentity(
     {
@@ -165,7 +172,7 @@ function resolveCorrelationMetadata(entry, payload) {
       : normalizeRequestIdentityFromPayload(payload, fallbackOperation);
   const canonicalOperation = toNonEmptyString(entry.canonicalOperation);
   const correlationId =
-    entry.strictCorrelationIdEcho === true &&
+    (entry.strictCorrelationIdEcho === true || entry.authResponse === true) &&
     typeof payload?.correlationId === 'string' &&
     payload.correlationId.trim().length > 0
       ? payload.correlationId
@@ -185,6 +192,13 @@ function resolveCorrelationMetadata(entry, payload) {
 function buildEchoPayload(entry, eventName, payload, correlationMetadata) {
   if (entry.handlerOwnsCorrelation === true) {
     return payload;
+  }
+  if (entry.authResponse === true) {
+    const correlationId = correlationMetadata.correlationId;
+    return {
+      ...payload,
+      correlationId: AUTH_CORRELATION.test(correlationId) ? correlationId : null,
+    };
   }
   if (eventName === 'invalid-session') {
     return payload;
@@ -293,17 +307,41 @@ const SOCKET_HANDLER_REGISTRY = [
     handlerKey: 'registerMessageHandler',
     errorLabel: 'Register',
     requiresSession: false,
+    authResponse: true,
+    canonicalOperation: 'register',
   },
   {
     event: LOGIN_EVENT,
     handlerKey: 'loginMessageHandler',
     errorLabel: 'Login',
     requiresSession: false,
+    authResponse: true,
+    canonicalOperation: 'login',
   },
   {
     event: CHARACTER_LIST_REQUEST_EVENT,
     handlerKey: 'characterListMessageHandler',
     errorLabel: 'Character list',
+    canonicalOperation: 'character-list',
+    strictCorrelationIdEcho: true,
+    strictRequestIdentityEcho: true,
+    failureResponseEvent: 'character-list-response',
+    failureResponse: (payload, kind) =>
+      kind === 'invalid-session'
+        ? {
+            success: false,
+            message: 'Invalid session',
+            reason: 'invalid_session',
+            playerName: payload?.playerName || '',
+            characters: [],
+          }
+        : {
+            success: false,
+            message: 'Character roster could not be retrieved',
+            reason: 'outcome_unknown',
+            playerName: payload?.playerName || '',
+            characters: [],
+          },
   },
   {
     event: CHARACTER_ADD_REQUEST_EVENT,
@@ -366,7 +404,20 @@ const SOCKET_HANDLER_REGISTRY = [
     handlerKey: 'shipTransferMessageHandler',
     errorLabel: 'Ship transfer',
   },
-  { event: GAME_JOIN_REQUEST_EVENT, handlerKey: 'gameJoinMessageHandler', errorLabel: 'Game join' },
+  {
+    event: GAME_JOIN_REQUEST_EVENT,
+    handlerKey: 'gameJoinMessageHandler',
+    errorLabel: 'Game join',
+    canonicalOperation: 'game-join',
+    handlerOwnsCorrelation: true,
+    failureResponseEvent: GAME_JOIN_RESPONSE_EVENT,
+    failureResponse: (payload, kind) =>
+      gameJoinFailure(
+        payload,
+        kind === 'invalid-session' ? 'invalid_session' : 'outcome_unknown',
+        kind === 'invalid-session' ? 'Invalid session' : 'Game join outcome is unknown'
+      ),
+  },
   {
     event: MISSION_UPSERT_REQUEST_EVENT,
     handlerKey: 'missionUpsertMessageHandler',
@@ -557,6 +608,18 @@ function registerSocketHandlers(socket, handlersByKey, context) {
       const scopedSocket = createScopedSocket(entry, socket, correlationMetadata);
 
       try {
+        if (
+          entry.authResponse &&
+          (typeof payload?.correlationId !== 'string' ||
+            !AUTH_CORRELATION.test(payload.correlationId))
+        ) {
+          socketLogger.error(`[socket] ${entry.errorLabel} rejected uncorrelatable request`);
+          return;
+        }
+        if (entry.event === GAME_JOIN_REQUEST_EVENT && !validJoinCorrelation(payload)) {
+          socketLogger.error('[socket] Game join rejected uncorrelatable request');
+          return;
+        }
         // Session guard: enforced centrally for all handlers except those that explicitly opt out.
         if (entry.requiresSession !== false) {
           if (!(await context.hasValidSessionAsync(payload))) {
@@ -575,6 +638,14 @@ function registerSocketHandlers(socket, handlersByKey, context) {
         await handler.handle(scopedSocket, payload);
       } catch (error) {
         socketLogger.error(`[socket] ${entry.errorLabel} handler error: ${error.message}`);
+        if (entry.authResponse) {
+          scopedSocket.emit(RESPONSE_CHANNEL_BY_OPERATION[entry.event], {
+            success: false,
+            message: 'Authentication outcome is unknown',
+            reason: 'outcome_unknown',
+          });
+          return;
+        }
         if (entry.failureResponse) {
           scopedSocket.emit(
             entry.failureResponseEvent,

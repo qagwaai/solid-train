@@ -2,11 +2,31 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "login-response",
   "type": "object",
-  "required": ["success", "message", "playerId", "sessionKey"],
+  "additionalProperties": false,
+  "required": ["success", "message", "correlationId"],
   "properties": {
     "success": { "type": "boolean" },
     "message": { "type": "string" },
-    "playerId": { "type": "string" },
-    "sessionKey": { "type": "string" }
-  }
+    "playerId": { "type": "string", "pattern": "\\S" },
+    "sessionKey": { "type": "string", "pattern": "\\S" },
+    "correlationId": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    },
+    "reason": { "enum": ["invalid_request", "invalid_credentials", "outcome_unknown"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "success": { "const": true } } },
+      "then": {
+        "required": ["playerId", "sessionKey"],
+        "properties": { "correlationId": { "type": "string" } },
+        "not": { "required": ["reason"] }
+      },
+      "else": {
+        "required": ["reason"],
+        "not": { "anyOf": [{ "required": ["playerId"] }, { "required": ["sessionKey"] }] }
+      }
+    }
+  ]
 }

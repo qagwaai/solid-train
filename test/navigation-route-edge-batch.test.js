@@ -339,6 +339,19 @@ test('shared game clock initializes once and restarts from persisted epoch', asy
   assert.ok(running.epochMs >= pausedEpoch);
 });
 
+test('shared game clock rejects a checkpoint without matching storage acknowledgment', async () => {
+  const clock = new SharedGameClock({
+    initialized: true,
+    databaseService: {
+      async putNavigationGameClock() {
+        return null;
+      },
+    },
+  });
+  assert.equal(await clock.persistAsync(), false);
+  assert.equal(clock.read().status, 'unavailable');
+});
+
 test('Phase 3 route-edge request and response contracts validate', async () => {
   const api = await Parser.dereference(path.join(__dirname, '..', 'api', 'openapi.yaml'));
   const operation = api.paths['/socket/navigation-route-edge-batch'].post;
@@ -515,6 +528,47 @@ test('Phase 3 route-edge request and response contracts validate', async () => {
 function epochMsForContract() {
   return Date.parse('2026-01-01T00:00:00.000Z');
 }
+
+test('bounded preview succeeds when a new ship has no drive profile', async () => {
+  const f = await navigationFixture();
+  assert.equal(f.ship.driveProfile, undefined);
+  f.ctx.gameClock = {
+    read: () => ({
+      status: 'supported',
+      epochMs: Date.parse('2026-11-23T00:00:00.000Z'),
+      timeScaleId: 'stellar:unix-ms-uniform:v1',
+      running: true,
+      generation: 1,
+      lineage: 'fixture-lineage',
+      durability: 'durable-mongo-game-state',
+    }),
+  };
+  const handler = new NavigationRouteEdgeBatchMessageHandler(f.ctx);
+  const result = await handler.buildResponse({
+    playerName: 'FixturePilot',
+    sessionKey: 'fixture-session',
+    operation: 'navigation-route-edge-batch.v1',
+    phase: 'bootstrap',
+    correlationId: 'fixture',
+    requestIdentity: { entityType: 'solar-system', containerId: 'sol' },
+    selection: {
+      solarSystemId: 'sol',
+      shipId: f.ship.id,
+      destination: { kind: 'market', id: 'sol-pluto-orbit' },
+      candidateBodyIds: ['sol-earth'],
+    },
+    scenarioCruiseSpeedKmPerSec: CRUISE_SPEED_KM_S,
+    profileId: TEST_PROFILE_ID,
+    navigationMode: NAV_MODE_PREVIEW,
+    jobs: [
+      { jobId: 'direct', prefixBodyIds: [], target: { kind: 'market', id: 'sol-pluto-orbit' } },
+    ],
+  });
+  assert.equal(result.success, true, JSON.stringify(result));
+  assert.equal(result.batch.capture.driveProfile, null);
+  assert.equal(result.batch.capture.driveProfileRevision, null);
+  assert.equal(result.batch.capture.flightAuthorized, false);
+});
 
 test('bootstrap and continuation pin clock and use the full certified arrival pose', async () => {
   const f = await navigationFixture();

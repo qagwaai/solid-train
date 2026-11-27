@@ -11,6 +11,7 @@ const { SOL_SYSTEM_CATALOG } = require('../../model/sol-system-catalog');
 const { computeAbsolutePositionKm } = require('../../model/solar-system-celestial-seed');
 const { buildSeededMarketsForSolarSystem } = require('../../model/solar-system-market-seed');
 const { normalizeStationPlacement } = require('../../model/station-placement');
+const { STARTER_RULE, starterPosition } = require('../../model/starter-belt');
 const {
   computeRelativeOrbitPositionKm,
   computeRelativeOrbitPositionAtEpochMs,
@@ -608,6 +609,7 @@ async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigatio
     snapshot = await capture(ctx, playerName);
     const ship = ownedShip(ctx, snapshot, playerName, navigation.shipId);
     const durable = ship.navigationPlacement;
+    const starter = durable?.placementRule === STARTER_RULE;
     const proof = durable || placements.get(ctx)?.get(placementKey(playerName, ship.id))?.proof;
     if (!proof) reject('BASIS_UNKNOWN', 'The owned ship has no trusted server placement lineage');
     if (
@@ -617,10 +619,10 @@ async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigatio
         durable.shipId !== ship.id ||
         durable.coordinateBasisId !== BASIS_ID ||
         durable.evaluationModelId !== MODEL_ID ||
-        durable.placementRule !== PLACEMENT_RULE ||
+        (!starter && durable.placementRule !== PLACEMENT_RULE) ||
         durable.epochMs !== ship.spatial.epochMs ||
         !durable.lineageId ||
-        !durable.transactionId)
+        (!starter && !durable.transactionId))
     ) {
       reject('BASIS_UNKNOWN', 'The stored placement attestation is unsupported or invalid');
     }
@@ -630,13 +632,16 @@ async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigatio
       reject('BASIS_UNKNOWN', 'The ship changed since its trusted placement was recorded');
     }
     const evaluation = evaluator(ctx, snapshot, ship.spatial.epochMs);
-    const source = evaluation.stationPosition(proof.sourceMarketId);
+    const source = starter
+      ? { positionKm: starterPosition(ship.ownership.characterId) }
+      : evaluation.stationPosition(proof.sourceMarketId);
     const offsetKm = durable ? { x: 0, y: 0, z: 0 } : proof.offsetKm;
     if (
-      (durable
-        ? modelRevision(evaluation.dependencies) !== durable.sourceModelRevision ||
-          source.hostBodyId !== durable.sourceHostBodyId
-        : dependencyRevision(evaluation.dependencies) !== proof.sourceRevision) ||
+      (!starter &&
+        (durable
+          ? modelRevision(evaluation.dependencies) !== durable.sourceModelRevision ||
+            source.hostBodyId !== durable.sourceHostBodyId
+          : dependencyRevision(evaluation.dependencies) !== proof.sourceRevision)) ||
       !samePosition(ship.spatial.positionKm, add(source.positionKm, offsetKm))
     ) {
       reject(
@@ -669,7 +674,7 @@ async function getNavigationStateAsync(ctx, playerName, solarSystemId, navigatio
         provenance: {
           kind: durable ? 'trusted-persisted-placement' : 'trusted-runtime-placement',
           ...(durable ? { lineageId: durable.lineageId } : {}),
-          sourceMarketId: proof.sourceMarketId,
+          ...(starter ? { sourceKind: 'starter-belt' } : { sourceMarketId: proof.sourceMarketId }),
           offsetKm,
           shipRevision: proof.shipRevision,
         },
